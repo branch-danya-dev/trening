@@ -1,0 +1,53 @@
+@* Параметр: подпись, числовое поле и ползунок. Поле принимает и запятую, и точку. *@
+<div class="param @(Disabled ? "disabled" : null)">
+    <div class="param-head">
+        <label for="@_id">@Label</label>
+        <div class="param-value">
+            <input id="@_id" type="text" inputmode="decimal" value="@Display(Value)"
+                   disabled="@Disabled" @onchange="OnNumber" />
+            <span class="unit">@Unit</span>
+        </div>
+    </div>
+    <input type="range" min="@Invariant(Min)" max="@Invariant(Max)" step="@Invariant(Step)" value="@Invariant(Value)"
+           disabled="@Disabled" aria-label="@Label" @oninput="OnRange" />
+    @if (Hint is not null)
+    {
+        <div class="param-hint">@Hint</div>
+    }
+</div>
+
+@code {
+    private static int _counter;
+    private readonly string _id = $"param-{Interlocked.Increment(ref _counter)}";
+
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public double Value { get; set; }
+    [Parameter] public EventCallback<double> ValueChanged { get; set; }
+    [Parameter] public double Min { get; set; }
+    [Parameter] public double Max { get; set; } = 100;
+    [Parameter] public double Step { get; set; } = 1;
+    [Parameter] public string? Unit { get; set; }
+    [Parameter] public string? Hint { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+
+    private static string Invariant(double v) => v.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>В поле — с десятичной запятой и без лишних нулей.</summary>
+    private string Display(double v) =>
+        Math.Round(v, Step < 1 ? 1 : 0).ToString(Step < 1 ? "0.#" : "0", Fmt.Ru);
+
+    private Task OnRange(ChangeEventArgs e) =>
+        double.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out double v)
+            ? Commit(v)
+            : Task.CompletedTask;
+
+    private Task OnNumber(ChangeEventArgs e) =>
+        InputParser.TryParseNumber(e.Value?.ToString(), out double v) ? Commit(v) : Commit(Value);
+
+    private Task Commit(double v)
+    {
+        v = Math.Clamp(Math.Round(v / Step) * Step, Min, Max);
+        Value = v;
+        return ValueChanged.InvokeAsync(v);
+    }
+}

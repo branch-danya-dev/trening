@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.Tests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.BodyModel", "src\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj", "{2DD85E54-1798-56D2-A5B5-EA5FA499E4F9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.Body3D", "src\WorkoutCalculator.Body3D\WorkoutCalculator.Body3D.csproj", "{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{2DD85E54-1798-56D2-A5B5-EA5FA499E4F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2DD85E54-1798-56D2-A5B5-EA5FA499E4F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2DD85E54-1798-56D2-A5B5-EA5FA499E4F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

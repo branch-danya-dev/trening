@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!-- Прототип 3D-модели тела по замерам: Blazor WebAssembly без бэкенда, отрисовка через three.js -->
+  <PropertyGroup>
+    <RootNamespace>WorkoutCalculator.Body3D</RootNamespace>
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <!-- Нужно генератору кода для [JSImport] (бинарная передача сетки в JS) -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.12" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorkoutCalculator.Core\WorkoutCalculator.Core.csproj" />
+    <ProjectReference Include="..\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj" />
+  </ItemGroup>
+
+</Project>

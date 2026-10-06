@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Модель тела по замерам</title>
+    <base href="/" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='7' r='4' fill='%233dd6c6'/><path d='M9 13h14l-2 9h-3l-1 8h-2l-1-8h-3z' fill='%23c9cfd8'/></svg>" />
+    <link rel="stylesheet" href="css/app.css" />
+    <!--
+        three.js лежит локально (wwwroot/lib/three, версия в README.md рядом), без CDN и сборщика.
+        Своя import map вместо сгенерированной Blazor: в документе может быть только одна.
+    -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./lib/three/three.module.js",
+                "three/addons/": "./lib/three/addons/"
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="loading">
+            <svg class="loading-progress">
+                <circle r="40%" cx="50%" cy="50%" />
+                <circle r="40%" cx="50%" cy="50%" />
+            </svg>
+            <div class="loading-progress-text"></div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        Произошла ошибка.
+        <a href="." class="reload">Перезагрузить</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+
+</html>

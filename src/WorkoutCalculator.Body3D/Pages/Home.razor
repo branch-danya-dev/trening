@@ -1,0 +1,238 @@
+@using System.Diagnostics
+
+<div class="app">
+    <header class="topbar">
+        <span class="brand-dot"></span>
+        <span class="brand">Модель тела</span>
+        <span class="brand-sub">прототип: манекен по замерам и прогноз изменений</span>
+    </header>
+
+    <div class="main">
+        <section class="viewport" aria-label="3D-модель">
+            <canvas id="body-canvas" tabindex="0"></canvas>
+
+            <div class="view-toolbar">
+                <button class="btn" @onclick='() => ViewerInterop.SetView("front")'>Спереди</button>
+                <button class="btn" @onclick='() => ViewerInterop.SetView("side")'>Сбоку</button>
+                <button class="btn" @onclick='() => ViewerInterop.SetView("back")'>Сзади</button>
+                <button class="btn" @onclick='() => ViewerInterop.SetView("reset")'>Сброс камеры</button>
+            </div>
+
+            @if (_current is not null)
+            {
+                <div class="view-stats">
+                    @Mannequin.Segments точек на сечение · @Fmt.N(_current.Mesh.VertexCount) вершин ·
+                    сетка @Fmt.N(_buildMs) мс + передача @Fmt.N(_uploadMs) мс · объём @Fmt.N(_volumeMs) мс
+                </div>
+            }
+        </section>
+
+        <aside class="panel">
+            <nav class="tabs" role="tablist">
+                <button role="tab" class="@On(_tab == Tab.Params)" @onclick="() => _tab = Tab.Params">Параметры</button>
+            </nav>
+
+            <div class="panel-body">
+                @if (_tab == Tab.Params)
+                {
+                    <div class="card">
+                        <div class="card-title">Профиль</div>
+                        <div class="field-row">
+                            <span>Пол</span>
+                            <div class="seg">
+                                <button class="@On(_profile.Sex == Sex.Male)" @onclick="() => Change(p => p.Sex = Sex.Male)">Мужской</button>
+                                <button class="@On(_profile.Sex == Sex.Female)" @onclick="() => Change(p => p.Sex = Sex.Female)">Женский</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px">
+                            <ParamSlider Label="Возраст" Unit="лет" Min="16" Max="90" Step="1"
+                                         Value="_profile.Age" ValueChanged="v => Change(p => p.Age = (int)v)" />
+                            <ParamSlider Label="Рост" Unit="см" Min="140" Max="210" Step="0.5"
+                                         Value="_profile.HeightCm" ValueChanged="v => Change(p => p.HeightCm = v)" />
+                            <ParamSlider Label="Вес" Unit="кг" Min="40" Max="180" Step="0.1"
+                                         Value="_profile.WeightKg" ValueChanged="v => Change(p => p.WeightKg = v)" />
+                            <ParamSlider Label="Жир" Unit="%" Min="4" Max="50" Step="0.5"
+                                         Hint="Калипер, весы с биоимпедансом или DEXA"
+                                         Value="_profile.BodyFatPercent" ValueChanged="v => Change(p => p.BodyFatPercent = v)" />
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            Обхваты
+                            <button class="btn-link" @onclick="ResetToAverages">Средние для пола</button>
+                        </div>
+                        <ParamSlider Label="Грудь" Unit="см" Min="70" Max="150" Step="0.5" Hint="По сосковой линии, руки опущены"
+                                     Value="_profile.ChestCm" ValueChanged="v => Change(p => p.ChestCm = v)" />
+                        <ParamSlider Label="Талия" Unit="см" Min="55" Max="150" Step="0.5" Hint="В самом узком месте или на уровне пупка"
+                                     Value="_profile.WaistCm" ValueChanged="v => Change(p => p.WaistCm = v)" />
+                        <ParamSlider Label="Бёдра (ягодицы)" Unit="см" Min="70" Max="150" Step="0.5" Hint="По самой выступающей точке ягодиц"
+                                     Value="_profile.HipsCm" ValueChanged="v => Change(p => p.HipsCm = v)" />
+                        <ParamSlider Label="Плечо (бицепс)" Unit="см" Min="20" Max="55" Step="0.5" Hint="Посередине плеча, рука расслаблена"
+                                     Value="_profile.BicepsCm" ValueChanged="v => Change(p => p.BicepsCm = v)" />
+                        <ParamSlider Label="Бедро" Unit="см" Min="35" Max="85" Step="0.5" Hint="Сразу под ягодичной складкой"
+                                     Value="_profile.ThighCm" ValueChanged="v => Change(p => p.ThighCm = v)" />
+                        <ParamSlider Label="Шея" Unit="см" Min="28" Max="55" Step="0.5" Disabled="_profile.NeckCm is null"
+                                     Hint='@(_profile.NeckCm is null ? "Не указана — оценка по груди и росту" : "Посередине шеи")'
+                                     Value="_profile.EffectiveNeckCm" ValueChanged="v => Change(p => p.NeckCm = v)" />
+                        <label class="check" style="margin-top: 6px">
+                            <input type="checkbox" checked="@(_profile.NeckCm is not null)" @onchange="ToggleNeck" />
+                            Указать обхват шеи
+                        </label>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Производные</div>
+                        <div class="stats">
+                            <div class="stat">
+                                <div class="stat-value">@Fmt.N(_profile.LeanMassKg, 1)<small>кг</small></div>
+                                <div class="stat-label">Безжировая масса</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">@Fmt.N(_profile.FatMassKg, 1)<small>кг</small></div>
+                                <div class="stat-label">Жировая масса</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">@Fmt.N(_profile.Bmi, 1)</div>
+                                <div class="stat-label">ИМТ</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">@Fmt.N(_profile.WaistToHeight, 2)</div>
+                                <div class="stat-label">Талия / рост</div>
+                            </div>
+                        </div>
+                        @if (_report is not null)
+                        {
+                            <div class="volume-line">
+                                Объём манекена @Fmt.N(_report.MeshVolumeLiters, 1) л · по весу и % жира
+                                @Fmt.N(_report.ExpectedVolumeLiters, 1) л (@Fmt.Signed(_report.Deviation * 100)&nbsp;%)
+                            </div>
+                        }
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Проверка замеров</div>
+                        @if (_report is { Hints.Count: > 0 })
+                        {
+                            <div class="hints">
+                                @foreach (var hint in _report.Hints)
+                                {
+                                    <div class="hint">@hint.Text</div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="ok">Замеры и вес согласуются между собой.</div>
+                        }
+                    </div>
+
+                    <div class="note">Профиль хранится только в этом браузере.</div>
+                }
+            </div>
+        </aside>
+    </div>
+</div>
+
+@code {
+    private enum Tab { Params }
+
+    private BodyProfile _profile = BodyDefaults.Default();
+    private Mannequin? _current;
+    private ConsistencyReport? _report;
+    private Tab _tab = Tab.Params;
+
+    private bool _viewerReady;
+    private bool _dirty;
+    private bool _rebuilding;
+    private double _buildMs;
+    private double _uploadMs;
+    private double _volumeMs;
+
+    private static string? On(bool on) => on ? "on" : null;
+
+    protected override void OnInitialized()
+    {
+        _profile = ProfileStorage.LoadProfile() ?? BodyDefaults.Default();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender) return;
+        ViewerInterop.Init("body-canvas");
+        _viewerReady = true;
+        RequestRebuild();
+    }
+
+    private void Change(Action<BodyProfile> change)
+    {
+        change(_profile);
+        ProfileStorage.SaveProfile(_profile);
+        RequestRebuild();
+    }
+
+    private void ResetToAverages() => Change(p =>
+    {
+        var d = BodyDefaults.For(p.Sex);
+        p.HeightCm = d.HeightCm;
+        p.WeightKg = d.WeightKg;
+        p.BodyFatPercent = d.BodyFatPercent;
+        foreach (Girth g in Enum.GetValues<Girth>())
+            p.SetGirth(g, d.GetGirth(g));
+    });
+
+    private void ToggleNeck(ChangeEventArgs e) =>
+        Change(p => p.NeckCm = e.Value is true ? Math.Round(p.EffectiveNeckCm * 2) / 2 : null);
+
+    /// <summary>
+    /// Перестройка не чаще, чем успевает: пока строится сетка, новые значения ползунков только
+    /// запоминаются, и следующий проход берёт самые свежие. Объём и проверка согласованности
+    /// дороже сетки, поэтому считаются, когда ползунок отпустили (пауза <see cref="CheckDelayMs"/>).
+    /// </summary>
+    private void RequestRebuild()
+    {
+        _dirty = true;
+        if (_viewerReady && !_rebuilding)
+            _ = RebuildLoopAsync();
+    }
+
+    private const int CheckDelayMs = 150;
+    private int _checkVersion;
+
+    private async Task RebuildLoopAsync()
+    {
+        _rebuilding = true;
+        try
+        {
+            while (_dirty)
+            {
+                _dirty = false;
+                var sw = Stopwatch.StartNew();
+                var model = Mannequin.Build(_profile.Clone());
+                _buildMs = sw.Elapsed.TotalMilliseconds;
+                sw.Restart();
+                ViewerInterop.SetMesh("current", model.Mesh);
+                _uploadMs = sw.Elapsed.TotalMilliseconds;
+
+                _current = model;
+                _ = CheckLaterAsync(model, ++_checkVersion);
+                StateHasChanged();
+                await Task.Delay(1); // отдать управление браузеру: кадр и новые события ползунка
+            }
+        }
+        finally
+        {
+            _rebuilding = false;
+        }
+    }
+
+    private async Task CheckLaterAsync(Mannequin model, int version)
+    {
+        await Task.Delay(CheckDelayMs);
+        if (version != _checkVersion) return; // ползунок ещё двигают
+        var sw = Stopwatch.StartNew();
+        _report = ConsistencyChecker.Check(model);
+        _volumeMs = sw.Elapsed.TotalMilliseconds;
+        StateHasChanged();
+    }
+}
