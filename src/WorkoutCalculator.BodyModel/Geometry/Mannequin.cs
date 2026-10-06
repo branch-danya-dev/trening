@@ -24,7 +24,7 @@ public sealed class BodyMesh
 /// Процедурный манекен: туловище из эллиптических сечений, руки, ноги и шея — трубки,
 /// голова, кисти и стопы — суперэллипсоиды. Обхваты на заданных уровнях совпадают с введёнными.
 /// </summary>
-public sealed class Mannequin
+public sealed class Mannequin : IBodyShape
 {
     /// <summary>Точек по окружности сечения туловища, рук, ног, шеи и головы.</summary>
     public const int Segments = 48;

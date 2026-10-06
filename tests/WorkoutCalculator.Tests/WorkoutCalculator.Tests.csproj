@@ -16,6 +16,12 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- Данные MakeHuman (CC0) лежат в приложении; тестам нужна их копия рядом со сборкой -->
+  <ItemGroup>
+    <None Include="..\..\src\WorkoutCalculator.Body3D\wwwroot\data\makehuman-hm08.bin" Link="data\makehuman-hm08.bin"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\WorkoutCalculator.Core\WorkoutCalculator.Core.csproj" />
     <ProjectReference Include="..\..\src\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj" />

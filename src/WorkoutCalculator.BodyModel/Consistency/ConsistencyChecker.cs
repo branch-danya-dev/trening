@@ -31,7 +31,7 @@ public static class ConsistencyChecker
     public static double ExpectedVolumeLiters(BodyProfile p) =>
         BodyDensity.TissueVolumeLiters(p.WeightKg, p.BodyFatPercent) + LungAirLiters(p.Sex);
 
-    public static ConsistencyReport Check(Mannequin m) => Check(m.Profile, m.VolumeLiters);
+    public static ConsistencyReport Check(IBodyShape body) => Check(body.Profile, body.VolumeLiters);
 
     public static ConsistencyReport Check(BodyProfile p, double meshVolumeLiters)
     {
