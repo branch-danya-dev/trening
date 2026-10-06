@@ -46,4 +46,19 @@ public static class Ellipse
     /// </summary>
     public static double PolygonCorrection(double a, double b, int n) =>
         Perimeter(a, b) / PolygonPerimeter(a, b, n);
+
+    /// <summary>То же по готовой таблице cos/sin (без тригонометрии на каждое кольцо).</summary>
+    public static double PolygonCorrection(double a, double b, ReadOnlySpan<double> cos, ReadOnlySpan<double> sin)
+    {
+        int n = cos.Length;
+        double p = 0, px = a * cos[n - 1], pz = b * sin[n - 1];
+        for (int i = 0; i < n; i++)
+        {
+            double x = a * cos[i], z = b * sin[i];
+            p += Math.Sqrt((x - px) * (x - px) + (z - pz) * (z - pz));
+            px = x;
+            pz = z;
+        }
+        return Perimeter(a, b) / p;
+    }
 }

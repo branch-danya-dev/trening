@@ -41,11 +41,11 @@ public static class ConsistencyChecker
         var hints = new List<ConsistencyHint>();
         if (deviation > VolumeTolerance)
             hints.Add(new ConsistencyHint(
-                $"Замеры и вес плохо согласуются: по обхватам тело получается на {deviation * 100:0} % объёмнее, " +
+                $"Замеры и вес плохо согласуются: по обхватам тело получается на {deviation * 100:0}\u00A0% объёмнее, " +
                 "чем следует из веса и % жира. Проверьте обхваты (особенно талию и бёдра), вес и % жира."));
         else if (deviation < -VolumeTolerance)
             hints.Add(new ConsistencyHint(
-                $"Замеры и вес плохо согласуются: по обхватам тело получается на {-deviation * 100:0} % меньше, " +
+                $"Замеры и вес плохо согласуются: по обхватам тело получается на {-deviation * 100:0}\u00A0% меньше, " +
                 "чем следует из веса и % жира. Возможно, обхваты занижены или вес указан с одеждой."));
 
         hints.AddRange(PlausibilityHints(p));
@@ -62,27 +62,27 @@ public static class ConsistencyChecker
         double essential = male ? 3 : 12;
         if (fat < essential)
             yield return new ConsistencyHint(
-                $"{fat:0} % жира — ниже незаменимого минимума (≈ {essential:0} %). Проверьте значение.");
+                $"{fat:0}\u00A0% жира — ниже незаменимого минимума (≈\u00A0{essential:0}\u00A0%). Проверьте значение.");
 
         double lean = male ? 15 : 22;
         if (p.WaistCm > p.ChestCm && fat < lean)
             yield return new ConsistencyHint(
-                $"Талия больше груди при {fat:0} % жира — при низком % жира так почти не бывает. " +
+                $"Талия больше груди при {fat:0}\u00A0% жира — при низком % жира так почти не бывает. " +
                 "Проверьте обхват талии или % жира.");
 
         if (p.WaistToHeight > 0.6 && fat < lean)
             yield return new ConsistencyHint(
-                $"Талия — {p.WaistToHeight:0.00} роста: это типично для заметного лишнего жира, а указано {fat:0} %.");
+                $"Талия — {p.WaistToHeight:0.00} роста: это типично для заметного лишнего жира, а указано {fat:0}\u00A0%.");
 
         double high = male ? 25 : 33;
         if (p.WaistToHeight < 0.40 && fat > high)
             yield return new ConsistencyHint(
-                $"Очень тонкая талия ({p.WaistToHeight:0.00} роста) при {fat:0} % жира — проверьте замеры.");
+                $"Очень тонкая талия ({p.WaistToHeight:0.00} роста) при {fat:0}\u00A0% жира — проверьте замеры.");
 
         double athletic = male ? 10 : 18;
         if (p.Bmi > 32 && fat < athletic)
             yield return new ConsistencyHint(
-                $"ИМТ {p.Bmi:0} при {fat:0} % жира бывает только у очень мускулистых людей. Проверьте вес и % жира.");
+                $"ИМТ {p.Bmi:0} при {fat:0}\u00A0% жира бывает только у очень мускулистых людей. Проверьте вес и % жира.");
 
         if (p.ThighCm > 0.8 * p.HipsCm)
             yield return new ConsistencyHint(

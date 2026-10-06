@@ -37,6 +37,8 @@ public sealed class Mannequin
     /// <summary>Шаг колец вдоль туловища и конечностей, в долях роста (≈ 1,2–1,4 см).</summary>
     private const double TorsoStep = 0.0065;
     private const double LimbStep = 0.008;
+    /// <summary>Глубина скруглённого дна туловища под пахом, в долях роста.</summary>
+    private const double CrotchDome = 0.018;
 
     private readonly List<(ISolid A, ISolid B, int Count)> _overlaps;
     private double? _volume;
@@ -150,34 +152,71 @@ public sealed class Mannequin
                 ys.Add(ky[k] + (ky[k + 1] - ky[k]) * j / n);
         }
 
+        // Снизу — скруглённое дно (половина эллипсоида глубиной CrotchDome·H): между бёдрами
+        // не видно плоского торца. Кольца дна идут первыми, чтобы высоты шли по возрастанию.
+        double y0 = ky[0], a0 = keys[0].A, b0 = keys[0].B, z0 = keys[0].Cz;
+        double depth = CrotchDome * layout.Height;
+        var ry = new List<double>();
+        var ra = new List<double>();
+        var rb = new List<double>();
+        var rz = new List<double>();
+        for (int i = CapRings - 1; i >= 1; i--)
+        {
+            double t = i * Math.PI / 2 / CapRings;
+            ry.Add(y0 - depth * Math.Sin(t));
+            ra.Add(a0 * Math.Cos(t));
+            rb.Add(b0 * Math.Cos(t));
+            rz.Add(z0);
+        }
+        int keyOffset = ry.Count;
+        foreach (double y in ys)
+        {
+            ry.Add(y);
+            ra.Add(aSpline.Evaluate(y));
+            rb.Add(bSpline.Evaluate(y));
+            rz.Add(zSpline.Evaluate(y));
+        }
+
         var (u, v) = MeshBuilder.Frame(new Vec3(0, 1, 0));
-        int count = ys.Count;
+        int count = ry.Count;
         var sa = new double[count];
         var sb = new double[count];
-        var sz = new double[count];
         var ringStart = new int[count];
         for (int i = 0; i < count; i++)
         {
-            double a = aSpline.Evaluate(ys[i]), b = bSpline.Evaluate(ys[i]);
-            double c = Ellipse.PolygonCorrection(a, b, cos.Length);
-            sa[i] = a * c;
-            sb[i] = b * c;
-            sz[i] = zSpline.Evaluate(ys[i]);
-            ringStart[i] = mb.AddRing(new Vec3(0, ys[i], sz[i]), u, v, sa[i], sb[i], cos, sin);
-            if (keyRing.TryGetValue(i, out var g))
+            double c = Ellipse.PolygonCorrection(ra[i], rb[i], cos, sin);
+            sa[i] = ra[i] * c;
+            sb[i] = rb[i] * c;
+            ringStart[i] = mb.AddRing(new Vec3(0, ry[i], rz[i]), u, v, sa[i], sb[i], cos, sin);
+            if (keyRing.TryGetValue(i - keyOffset, out var g))
                 rings.Add(new MeasureRing(g, ringStart[i], cos.Length));
         }
 
-        // Плоские торцы: снизу их закрывают ноги, сверху — шея
+        // Полюс дна; сверху плоский торец — его закрывает шея
         int n0 = cos.Length;
-        int bottom = mb.AddVertex(new Vec3(0, ys[0], sz[0]));
+        double bottomY = y0 - depth;
+        int bottom = mb.AddVertex(new Vec3(0, bottomY, z0));
         mb.CapStart(bottom, ringStart[0], n0);
         for (int i = 0; i < count - 1; i++)
             mb.ConnectRings(ringStart[i], ringStart[i + 1], n0);
-        int top = mb.AddVertex(new Vec3(0, ys[^1], sz[^1]));
+        int top = mb.AddVertex(new Vec3(0, ry[^1], rz[^1]));
         mb.CapEnd(ringStart[^1], top, n0);
 
-        return new EllipseStackSolid(ys.ToArray(), new double[count], sz, sa, sb);
+        // Тело для вычета перекрытий: дно добавляем вырожденным кольцом в полюсе
+        var solidY = new double[count + 1];
+        var solidA = new double[count + 1];
+        var solidB = new double[count + 1];
+        var solidZ = new double[count + 1];
+        solidY[0] = bottomY;
+        solidZ[0] = z0;
+        for (int i = 0; i < count; i++)
+        {
+            solidY[i + 1] = ry[i];
+            solidA[i + 1] = sa[i];
+            solidB[i + 1] = sb[i];
+            solidZ[i + 1] = rz[i];
+        }
+        return new EllipseStackSolid(solidY, new double[count + 1], solidZ, solidA, solidB);
     }
 
     private static ISolid AddTube(MeshBuilder mb, TubeLayout tube, double height, double[] cos, double[] sin, List<MeasureRing>? rings)

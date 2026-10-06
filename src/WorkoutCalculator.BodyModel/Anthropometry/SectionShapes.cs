@@ -20,7 +20,7 @@ public static class SectionShapes
                 ? 0.74 + 0.006 * (bodyFatPercent - 15)
                 : 0.72 + 0.005 * (bodyFatPercent - 25), 0.62, 0.95),
             TorsoLevel.Underbust => 0.70,
-            TorsoLevel.Chest => male ? 0.72 : 0.78,
+            TorsoLevel.Chest => male ? 0.72 : 0.75,
             TorsoLevel.Armpit => 0.66,
             TorsoLevel.Shoulders => 0.50,
             _ => 0.85, // основание шеи
@@ -38,7 +38,7 @@ public static class SectionShapes
             TorsoLevel.Hips => male ? -0.10 : -0.14,                       // ягодицы назад
             TorsoLevel.Waist => 0.02 + 0.004 * Math.Max(0, bodyFatPercent - typicalFat), // живот вперёд
             TorsoLevel.Underbust => 0.0,
-            TorsoLevel.Chest => male ? 0.05 : 0.15,                        // грудь вперёд
+            TorsoLevel.Chest => male ? 0.05 : 0.09,                        // грудь вперёд
             TorsoLevel.Armpit => -0.02,
             _ => 0.0,
         };

@@ -46,8 +46,8 @@ public static class Proportions
     public const double NeckGirthHeight = 0.852;    // середина шеи
 
     public static double WaistHeight(Sex sex) => sex == Sex.Male ? 0.605 : 0.620;
-    public static double UnderbustHeight(Sex sex) => sex == Sex.Male ? 0.685 : 0.690;
-    public static double ArmpitHeight(Sex sex) => sex == Sex.Male ? 0.755 : 0.745;
+    public static double UnderbustHeight(Sex sex) => sex == Sex.Male ? 0.685 : 0.675;
+    public static double ArmpitHeight(Sex sex) => sex == Sex.Male ? 0.755 : 0.752;
 
     // --- Пол: у женщин уже плечи и шире таз (оценка) ---
     public static double ShoulderWidthFactor(Sex sex) => sex == Sex.Male ? 1.0 : 0.93;
@@ -78,8 +78,8 @@ public static class Proportions
     // --- Голова, кисти, стопы ---
     public const double HeadHalfWidth = 0.0425;   // ширина головы ≈ 0,085·H
     public const double HeadHalfDepth = 0.054;    // длина головы ≈ 0,108·H
-    public const double HandHalfWidth = 0.025;    // ширина ладони ≈ 0,05·H
-    public const double HandHalfThickness = 0.0125;
+    public const double HandHalfWidth = 0.023;    // ширина ладони ≈ 0,046·H
+    public const double HandHalfThickness = 0.014;
     public const double FootHalfHeight = 0.020;
     public const double HeelBehindAnkle = 0.035;
 }

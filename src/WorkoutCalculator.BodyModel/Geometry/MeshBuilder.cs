@@ -42,21 +42,52 @@ public sealed class MeshBuilder
     /// <summary>Добавляет кольцо: центр + r1·cos φ·u + r2·sin φ·v, φ = 2πj/n. Возвращает индекс первой вершины.</summary>
     public int AddRing(Vec3 center, Vec3 u, Vec3 v, double r1, double r2, ReadOnlySpan<double> cos, ReadOnlySpan<double> sin)
     {
+        // Арифметика вручную, без операций над Vec3: в интерпретаторе WebAssembly это заметно быстрее
+        int n = cos.Length;
+        EnsureVertices(n);
+        double ux = u.X * r1, uy = u.Y * r1, uz = u.Z * r1;
+        double vx = v.X * r2, vy = v.Y * r2, vz = v.Z * r2;
         int first = VertexCount;
-        for (int j = 0; j < cos.Length; j++)
-            AddVertex(center + u * (r1 * cos[j]) + v * (r2 * sin[j]));
+        int i = first * 3;
+        var pos = _positions;
+        for (int j = 0; j < n; j++, i += 3)
+        {
+            double c = cos[j], s = sin[j];
+            pos[i] = (float)(center.X + ux * c + vx * s);
+            pos[i + 1] = (float)(center.Y + uy * c + vy * s);
+            pos[i + 2] = (float)(center.Z + uz * c + vz * s);
+        }
+        VertexCount += n;
         return first;
     }
 
     /// <summary>Соединяет кольцо <paramref name="a"/> со следующим по оси кольцом <paramref name="b"/>.</summary>
     public void ConnectRings(int a, int b, int n)
     {
+        EnsureIndices(6 * n);
+        var idx = _indices;
+        int k = IndexCount;
         for (int j = 0; j < n; j++)
         {
-            int j1 = (j + 1) % n;
-            AddTriangle(a + j, a + j1, b + j1);
-            AddTriangle(a + j, b + j1, b + j);
+            int j1 = j + 1 == n ? 0 : j + 1;
+            idx[k++] = a + j; idx[k++] = a + j1; idx[k++] = b + j1;
+            idx[k++] = a + j; idx[k++] = b + j1; idx[k++] = b + j;
         }
+        IndexCount = k;
+    }
+
+    private void EnsureVertices(int count)
+    {
+        int need = (VertexCount + count) * 3;
+        if (need > _positions.Length)
+            Array.Resize(ref _positions, Math.Max(need, _positions.Length * 2));
+    }
+
+    private void EnsureIndices(int count)
+    {
+        int need = IndexCount + count;
+        if (need > _indices.Length)
+            Array.Resize(ref _indices, Math.Max(need, _indices.Length * 2));
     }
 
     /// <summary>Замыкает начало трубки: полюс лежит раньше кольца по оси.</summary>

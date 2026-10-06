@@ -53,13 +53,20 @@ public sealed class EllipseStackSolid : ISolid
 /// <summary>Прямая трубка с радиусом, заданным функцией от расстояния вдоль оси (включая скругления).</summary>
 public sealed class TubeSolid : ISolid
 {
+    /// <summary>Радиус берётся из таблицы с линейной интерполяцией — быстрее, чем сплайн на каждую точку.</summary>
+    private const int Samples = 256;
+
     private readonly Vec3 _start, _dir;
-    private readonly double _sMin, _sMax;
-    private readonly Func<double, double> _radius;
+    private readonly double _sMin, _sMax, _ds;
+    private readonly double[] _radius = new double[Samples + 1];
 
     public TubeSolid(Vec3 start, Vec3 dir, double sMin, double sMax, double maxRadius, Func<double, double> radius)
     {
-        _start = start; _dir = dir; _sMin = sMin; _sMax = sMax; _radius = radius;
+        _start = start; _dir = dir; _sMin = sMin; _sMax = sMax;
+        _ds = (sMax - sMin) / Samples;
+        for (int i = 0; i <= Samples; i++)
+            _radius[i] = radius(sMin + i * _ds);
+
         var a = start + dir * sMin;
         var b = start + dir * sMax;
         Bounds = new Box(
@@ -71,12 +78,16 @@ public sealed class TubeSolid : ISolid
 
     public bool Contains(Vec3 p)
     {
-        var rel = p - _start;
-        double s = rel.Dot(_dir);
+        double rx = p.X - _start.X, ry = p.Y - _start.Y, rz = p.Z - _start.Z;
+        double s = rx * _dir.X + ry * _dir.Y + rz * _dir.Z;
         if (s < _sMin || s > _sMax) return false;
-        double r = _radius(s);
-        var radial = rel - _dir * s;
-        return radial.Dot(radial) <= r * r;
+
+        double t = (s - _sMin) / _ds;
+        int i = Math.Min((int)t, Samples - 1);
+        double r = _radius[i] + (_radius[i + 1] - _radius[i]) * (t - i);
+
+        double qx = rx - _dir.X * s, qy = ry - _dir.Y * s, qz = rz - _dir.Z * s;
+        return qx * qx + qy * qy + qz * qz <= r * r;
     }
 }
 
@@ -100,6 +111,7 @@ public sealed class SuperEllipsoidSolid : ISolid
         var rel = p - _c;
         double x = Math.Abs(rel.Dot(_ax) / _rx), y = Math.Abs(rel.Dot(_ay) / _ry), z = Math.Abs(rel.Dot(_az) / _rz);
         if (x > 1 || y > 1 || z > 1) return false;
+        if (_n == 2) return x * x + y * y + z * z <= 1;
         return Math.Pow(x, _n) + Math.Pow(y, _n) + Math.Pow(z, _n) <= 1;
     }
 }

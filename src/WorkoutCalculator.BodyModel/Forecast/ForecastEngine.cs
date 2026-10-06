@@ -135,12 +135,12 @@ public static class ForecastEngine
         var last = history[^1];
 
         if (maxWeeklyLoss > C.MaxWeeklyLossFraction)
-            warnings.Add($"Темп похудения до {maxWeeklyLoss * 100:0.0} % веса в неделю — больше 1 %. " +
+            warnings.Add($"Темп похудения до {maxWeeklyLoss * 100:0.0}\u00A0% веса в неделю — больше 1 %. " +
                          "Такой дефицит трудно выдержать, и при нём теряются мышцы даже с силовыми тренировками.");
 
         if (input.IntakeKcalPerDay < first.BmrKcal)
             warnings.Add($"Потребление ({input.IntakeKcalPerDay:0} ккал) ниже базового обмена " +
-                         $"(≈ {first.BmrKcal:0} ккал). Долго так питаться не стоит.");
+                         $"(≈\u00A0{first.BmrKcal:0} ккал). Долго так питаться не стоит.");
 
         if (hitFatFloor)
             warnings.Add("Жир дошёл до незаменимого минимума — дальше дефицит покрывается только мышцами. " +
@@ -156,10 +156,10 @@ public static class ForecastEngine
             {
                 double rate = -needed / input.Weeks / start.WeightKg;
                 if (rate > C.MaxWeeklyLossFraction)
-                    warnings.Add($"Цель {target:0.#} кг за {input.Weeks} нед. требует худеть на {rate * 100:0.0} % веса " +
+                    warnings.Add($"Цель {target:0.#} кг за {input.Weeks} нед. требует худеть на {rate * 100:0.0}\u00A0% веса " +
                                  "в неделю — быстрее реалистичного 1 %. Увеличьте срок.");
                 else if (last.WeightKg > target + 0.5)
-                    warnings.Add($"При этом плане к сроку будет ≈ {last.WeightKg:0.#} кг — до цели {target:0.#} кг " +
+                    warnings.Add($"При этом плане к сроку будет ≈\u00A0{last.WeightKg:0.#} кг — до цели {target:0.#} кг " +
                                  $"не хватит {last.WeightKg - target:0.#} кг.");
             }
             else if (needed > 0)
@@ -168,9 +168,9 @@ public static class ForecastEngine
                                  * start.WeightKg / C.WeeksPerMonth * input.Weeks;
                 if (needed > leanCap)
                     warnings.Add($"Набрать {needed:0.#} кг за {input.Weeks} нед. одними мышцами нереально: " +
-                                 $"потолок для вашего стажа ≈ {leanCap:0.#} кг, остальное будет жир.");
+                                 $"потолок для вашего стажа ≈\u00A0{leanCap:0.#} кг, остальное будет жир.");
                 if (last.WeightKg < target - 0.5)
-                    warnings.Add($"При этом плане к сроку будет ≈ {last.WeightKg:0.#} кг — до цели {target:0.#} кг " +
+                    warnings.Add($"При этом плане к сроку будет ≈\u00A0{last.WeightKg:0.#} кг — до цели {target:0.#} кг " +
                                  $"не хватит {target - last.WeightKg:0.#} кг.");
             }
         }
