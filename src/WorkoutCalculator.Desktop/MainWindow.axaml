@@ -1,0 +1,251 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WorkoutCalculator.Desktop.MainWindow"
+        Title="Калькулятор тренировок"
+        Width="580" Height="740" MinWidth="480" MinHeight="560"
+        WindowStartupLocation="CenterScreen">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.title">
+      <Setter Property="FontSize" Value="24" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.subtitle">
+      <Setter Property="Opacity" Value="0.75" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Opacity" Value="0.65" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <!-- Полупрозрачные цвета одинаково читаются в светлой и тёмной теме -->
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="#14808080" />
+      <Setter Property="BorderBrush" Value="#33808080" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="14,10" />
+    </Style>
+    <Style Selector="Border.notes">
+      <Setter Property="Background" Value="#1FF5A623" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="14,10" />
+    </Style>
+  </Window.Styles>
+
+  <DockPanel Margin="32,24,32,24">
+
+    <!-- Шапка: номер шага и прогресс -->
+    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,20">
+      <TextBlock x:Name="StepCaption" Classes="hint" />
+      <ProgressBar x:Name="StepProgress" Minimum="0" Maximum="5" Height="6" />
+    </StackPanel>
+
+    <!-- Низ: ошибка и кнопки. Enter = «Далее» -->
+    <StackPanel DockPanel.Dock="Bottom" Spacing="12" Margin="0,16,0,0">
+      <TextBlock x:Name="ErrorText" Foreground="#E5484D" TextWrapping="Wrap" IsVisible="False" />
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <Button x:Name="BackButton" Grid.Column="0" Content="Назад" MinWidth="110"
+                HorizontalContentAlignment="Center" Click="OnBack" />
+        <Button x:Name="NextButton" Grid.Column="2" Classes="accent" Content="Далее" MinWidth="150"
+                HorizontalContentAlignment="Center" IsDefault="True" Click="OnNext" />
+      </Grid>
+    </StackPanel>
+
+    <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled">
+      <Panel Margin="0,0,8,0">
+
+        <!-- Шаг 1. Профиль -->
+        <StackPanel x:Name="StepProfile" Spacing="16">
+          <TextBlock Classes="title" Text="Ваши параметры" />
+          <TextBlock Classes="subtitle"
+                     Text="Сохраняются между запусками: в следующий раз можно сразу нажать «Далее»." />
+
+          <StackPanel Spacing="6">
+            <TextBlock Classes="label" Text="Пол" />
+            <StackPanel Orientation="Horizontal" Spacing="20">
+              <RadioButton x:Name="MaleRadio" GroupName="sex" Content="Мужской" IsChecked="True" />
+              <RadioButton x:Name="FemaleRadio" GroupName="sex" Content="Женский" />
+            </StackPanel>
+          </StackPanel>
+
+          <Grid ColumnDefinitions="*,12,*,12,*">
+            <StackPanel Grid.Column="0" Spacing="6">
+              <TextBlock Classes="label" Text="Возраст, лет" />
+              <TextBox x:Name="AgeBox" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="6">
+              <TextBlock Classes="label" Text="Рост, см" />
+              <TextBox x:Name="HeightBox" />
+            </StackPanel>
+            <StackPanel Grid.Column="4" Spacing="6">
+              <TextBlock Classes="label" Text="Вес, кг" />
+              <TextBox x:Name="WeightBox" />
+            </StackPanel>
+          </Grid>
+
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="label" Text="Необязательно, но повышает точность" />
+              <Grid ColumnDefinitions="*,12,*">
+                <StackPanel Grid.Column="0" Spacing="6">
+                  <TextBlock Text="Пульс покоя, уд/мин" TextWrapping="Wrap" />
+                  <TextBox x:Name="RestingHrBox" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="6">
+                  <TextBlock Text="VO2max, мл/кг/мин" TextWrapping="Wrap" />
+                  <TextBox x:Name="Vo2MaxBox" />
+                </StackPanel>
+              </Grid>
+              <TextBlock Classes="hint"
+                         Text="Оба значения есть в «Здоровье» → «Сердце» (VO2max там называется «Кардиофитнес»). По VO2max калькулятор проверяет, реальна ли расчётная нагрузка." />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Шаг 2. Тип тренировки -->
+        <StackPanel x:Name="StepType" Spacing="12" IsVisible="False">
+          <TextBlock Classes="title" Text="Какая была тренировка?" />
+          <Border Classes="card">
+            <RadioButton x:Name="WalkTreadmillRadio" GroupName="kind" IsChecked="True" HorizontalAlignment="Stretch">
+              <StackPanel Spacing="2">
+                <TextBlock FontWeight="SemiBold" Text="Ходьба на дорожке" />
+                <TextBlock Classes="hint" Text="Скорость и уклон с табло дорожки" />
+              </StackPanel>
+            </RadioButton>
+          </Border>
+          <Border Classes="card">
+            <RadioButton x:Name="RunTreadmillRadio" GroupName="kind" HorizontalAlignment="Stretch">
+              <StackPanel Spacing="2">
+                <TextBlock FontWeight="SemiBold" Text="Бег на дорожке" />
+                <TextBlock Classes="hint" Text="Скорость и уклон с табло дорожки" />
+              </StackPanel>
+            </RadioButton>
+          </Border>
+          <Border Classes="card">
+            <RadioButton x:Name="WalkOutdoorRadio" GroupName="kind" HorizontalAlignment="Stretch">
+              <StackPanel Spacing="2">
+                <TextBlock FontWeight="SemiBold" Text="Ходьба на улице" />
+                <TextBlock Classes="hint" Text="Дистанция и набор высоты из часов" />
+              </StackPanel>
+            </RadioButton>
+          </Border>
+          <Border Classes="card">
+            <RadioButton x:Name="RunOutdoorRadio" GroupName="kind" HorizontalAlignment="Stretch">
+              <StackPanel Spacing="2">
+                <TextBlock FontWeight="SemiBold" Text="Бег на улице" />
+                <TextBlock Classes="hint" Text="Дистанция и набор высоты из часов, плюс сопротивление воздуха" />
+              </StackPanel>
+            </RadioButton>
+          </Border>
+        </StackPanel>
+
+        <!-- Шаг 3. Параметры: дорожка или улица -->
+        <StackPanel x:Name="StepParams" Spacing="16" IsVisible="False">
+
+          <StackPanel x:Name="TreadmillPanel" Spacing="16">
+            <TextBlock Classes="title" Text="Параметры с дорожки" />
+
+            <Grid x:Name="SingleSegmentPanel" ColumnDefinitions="*,12,*,12,*">
+              <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock Classes="label" Text="Длительность" />
+                <TextBox x:Name="DurationBox" Watermark="30 или 30:23" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="6">
+                <TextBlock Classes="label" Text="Скорость, км/ч" />
+                <TextBox x:Name="SpeedBox" />
+              </StackPanel>
+              <StackPanel Grid.Column="4" Spacing="6">
+                <TextBlock Classes="label" Text="Уклон, %" />
+                <TextBox x:Name="InclineBox" Watermark="0" />
+              </StackPanel>
+            </Grid>
+
+            <StackPanel x:Name="MultiSegmentPanel" Spacing="8" IsVisible="False">
+              <Grid ColumnDefinitions="*,12,*,12,*,8,40">
+                <TextBlock Grid.Column="0" Classes="label" Text="Длительность" />
+                <TextBlock Grid.Column="2" Classes="label" Text="Скорость, км/ч" />
+                <TextBlock Grid.Column="4" Classes="label" Text="Уклон, %" />
+              </Grid>
+              <StackPanel x:Name="SegmentRows" Spacing="8" />
+              <Button Content="+ Добавить отрезок" Click="OnAddSegment" />
+            </StackPanel>
+
+            <CheckBox x:Name="MultiSegmentCheck">
+              <TextBlock Text="Скорость или уклон менялись по ходу (например, была разминка)" TextWrapping="Wrap" />
+            </CheckBox>
+            <CheckBox x:Name="HandrailsCheck" Content="Держался за поручни" />
+
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Text="Дистанция на табло, км (необязательно)" />
+              <TextBox x:Name="DisplayDistanceBox" Watermark="для сверки с расчётом" />
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel x:Name="OutdoorPanel" Spacing="16" IsVisible="False">
+            <TextBlock Classes="title" Text="Маршрут" />
+            <TextBlock Classes="subtitle" Text="Возьмите значения из тренировки на часах." />
+            <Grid ColumnDefinitions="*,12,*">
+              <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock Classes="label" Text="Дистанция, км" />
+                <TextBox x:Name="OutDistanceBox" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="6">
+                <TextBlock Classes="label" Text="Длительность" />
+                <TextBox x:Name="OutDurationBox" Watermark="45 или 1:05:00" />
+              </StackPanel>
+            </Grid>
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Text="Набор высоты, м" />
+              <TextBox x:Name="OutGainBox" Watermark="0" />
+            </StackPanel>
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Text="Покрытие" />
+              <ComboBox x:Name="TerrainCombo" HorizontalAlignment="Stretch">
+                <ComboBoxItem Content="Асфальт / плитка" />
+                <ComboBoxItem Content="Грунтовка / утоптанная тропа" />
+                <ComboBoxItem Content="Трава / пересечённая местность" />
+                <ComboBoxItem Content="Песок" />
+              </ComboBox>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Шаг 4. Данные с часов -->
+        <StackPanel x:Name="StepWatch" Spacing="16" IsVisible="False">
+          <TextBlock Classes="title" Text="Данные с часов" />
+          <TextBlock Classes="subtitle"
+                     Text="Всё необязательно. Пульс добавит третий метод расчёта, а калории с часов — сравнение с оценкой." />
+          <StackPanel Spacing="6">
+            <TextBlock Classes="label" Text="Средний пульс, уд/мин" />
+            <TextBox x:Name="HrBox" />
+          </StackPanel>
+          <Grid ColumnDefinitions="*,12,*">
+            <StackPanel Grid.Column="0" Spacing="6">
+              <TextBlock Classes="label" Text="Активные ккал" />
+              <TextBox x:Name="WatchActiveBox" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="6">
+              <TextBlock Classes="label" Text="Всего ккал" />
+              <TextBox x:Name="WatchTotalBox" />
+            </StackPanel>
+          </Grid>
+          <StackPanel Spacing="6">
+            <TextBlock Classes="label" Text="Дистанция по часам, км" />
+            <TextBox x:Name="WatchDistanceBox" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Шаг 5. Результат: заполняется из кода -->
+        <StackPanel x:Name="StepResult" Spacing="16" IsVisible="False" />
+
+      </Panel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>
