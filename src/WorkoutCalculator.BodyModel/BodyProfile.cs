@@ -1,7 +1,9 @@
+using WorkoutCalculator.BodyModel.Anthropometry;
+
 namespace WorkoutCalculator.BodyModel;
 
-/// <summary>Обхваты, которые вводит пользователь.</summary>
-public enum Girth { Chest, Waist, Hips, Biceps, Thigh, Neck }
+/// <summary>Обхваты, которые вводит пользователь. Шея, голень и запястье — необязательные.</summary>
+public enum Girth { Chest, Waist, Hips, Biceps, Thigh, Neck, Calf, Wrist }
 
 /// <summary>
 /// Замеры человека для построения манекена. Поля пола, возраста, роста и веса названы так же,
@@ -27,6 +29,10 @@ public sealed class BodyProfile
     public double ThighCm { get; set; }
     /// <summary>Шея: посередине. Необязательно — если не задана, оценивается по груди и росту.</summary>
     public double? NeckCm { get; set; }
+    /// <summary>Голень: в самом широком месте. Необязательно — иначе оценка по бедру и росту.</summary>
+    public double? CalfCm { get; set; }
+    /// <summary>Запястье: над косточкой. Необязательно — иначе оценка по плечу и росту.</summary>
+    public double? WristCm { get; set; }
 
     public double LeanMassKg => WeightKg * (1 - BodyFatPercent / 100.0);
     public double FatMassKg => WeightKg * BodyFatPercent / 100.0;
@@ -38,6 +44,19 @@ public sealed class BodyProfile
         ? 0.24 * ChestCm + 0.08 * HeightCm
         : 0.20 * ChestCm + 0.085 * HeightCm);
 
+    public double EffectiveCalfCm => CalfCm ?? SectionShapes.CalfGirth(ThighCm, HeightCm);
+    public double EffectiveWristCm => WristCm ?? SectionShapes.WristGirth(BicepsCm, HeightCm);
+
+    /// <summary>Введён ли обхват (шея, голень и запястье необязательны).</summary>
+    public bool IsSpecified(Girth g) => g switch
+    {
+        Girth.Neck => NeckCm is not null,
+        Girth.Calf => CalfCm is not null,
+        Girth.Wrist => WristCm is not null,
+        _ => true,
+    };
+
+    /// <summary>Обхват: введённый или, для необязательных, оценка.</summary>
     public double GetGirth(Girth g) => g switch
     {
         Girth.Chest => ChestCm,
@@ -45,7 +64,9 @@ public sealed class BodyProfile
         Girth.Hips => HipsCm,
         Girth.Biceps => BicepsCm,
         Girth.Thigh => ThighCm,
-        _ => EffectiveNeckCm,
+        Girth.Neck => EffectiveNeckCm,
+        Girth.Calf => EffectiveCalfCm,
+        _ => EffectiveWristCm,
     };
 
     public void SetGirth(Girth g, double cm)
@@ -57,7 +78,9 @@ public sealed class BodyProfile
             case Girth.Hips: HipsCm = cm; break;
             case Girth.Biceps: BicepsCm = cm; break;
             case Girth.Thigh: ThighCm = cm; break;
-            default: NeckCm = cm; break;
+            case Girth.Neck: NeckCm = cm; break;
+            case Girth.Calf: CalfCm = cm; break;
+            default: WristCm = cm; break;
         }
     }
 
@@ -78,6 +101,8 @@ public sealed class BodyProfile
         Girth.Hips => "Бёдра (ягодицы)",
         Girth.Biceps => "Плечо (бицепс)",
         Girth.Thigh => "Бедро",
-        _ => "Шея",
+        Girth.Neck => "Шея",
+        Girth.Calf => "Голень",
+        _ => "Запястье",
     };
 }

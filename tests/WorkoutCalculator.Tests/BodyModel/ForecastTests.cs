@@ -113,6 +113,20 @@ public class ForecastTests
     }
 
     [Fact]
+    public void GivenCalfFollowsThigh_WristStays()
+    {
+        var start = Start();
+        start.CalfCm = 38;
+        start.WristCm = 17.5;
+
+        var r = ForecastEngine.Run(start, Plan(-500, strength: false, start: start));
+
+        Assert.True(r.End.ThighCm < start.ThighCm);
+        Assert.Equal(r.End.ThighCm / start.ThighCm, r.End.CalfCm!.Value / 38, 9);
+        Assert.Equal(17.5, r.End.WristCm);
+    }
+
+    [Fact]
     public void ForecastMannequin_VolumeFollowsMassChange()
     {
         var r = ForecastEngine.Run(Start(), Plan(-600, strength: false, weeks: 16));

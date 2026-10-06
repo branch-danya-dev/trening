@@ -147,7 +147,7 @@
                 @Row("Жир, %", f.Start.BodyFatPercent, f.End.BodyFatPercent, 1)
                 @Row("Жировая масса, кг", f.Start.FatMassKg, f.End.FatMassKg, 1)
                 @Row("Безжировая масса, кг", f.Start.LeanMassKg, f.End.LeanMassKg, 1)
-                @foreach (Girth g in Enum.GetValues<Girth>())
+                @foreach (Girth g in Enum.GetValues<Girth>().Where(g => g is not (Girth.Calf or Girth.Wrist) || f.Start.IsSpecified(g)))
                 {
                     @Row(BodyProfile.GirthName(g) + ", см", f.Start.GetGirth(g), f.End.GetGirth(g), 1)
                 }

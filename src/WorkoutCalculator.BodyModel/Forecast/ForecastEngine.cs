@@ -123,7 +123,7 @@ public static class ForecastEngine
             if (GirthSensitivity.GirthOf(region) is not Girth g) continue;
             double liters = fatShares[region] * fatChangeKg / C.FatDensityKgPerL
                           + C.LeanShares[region] * leanChangeKg / C.LeanDensityKgPerL;
-            end.SetGirth(g, GirthSensitivity.NewGirthCm(start.GetGirth(g), liters / 1000, lengths[g]));
+            GirthSensitivity.SetLinked(end, g, GirthSensitivity.NewGirthCm(start.GetGirth(g), liters / 1000, lengths[g]));
         }
         return end;
     }

@@ -80,19 +80,21 @@ public sealed class StoredProfile
     public double BicepsCm { get; set; }
     public double ThighCm { get; set; }
     public double? NeckCm { get; set; }
+    public double? CalfCm { get; set; }
+    public double? WristCm { get; set; }
 
     public static StoredProfile From(BodyProfile p) => new()
     {
         Sex = p.Sex, Age = p.Age, HeightCm = p.HeightCm, WeightKg = p.WeightKg, BodyFatPercent = p.BodyFatPercent,
         ChestCm = p.ChestCm, WaistCm = p.WaistCm, HipsCm = p.HipsCm, BicepsCm = p.BicepsCm, ThighCm = p.ThighCm,
-        NeckCm = p.NeckCm,
+        NeckCm = p.NeckCm, CalfCm = p.CalfCm, WristCm = p.WristCm,
     };
 
     public BodyProfile ToProfile() => new()
     {
         Sex = Sex, Age = Age, HeightCm = HeightCm, WeightKg = WeightKg, BodyFatPercent = BodyFatPercent,
         ChestCm = ChestCm, WaistCm = WaistCm, HipsCm = HipsCm, BicepsCm = BicepsCm, ThighCm = ThighCm,
-        NeckCm = NeckCm,
+        NeckCm = NeckCm, CalfCm = CalfCm, WristCm = WristCm,
     };
 }
 

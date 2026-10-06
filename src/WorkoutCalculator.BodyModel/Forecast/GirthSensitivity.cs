@@ -25,27 +25,39 @@ public static class GirthSensitivity
         _ => null,
     };
 
-    /// <summary>Эффективная длина L (м) для каждого введённого обхвата.</summary>
+    /// <summary>Эффективная длина L (м) для обхвата каждого региона.</summary>
     public static Dictionary<Girth, double> EffectiveLengths(BodyProfile profile)
     {
         var p = profile.Clone();
         p.NeckCm = p.EffectiveNeckCm; // шея меняется сама по себе, а не вслед за грудью
 
         var result = new Dictionary<Girth, double>();
-        foreach (Girth g in Enum.GetValues<Girth>())
+        foreach (Region region in Enum.GetValues<Region>())
         {
+            if (GirthOf(region) is not Girth g) continue;
             double c = p.GetGirth(g);
             double dc = 0.01 * c;
 
             var plus = p.Clone();
-            plus.SetGirth(g, c + dc);
+            SetLinked(plus, g, c + dc);
             var minus = p.Clone();
-            minus.SetGirth(g, c - dc);
+            SetLinked(minus, g, c - dc);
 
             double dvdc = (LayoutVolumeM3(BodyLayout.From(plus)) - LayoutVolumeM3(BodyLayout.From(minus))) / (2 * dc / 100);
             result[g] = 2 * Math.PI * dvdc / (c / 100);
         }
         return result;
+    }
+
+    /// <summary>
+    /// Меняет обхват региона; введённая голень меняется вместе с бедром в той же пропорции
+    /// (это одна нога), введённое запястье не меняется — там в основном кости и сухожилия.
+    /// </summary>
+    public static void SetLinked(BodyProfile p, Girth g, double cm)
+    {
+        if (g == Girth.Thigh && p.CalfCm is double calf)
+            p.CalfCm = calf * cm / p.ThighCm;
+        p.SetGirth(g, cm);
     }
 
     /// <summary>

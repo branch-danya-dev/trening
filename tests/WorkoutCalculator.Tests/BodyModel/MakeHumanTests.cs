@@ -82,7 +82,8 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
             double measured = body.MeasureGirthCm(g), wanted = profile.GetGirth(g);
             Assert.True(Math.Abs(measured / wanted - 1) <= 0.01, $"{name}: {g} {measured:0.0} см вместо {wanted:0.0}");
         }
-        Assert.Equal(profile.NeckCm is not null, body.FittedGirths.Contains(Girth.Neck));
+        foreach (var g in new[] { Girth.Neck, Girth.Calf, Girth.Wrist })
+            Assert.Equal(profile.IsSpecified(g), body.FittedGirths.Contains(g));
     }
 
     [Theory]

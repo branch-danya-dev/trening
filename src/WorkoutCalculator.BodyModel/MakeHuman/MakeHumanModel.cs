@@ -60,6 +60,8 @@ public sealed class MakeHumanModel
         (Girth.Biceps, "upperarm"),
         (Girth.Thigh, "thigh"),
         (Girth.Neck, "neck"),
+        (Girth.Calf, "calf"),
+        (Girth.Wrist, "wrist"),
     ];
 
     private readonly Dictionary<Girth, int[]> _candidates = new();
@@ -112,7 +114,7 @@ public sealed class MakeHumanModel
         int[] Limb(Girth g)
         {
             var (origin, normal) = LimbPlane(g, _basePositions, hb);
-            double radius = g switch { Girth.Thigh => 0.10, Girth.Biceps => 0.09, _ => 0.08 } * hb;
+            double radius = g switch { Girth.Thigh => 0.10, Girth.Biceps or Girth.Calf => 0.09, Girth.Wrist => 0.06, _ => 0.08 } * hb;
             return GirthTape.TrianglesInSlab(_basePositions, tris, origin, normal, 0.045 * hb, radius);
         }
     }
@@ -267,6 +269,21 @@ public sealed class MakeHumanModel
                 var b = Joint(pos, "joint-head");
                 return (a + (b - a) * NeckLevel, (b - a).Normalized);
             }
+            case Girth.Calf:
+            {
+                // На оси колено → голеностоп, на той же доле роста, что у манекена
+                var a = Joint(pos, "joint-l-knee");
+                var b = Joint(pos, "joint-l-ankle");
+                double floor = Math.Min(a.Y, b.Y) - Proportions.AnkleHeight * height;
+                double y = floor + Proportions.CalfGirthHeight * height;
+                return (a + (b - a) * ((y - a.Y) / (b.Y - a.Y)), (b - a).Normalized);
+            }
+            case Girth.Wrist:
+            {
+                var a = Joint(pos, "joint-l-elbow");
+                var b = Joint(pos, "joint-l-hand");
+                return (a + (b - a) * Proportions.WristAlongForearm, (b - a).Normalized);
+            }
             default:
                 throw new ArgumentOutOfRangeException(nameof(g));
         }
@@ -366,9 +383,9 @@ public sealed class MakeHumanModel
         private int _version;
         private readonly Dictionary<Girth, (double? Girth, int Version)> _measured = new();
 
-        /// <summary>Какие обхваты подгоняются: шея — только если её ввели, иначе остаётся своя у MakeHuman.</summary>
+        /// <summary>Какие обхваты подгоняются: необязательные (шея, голень, запястье) — только введённые.</summary>
         public IReadOnlyList<Girth> FittedGirths { get; } =
-            Fitted.Select(f => f.Girth).Where(g => g != Girth.Neck || p.NeckCm is not null).ToArray();
+            Fitted.Select(f => f.Girth).Where(p.IsSpecified).ToArray();
 
         /// <summary>Сколько сечений сделано — для диагностики скорости.</summary>
         public int Measurements { get; private set; }

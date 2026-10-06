@@ -37,13 +37,18 @@
                  Value="Profile.BicepsCm" ValueChanged="v => Change(p => p.BicepsCm = v)" />
     <ParamSlider Label="Бедро" Unit="см" Min="35" Max="85" Step="0.5" Hint="Сразу под ягодичной складкой"
                  Value="Profile.ThighCm" ValueChanged="v => Change(p => p.ThighCm = v)" />
-    <ParamSlider Label="Шея" Unit="см" Min="28" Max="55" Step="0.5" Disabled="Profile.NeckCm is null"
-                 Hint='@(Profile.NeckCm is null ? "Не указана — оценка по груди и росту" : "Посередине шеи")'
-                 Value="Profile.EffectiveNeckCm" ValueChanged="v => Change(p => p.NeckCm = v)" />
-    <label class="check" style="margin-top: 6px">
-        <input type="checkbox" checked="@(Profile.NeckCm is not null)" @onchange="ToggleNeck" />
-        Указать обхват шеи
-    </label>
+    @foreach (var opt in Optional)
+    {
+        var g = opt.Girth;
+        bool given = Profile.IsSpecified(g);
+        <ParamSlider Label="@BodyProfile.GirthName(g)" Unit="см" Min="opt.Min" Max="opt.Max" Step="0.5" Disabled="!given"
+                     Hint="@(given ? opt.Where : opt.Estimate)"
+                     Value="Profile.GetGirth(g)" ValueChanged="v => Change(p => p.SetGirth(g, v))" />
+        <label class="check" style="margin-top: 6px">
+            <input type="checkbox" checked="@given" @onchange="e => ToggleOptional(g, e)" />
+            Указать: @BodyProfile.GirthName(g).ToLowerInvariant()
+        </label>
+    }
 </div>
 
 <div class="card">
@@ -117,16 +122,39 @@
 
     private Task Change(Action<BodyProfile> change) => OnChange.InvokeAsync(change);
 
+    /// <summary>Необязательные обхваты: пока не указаны, показывается оценка.</summary>
+    private static readonly (Girth Girth, double Min, double Max, string Where, string Estimate)[] Optional =
+    [
+        (Girth.Neck, 28, 55, "Посередине шеи", "Не указана — оценка по груди и росту"),
+        (Girth.Calf, 25, 55, "В самом широком месте голени", "Не указана — оценка по бедру и росту"),
+        (Girth.Wrist, 12, 22, "Над косточкой запястья", "Не указано — оценка по плечу и росту"),
+    ];
+
     private Task ResetToAverages() => Change(p =>
     {
         var d = BodyDefaults.For(p.Sex);
         p.HeightCm = d.HeightCm;
         p.WeightKg = d.WeightKg;
         p.BodyFatPercent = d.BodyFatPercent;
-        foreach (Girth g in Enum.GetValues<Girth>())
-            p.SetGirth(g, d.GetGirth(g));
+        p.ChestCm = d.ChestCm;
+        p.WaistCm = d.WaistCm;
+        p.HipsCm = d.HipsCm;
+        p.BicepsCm = d.BicepsCm;
+        p.ThighCm = d.ThighCm;
+        p.NeckCm = d.NeckCm;
+        p.CalfCm = d.CalfCm;
+        p.WristCm = d.WristCm;
     });
 
-    private Task ToggleNeck(ChangeEventArgs e) =>
-        Change(p => p.NeckCm = e.Value is true ? Math.Round(p.EffectiveNeckCm * 2) / 2 : null);
+    /// <summary>Галочка «указать»: включаем с текущей оценкой (округлённой до 0,5 см) или убираем.</summary>
+    private Task ToggleOptional(Girth g, ChangeEventArgs e) => Change(p =>
+    {
+        double? value = e.Value is true ? Math.Round(p.GetGirth(g) * 2) / 2 : null;
+        switch (g)
+        {
+            case Girth.Neck: p.NeckCm = value; break;
+            case Girth.Calf: p.CalfCm = value; break;
+            default: p.WristCm = value; break;
+        }
+    });
 }

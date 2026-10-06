@@ -44,6 +44,10 @@ public static class Proportions
     public const double HipsGirthHeight = 0.515;    // самая выступающая точка ягодиц
     public const double TorsoTopHeight = 0.840;     // основание шеи
     public const double NeckGirthHeight = 0.852;    // середина шеи
+    public const double CalfGirthHeight = 0.205;    // самое широкое место голени (оценка)
+
+    /// <summary>Запястье меряется на 95 % длины предплечья от локтя — над косточкой (оценка).</summary>
+    public const double WristAlongForearm = 0.95;
 
     public static double WaistHeight(Sex sex) => sex == Sex.Male ? 0.605 : 0.620;
     public static double UnderbustHeight(Sex sex) => sex == Sex.Male ? 0.685 : 0.675;

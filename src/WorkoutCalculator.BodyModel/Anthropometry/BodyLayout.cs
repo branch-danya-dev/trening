@@ -140,7 +140,8 @@ public sealed class BodyLayout
             new TubeKey(upper / 2, rBiceps, Girth.Biceps),
             new TubeKey(upper, Radius(SectionShapes.ElbowGirth(p.BicepsCm, hc))),
             new TubeKey(upper + 0.27 * fore, Radius(SectionShapes.ForearmGirth(p.BicepsCm, hc))),
-            new TubeKey(upper + fore, Radius(SectionShapes.WristGirth(p.BicepsCm, hc))),
+            new TubeKey(upper + Proportions.WristAlongForearm * fore, Radius(p.EffectiveWristCm), Girth.Wrist),
+            new TubeKey(upper + fore, Radius(p.EffectiveWristCm)),
         };
         double angle = Proportions.ArmAngleDeg * Math.PI / 180;
         TubeLayout Arm(string name, int side) => new()
@@ -190,7 +191,7 @@ public sealed class BodyLayout
             new TubeKey(S(0.375), Radius(SectionShapes.MidThighGirth(p.ThighCm))),
             new TubeKey(S(Proportions.KneeHeight), Radius(SectionShapes.KneeGirth(p.ThighCm, hc))),
             new TubeKey(S(0.255), Radius(SectionShapes.BelowKneeGirth(p.ThighCm, hc))),
-            new TubeKey(S(0.205), Radius(SectionShapes.CalfGirth(p.ThighCm, hc))),
+            new TubeKey(S(Proportions.CalfGirthHeight), Radius(p.EffectiveCalfCm), Girth.Calf),
             new TubeKey(S(0.075), Radius(SectionShapes.AnkleGirth(p.ThighCm, hc))),
             new TubeKey(legLength, 1.05 * Radius(SectionShapes.AnkleGirth(p.ThighCm, hc))),
         };
