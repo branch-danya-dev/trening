@@ -1,0 +1,117 @@
+@* Вкладка «Параметры»: замеры, производные значения и проверка согласованности. *@
+
+<div class="card">
+    <div class="card-title">Профиль</div>
+    <div class="field-row">
+        <span>Пол</span>
+        <div class="seg">
+            <button class="@Css.On(Profile.Sex == Sex.Male)" @onclick="() => Change(p => p.Sex = Sex.Male)">Мужской</button>
+            <button class="@Css.On(Profile.Sex == Sex.Female)" @onclick="() => Change(p => p.Sex = Sex.Female)">Женский</button>
+        </div>
+    </div>
+    <div style="margin-top: 12px">
+        <ParamSlider Label="Возраст" Unit="лет" Min="16" Max="90" Step="1"
+                     Value="Profile.Age" ValueChanged="v => Change(p => p.Age = (int)v)" />
+        <ParamSlider Label="Рост" Unit="см" Min="140" Max="210" Step="0.5"
+                     Value="Profile.HeightCm" ValueChanged="v => Change(p => p.HeightCm = v)" />
+        <ParamSlider Label="Вес" Unit="кг" Min="40" Max="180" Step="0.1"
+                     Value="Profile.WeightKg" ValueChanged="v => Change(p => p.WeightKg = v)" />
+        <ParamSlider Label="Жир" Unit="%" Min="4" Max="50" Step="0.5"
+                     Hint="Калипер, весы с биоимпедансом или DEXA"
+                     Value="Profile.BodyFatPercent" ValueChanged="v => Change(p => p.BodyFatPercent = v)" />
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">
+        Обхваты
+        <button class="btn-link" @onclick="ResetToAverages">Средние для пола</button>
+    </div>
+    <ParamSlider Label="Грудь" Unit="см" Min="70" Max="150" Step="0.5" Hint="По сосковой линии, руки опущены"
+                 Value="Profile.ChestCm" ValueChanged="v => Change(p => p.ChestCm = v)" />
+    <ParamSlider Label="Талия" Unit="см" Min="55" Max="150" Step="0.5" Hint="В самом узком месте или на уровне пупка"
+                 Value="Profile.WaistCm" ValueChanged="v => Change(p => p.WaistCm = v)" />
+    <ParamSlider Label="Бёдра (ягодицы)" Unit="см" Min="70" Max="150" Step="0.5" Hint="По самой выступающей точке ягодиц"
+                 Value="Profile.HipsCm" ValueChanged="v => Change(p => p.HipsCm = v)" />
+    <ParamSlider Label="Плечо (бицепс)" Unit="см" Min="20" Max="55" Step="0.5" Hint="Посередине плеча, рука расслаблена"
+                 Value="Profile.BicepsCm" ValueChanged="v => Change(p => p.BicepsCm = v)" />
+    <ParamSlider Label="Бедро" Unit="см" Min="35" Max="85" Step="0.5" Hint="Сразу под ягодичной складкой"
+                 Value="Profile.ThighCm" ValueChanged="v => Change(p => p.ThighCm = v)" />
+    <ParamSlider Label="Шея" Unit="см" Min="28" Max="55" Step="0.5" Disabled="Profile.NeckCm is null"
+                 Hint='@(Profile.NeckCm is null ? "Не указана — оценка по груди и росту" : "Посередине шеи")'
+                 Value="Profile.EffectiveNeckCm" ValueChanged="v => Change(p => p.NeckCm = v)" />
+    <label class="check" style="margin-top: 6px">
+        <input type="checkbox" checked="@(Profile.NeckCm is not null)" @onchange="ToggleNeck" />
+        Указать обхват шеи
+    </label>
+</div>
+
+<div class="card">
+    <div class="card-title">Производные</div>
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value">@Fmt.N(Profile.LeanMassKg, 1)<small>кг</small></div>
+            <div class="stat-label">Безжировая масса</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">@Fmt.N(Profile.FatMassKg, 1)<small>кг</small></div>
+            <div class="stat-label">Жировая масса</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">@Fmt.N(Profile.Bmi, 1)</div>
+            <div class="stat-label">ИМТ</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">@Fmt.N(Profile.WaistToHeight, 2)</div>
+            <div class="stat-label">Талия / рост</div>
+        </div>
+    </div>
+    @if (Report is not null)
+    {
+        <div class="volume-line">
+            Объём манекена @Fmt.N(Report.MeshVolumeLiters, 1) л · по весу и % жира
+            @Fmt.N(Report.ExpectedVolumeLiters, 1) л (@Fmt.Signed(Report.Deviation * 100)&nbsp;%)
+        </div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-title">Проверка замеров</div>
+    @if (Report is { Hints.Count: > 0 })
+    {
+        <div class="hints">
+            @foreach (var hint in Report.Hints)
+            {
+                <div class="hint">@hint.Text</div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="ok">Замеры и вес согласуются между собой.</div>
+    }
+</div>
+
+<div class="note">Профиль хранится только в этом браузере.</div>
+
+@code {
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    [Parameter] public ConsistencyReport? Report { get; set; }
+    /// <summary>Изменение профиля: родитель применяет его, сохраняет и перестраивает модель.</summary>
+    [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
+
+    private Task Change(Action<BodyProfile> change) => OnChange.InvokeAsync(change);
+
+    private Task ResetToAverages() => Change(p =>
+    {
+        var d = BodyDefaults.For(p.Sex);
+        p.HeightCm = d.HeightCm;
+        p.WeightKg = d.WeightKg;
+        p.BodyFatPercent = d.BodyFatPercent;
+        foreach (Girth g in Enum.GetValues<Girth>())
+            p.SetGirth(g, d.GetGirth(g));
+    });
+
+    private Task ToggleNeck(ChangeEventArgs e) =>
+        Change(p => p.NeckCm = e.Value is true ? Math.Round(p.EffectiveNeckCm * 2) / 2 : null);
+}

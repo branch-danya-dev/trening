@@ -101,9 +101,8 @@ button, input, select { font: inherit; color: inherit; }
 
 .mode-bar {
     position: absolute;
-    bottom: 18px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 56px;
+    left: 14px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -111,8 +110,9 @@ button, input, select { font: inherit; color: inherit; }
 
 .view-stats {
     position: absolute;
-    left: 14px;
+    right: 14px;
     bottom: 14px;
+    text-align: right;
     color: var(--faint);
     font-size: 12px;
     font-variant-numeric: tabular-nums;
@@ -120,18 +120,20 @@ button, input, select { font: inherit; color: inherit; }
 
 .view-labels {
     position: absolute;
-    top: 16px;
+    bottom: 40px;
     left: 0;
     right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 22%;
     pointer-events: none;
     color: var(--muted);
     font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
+
+/* Модели стоят симметрично, камера по центру — подписи под ними на четвертях ширины */
+.view-labels span { position: absolute; transform: translateX(-50%); }
+.view-labels span:first-child { left: 25%; }
+.view-labels span:last-child { left: 75%; }
 
 .legend {
     position: absolute;
@@ -399,9 +401,25 @@ table.changes th, table.changes td {
 table.changes th { color: var(--muted); font-weight: 500; font-size: 12px; }
 table.changes th:first-child, table.changes td:first-child { text-align: left; }
 table.changes tr:last-child td { border-bottom: none; }
-.delta-down { color: var(--accent); }
-.delta-up { color: var(--warn); }
-.delta-zero { color: var(--faint); }
+table.changes td.delta { color: var(--muted); }
+
+/* ---------- График ---------- */
+
+.chart .grid { stroke: var(--border); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.chart .line { fill: none; stroke: #20a898; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .dot { fill: #20a898; stroke: var(--card); stroke-width: 2; }
+.chart .target { stroke: var(--faint); stroke-width: 1; }
+.chart .crosshair { stroke: var(--border-strong); stroke-width: 1; }
+.chart .end-label { fill: var(--text); font-size: 11px; font-weight: 600; }
+.chart .tip rect { fill: var(--card-2); stroke: var(--border-strong); }
+.chart .tip-value { fill: var(--text); font-size: 12px; font-weight: 650; }
+.chart .tip-label { fill: var(--muted); font-size: 9.5px; }
+.chart .hit { fill: transparent; }
+.chart svg:focus { outline: none; }
+.chart svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+details summary { cursor: pointer; }
 
 .chart svg { width: 100%; height: auto; display: block; }
 

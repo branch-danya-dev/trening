@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -6,6 +7,13 @@ using WorkoutCalculator.Body3D.Services;
 
 // Приложение работает только в браузере (WebAssembly)
 [assembly: SupportedOSPlatform("browser")]
+
+// Десятичная запятая во всех текстах (в том числе в подсказках из BodyModel и Core).
+// Берём инвариантную культуру и меняем только числа: русских языковых данных в браузере может не быть.
+var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+culture.NumberFormat = Fmt.Ru;
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.CurrentCulture = culture;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

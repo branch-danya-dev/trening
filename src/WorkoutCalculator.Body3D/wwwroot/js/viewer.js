@@ -12,15 +12,18 @@ let modelHeight = 1.8;
 let framed = false;
 let mode = 'current';
 let sideBySide = false;
+let platform;
 
 const meshes = { current: null, forecast: null };
 
 const materials = {
     current: new THREE.MeshStandardMaterial({ color: 0xc9cfd8, roughness: 0.6, metalness: 0.0 }),
     forecast: new THREE.MeshStandardMaterial({ color: 0x8fd6c8, roughness: 0.55, metalness: 0.0 }),
+    // Силуэт «сейчас» в сравнении: рисуется после прогноза с проверкой глубины, поэтому виден
+    // только там, где тело сейчас выходит за прогноз, — это и есть то, что «уйдёт»
     ghost: new THREE.MeshStandardMaterial({
-        color: 0xe8eef5, roughness: 0.8, metalness: 0.0,
-        transparent: true, opacity: 0.22, depthWrite: false,
+        color: 0xf2f6fa, emissive: 0x2a3440, roughness: 0.8, metalness: 0.0,
+        transparent: true, opacity: 0.32, depthWrite: false,
     }),
 };
 
@@ -56,7 +59,9 @@ export function init(canvasId) {
         new THREE.MeshBasicMaterial({ color: 0x3dd6c6, transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
     ring.rotation.x = -Math.PI / 2;
     ring.position.y = -0.001;
-    scene.add(disc, ring);
+    platform = new THREE.Group();
+    platform.add(disc, ring);
+    scene.add(platform);
 
     controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
@@ -150,6 +155,7 @@ function applyMode(refit = false) {
     const apart = mode === 'compare' && haveForecast && sideBySide ? 0.42 * modelHeight : 0;
     if (current) current.position.x = apart ? -apart : 0;
     if (forecast) forecast.position.x = apart;
+    platform.visible = !apart; // подиум один — под двумя моделями рядом он только мешает
 
     if (refit && !tween) placeCamera(lastView, true, false, true);
     requestRender();

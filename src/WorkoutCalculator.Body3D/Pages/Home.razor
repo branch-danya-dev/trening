@@ -18,6 +18,37 @@
                 <button class="btn" @onclick='() => ViewerInterop.SetView("reset")'>Сброс камеры</button>
             </div>
 
+            @if (_mode == ViewMode.Compare && _forecast is not null)
+            {
+                @if (_sideBySide)
+                {
+                    <div class="view-labels"><span>Сейчас</span><span>Прогноз</span></div>
+                }
+                else
+                {
+                    <div class="legend">
+                        <span class="now">Сейчас (силуэт)</span>
+                        <span class="later">Через @_forecast.Weeks[^1].Week нед.</span>
+                    </div>
+                }
+            }
+
+            <div class="mode-bar">
+                <div class="seg" role="group" aria-label="Что показать">
+                    <button class="@Css.On(_mode == ViewMode.Current)" @onclick="() => SetMode(ViewMode.Current)">Сейчас</button>
+                    <button class="@Css.On(_mode == ViewMode.Forecast)" disabled="@(_forecast is null)"
+                            @onclick="() => SetMode(ViewMode.Forecast)">Прогноз</button>
+                    <button class="@Css.On(_mode == ViewMode.Compare)" disabled="@(_forecast is null)"
+                            @onclick="() => SetMode(ViewMode.Compare)">Сравнение</button>
+                </div>
+                @if (_mode == ViewMode.Compare)
+                {
+                    <label class="check">
+                        <input type="checkbox" checked="@_sideBySide" @onchange="ToggleSideBySide" /> рядом
+                    </label>
+                }
+            </div>
+
             @if (_current is not null)
             {
                 <div class="view-stats">
@@ -29,105 +60,18 @@
 
         <aside class="panel">
             <nav class="tabs" role="tablist">
-                <button role="tab" class="@On(_tab == Tab.Params)" @onclick="() => _tab = Tab.Params">Параметры</button>
+                <button role="tab" class="@Css.On(_tab == Tab.Params)" @onclick="() => _tab = Tab.Params">Параметры</button>
+                <button role="tab" class="@Css.On(_tab == Tab.Hypothesis)" @onclick="OpenHypothesis">Гипотеза</button>
             </nav>
 
             <div class="panel-body">
                 @if (_tab == Tab.Params)
                 {
-                    <div class="card">
-                        <div class="card-title">Профиль</div>
-                        <div class="field-row">
-                            <span>Пол</span>
-                            <div class="seg">
-                                <button class="@On(_profile.Sex == Sex.Male)" @onclick="() => Change(p => p.Sex = Sex.Male)">Мужской</button>
-                                <button class="@On(_profile.Sex == Sex.Female)" @onclick="() => Change(p => p.Sex = Sex.Female)">Женский</button>
-                            </div>
-                        </div>
-                        <div style="margin-top: 12px">
-                            <ParamSlider Label="Возраст" Unit="лет" Min="16" Max="90" Step="1"
-                                         Value="_profile.Age" ValueChanged="v => Change(p => p.Age = (int)v)" />
-                            <ParamSlider Label="Рост" Unit="см" Min="140" Max="210" Step="0.5"
-                                         Value="_profile.HeightCm" ValueChanged="v => Change(p => p.HeightCm = v)" />
-                            <ParamSlider Label="Вес" Unit="кг" Min="40" Max="180" Step="0.1"
-                                         Value="_profile.WeightKg" ValueChanged="v => Change(p => p.WeightKg = v)" />
-                            <ParamSlider Label="Жир" Unit="%" Min="4" Max="50" Step="0.5"
-                                         Hint="Калипер, весы с биоимпедансом или DEXA"
-                                         Value="_profile.BodyFatPercent" ValueChanged="v => Change(p => p.BodyFatPercent = v)" />
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-title">
-                            Обхваты
-                            <button class="btn-link" @onclick="ResetToAverages">Средние для пола</button>
-                        </div>
-                        <ParamSlider Label="Грудь" Unit="см" Min="70" Max="150" Step="0.5" Hint="По сосковой линии, руки опущены"
-                                     Value="_profile.ChestCm" ValueChanged="v => Change(p => p.ChestCm = v)" />
-                        <ParamSlider Label="Талия" Unit="см" Min="55" Max="150" Step="0.5" Hint="В самом узком месте или на уровне пупка"
-                                     Value="_profile.WaistCm" ValueChanged="v => Change(p => p.WaistCm = v)" />
-                        <ParamSlider Label="Бёдра (ягодицы)" Unit="см" Min="70" Max="150" Step="0.5" Hint="По самой выступающей точке ягодиц"
-                                     Value="_profile.HipsCm" ValueChanged="v => Change(p => p.HipsCm = v)" />
-                        <ParamSlider Label="Плечо (бицепс)" Unit="см" Min="20" Max="55" Step="0.5" Hint="Посередине плеча, рука расслаблена"
-                                     Value="_profile.BicepsCm" ValueChanged="v => Change(p => p.BicepsCm = v)" />
-                        <ParamSlider Label="Бедро" Unit="см" Min="35" Max="85" Step="0.5" Hint="Сразу под ягодичной складкой"
-                                     Value="_profile.ThighCm" ValueChanged="v => Change(p => p.ThighCm = v)" />
-                        <ParamSlider Label="Шея" Unit="см" Min="28" Max="55" Step="0.5" Disabled="_profile.NeckCm is null"
-                                     Hint='@(_profile.NeckCm is null ? "Не указана — оценка по груди и росту" : "Посередине шеи")'
-                                     Value="_profile.EffectiveNeckCm" ValueChanged="v => Change(p => p.NeckCm = v)" />
-                        <label class="check" style="margin-top: 6px">
-                            <input type="checkbox" checked="@(_profile.NeckCm is not null)" @onchange="ToggleNeck" />
-                            Указать обхват шеи
-                        </label>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-title">Производные</div>
-                        <div class="stats">
-                            <div class="stat">
-                                <div class="stat-value">@Fmt.N(_profile.LeanMassKg, 1)<small>кг</small></div>
-                                <div class="stat-label">Безжировая масса</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">@Fmt.N(_profile.FatMassKg, 1)<small>кг</small></div>
-                                <div class="stat-label">Жировая масса</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">@Fmt.N(_profile.Bmi, 1)</div>
-                                <div class="stat-label">ИМТ</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">@Fmt.N(_profile.WaistToHeight, 2)</div>
-                                <div class="stat-label">Талия / рост</div>
-                            </div>
-                        </div>
-                        @if (_report is not null)
-                        {
-                            <div class="volume-line">
-                                Объём манекена @Fmt.N(_report.MeshVolumeLiters, 1) л · по весу и % жира
-                                @Fmt.N(_report.ExpectedVolumeLiters, 1) л (@Fmt.Signed(_report.Deviation * 100)&nbsp;%)
-                            </div>
-                        }
-                    </div>
-
-                    <div class="card">
-                        <div class="card-title">Проверка замеров</div>
-                        @if (_report is { Hints.Count: > 0 })
-                        {
-                            <div class="hints">
-                                @foreach (var hint in _report.Hints)
-                                {
-                                    <div class="hint">@hint.Text</div>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="ok">Замеры и вес согласуются между собой.</div>
-                        }
-                    </div>
-
-                    <div class="note">Профиль хранится только в этом браузере.</div>
+                    <ProfilePanel Profile="_profile" Report="_report" OnChange="ChangeProfile" />
+                }
+                else
+                {
+                    <HypothesisPanel Profile="_profile" Hypothesis="_hypothesis" Forecast="_forecast" OnChange="ChangeHypothesis" />
                 }
             </div>
         </aside>
@@ -135,12 +79,18 @@
 </div>
 
 @code {
-    private enum Tab { Params }
+    private enum Tab { Params, Hypothesis }
+    private enum ViewMode { Current, Forecast, Compare }
 
     private BodyProfile _profile = BodyDefaults.Default();
+    private StoredHypothesis _hypothesis = new();
     private Mannequin? _current;
     private ConsistencyReport? _report;
+    private ForecastResult? _forecast;
+
     private Tab _tab = Tab.Params;
+    private ViewMode _mode = ViewMode.Current;
+    private bool _sideBySide;
 
     private bool _viewerReady;
     private bool _dirty;
@@ -149,11 +99,26 @@
     private double _uploadMs;
     private double _volumeMs;
 
-    private static string? On(bool on) => on ? "on" : null;
+    /// <summary>Объём и проверка дороже сетки — считаем, когда ползунок отпустили.</summary>
+    private const int CheckDelayMs = 150;
+    /// <summary>Прогноз пересчитывается после паузы во вводе.</summary>
+    private const int ForecastDelayMs = 200;
+    private int _checkVersion;
+    private int _forecastVersion;
 
     protected override void OnInitialized()
     {
         _profile = ProfileStorage.LoadProfile() ?? BodyDefaults.Default();
+        _hypothesis = ProfileStorage.LoadHypothesis() ?? DefaultHypothesis(_profile);
+    }
+
+    /// <summary>По умолчанию — умеренный дефицит 400 ккал от текущего расхода.</summary>
+    private static StoredHypothesis DefaultHypothesis(BodyProfile p)
+    {
+        var h = new StoredHypothesis();
+        double maintenance = ForecastEngine.Expenditure(p, p.WeightKg, h.ToInput()).Total;
+        h.IntakeKcalPerDay = Math.Round((maintenance - 400) / 50) * 50;
+        return h;
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -162,32 +127,57 @@
         ViewerInterop.Init("body-canvas");
         _viewerReady = true;
         RequestRebuild();
+        _ = ForecastLaterAsync(++_forecastVersion, 0);
     }
 
-    private void Change(Action<BodyProfile> change)
+    private void ChangeProfile(Action<BodyProfile> change)
     {
         change(_profile);
         ProfileStorage.SaveProfile(_profile);
         RequestRebuild();
+        _ = ForecastLaterAsync(++_forecastVersion, ForecastDelayMs);
     }
 
-    private void ResetToAverages() => Change(p =>
+    private void ChangeHypothesis(Action<StoredHypothesis> change)
     {
-        var d = BodyDefaults.For(p.Sex);
-        p.HeightCm = d.HeightCm;
-        p.WeightKg = d.WeightKg;
-        p.BodyFatPercent = d.BodyFatPercent;
-        foreach (Girth g in Enum.GetValues<Girth>())
-            p.SetGirth(g, d.GetGirth(g));
-    });
+        change(_hypothesis);
+        ProfileStorage.SaveHypothesis(_hypothesis);
+        _ = ForecastLaterAsync(++_forecastVersion, ForecastDelayMs);
+    }
 
-    private void ToggleNeck(ChangeEventArgs e) =>
-        Change(p => p.NeckCm = e.Value is true ? Math.Round(p.EffectiveNeckCm * 2) / 2 : null);
+    private void OpenHypothesis()
+    {
+        _tab = Tab.Hypothesis;
+        if (_mode == ViewMode.Current && _forecast is not null)
+            SetMode(ViewMode.Compare); // на вкладке гипотез сразу видно разницу
+    }
+
+    private void SetMode(ViewMode mode)
+    {
+        _mode = mode;
+        ApplyMode();
+    }
+
+    private void ToggleSideBySide(ChangeEventArgs e)
+    {
+        _sideBySide = e.Value is true;
+        ApplyMode();
+    }
+
+    private void ApplyMode()
+    {
+        string mode = _mode switch
+        {
+            ViewMode.Forecast => "forecast",
+            ViewMode.Compare => "compare",
+            _ => "current",
+        };
+        ViewerInterop.SetMode(mode, _sideBySide);
+    }
 
     /// <summary>
     /// Перестройка не чаще, чем успевает: пока строится сетка, новые значения ползунков только
-    /// запоминаются, и следующий проход берёт самые свежие. Объём и проверка согласованности
-    /// дороже сетки, поэтому считаются, когда ползунок отпустили (пауза <see cref="CheckDelayMs"/>).
+    /// запоминаются, и следующий проход берёт самые свежие.
     /// </summary>
     private void RequestRebuild()
     {
@@ -195,9 +185,6 @@
         if (_viewerReady && !_rebuilding)
             _ = RebuildLoopAsync();
     }
-
-    private const int CheckDelayMs = 150;
-    private int _checkVersion;
 
     private async Task RebuildLoopAsync()
     {
@@ -233,6 +220,16 @@
         var sw = Stopwatch.StartNew();
         _report = ConsistencyChecker.Check(model);
         _volumeMs = sw.Elapsed.TotalMilliseconds;
+        StateHasChanged();
+    }
+
+    private async Task ForecastLaterAsync(int version, int delayMs)
+    {
+        await Task.Delay(delayMs);
+        if (version != _forecastVersion || !_viewerReady) return;
+
+        _forecast = ForecastEngine.Run(_profile.Clone(), _hypothesis.ToInput());
+        ViewerInterop.SetMesh("forecast", Mannequin.Build(_forecast.End).Mesh);
         StateHasChanged();
     }
 }
