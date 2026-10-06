@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Консольная версия калькулятора -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>WorkoutCalculator</RootNamespace>
+    <AssemblyName>WorkoutCalculator.Cli</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorkoutCalculator.Core\WorkoutCalculator.Core.csproj" />
+  </ItemGroup>
+
+</Project>
