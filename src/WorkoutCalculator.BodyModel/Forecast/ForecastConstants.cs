@@ -33,6 +33,13 @@ public static class ForecastConstants
     /// <summary>Порог предупреждения о темпе похудения: 1 % веса в неделю.</summary>
     public const double MaxWeeklyLossFraction = 0.01;
 
+    /// <summary>
+    /// Ниже этого % жира допущение «с силовыми мышцы не теряются» становится оптимистичным:
+    /// у худощавых людей дефицит всё больше покрывается безжировой массой (Forbes, 2000).
+    /// Прогноз в этом случае предупреждает. Оценка: ~8 % у мужчин, ~15 % у женщин.
+    /// </summary>
+    public static double LowFatPercent(Sex sex) => sex == Sex.Male ? 8 : 15;
+
     /// <summary>Незаменимый жир, % веса (ACSM): ниже прогноз жир не опускает.</summary>
     public static double EssentialFatPercent(Sex sex) => sex == Sex.Male ? 3 : 12;
 

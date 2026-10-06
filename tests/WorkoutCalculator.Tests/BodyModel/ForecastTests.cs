@@ -137,6 +137,15 @@ public class ForecastTests
     }
 
     [Fact]
+    public void Warnings_VeryLowFatAtTheEnd()
+    {
+        var r = ForecastEngine.Run(Start(), Plan(-800, strength: true, weeks: 16));
+
+        Assert.True(r.End.BodyFatPercent < ForecastConstants.LowFatPercent(Sex.Male));
+        Assert.Contains(r.Warnings, w => w.StartsWith("Жир к концу срока", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Warnings_TargetUnreachable()
     {
         var tooFast = Plan(-300, strength: true);

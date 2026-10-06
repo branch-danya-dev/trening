@@ -142,6 +142,12 @@ public static class ForecastEngine
             warnings.Add($"Потребление ({input.IntakeKcalPerDay:0} ккал) ниже базового обмена " +
                          $"(≈\u00A0{first.BmrKcal:0} ккал). Долго так питаться не стоит.");
 
+        double lowFat = C.LowFatPercent(start.Sex);
+        if (!hitFatFloor && last.FatPercent < lowFat && last.FatPercent < first.FatPercent)
+            warnings.Add($"Жир к концу срока ≈\u00A0{last.FatPercent:0.#}\u00A0% — ниже ~{lowFat:0}\u00A0%. При таком " +
+                         "низком жире дефицит частично покрывается мышцами даже с силовыми, а модель считает, " +
+                         "что теряется только жир: на деле мышц уйдёт больше, а жира меньше.");
+
         if (hitFatFloor)
             warnings.Add("Жир дошёл до незаменимого минимума — дальше дефицит покрывается только мышцами. " +
                          "Это опасно, цель стоит пересмотреть.");
