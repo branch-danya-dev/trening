@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Формулы и модели. Без интерфейса: используется и окном, и консолью. -->
+  <PropertyGroup>
+    <RootNamespace>WorkoutCalculator</RootNamespace>
+  </PropertyGroup>
+
+</Project>
