@@ -84,23 +84,55 @@ public class ForecastTests
     }
 
     [Fact]
-    public void Deficit_WithoutStrength_QuarterOfLossIsLean()
+    public void Deficit_WithoutStrength_LeanShareFollowsForbes()
     {
         var r = ForecastEngine.Run(Start(), Plan(-500, strength: false));
 
+        // Доля безжировой ткани в потере — между правилом Форбса для начальной и конечной жировой массы
+        double share = r.LeanChangeKg / (r.LeanChangeKg + r.FatChangeKg);
+        double atStart = ForecastConstants.LeanShareOfLoss(r.Weeks[0].FatMassKg, strength: false);
+        double atEnd = ForecastConstants.LeanShareOfLoss(r.Weeks[^1].FatMassKg, strength: false);
         Assert.True(r.WeightChangeKg < 0);
-        Assert.Equal(0.25, r.LeanChangeKg / r.WeightChangeKg, 6);
+        Assert.InRange(share, atStart - 1e-6, atEnd + 1e-6);
+        Assert.Equal(10.4 / (10.4 + Start().FatMassKg), atStart, 9);
     }
 
     [Fact]
-    public void Deficit_WithStrength_LeanPreserved()
+    public void Deficit_WithStrength_LosesFourTimesLessLean()
     {
-        var r = ForecastEngine.Run(Start(), Plan(-500, strength: true));
+        var without = ForecastEngine.Run(Start(), Plan(-500, strength: false));
+        var with = ForecastEngine.Run(Start(), Plan(-500, strength: true));
 
-        Assert.True(r.FatChangeKg < 0);
-        Assert.Equal(0, r.LeanChangeKg, 9);
+        Assert.True(with.FatChangeKg < 0);
+        Assert.True(with.LeanChangeKg < 0);
+        double shareWith = with.LeanChangeKg / (with.LeanChangeKg + with.FatChangeKg);
+        double shareWithout = without.LeanChangeKg / (without.LeanChangeKg + without.FatChangeKg);
+        Assert.InRange(shareWith / shareWithout, 0.2, 0.3);
         // Похудение замедляется: с весом падает и БМР, и расход на тренировках
-        Assert.True(r.Weeks[^1].ExpenditureKcalPerDay < r.Weeks[0].ExpenditureKcalPerDay);
+        Assert.True(with.Weeks[^1].ExpenditureKcalPerDay < with.Weeks[0].ExpenditureKcalPerDay);
+    }
+
+    [Fact]
+    public void Deficit_FirstWeeksIncludeWaterAndGlycogen()
+    {
+        var start = Start();
+        var r = ForecastEngine.Run(start, Plan(-700, strength: true));
+
+        double firstWeek = r.Weeks[0].WeightKg - r.Weeks[1].WeightKg;
+        double laterWeek = r.Weeks[5].WeightKg - r.Weeks[6].WeightKg;
+        Assert.True(firstWeek > laterWeek * 1.2, $"1-я неделя −{firstWeek:0.00} кг, 6-я −{laterWeek:0.00} кг");
+        Assert.InRange(r.WaterChangeKg, -ForecastConstants.GlycogenWaterShareOfLean * start.LeanMassKg, -0.1);
+        // Вес на весах = ткани + вода
+        Assert.Equal(r.WeightChangeKg, r.FatChangeKg + r.LeanChangeKg + r.WaterChangeKg, 6);
+    }
+
+    [Fact]
+    public void Surplus_RefillsGlycogenButNotMuscleWithoutStrength()
+    {
+        var r = ForecastEngine.Run(Start(), Plan(+800, strength: false));
+
+        Assert.Equal(0, r.LeanChangeKg, 9);
+        Assert.True(r.WaterChangeKg > 0);
     }
 
     [Fact]
@@ -136,8 +168,9 @@ public class ForecastTests
         double expected = r.FatChangeKg / ForecastConstants.FatDensityKgPerL
                         + r.LeanChangeKg / ForecastConstants.LeanDensityKgPerL;
 
-        // Голова, кисти и стопы («прочее») обхватов не меняют — допускаем 15 %
-        Assert.Equal(1, (after - before) / expected, 0.15);
+        // Голова, кисти и стопы («прочее», 4–5 %) обхватов не меняют, а перевод объёма в обхват через
+        // цилиндр — линейное приближение; при похудении на 7+ кг вместе это до ~20 %
+        Assert.Equal(1, (after - before) / expected, 0.2);
         Assert.InRange(ConsistencyChecker.Check(Mannequin.Build(r.End)).Deviation, -0.05, 0.05);
     }
 

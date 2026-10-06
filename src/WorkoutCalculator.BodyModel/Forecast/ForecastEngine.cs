@@ -7,8 +7,10 @@ namespace WorkoutCalculator.BodyModel.Forecast;
 /// 1) БМР по Миффлину — Сан Жеору от текущего веса (снижение расхода при похудении);
 /// 2) расход = БМР × коэффициент активности + активные ккал тренировок (кардио — через EnergyCalculator);
 /// 3) баланс = потребление − расход;
-/// 4) дефицит — потеря жира (и 25 % из безжировой массы без силовых), профицит — прирост
-///    безжировой массы до потолка по стажу (только с силовыми), остальное — жир.
+/// 4) вода и гликоген: при дефиците запас за 1–2 недели уходит, при профиците — пополняется;
+///    его энергия входит в баланс, а масса — в вес на весах;
+/// 5) дефицит — потеря жира и безжировой массы по правилу Форбса (с силовыми — вчетверо меньше
+///    безжировой), профицит — прирост безжировой массы до потолка по стажу (только с силовыми), остальное — жир.
 /// В конце изменение жировой и безжировой массы раскладывается по регионам и переводится в обхваты.
 /// </summary>
 public static class ForecastEngine
@@ -19,7 +21,7 @@ public static class ForecastEngine
         var warnings = new List<string>();
         double essentialFat = C.EssentialFatPercent(start.Sex) / 100;
 
-        double fat = start.FatMassKg, lean = start.LeanMassKg;
+        double fat = start.FatMassKg, lean = start.LeanMassKg, water = 0;
         var history = new List<ForecastWeek>();
         double maxWeeklyLoss = 0;
         bool hitFatFloor = false;
@@ -27,10 +29,10 @@ public static class ForecastEngine
 
         for (int week = 0; week <= weeks; week++)
         {
-            double weight = fat + lean;
+            double weight = fat + lean + water;
             var (bmr, expenditure, cardio, strength) = Expenditure(start, weight, input);
             double balance = input.IntakeKcalPerDay - expenditure;
-            history.Add(new ForecastWeek(week, weight, fat, lean, bmr, expenditure, balance));
+            history.Add(new ForecastWeek(week, weight, fat, lean, bmr, expenditure, balance) { GlycogenWaterKg = water });
             if (week == 0)
             {
                 cardioStart = cardio;
@@ -38,11 +40,18 @@ public static class ForecastEngine
             }
             if (week == weeks) break;
 
-            double weekly = balance * 7;
+            // Вода и гликоген идут к уровню, который задаёт текущий баланс; их энергия — часть баланса
+            double effect = Math.Clamp(balance / C.GlycogenWaterFullEffectKcal, -1, 1);
+            double pool = C.GlycogenWaterShareOfLean * lean;
+            double waterTarget = effect < 0 ? effect * pool : effect * pool * C.GlycogenWaterGainFactor;
+            double dWater = (waterTarget - water) * C.GlycogenWaterWeeklyRate;
+            double weekly = balance * 7 - dWater * C.GlycogenWaterKcalPerKg;
+            water += dWater;
+
             double dFat, dLean;
             if (weekly < 0)
             {
-                double leanShare = input.StrengthTraining ? C.LeanShareOfLossWithStrength : C.LeanShareOfLossWithoutStrength;
+                double leanShare = C.LeanShareOfLoss(fat, input.StrengthTraining);
                 double kcalPerKg = leanShare * C.LeanKcalPerKg + (1 - leanShare) * C.FatKcalPerKg;
                 double loss = weekly / kcalPerKg; // отрицательное
                 dFat = (1 - leanShare) * loss;
@@ -73,6 +82,7 @@ public static class ForecastEngine
             lean += dLean;
         }
 
+        // Обхваты меняют только жир и безжировая масса; вода с гликогеном — внутри мышц и печени
         var end = ApplyToGirths(start, history[^1].FatMassKg - start.FatMassKg, history[^1].LeanMassKg - start.LeanMassKg);
         end.WeightKg = history[^1].WeightKg;
         end.BodyFatPercent = history[^1].FatPercent;
@@ -145,8 +155,8 @@ public static class ForecastEngine
         double lowFat = C.LowFatPercent(start.Sex);
         if (!hitFatFloor && last.FatPercent < lowFat && last.FatPercent < first.FatPercent)
             warnings.Add($"Жир к концу срока ≈\u00A0{last.FatPercent:0.#}\u00A0% — ниже ~{lowFat:0}\u00A0%. При таком " +
-                         "низком жире дефицит частично покрывается мышцами даже с силовыми, а модель считает, " +
-                         "что теряется только жир: на деле мышц уйдёт больше, а жира меньше.");
+                         "низком жире дефицит всё сильнее бьёт по мышцам даже с силовыми, а удерживать такой " +
+                         "процент трудно.");
 
         if (hitFatFloor)
             warnings.Add("Жир дошёл до незаменимого минимума — дальше дефицит покрывается только мышцами. " +

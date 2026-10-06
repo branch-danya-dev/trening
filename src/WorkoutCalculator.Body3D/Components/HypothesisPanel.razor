@@ -118,7 +118,8 @@
             жир <b>@Fmt.N(f.Start.BodyFatPercent, 1) → @Fmt.N(f.End.BodyFatPercent, 1)&nbsp;%</b>.
         </div>
         <div class="volume-line">
-            Жир @Fmt.Signed(f.FatChangeKg) кг, безжировая масса @Fmt.Signed(f.LeanChangeKg) кг.
+            Жир @Fmt.Signed(f.FatChangeKg) кг, безжировая ткань @Fmt.Signed(f.LeanChangeKg) кг,
+            вода и гликоген @Fmt.Signed(f.WaterChangeKg) кг.
             Средний баланс @Fmt.Signed(f.Weeks.Take(f.Weeks.Count - 1).DefaultIfEmpty(f.Weeks[0]).Average(w => w.BalanceKcalPerDay), 0) ккал в день.
         </div>
         @if (f.Warnings.Count > 0)
@@ -145,8 +146,9 @@
             <tbody>
                 @Row("Вес, кг", f.Start.WeightKg, f.End.WeightKg, 1)
                 @Row("Жир, %", f.Start.BodyFatPercent, f.End.BodyFatPercent, 1)
-                @Row("Жировая масса, кг", f.Start.FatMassKg, f.End.FatMassKg, 1)
-                @Row("Безжировая масса, кг", f.Start.LeanMassKg, f.End.LeanMassKg, 1)
+                @Row("Жировая масса, кг", f.Weeks[0].FatMassKg, f.Weeks[^1].FatMassKg, 1)
+                @Row("Безжировая ткань, кг", f.Weeks[0].LeanMassKg, f.Weeks[^1].LeanMassKg, 1)
+                @Row("Вода и гликоген (сдвиг), кг", 0, f.WaterChangeKg, 1)
                 @foreach (Girth g in Enum.GetValues<Girth>().Where(g => g is not (Girth.Calf or Girth.Wrist) || f.Start.IsSpecified(g)))
                 {
                     @Row(BodyProfile.GirthName(g) + ", см", f.Start.GetGirth(g), f.End.GetGirth(g), 1)
