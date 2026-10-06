@@ -60,8 +60,10 @@
 
         <aside class="panel">
             <nav class="tabs" role="tablist">
-                <button role="tab" class="@Css.On(_tab == Tab.Params)" @onclick="() => _tab = Tab.Params">Параметры</button>
-                <button role="tab" class="@Css.On(_tab == Tab.Hypothesis)" @onclick="OpenHypothesis">Гипотеза</button>
+                <button role="tab" aria-selected="@(_tab == Tab.Params ? "true" : "false")" class="@Css.On(_tab == Tab.Params)"
+                        @onclick="() => _tab = Tab.Params">Параметры</button>
+                <button role="tab" aria-selected="@(_tab == Tab.Hypothesis ? "true" : "false")" class="@Css.On(_tab == Tab.Hypothesis)"
+                        @onclick="OpenHypothesis">Гипотеза</button>
             </nav>
 
             <div class="panel-body">
