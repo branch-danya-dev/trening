@@ -19,13 +19,47 @@ const meshes = { current: null, forecast: null };
 const materials = {
     current: new THREE.MeshStandardMaterial({ color: 0xc9cfd8, roughness: 0.6, metalness: 0.0 }),
     forecast: new THREE.MeshStandardMaterial({ color: 0x8fd6c8, roughness: 0.55, metalness: 0.0 }),
-    // Силуэт «сейчас» в сравнении: рисуется после прогноза с проверкой глубины, поэтому виден
-    // только там, где тело сейчас выходит за прогноз, — это и есть то, что «уйдёт»
-    ghost: new THREE.MeshStandardMaterial({
-        color: 0xf2f6fa, emissive: 0x2a3440, roughness: 0.8, metalness: 0.0,
-        transparent: true, opacity: 0.32, depthWrite: false,
+    // Контур «сейчас» в сравнении: рисуется отдельным проходом поверх прогноза (см. frame), прозрачность
+    // зависит от угла к взгляду — лицевые участки почти прозрачны, края силуэта светятся. Так видно,
+    // где тело было, и при похудении, и при наборе, без пятен там, где тела совпадают до миллиметров.
+    ghost: new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        depthFunc: THREE.LessEqualDepth,
+        uniforms: {
+            color: { value: new THREE.Color(0xf2f6fa) },
+            strength: { value: 0.85 },
+        },
+        vertexShader: `
+            varying vec3 vNormal;
+            varying vec3 vView;
+            void main() {
+                vec4 mv = modelViewMatrix * vec4(position, 1.0);
+                vNormal = normalize(normalMatrix * normal);
+                vView = normalize(-mv.xyz);
+                gl_Position = projectionMatrix * mv;
+            }`,
+        fragmentShader: `
+            uniform vec3 color;
+            uniform float strength;
+            varying vec3 vNormal;
+            varying vec3 vView;
+            void main() {
+                float rim = pow(1.0 - abs(dot(normalize(vNormal), normalize(vView))), 3.0);
+                gl_FragColor = vec4(color, rim * strength);
+            }`,
     }),
 };
+
+// Только глубина контура: первый проход, чтобы второй нарисовал лишь ближайшую поверхность
+// (у манекена части перекрываются, и без этого видны их внутренние края)
+const ghostDepthMaterial = new THREE.MeshBasicMaterial({ colorWrite: false });
+const ghostScene = new THREE.Scene();
+const ghostDepth = new THREE.Mesh(new THREE.BufferGeometry(), ghostDepthMaterial);
+const ghostRim = new THREE.Mesh(new THREE.BufferGeometry(), materials.ghost);
+ghostRim.renderOrder = 1;
+ghostScene.add(ghostDepth, ghostRim);
+let ghostActive = false;
 
 export function init(canvasId) {
     canvas = document.getElementById(canvasId);
@@ -141,11 +175,13 @@ function applyMode(refit = false) {
         forecast: haveForecast && (mode === 'forecast' || mode === 'compare'),
     };
 
+    ghostActive = mode === 'compare' && haveForecast && !sideBySide && !!current;
     if (current) {
-        current.visible = show.current;
-        const ghost = mode === 'compare' && haveForecast && !sideBySide;
-        current.material = ghost ? materials.ghost : materials.current;
-        current.renderOrder = ghost ? 1 : 0; // полупрозрачное рисуем после сплошного
+        current.visible = show.current && !ghostActive;
+        current.material = materials.current;
+    }
+    if (ghostActive) {
+        ghostDepth.geometry = ghostRim.geometry = current.geometry;
     }
     if (forecast) {
         forecast.visible = show.forecast;
@@ -245,5 +281,11 @@ function frame(now) {
 
     if (controls.update()) moving = true;
     renderer.render(scene, camera);
+    if (ghostActive) {
+        renderer.autoClear = false;
+        renderer.clearDepth();
+        renderer.render(ghostScene, camera);
+        renderer.autoClear = true;
+    }
     if (moving) requestRender();
 }

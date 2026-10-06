@@ -60,6 +60,13 @@ button, input, select { font: inherit; color: inherit; }
 }
 
 .brand { font-weight: 650; letter-spacing: 0.01em; }
+
+.topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 .brand-sub { color: var(--muted); font-size: 13px; }
 
 .main {
@@ -120,7 +127,7 @@ button, input, select { font: inherit; color: inherit; }
 
 .view-labels {
     position: absolute;
-    bottom: 40px;
+    bottom: 48px;
     left: 0;
     right: 0;
     pointer-events: none;

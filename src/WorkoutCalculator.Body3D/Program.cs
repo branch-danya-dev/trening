@@ -17,6 +17,7 @@ CultureInfo.CurrentCulture = culture;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
+builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 // JS-модули для [JSImport]: путь — относительно папки _framework
 await JSHost.ImportAsync(ViewerInterop.Module, "../js/viewer.js");

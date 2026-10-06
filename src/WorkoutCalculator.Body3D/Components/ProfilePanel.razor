@@ -69,20 +69,28 @@
     @if (Report is not null)
     {
         <div class="volume-line">
-            Объём манекена @Fmt.N(Report.MeshVolumeLiters, 1) л · по весу и % жира
+            Объём по замерам @Fmt.N(Report.MeshVolumeLiters, 1) л (манекен) · по весу и % жира
             @Fmt.N(Report.ExpectedVolumeLiters, 1) л (@Fmt.Signed(Report.Deviation * 100)&nbsp;%)
         </div>
+    }
+    @if (ModelNote is not null)
+    {
+        <div class="volume-line">@ModelNote</div>
     }
 </div>
 
 <div class="card">
     <div class="card-title">Проверка замеров</div>
-    @if (Report is { Hints.Count: > 0 })
+    @if (Report is { Hints.Count: > 0 } || ModelHints.Count > 0)
     {
         <div class="hints">
-            @foreach (var hint in Report.Hints)
+            @foreach (var hint in Report?.Hints ?? [])
             {
                 <div class="hint">@hint.Text</div>
+            }
+            @foreach (var hint in ModelHints)
+            {
+                <div class="hint">@hint</div>
             }
         </div>
     }
@@ -92,11 +100,18 @@
     }
 </div>
 
-<div class="note">Профиль хранится только в этом браузере.</div>
+<div class="note">
+    Профиль хранится только в этом браузере. Модель MakeHuman — базовая сетка и таргеты
+    makehumancommunity.org, лицензия CC0.
+</div>
 
 @code {
     [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
     [Parameter] public ConsistencyReport? Report { get; set; }
+    /// <summary>Подсказки выбранной модели (например, MakeHuman не смог подогнать обхват).</summary>
+    [Parameter] public IReadOnlyList<string> ModelHints { get; set; } = [];
+    /// <summary>Пояснение, как выбранная модель построена.</summary>
+    [Parameter] public string? ModelNote { get; set; }
     /// <summary>Изменение профиля: родитель применяет его, сохраняет и перестраивает модель.</summary>
     [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
 

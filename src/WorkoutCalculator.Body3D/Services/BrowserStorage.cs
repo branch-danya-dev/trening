@@ -26,6 +26,12 @@ public static class ProfileStorage
 {
     private const string ProfileKey = "workoutcalc.body.v1";
     private const string HypothesisKey = "workoutcalc.hypothesis.v1";
+    private const string ModelKey = "workoutcalc.model.v1";
+
+    /// <summary>Какая модель показана: "makehuman" или "mannequin".</summary>
+    public static string? LoadModelKind() => BrowserStorage.GetItem(ModelKey);
+
+    public static void SaveModelKind(string kind) => BrowserStorage.SetItem(ModelKey, kind);
 
     public static BodyProfile? LoadProfile()
     {
