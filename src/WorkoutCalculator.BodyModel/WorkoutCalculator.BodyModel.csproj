@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Модель тела: антропометрия, сетка манекена, объём, проверки, прогноз. Без интерфейса. -->
+  <PropertyGroup>
+    <RootNamespace>WorkoutCalculator.BodyModel</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorkoutCalculator.Core\WorkoutCalculator.Core.csproj" />
+  </ItemGroup>
+
+</Project>
