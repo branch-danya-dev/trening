@@ -1,0 +1,45 @@
+# Публикация веб-приложения (Body3D) на GitHub Pages: https://<владелец>.github.io/<репозиторий>/
+# Сайт — только статические файлы приложения: все данные пользователя остаются в его браузере.
+# Один раз нужно включить в настройках репозитория: Settings → Pages → Source: GitHub Actions.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Публикации идут по очереди; начатая не прерывается
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Тесты (сломанное не выкладываем)
+        run: dotnet test WorkoutCalculator.sln -c Release
+      - name: Публикация Body3D
+        run: dotnet publish src/WorkoutCalculator.Body3D -c Release -o publish
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: publish/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

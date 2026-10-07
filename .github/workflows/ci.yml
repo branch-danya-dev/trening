@@ -1,0 +1,23 @@
+# Сборка и тесты всего решения — на каждый PR и на пуш в main
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Сборка
+        run: dotnet build WorkoutCalculator.sln -c Release
+      - name: Тесты
+        run: dotnet test WorkoutCalculator.sln -c Release --no-build
