@@ -3,23 +3,29 @@
 
 <head>
     <meta charset="utf-8" />
+    <!--
+        Политика безопасности: страница может загружать только свои файлы и соединяться только со своим
+        сервером — отправить данные (замеры, позже фото) на чужой сервер браузер не даст даже при ошибке в коде.
+        'wasm-unsafe-eval' нужен .NET в WebAssembly; хеш — у import map ниже: при её изменении хеш пересчитать
+        (sha256 от текста между тегами, в base64), иначе three.js не загрузится.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-ZFhVslFfI4mbOngP9B2v/eWrTZugqEbhhx0qxIxIs0o='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Модель тела по замерам</title>
-    <base href="/" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='7' r='4' fill='%233dd6c6'/><path d='M9 13h14l-2 9h-3l-1 8h-2l-1-8h-3z' fill='%23c9cfd8'/></svg>" />
+    <!-- Относительный адрес: приложение работает и в корне сайта, и в подпапке (GitHub Pages: /trening/) -->
+    <base href="./" />
+    <meta name="description" content="3D-модель тела по замерам и прогноз изменений. Все данные остаются на устройстве." />
+    <meta name="theme-color" content="#0f151c" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="stylesheet" href="css/app.css" />
     <!--
         three.js лежит локально (wwwroot/lib/three, версия в README.md рядом), без CDN и сборщика.
-        Своя import map вместо сгенерированной Blazor: в документе может быть только одна.
+        Своя import map вместо сгенерированной Blazor: в документе может быть только одна. В одну строку —
+        чтобы перевод строк при клонировании на Windows не менял её текст и хеш в политике безопасности.
     -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "./lib/three/three.module.js",
-                "three/addons/": "./lib/three/addons/"
-            }
-        }
-    </script>
+    <script type="importmap">{"imports":{"three":"./lib/three/three.module.js","three/addons/":"./lib/three/addons/"}}</script>
 </head>
 
 <body>
@@ -39,6 +45,7 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    <script src="js/pwa.js"></script>
 </body>
 
 </html>

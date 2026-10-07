@@ -119,7 +119,10 @@ export function init(canvasId) {
     controls.addEventListener('change', requestRender);
     controls.addEventListener('start', () => { tween = null; });
 
-    new ResizeObserver(resize).observe(canvas.parentElement);
+    // Кадр зависит и от размера вида, и от высоты кнопок над моделью (на телефоне они переносятся)
+    const observer = new ResizeObserver(resize);
+    observer.observe(canvas.parentElement);
+    canvas.parentElement.querySelectorAll(OVERLAY_SELECTORS).forEach(el => observer.observe(el));
     resize();
     placeCamera('front', false);
 }
@@ -334,12 +337,30 @@ function placeCamera(view, animate, resetDistance = true, keepAngle = false) {
     requestRender();
 }
 
+/** Кнопки поверх вида сверху: модель вписывается в кадр под ними, иначе на телефоне они закрывают голову. */
+const OVERLAY_SELECTORS = '.view-toolbar, .mode-bar';
+
+/** Сколько пикселей сверху занимают видимые кнопки (не больше 40 % высоты вида). */
+function topInset(host, h) {
+    const top = host.getBoundingClientRect().top;
+    let bottom = 0;
+    host.querySelectorAll(OVERLAY_SELECTORS).forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.height > 0) bottom = Math.max(bottom, r.bottom - top);
+    });
+    return bottom > 0 ? Math.min(bottom + 6, 0.4 * h) : 0;
+}
+
 function resize() {
     const host = canvas.parentElement;
     const w = host.clientWidth, h = host.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
-    camera.aspect = w / h;
+    // Кадр камеры — часть вида под кнопками; холст показывает его и полосу над ним
+    const inset = topInset(host, h);
+    const frameH = h - inset;
+    camera.aspect = w / frameH;
+    camera.setViewOffset(w, frameH, 0, -inset, w, h);
     camera.updateProjectionMatrix();
     requestRender();
 }
