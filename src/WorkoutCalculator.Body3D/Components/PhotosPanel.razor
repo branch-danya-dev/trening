@@ -1,6 +1,7 @@
 @* Вкладка «Фото»: фотосессии — только на этом устройстве. Съёмка с подсказками (камера и проверка позы
    в браузере) или готовые снимки из файлов. *@
 @using System.Runtime.InteropServices.JavaScript
+@using WorkoutCalculator.BodyModel.MakeHuman
 @using WorkoutCalculator.BodyModel.Photos
 @implements IDisposable
 
@@ -115,30 +116,86 @@
                     var profile = view == "side" ? a.Side : a.Front;
                     if (profile is not null && _urls.TryGetValue(view, out var url))
                     {
-                        <PhotoOverlay Url="@url" Profile="profile" KeyLevels="keys"
+                        <PhotoOverlay Url="@url" Profile="profile" KeyLevels="keys" Model="@ModelEdges(o, view)"
                                       Caption="@(view == "side" ? "Сбоку: глубина" : "Спереди: ширина")" />
                     }
                 }
             </div>
+            @if (_fit is not null && _fitSessionId == o.Id)
+            {
+                <div class="legend-line">
+                    <span class="key photo"></span>контур на фото <span class="key model"></span>модель после подгонки
+                </div>
+            }
             <table class="changes" style="margin-top: 10px">
                 <thead>
-                    <tr><th></th><th>Ширина, см</th><th>Глубина, см</th></tr>
+                    <tr><th></th><th>Ширина, см</th><th>Глубина, см</th><th>Обхват по фото, см</th><th>Замер, см</th></tr>
                 </thead>
                 <tbody>
-                    @foreach (var (name, fraction) in keys)
+                    @foreach (var (name, fraction, girth) in keys.Zip(KeyGirths, (k, g) => (k.Name, k.Fraction, g)))
                     {
                         <tr>
                             <td>@name</td>
                             <td>@Size(a.Front, fraction)</td>
                             <td>@Size(a.Side, fraction)</td>
+                            <td>@PhotoGirth(girth, o.Sex, a)</td>
+                            <td>@Fmt.N(Profile.GetGirth(girth), 1)</td>
                         </tr>
                     }
                 </tbody>
             </table>
             <div class="note" style="margin-top: 8px">
                 Ширина — по снимку спереди, глубина (от груди или живота до спины) — сбоку. «—»: уровень закрыт
-                рукой или не найден. Обхваты по этим цифрам появятся после калибровки на данных ANSUR II.
+                рукой или не найден. Обхват по фото — по ширине и глубине, формула по 6 тыс. людей ANSUR II
+                (± — её средняя ошибка). Для груди такой формулы нет: в ANSUR II ширину груди мерили под мышками,
+                без широчайших мышц, — со снимком не сравнить. Сильно расходится с замером — перемерьте лентой
+                или переснимите.
             </div>
+
+            <div class="card-subtitle">Модель по фото</div>
+            @if (Model is null)
+            {
+                <div class="note">Подгонка работает с моделью MakeHuman — она ещё загружается или не загрузилась.</div>
+            }
+            else if (a.Front is null || a.Side is null)
+            {
+                <div class="note">Для подгонки нужны оба снимка — спереди и сбоку.</div>
+            }
+            else
+            {
+                <div class="note" style="margin-bottom: 10px">
+                    Подберёт осанку и форму модели так, чтобы её силуэт совпал со снимками: спереди — ширина, сбоку —
+                    живот, грудь и изгиб спины. Обхваты остаются вашими замерами. Займёт несколько секунд.
+                </div>
+                <button class="btn primary" disabled="@(_busy || _fitting)" @onclick="() => FitModel(o, a)">
+                    @(_fitting ? $"Подгоняю… сборка {_fitBuilds}" : "Подогнать модель по фото")
+                </button>
+                @if (_fit is PhotoFitResult f && _fitSessionId == o.Id)
+                {
+                    <div class="volume-line">
+                        Силуэты расходились в среднем на @Fmt.N(f.ErrorBeforeCm, 1)&nbsp;см, после подгонки —
+                        на @Fmt.N(f.ErrorAfterCm, 1)&nbsp;см · @f.Builds сборок тела
+                    </div>
+                    <table class="changes" style="margin-top: 8px">
+                        <tbody>
+                            <tr><td>Наклон таза</td><td>@Fmt.Signed(f.Posture.PelvicTilt, 0)°</td></tr>
+                            <tr><td>Прогиб в пояснице</td><td>@Fmt.Signed(f.Posture.Lordosis, 0)°</td></tr>
+                            <tr><td>Сутулость</td><td>@Fmt.Signed(f.Posture.Kyphosis, 0)°</td></tr>
+                            <tr><td>Живот</td><td>@Fmt.Signed(f.Form.Stomach * 100, 0)</td></tr>
+                            <tr><td>Ягодицы</td><td>@Fmt.Signed(f.Form.Buttocks * 100, 0)</td></tr>
+                            <tr><td>Глубина корпуса</td><td>@Fmt.Signed(f.Form.TorsoDepth * 100, 0)</td></tr>
+                            <tr><td>V-силуэт</td><td>@Fmt.Signed(f.Form.VShape * 100, 0)</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="confirm">
+                        <span>Применено к модели — ползунки «Осанка и форма» на вкладке «Параметры».</span>
+                        @if (_undo is not null)
+                        {
+                            <button class="btn-link" @onclick="Undo">Вернуть как было</button>
+                        }
+                    </div>
+                }
+            }
             @if ((a.Front?.Warnings ?? []).Concat(a.Side?.Warnings ?? []).Distinct().ToList() is { Count: > 0 } warnings)
             {
                 <div class="hints" style="margin-top: 10px">
@@ -200,6 +257,10 @@
 
 @code {
     [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    /// <summary>Модель MakeHuman для подгонки под фото; null — ещё не загружена.</summary>
+    [Parameter] public MakeHumanModel? Model { get; set; }
+    /// <summary>Изменение профиля (осанка и форма после подгонки): родитель применяет, сохраняет и перестраивает модель.</summary>
+    [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
 
     private const string FrontInput = "photo-front", SideInput = "photo-side", ImportInput = "photo-import";
 
@@ -220,6 +281,12 @@
     /// <summary>Открытая сессия и адреса её снимков целиком (blob:) — освобождаются при закрытии.</summary>
     private string? _openId;
     private readonly Dictionary<string, string> _urls = [];
+    /// <summary>Последняя подгонка: к какой сессии, что было до неё (для «Вернуть как было»), ход.</summary>
+    private PhotoFitResult? _fit;
+    private string? _fitSessionId;
+    private (Posture Posture, BodyForm Form)? _undo;
+    private bool _fitting;
+    private int _fitBuilds;
 
     protected override async Task OnInitializedAsync() => await Reload();
 
@@ -289,6 +356,7 @@
     {
         _busy = true;
         _message = null;
+        if (_fitSessionId == s.Id) _fit = null; // разбор заново — прежняя подгонка к нему не относится
         try
         {
             await PhotoAnalyzer.Analyze(s);
@@ -317,6 +385,65 @@
 
     private static string Size(PhotoProfile? profile, double fraction) =>
         profile?.At(fraction) is ProfileLevel l ? Fmt.N(l.SizeCm, 1) : "—";
+
+    /// <summary>Обхваты строк таблицы — в том же порядке, что <see cref="KeyLevels"/>.</summary>
+    private static readonly Girth[] KeyGirths = [Girth.Chest, Girth.Waist, Girth.Hips];
+
+    private static string PhotoGirth(Girth g, Sex sex, PhotoAnalysis a) =>
+        PhotoGirths.Girths.Contains(g) && a.Front is not null && a.Side is not null
+            && PhotoGirths.Estimate(g, sex, a.Front, a.Side) is PhotoGirthEstimate e
+            ? $"{Fmt.N(e.GirthCm, 0)} ± {Fmt.N(e.RmseCm, 1)}"
+            : "—";
+
+    /// <summary>Края модели после подгонки на снимке ракурса; null — подгонки к этой сессии нет.</summary>
+    private IReadOnlyList<PhotoFitLevel>? ModelEdges(PhotoSession s, string view) =>
+        _fit is null || _fitSessionId != s.Id ? null : view == "side" ? _fit.Side : _fit.Front;
+
+    private async Task FitModel(PhotoSession s, PhotoAnalysis a)
+    {
+        if (Model is null || a.Front is null || a.Side is null) return;
+        _fitting = true;
+        _fitBuilds = 0;
+        _message = null;
+        var before = (Profile.Posture, Profile.Form);
+        try
+        {
+            // После каждой сборки отдаём поток браузеру: виден ход, страница не замирает
+            var result = await PhotoFitter.FitAsync(Model, Profile.Clone(), a.Front, a.Side, async n =>
+            {
+                _fitBuilds = n;
+                StateHasChanged();
+                await Task.Delay(1);
+            });
+            _fit = result;
+            _fitSessionId = s.Id;
+            _undo = before;
+            await OnChange.InvokeAsync(p =>
+            {
+                p.Posture = result.Posture;
+                p.Form = result.Form;
+            });
+        }
+        catch (InvalidOperationException e)
+        {
+            Show(e.Message, error: true);
+        }
+        finally
+        {
+            _fitting = false;
+        }
+    }
+
+    private async Task Undo()
+    {
+        if (_undo is not (Posture posture, BodyForm form)) return;
+        _undo = null;
+        await OnChange.InvokeAsync(p =>
+        {
+            p.Posture = posture;
+            p.Form = form;
+        });
+    }
 
     private async Task Delete(string id)
     {

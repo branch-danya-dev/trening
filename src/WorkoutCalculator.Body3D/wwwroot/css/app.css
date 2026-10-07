@@ -594,6 +594,21 @@ button.session-thumbs:focus-visible { outline: 2px solid var(--accent); outline-
 .photo-overlay .level { stroke: #fff; stroke-width: 2; }
 .photo-overlay .scale { stroke: rgba(255, 255, 255, 0.45); stroke-width: 1; stroke-dasharray: 4 4; }
 .photo-overlay .arm { fill: var(--warn); }
+.photo-overlay .model { fill: none; stroke: #ffb347; stroke-width: 2; stroke-dasharray: 6 4; }
+.card-subtitle {
+    margin: 18px 0 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.legend-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; color: var(--muted); font-size: 12px; }
+.legend-line .key { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--accent); margin-left: 6px; }
+.legend-line .key:first-child { margin-left: 0; }
+.legend-line .key.model { border-top: 2px dashed #ffb347; }
 
 .session-info { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; font-size: 13px; }
 .session-info span { color: var(--muted); }
