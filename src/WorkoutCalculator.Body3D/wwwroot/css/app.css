@@ -595,6 +595,44 @@ button.session-thumbs:focus-visible { outline: 2px solid var(--accent); outline-
 .photo-overlay .scale { stroke: rgba(255, 255, 255, 0.45); stroke-width: 1; stroke-dasharray: 4 4; }
 .photo-overlay .arm { fill: var(--warn); }
 .photo-overlay .model { fill: none; stroke: #ffb347; stroke-width: 2; stroke-dasharray: 6 4; }
+.photo-overlay .ghost { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-width: 2; stroke-dasharray: 3 3; }
+.legend-line .key.ghost { border-top: 2px dashed rgba(255, 255, 255, 0.85); }
+
+/* ---------- Карта изменений между сессиями ---------- */
+
+.change-chart { margin-top: 10px; }
+.change-chart .legend-line { margin: 0 0 6px; }
+.key-rect { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-left: 6px; }
+.key-rect:first-child { margin-left: 0; }
+.key-rect.loss, .change-chart path.loss { background: #3987e5; fill: #3987e5; }
+.key-rect.gain, .change-chart path.gain { background: #e66767; fill: #e66767; }
+.change-plot { position: relative; }
+.change-plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.change-plot .panel-title { fill: var(--muted); font-size: 11px; font-weight: 600; }
+.change-plot .tick { fill: var(--muted); font-size: 10px; }
+.change-plot .grid { stroke: var(--border-strong); stroke-width: 1; }
+.change-plot .zero { stroke: var(--faint); stroke-width: 1; }
+.change-plot .hit { fill: transparent; outline: none; cursor: default; }
+.change-plot .hit:hover, .change-plot .hit:focus-visible { fill: rgba(255, 255, 255, 0.05); }
+.chart-tip {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    padding: 6px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--card-2);
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.chart-tip span { color: var(--muted); }
+.chart-tip .muted { color: var(--muted); }
+.compare-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; color: var(--muted); font-size: 13px; }
 .card-subtitle {
     margin: 18px 0 8px;
     padding-top: 14px;

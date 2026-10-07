@@ -1,0 +1,151 @@
+@* Карта изменений между двумя сессиями: по высоте тела — сколько прибавилось или ушло, см. Два графика
+   рядом с общей шкалой: ширина спереди и глубина сбоку. Влево и синим — ушло, вправо и красным — прибавилось.
+   Наведение (или фокус с клавиатуры) на строку — значения обоих графиков. *@
+@using WorkoutCalculator.BodyModel.Photos
+
+<div class="change-chart">
+    <div class="legend-line">
+        <span class="key-rect loss"></span>ушло <span class="key-rect gain"></span>прибавилось
+    </div>
+    <div class="change-plot" @onmouseleave="() => _hover = -1">
+        <svg viewBox="0 0 @W @H" role="img" aria-label="Изменения по высоте тела: ширина спереди и глубина сбоку, сантиметры">
+            @for (int p = 0; p < 2; p++)
+            {
+                double x0 = PanelX(p);
+                <g><text class="panel-title" x="@F(x0 + PanelW / 2)" y="12" text-anchor="middle">@(p == 0 ? "Ширина спереди, см" : "Глубина сбоку, см")</text></g>
+                @foreach (double t in new[] { -_domain, 0, _domain })
+                {
+                    double x = X(p, t);
+                    <g>
+                        <line class="@(t == 0 ? "zero" : "grid")" x1="@F(x)" x2="@F(x)" y1="@F(Top)" y2="@F(Top + Bands * Band)" />
+                        <text class="tick" x="@F(x)" y="@F(Top + Bands * Band + 12)" text-anchor="middle">@Tick(t)</text>
+                    </g>
+                }
+                @for (int b = 0; b < Bands; b++)
+                {
+                    double v = _values[p][b];
+                    if (double.IsNaN(v) || Math.Abs(v) < 0.05) continue;
+                    <path class="@(v < 0 ? "loss" : "gain")" d="@Bar(p, b, v)" />
+                }
+            }
+            @foreach (var (name, fraction) in KeyLevels)
+            {
+                double y = Top + (FromTop - fraction) / BandStep * Band;
+                <g>
+                    <text class="tick" x="@F(LabelW - 6)" y="@F(y + 4)" text-anchor="end">@name</text>
+                    <line class="grid" x1="@F(LabelW - 3)" x2="@F(LabelW)" y1="@F(y)" y2="@F(y)" />
+                </g>
+            }
+            @for (int b = 0; b < Bands; b++)
+            {
+                int band = b;
+                <rect class="hit" x="@F(LabelW)" y="@F(Top + b * Band)" width="@F(W - LabelW)" height="@F(Band)" tabindex="0"
+                      aria-label="@Describe(band)"
+                      @onmouseenter="() => _hover = band" @onfocus="() => _hover = band" @onblur="() => _hover = -1" />
+            }
+        </svg>
+        @if (_hover >= 0)
+        {
+            <div class="chart-tip" style="top: @Pct((Top + (_hover + 1) * Band + 4) / H)">
+                <div>@Value(_values[0][_hover]) <span>ширина</span></div>
+                <div>@Value(_values[1][_hover]) <span>глубина@(Split(_hover))</span></div>
+                <div class="muted">@BandName(_hover)</div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>Изменения по уровням (стало − было), как их считает <see cref="PhotoComparer"/>.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<LevelChange> Levels { get; set; } = [];
+    [Parameter] public Sex Sex { get; set; }
+
+    // Полосы по 2 % роста от основания шеи до верха бёдер
+    private const double FromTop = 0.86, BandStep = 0.02;
+    private const int Bands = 21;
+    private const double W = 340, Top = 22, Band = 12, BarH = 8, LabelW = 46, Gap = 22;
+    private static readonly double H = Top + Bands * Band + 18;
+    private static readonly double PanelW = (W - LabelW - Gap) / 2;
+
+    private double[][] _values = [new double[Bands], new double[Bands]];
+    private double[][] _fronts = [new double[Bands], new double[Bands]];
+    private double _domain = 1;
+    private int _hover = -1;
+
+    private IReadOnlyList<(string Name, double Fraction)> KeyLevels =>
+    [
+        ("Грудь", Proportions.ChestHeight(Sex)),
+        ("Талия", Proportions.WaistHeight(Sex)),
+        ("Бёдра", Proportions.HipsGirthHeight(Sex)),
+    ];
+
+    protected override void OnParametersSet()
+    {
+        // Среднее по уровням полосы; полоса без измерений — пустая
+        var width = new double[Bands];
+        var depth = new double[Bands];
+        var front = new double[Bands];
+        var back = new double[Bands];
+        for (int b = 0; b < Bands; b++)
+        {
+            double hi = FromTop - b * BandStep, lo = hi - BandStep;
+            var inBand = Levels.Where(l => l.Fraction <= hi + 1e-9 && l.Fraction > lo + 1e-9).ToList();
+            width[b] = Mean(inBand.Select(l => l.WidthCm));
+            depth[b] = Mean(inBand.Select(l => l.DepthCm));
+            front[b] = Mean(inBand.Select(l => l.FrontCm));
+            back[b] = Mean(inBand.Select(l => l.BackCm));
+        }
+        _values = [width, depth];
+        _fronts = [front, back];
+
+        // Общая шкала обоих графиков — «круглая», не меньше 1 см
+        double max = _values.SelectMany(v => v).Where(v => !double.IsNaN(v)).Select(Math.Abs).DefaultIfEmpty(0).Max();
+        _domain = new[] { 1.0, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40 }.FirstOrDefault(d => d >= max, 40);
+        if (_hover >= Bands) _hover = -1;
+    }
+
+    private static double Mean(IEnumerable<double> values)
+    {
+        var v = values.Where(x => !double.IsNaN(x)).ToList();
+        return v.Count > 0 ? v.Average() : double.NaN;
+    }
+
+    private static double PanelX(int panel) => LabelW + panel * (PanelW + Gap);
+
+    /// <summary>Шкала оставляет по краям панели место под подписи крайних делений.</summary>
+    private double X(int panel, double value) => PanelX(panel) + PanelW / 2 + value / _domain * (PanelW / 2 - 12);
+
+    /// <summary>Полоска от нуля: у нуля прямой край, на конце — скругление 3.</summary>
+    private string Bar(int panel, int band, double value)
+    {
+        double x0 = X(panel, 0), x1 = X(panel, value);
+        double y = Top + band * Band + (Band - BarH) / 2, h = BarH;
+        double r = Math.Min(3, Math.Abs(x1 - x0));
+        double s = Math.Sign(x1 - x0);
+        return string.Create(CultureInfo.InvariantCulture,
+            $"M{x0:0.##},{y:0.##}H{x1 - s * r:0.##}Q{x1:0.##},{y:0.##} {x1:0.##},{y + r:0.##}V{y + h - r:0.##}" +
+            $"Q{x1:0.##},{y + h:0.##} {x1 - s * r:0.##},{y + h:0.##}H{x0:0.##}Z");
+    }
+
+    private static string F(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static string Pct(double v) => (v * 100).ToString("0.#", CultureInfo.InvariantCulture) + "%";
+
+    private static string Tick(double t) => Fmt.Signed(t, 0);
+
+    private static string Value(double v) => double.IsNaN(v) ? "—" : $"{Fmt.Signed(v, 1)} см";
+
+    /// <summary>Глубина по частям: перед и спина.</summary>
+    private string Split(int band) =>
+        double.IsNaN(_fronts[0][band]) ? "" : $" (перед {Fmt.Signed(_fronts[0][band], 1)}, спина {Fmt.Signed(_fronts[1][band], 1)})";
+
+    private string BandName(int band)
+    {
+        double hi = FromTop - band * BandStep, lo = hi - BandStep;
+        var key = KeyLevels.FirstOrDefault(k => k.Fraction <= hi && k.Fraction > lo).Name;
+        return $"{(key is null ? "" : key + ", ")}{Fmt.N(lo * 100, 0)}–{Fmt.N(hi * 100, 0)} % роста";
+    }
+
+    private string Describe(int band) =>
+        $"{BandName(band)}: ширина {Value(_values[0][band])}, глубина {Value(_values[1][band])}";
+}

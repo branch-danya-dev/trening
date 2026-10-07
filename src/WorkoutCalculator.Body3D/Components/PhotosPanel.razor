@@ -117,14 +117,36 @@
                     if (profile is not null && _urls.TryGetValue(view, out var url))
                     {
                         <PhotoOverlay Url="@url" Profile="profile" KeyLevels="keys" Model="@ModelEdges(o, view)"
+                                      Ghost="@(view == "side" ? _ghost?.SideGhost : _ghost?.FrontGhost)"
                                       Caption="@(view == "side" ? "Сбоку: глубина" : "Спереди: ширина")" />
                     }
                 }
             </div>
-            @if (_fit is not null && _fitSessionId == o.Id)
+            @if ((_fit is not null && _fitSessionId == o.Id) || Compared(o) is not null)
             {
                 <div class="legend-line">
-                    <span class="key photo"></span>контур на фото <span class="key model"></span>модель после подгонки
+                    <span class="key photo"></span>контур на фото
+                    @if (_fit is not null && _fitSessionId == o.Id)
+                    {
+                        <span class="key model"></span><text>модель после подгонки</text>
+                    }
+                    @if (Compared(o) is PhotoSession c)
+                    {
+                        <span class="key ghost"></span><text>контур @Fmt.DateTime(c.CreatedAt)</text>
+                    }
+                </div>
+            }
+            @if (Others(o).ToList() is { Count: > 0 } others)
+            {
+                <div class="compare-row">
+                    <span>Сравнить с:</span>
+                    @foreach (var other in others)
+                    {
+                        var target = other;
+                        <button class="chip @Css.On(_compareId == target.Id)" @onclick="() => ToggleCompare(o, target)">
+                            @Fmt.DateTime(target.CreatedAt)
+                        </button>
+                    }
                 </div>
             }
             <table class="changes" style="margin-top: 10px">
@@ -151,6 +173,43 @@
                 без широчайших мышц, — со снимком не сравнить. Сильно расходится с замером — перемерьте лентой
                 или переснимите.
             </div>
+
+            @if (Compared(o) is PhotoSession cmp && _change is not null)
+            {
+                var (older, newer) = cmp.CreatedAt < o.CreatedAt ? (cmp, o) : (o, cmp);
+                <div class="card-subtitle">Изменения с @Fmt.DateTime(older.CreatedAt) по @Fmt.DateTime(newer.CreatedAt)</div>
+                <ChangeChart Levels="_change.Levels" Sex="o.Sex" />
+                <table class="changes" style="margin-top: 10px">
+                    <thead>
+                        <tr><th></th><th>Было</th><th>Стало</th><th>Изменение</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Вес, кг</td>
+                            <td>@Fmt.N(older.WeightKg, 1)</td>
+                            <td>@Fmt.N(newer.WeightKg, 1)</td>
+                            <td>@Fmt.Signed(newer.WeightKg - older.WeightKg, 1)</td>
+                        </tr>
+                        @foreach (var g in PhotoGirths.Girths)
+                        {
+                            var was = GirthOf(g, older);
+                            var now = GirthOf(g, newer);
+                            <tr>
+                                <td>@(g == Girth.Waist ? "Талия" : "Бёдра") по фото, см</td>
+                                <td>@(was is double w ? Fmt.N(w, 0) : "—")</td>
+                                <td>@(now is double n ? Fmt.N(n, 0) : "—")</td>
+                                <td>@(was is double w2 && now is double n2 ? Fmt.Signed(n2 - w2, 1) : "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="note" style="margin-top: 8px">
+                    Снимки совмещены по макушке и масштабу роста, сбоку — ещё и по лопаткам: там спина меняется
+                    меньше всего. Разница в полсантиметра и меньше — шум (поза, дыхание, одежда, свет), а не
+                    изменение тела. Обхваты по фото — оценка с ошибкой ±1,5–1,8&nbsp;см, но у одного человека она
+                    почти постоянна, поэтому разница между сессиями точнее самих обхватов.
+                </div>
+            }
 
             <div class="card-subtitle">Модель по фото</div>
             @if (Model is null)
@@ -287,6 +346,9 @@
     private (Posture Posture, BodyForm Form)? _undo;
     private bool _fitting;
     private int _fitBuilds;
+    /// <summary>Сравнение открытой сессии с другой: прежний контур на снимках и изменения (новее − старше).</summary>
+    private string? _compareId;
+    private PhotoComparison? _ghost, _change;
 
     protected override async Task OnInitializedAsync() => await Reload();
 
@@ -346,6 +408,8 @@
     private void Close()
     {
         _openId = null;
+        _compareId = null;
+        _ghost = _change = null;
         foreach (string url in _urls.Values) PhotoStore.RevokeUrl(url);
         _urls.Clear();
     }
@@ -385,6 +449,33 @@
 
     private static string Size(PhotoProfile? profile, double fraction) =>
         profile?.At(fraction) is ProfileLevel l ? Fmt.N(l.SizeCm, 1) : "—";
+
+    /// <summary>Разобранные сессии, с которыми можно сравнить открытую, — от новых к старым.</summary>
+    private IEnumerable<PhotoSession> Others(PhotoSession open) =>
+        _sessions.Where(s => s.Id != open.Id && s.Analysis is not null).OrderByDescending(s => s.CreatedAt);
+
+    /// <summary>Сессия, с которой сейчас сравнивается открытая; null — сравнения нет.</summary>
+    private PhotoSession? Compared(PhotoSession open) =>
+        _compareId is null || open.Analysis is null ? null : _sessions.FirstOrDefault(s => s.Id == _compareId && s.Analysis is not null);
+
+    private void ToggleCompare(PhotoSession open, PhotoSession other)
+    {
+        if (_compareId == other.Id || open.Analysis is not PhotoAnalysis a || other.Analysis is not PhotoAnalysis b)
+        {
+            _compareId = null;
+            _ghost = _change = null;
+            return;
+        }
+        _compareId = other.Id;
+        // Контур другой сессии — на снимках открытой; изменения — всегда от старшей к новой
+        _ghost = PhotoComparer.Compare(b.Front, b.Side, a.Front, a.Side);
+        _change = other.CreatedAt < open.CreatedAt ? _ghost : PhotoComparer.Compare(a.Front, a.Side, b.Front, b.Side);
+    }
+
+    private static double? GirthOf(Girth g, PhotoSession s) =>
+        s.Analysis is { Front: PhotoProfile f, Side: PhotoProfile side } && PhotoGirths.Estimate(g, s.Sex, f, side) is PhotoGirthEstimate e
+            ? e.GirthCm
+            : null;
 
     /// <summary>Обхваты строк таблицы — в том же порядке, что <see cref="KeyLevels"/>.</summary>
     private static readonly Girth[] KeyGirths = [Girth.Chest, Girth.Waist, Girth.Hips];

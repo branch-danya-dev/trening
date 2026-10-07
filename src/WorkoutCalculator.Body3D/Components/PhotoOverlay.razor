@@ -1,5 +1,6 @@
 @* Снимок с найденным контуром туловища: края по уровням, уровни груди, талии и бёдер, рост (макушка и пол под телом).
-   Где рядом рука, край помечен точками и в измерения не идёт. После подгонки — края модели пунктиром. *@
+   Где рядом рука, край помечен точками и в измерения не идёт. После подгонки — края модели пунктиром,
+   при сравнении сессий — прежний контур (белый пунктир). *@
 @using WorkoutCalculator.BodyModel.Photos
 
 <figure class="photo-overlay">
@@ -15,6 +16,10 @@
         {
             <circle class="arm" cx="@F(l.Left)" cy="@l.Row" r="@F(_dot)" />
             <circle class="arm" cx="@F(l.Right)" cy="@l.Row" r="@F(_dot)" />
+        }
+        @foreach (var points in _ghost)
+        {
+            <polyline class="ghost" points="@points" vector-effect="non-scaling-stroke" />
         }
         @foreach (var points in _model)
         {
@@ -41,6 +46,11 @@
 
     private List<string> _model = [];
 
+    /// <summary>Прежний контур при сравнении сессий (в пикселях этого снимка); null — сравнения нет.</summary>
+    [Parameter] public IReadOnlyList<GhostLevel>? Ghost { get; set; }
+
+    private List<string> _ghost = [];
+
     /// <summary>Левый и правый края, разбитые на куски там, где мешает рука: через руку линия не идёт.</summary>
     private List<string> _edges = [];
     private double _dot;
@@ -65,6 +75,11 @@
             }
             Flush(piece);
         }
+
+        _ghost = [];
+        if (Ghost is { Count: > 1 })
+            foreach (var edge in new Func<GhostLevel, double>[] { l => l.Left, l => l.Right })
+                _ghost.Add(string.Join(" ", Ghost.OrderByDescending(l => l.Row).Select(l => $"{F(edge(l))},{l.Row}")));
 
         _model = [];
         if (Model is { Count: > 1 })
