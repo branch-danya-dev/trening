@@ -1,6 +1,6 @@
 // «Прогноз на фото»: строки снимка растягиваются по узлам, которые считает C# (PhotoWarp). Для строки y
 // узлы from → to; между строками-узлами — линейно, за крайними узлами и вне диапазона строк — как было.
-import { getImage } from './photos.js';
+import { getImage, photoUrl } from './photos.js';
 
 /**
  * Деформирует снимок сессии. rowsJson — [{ y, from: [x…], to: [x…] }] по возрастанию y, узлы строки
@@ -25,7 +25,7 @@ export async function warpImage(sessionId, view, rowsJson) {
         ctx.putImageData(out, 0, 0);
     }
     const result = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
-    return URL.createObjectURL(result);
+    return photoUrl(result);
 }
 
 /** Узлы строки y: между соседними строками-узлами — линейно; null — строка вне диапазона. */

@@ -2,9 +2,10 @@
 // Сессия — несколько снимков одного дня (спереди, сбоку) и замеры на момент съёмки. Снимки при сохранении
 // уменьшаются до MAX_SIDE и перекодируются в JPEG: файл меньше, а метаданные (в том числе геопозиция)
 // не сохраняются. Для списка хранятся превью. Экспорт и импорт — обычный zip: его можно открыть на компьютере.
+// С PIN-кодом снимки и превью хранятся зашифрованными (AES-GCM, ключ из PIN через PBKDF2) — см. «Защита».
 
 const DB_NAME = 'body3d-photos';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // 2 — хранилище settings (PIN)
 const MAX_SIDE = 2048;
 const THUMB_SIDE = 320;
 const VIEWS = ['front', 'side'];
@@ -19,6 +20,7 @@ function openDb() {
             const db = request.result;
             if (!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions', { keyPath: 'id' });
             if (!db.objectStoreNames.contains('images')) db.createObjectStore('images', { keyPath: 'key' });
+            if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath: 'key' });
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(new Error('Хранилище браузера недоступно (приватный режим?)'));
@@ -45,6 +47,160 @@ const req = request => new Promise((resolve, reject) => {
 });
 
 const imageKey = (id, view, thumb = false) => `${id}/${view}${thumb ? '/thumb' : ''}`;
+
+// ---------- Защита: PIN-код и шифрование снимков ----------
+// Ключ AES-GCM выводится из PIN через PBKDF2 (SHA-256) с солью устройства и живёт только в памяти: после
+// перезагрузки страницы, по кнопке или через 2 минуты в фоне снимки снова закрыты. Проверочная запись
+// (зашифрованная известная строка) отличает неверный PIN. Даты, вес и контуры разбора не шифруются —
+// по ним строятся графики без разблокировки.
+
+/** Итераций PBKDF2: вывод ключа ~0,5–1,5 с на телефоне — один раз при разблокировке. */
+export const PIN_ITERATIONS = 600_000;
+const PIN_CHECK = 'body3d-pin-ok';
+const LOCK_AFTER_HIDDEN_MS = 120_000;
+const LOCKED = 'Снимки зашифрованы — введите PIN-код';
+
+let cryptoKey = null;
+let lockTimer = null;
+let lockListener = null;
+/** Адреса (blob:) снимков целиком и прогнозов на фото — при блокировке освобождаются. */
+const openUrls = new Set();
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+        clearTimeout(lockTimer);
+        const hidden = document.visibilityState === 'hidden';
+        // Пока вкладка в фоне, снимки размыты: в переключателе приложений их не видно (класс — для CSS)
+        document.documentElement.classList.toggle('page-hidden', hidden);
+        if (hidden && cryptoKey) lockTimer = setTimeout(lock, LOCK_AFTER_HIDDEN_MS);
+    });
+}
+
+/** Ключ AES-GCM 256 из PIN и соли (неизвлекаемый). */
+export async function deriveKey(pin, salt, iterations = PIN_ITERATIONS) {
+    const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, material,
+        { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+
+/** Шифрует байты: { iv, data } — 12 случайных байт и шифротекст с меткой подлинности. */
+export async function encryptBytes(key, bytes) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, bytes);
+    return { iv, data };
+}
+
+/** Расшифровывает; чужой ключ или испорченные данные — исключение. */
+export async function decryptBytes(key, iv, data) {
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+}
+
+async function pinSettings() {
+    const db = await openDb();
+    return (await req(db.transaction('settings', 'readonly').objectStore('settings').get('pin'))) ?? null;
+}
+
+/** Поля записи снимка: зашифрованные, если включён PIN, иначе — сам Blob. */
+async function seal(blob, key) {
+    if (!key) return { blob };
+    const { iv, data } = await encryptBytes(key, await blob.arrayBuffer());
+    return { iv, data, type: blob.type || 'image/jpeg' };
+}
+
+/** Снимок из записи; зашифрованный без разблокировки — исключение. */
+async function unseal(record) {
+    if (!record) return null;
+    if (record.blob) return record.blob;
+    if (!cryptoKey) throw new Error(LOCKED);
+    return new Blob([await decryptBytes(cryptoKey, record.iv, record.data)], { type: record.type });
+}
+
+/** Ключ для новых снимков: null — защита выключена; включена, но закрыта — исключение. */
+async function writeKey() {
+    if (!(await pinSettings())) return null;
+    if (!cryptoKey) throw new Error(LOCKED);
+    return cryptoKey;
+}
+
+/** JSON: { enabled, unlocked }. */
+export async function pinStatus() {
+    return JSON.stringify({ enabled: !!(await pinSettings()), unlocked: !!cryptoKey });
+}
+
+function checkPin(pin) {
+    if (!/^\d{4,8}$/.test(pin)) throw new Error('PIN-код — от 4 до 8 цифр');
+}
+
+/**
+ * Перезаписывает все снимки (rewrite(record) → новые поля записи) и запись PIN (pin — запись или null —
+ * удалить) одной транзакцией: при сбое не останется зашифрованных снимков без соли или наоборот.
+ * Сначала всё читается и пересчитывается, потом пишется: ожидание шифрования закрыло бы транзакцию.
+ */
+async function rewriteImages(rewrite, pin) {
+    const db = await openDb();
+    const records = await req(db.transaction('images', 'readonly').objectStore('images').getAll());
+    const next = [];
+    for (const r of records) next.push({ key: r.key, ...(await rewrite(r)) });
+    await new Promise((resolve, reject) => {
+        const tx = db.transaction(['images', 'settings'], 'readwrite');
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error ?? new Error('Ошибка хранилища'));
+        tx.onabort = () => reject(tx.error ?? new Error('Не хватает места в хранилище браузера'));
+        const images = tx.objectStore('images');
+        for (const r of next) images.put(r);
+        if (pin) tx.objectStore('settings').put(pin);
+        else tx.objectStore('settings').delete('pin');
+    });
+}
+
+/** Включает PIN: соль и проверочная запись в settings, все снимки шифруются; защита сразу открыта. */
+export async function enablePin(pin) {
+    checkPin(pin);
+    if (await pinSettings()) throw new Error('PIN-код уже установлен');
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await deriveKey(pin, salt);
+    const check = await encryptBytes(key, new TextEncoder().encode(PIN_CHECK));
+    await rewriteImages(async r => seal(await unseal(r), key),
+        { key: 'pin', salt, iterations: PIN_ITERATIONS, checkIv: check.iv, check: check.data });
+    cryptoKey = key;
+}
+
+/** Открывает снимки до блокировки; неверный PIN — исключение. */
+export async function unlock(pin) {
+    const settings = await pinSettings();
+    if (!settings) return;
+    const key = await deriveKey(pin, settings.salt, settings.iterations);
+    try {
+        const check = new TextDecoder().decode(await decryptBytes(key, settings.checkIv, settings.check));
+        if (check !== PIN_CHECK) throw new Error();
+    } catch {
+        throw new Error('Неверный PIN-код');
+    }
+    cryptoKey = key;
+}
+
+/** Закрывает снимки: ключ забывается, расшифрованные адреса освобождаются, интерфейс получает onLock. */
+export function lock() {
+    if (!cryptoKey) return;
+    cryptoKey = null;
+    for (const url of openUrls) URL.revokeObjectURL(url);
+    openUrls.clear();
+    thumbUrls.forEach(URL.revokeObjectURL);
+    thumbUrls = [];
+    lockListener?.();
+}
+
+/** Кого известить о блокировке (в том числе автоматической); null — никого. */
+export function onLock(callback) {
+    lockListener = callback ?? null;
+}
+
+/** Снимает защиту: проверка PIN, все снимки расшифровываются, соль и проверка удаляются. */
+export async function disablePin(pin) {
+    await unlock(pin);
+    await rewriteImages(async r => ({ blob: await unseal(r) }), null);
+    cryptoKey = null; // снимки больше не зашифрованы: освобождать нечего, интерфейс знает о снятии защиты
+}
 
 // ---------- Снимки ----------
 
@@ -83,8 +239,11 @@ async function prepare(file) {
 export async function saveSession(meta, images) {
     const views = VIEWS.filter(v => images[v]);
     if (views.length === 0) throw new Error('Нет ни одного снимка');
+    const key = await writeKey();
     const prepared = {};
     for (const v of views) prepared[v] = await prepare(images[v]);
+    const sealed = {};
+    for (const v of views) sealed[v] = { full: await seal(prepared[v].full.blob, key), thumb: await seal(prepared[v].thumb.blob, key) };
 
     const now = new Date();
     const session = {
@@ -97,8 +256,8 @@ export async function saveSession(meta, images) {
     await transact('readwrite', (sessions, imagesStore) => {
         sessions.put(session);
         for (const v of views) {
-            imagesStore.put({ key: imageKey(session.id, v), blob: prepared[v].full.blob });
-            imagesStore.put({ key: imageKey(session.id, v, true), blob: prepared[v].thumb.blob });
+            imagesStore.put({ key: imageKey(session.id, v), ...sealed[v].full });
+            imagesStore.put({ key: imageKey(session.id, v, true), ...sealed[v].thumb });
         }
     });
     return session;
@@ -138,15 +297,19 @@ export async function listSessions() {
     const db = await openDb();
     const tx = db.transaction(['sessions', 'images'], 'readonly');
     const sessions = await req(tx.objectStore('sessions').getAll());
-    // Blob из базы — ссылка на данные, а не копия: взять все записи разом дёшево
-    const blobs = new Map((await req(tx.objectStore('images').getAll())).map(r => [r.key, r.blob]));
+    // Только превью, все запросы разом в одной транзакции; расшифровка — после чтения
+    const images = tx.objectStore('images');
+    const thumbKeys = sessions.flatMap(s => s.views.map(v => imageKey(s.id, v, true)));
+    const found = await Promise.all(thumbKeys.map(key => req(images.get(key))));
+    const records = new Map(found.filter(Boolean).map(r => [r.key, r]));
     const urls = [];
     for (const s of sessions) {
         s.thumbs = {};
         for (const v of s.views) {
-            const blob = blobs.get(imageKey(s.id, v, true));
-            if (!blob) continue;
-            const url = URL.createObjectURL(blob);
+            const record = records.get(imageKey(s.id, v, true));
+            // Зашифрованное превью без разблокировки не показывается — в списке будет замок
+            if (!record || (!record.blob && !cryptoKey)) continue;
+            const url = URL.createObjectURL(await unseal(record));
             urls.push(url);
             s.thumbs[v] = url;
         }
@@ -169,7 +332,7 @@ export async function listMeta() {
 export async function getImage(id, view) {
     const db = await openDb();
     const record = await req(db.transaction('images', 'readonly').objectStore('images').get(imageKey(id, view)));
-    return record?.blob ?? null;
+    return unseal(record);
 }
 
 /** Дописывает в сессию поля из patchJson (например, результат разбора снимков). */
@@ -184,11 +347,20 @@ export async function updateSession(id, patchJson) {
 /** Адрес снимка целиком (blob:) для показа; освободить — revokeUrl. */
 export async function imageUrl(id, view) {
     const blob = await getImage(id, view);
-    return blob ? URL.createObjectURL(blob) : '';
+    return blob ? photoUrl(blob) : '';
+}
+
+/** Адрес (blob:) снимка или его производной; при блокировке освобождается сам. */
+export function photoUrl(blob) {
+    const url = URL.createObjectURL(blob);
+    openUrls.add(url);
+    return url;
 }
 
 export function revokeUrl(url) {
-    if (url) URL.revokeObjectURL(url);
+    if (!url) return;
+    openUrls.delete(url);
+    URL.revokeObjectURL(url);
 }
 
 export async function deleteSession(id) {
@@ -201,11 +373,18 @@ export async function deleteSession(id) {
     });
 }
 
+/** Удаляет все сессии и PIN-код: так же начинают заново, если PIN забыт (снимки без него не восстановить). */
 export async function deleteAll() {
-    await transact('readwrite', (sessions, images) => {
-        sessions.clear();
-        images.clear();
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+        const tx = db.transaction(['sessions', 'images', 'settings'], 'readwrite');
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error ?? new Error('Ошибка хранилища'));
+        tx.objectStore('sessions').clear();
+        tx.objectStore('images').clear();
+        tx.objectStore('settings').delete('pin');
     });
+    lock();
 }
 
 // ---------- Место и защита от очистки ----------
@@ -246,14 +425,15 @@ export async function exportArchive() {
     const db = await openDb();
     const tx = db.transaction(['sessions', 'images'], 'readonly');
     const sessions = await req(tx.objectStore('sessions').getAll());
-    const blobs = new Map((await req(tx.objectStore('images').getAll())).map(r => [r.key, r.blob]));
+    const records = new Map((await req(tx.objectStore('images').getAll())).map(r => [r.key, r]));
     const files = [];
     const meta = [];
     for (const s of sessions) {
         const folder = folderName(s);
         const paths = {};
         for (const v of s.views) {
-            const blob = blobs.get(imageKey(s.id, v));
+            // Архив — обычные JPEG: с PIN нужна разблокировка, иначе unseal бросит исключение
+            const blob = await unseal(records.get(imageKey(s.id, v)));
             if (!blob) continue;
             paths[v] = `${folder}/${v}.jpg`;
             files.push({ name: paths[v], data: new Uint8Array(await blob.arrayBuffer()) });
@@ -289,6 +469,7 @@ export async function importArchive(inputId) {
         const manifest = JSON.parse(new TextDecoder().decode(await manifestEntry.read()));
         if (manifest.format !== ARCHIVE_FORMAT || !Array.isArray(manifest.sessions)) throw new Error('Незнакомый формат архива');
 
+        const key = await writeKey();
         const db = await openDb();
         const existing = new Set(await req(db.transaction('sessions', 'readonly').objectStore('sessions').getAllKeys()));
         let added = 0, skipped = 0;
@@ -299,15 +480,16 @@ export async function importArchive(inputId) {
             const prepared = {};
             for (const v of views) {
                 const blob = new Blob([await entries.get(s.files[v]).read()], { type: 'image/jpeg' });
-                prepared[v] = await prepare(blob);
+                const { full, thumb } = await prepare(blob);
+                prepared[v] = { full: await seal(full.blob, key), thumb: await seal(thumb.blob, key) };
             }
             const { files, thumbs, ...session } = s;
             session.views = views;
             await transact('readwrite', (sessions, images) => {
                 sessions.put(session);
                 for (const v of views) {
-                    images.put({ key: imageKey(session.id, v), blob: prepared[v].full.blob });
-                    images.put({ key: imageKey(session.id, v, true), blob: prepared[v].thumb.blob });
+                    images.put({ key: imageKey(session.id, v), ...prepared[v].full });
+                    images.put({ key: imageKey(session.id, v, true), ...prepared[v].thumb });
                 }
             });
             added++;
