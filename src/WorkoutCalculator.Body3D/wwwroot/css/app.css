@@ -898,3 +898,17 @@ details summary { cursor: pointer; }
 
 #blazor-error-ui .reload { color: #fff; margin-left: 8px; }
 #blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: 14px; top: 9px; }
+
+.view-error {
+    position: absolute;
+    left: 50%;
+    bottom: 44px;
+    transform: translateX(-50%);
+    max-width: 90%;
+    padding: 6px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--warn-bg);
+    color: var(--warn);
+    font-size: 12px;
+}

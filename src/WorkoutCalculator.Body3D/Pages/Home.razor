@@ -64,6 +64,8 @@
                         <input type="checkbox" checked="@_sideBySide" @onchange="ToggleSideBySide" /> рядом
                     </label>
                 }
+                <button class="btn" disabled="@(_recording || _current is null)" title="Видео поворота модели — сохранится на устройство"
+                        @onclick="RecordVideo">@(_recording ? "Запись…" : "● Видео")</button>
                 @if (_mode != ViewMode.Current && ManyHypotheses)
                 {
                     <select class="select" aria-label="Какую гипотезу показать" value="@_hypotheses.Selected" @onchange="OnViewHypothesis">
@@ -74,6 +76,11 @@
                     </select>
                 }
             </div>
+
+            @if (_videoError is not null)
+            {
+                <div class="view-error" role="alert">@_videoError</div>
+            }
 
             <label class="check view-tapes" title="Где меряется каждый обхват. Лента обхвата подсвечивается и при наведении на его поле">
                 <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
@@ -177,6 +184,37 @@
 
     private bool UseMakeHuman => _kind == BodyKind.MakeHuman && _mh is not null;
     private bool ManyHypotheses => _hypotheses.Items.Count > 1;
+
+    private bool _recording;
+    private string? _videoError;
+
+    /// <summary>Длительность видео поворота, с.</summary>
+    private const double VideoSeconds = 6;
+
+    /// <summary>Поворот модели в видео: то же, что в виде сейчас (режим, ленты, контур сравнения).</summary>
+    private async Task RecordVideo()
+    {
+        _recording = true;
+        _videoError = null;
+        try
+        {
+            string json = await ViewerInterop.RecordTurn(VideoSeconds);
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            string url = doc.RootElement.GetProperty("url").GetString()!;
+            string ext = doc.RootElement.GetProperty("ext").GetString()!;
+            // Имя латиницей: часть браузеров отбрасывает кириллицу в имени скачиваемого файла
+            string what = _mode switch { ViewMode.Forecast => "forecast", ViewMode.Compare => "compare", _ => "now" };
+            ViewerInterop.SaveFile(url, $"body-turn-{what}-{DateTime.Now:yyyy-MM-dd}.{ext}");
+        }
+        catch (JSException e)
+        {
+            _videoError = e.Message.StartsWith("Error: ", StringComparison.Ordinal) ? e.Message[7..] : e.Message;
+        }
+        finally
+        {
+            _recording = false;
+        }
+    }
 
     /// <summary>Подпись прогноза выбранной гипотезы: название и срок.</summary>
     private string ForecastLabel => _forecast is null
