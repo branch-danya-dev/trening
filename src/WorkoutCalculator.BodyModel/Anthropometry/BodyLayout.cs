@@ -89,12 +89,12 @@ public sealed class BodyLayout
 
         // Плечи: ширина задана скелетом, а не обхватом
         double shoulderA = jointX + SectionShapes.ShouldersBeyondJoint * h;
-        double shoulderB = shoulderA * SectionShapes.DepthToWidth(TorsoLevel.Shoulders, sex, fat);
+        double shoulderB = shoulderA * SectionShapes.DepthToWidth(TorsoLevel.Shoulders, sex, p.Bmi);
         torso.Add(new TorsoKey(TorsoLevel.Shoulders, Proportions.ShoulderHeight * h, shoulderA, shoulderB, shouldersZ, null));
 
         double neckZ = SectionShapes.NeckCenterZ * h;
         var (topA, topB) = Ellipse.FromGirth(SectionShapes.TorsoTopGirth(neck) / 100.0,
-                                             SectionShapes.DepthToWidth(TorsoLevel.NeckBase, sex, fat));
+                                             SectionShapes.DepthToWidth(TorsoLevel.NeckBase, sex, p.Bmi));
         torso.Add(new TorsoKey(TorsoLevel.NeckBase, Proportions.TorsoTopHeight * h, topA, topB, neckZ, null));
 
         // --- Шея: вертикальная трубка от плеч до головы ---
@@ -244,7 +244,7 @@ public sealed class BodyLayout
 
         TorsoKey Key(TorsoLevel level, double heightFraction, double girthCm, Girth? measures)
         {
-            var (a, b) = Ellipse.FromGirth(girthCm / 100.0, SectionShapes.DepthToWidth(level, sex, fat));
+            var (a, b) = Ellipse.FromGirth(girthCm / 100.0, SectionShapes.DepthToWidth(level, sex, p.Bmi));
             double cz = SectionShapes.ForwardShift(level, sex, fat) * b;
             return new TorsoKey(level, heightFraction * h, a, b, cz, measures);
         }

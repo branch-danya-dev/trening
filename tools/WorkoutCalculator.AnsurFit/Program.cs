@@ -87,13 +87,13 @@ foreach (var (sex, path) in new[] { (Sex.Male, args[0]), (Sex.Female, args[1]) }
     if (validate)
     {
         var people = Validation.Profiles(sex, data);
-        Validation.Mannequins(people);
+        mismatch |= !Validation.Mannequins(sex, people);
         if (makeHuman is not null) Validation.MakeHumanBodies(people, makeHuman);
     }
 }
 
 if (mismatch)
-    Console.WriteLine("Коэффициенты в AnsurGirths.cs отличаются от подобранных — обновите таблицу.");
+    Console.WriteLine("Коэффициенты в коде (AnsurGirths, MannequinBias) отличаются от подобранных — обновите их.");
 return mismatch ? 1 : 0;
 
 static double Rmse(AnsurModel m, double[] y, double[] thigh, double[] height, double[] weight)

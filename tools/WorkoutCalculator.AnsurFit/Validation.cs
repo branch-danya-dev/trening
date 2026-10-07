@@ -1,3 +1,4 @@
+using System.Globalization;
 using WorkoutCalculator;
 using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Anthropometry;
@@ -42,13 +43,38 @@ static class Validation
         return people;
     }
 
-    public static void Mannequins(IReadOnlyList<BodyProfile> people)
+    /// <summary>
+    /// Манекен: подбирает поправку по ИМТ (<see cref="ConsistencyChecker.MannequinBias"/>), сверяет её с кодом
+    /// и печатает отклонения с поправкой. false — поправка в коде отличается от подобранной.
+    /// </summary>
+    public static bool Mannequins(Sex sex, IReadOnlyList<BodyProfile> people)
     {
-        var rows = people.Select(p => (Bmi: p.Bmi, Dev: ConsistencyChecker.Check(Mannequin.Build(p)).Deviation * 100)).ToList();
-        Console.WriteLine($"Манекен: объём по обхватам против объёма по весу и % жира ВМС, {rows.Count} человек " +
-                          $"(подсказка срабатывает при ±{ConsistencyChecker.VolumeTolerance * 100:0} %):");
+        var rows = people.Select(p =>
+        {
+            var m = Mannequin.Build(p);
+            double raw = m.VolumeLiters / ConsistencyChecker.ExpectedVolumeLiters(p) - 1;
+            return (Bmi: p.Bmi, Raw: raw, Dev: ConsistencyChecker.Check(m).Deviation * 100);
+        }).ToList();
+
+        // Отклонение без поправки = Offset + Slope · (ИМТ − 25): МНК по одной переменной
+        double[] x = rows.Select(r => Math.Clamp(r.Bmi, 16, 45) - 25).ToArray();
+        double[] y = rows.Select(r => r.Raw).ToArray();
+        double mx = x.Average(), my = y.Average();
+        double slope = x.Zip(y, (a, b) => (a - mx) * (b - my)).Sum() / x.Sum(a => (a - mx) * (a - mx));
+        double offset = my - slope * mx;
+        var code = ConsistencyChecker.MannequinBias(sex);
+        bool same = Math.Abs(code.Offset - offset) < 0.0005 && Math.Abs(code.Slope - slope) < 0.00005;
+        Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+            $"Манекен без поправки: отклонение ≈ {offset:+0.0000;-0.0000} {slope:+0.00000;-0.00000}·(ИМТ − 25); для MannequinBias: ({offset:0.0000}, {slope:0.00000})") +
+            (same ? "" : " — В КОДЕ ДРУГАЯ ПОПРАВКА"));
+
+        Console.WriteLine($"С поправкой, {rows.Count} человек (подсказка срабатывает при ±{ConsistencyChecker.VolumeTolerance * 100:0} %):");
         foreach (var (label, lo, hi) in BmiGroups)
             Stats(label, rows.Where(r => r.Bmi >= lo && r.Bmi < hi).Select(r => r.Dev).ToList());
+        var abs = rows.Select(r => Math.Abs(r.Dev)).Order().ToArray();
+        Console.WriteLine($"  |отклонение|: 99 % людей — до {Percentile(abs, 0.99):0.0} %, 99,5 % — до {Percentile(abs, 0.995):0.0} %; " +
+                          string.Join(", ", new[] { 6.0, 8, 10, 12 }.Select(t => $"за ±{t:0} % — {100.0 * abs.Count(a => a > t) / abs.Length:0.0} %")));
+        return same;
     }
 
     public static void MakeHumanBodies(IReadOnlyList<BodyProfile> people, MakeHumanModel model)
