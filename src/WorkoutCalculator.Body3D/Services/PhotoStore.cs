@@ -16,6 +16,9 @@ public static partial class PhotoStore
     [JSImport("listSessions", Module)]
     private static partial Task<string> ListJson();
 
+    [JSImport("listMeta", Module)]
+    private static partial Task<string> ListMetaJson();
+
     [JSImport("saveFromInputs", Module)]
     private static partial Task<string> SaveFromInputsJson(string metaJson, string frontInputId, string sideInputId);
 
@@ -47,6 +50,10 @@ public static partial class PhotoStore
 
     public static async Task<List<PhotoSession>> List() =>
         JsonSerializer.Deserialize(await ListJson(), PhotoJson.Default.ListPhotoSession) ?? [];
+
+    /// <summary>Сессии без превью (не трогает адреса превью вкладки «Фото»), от старых к новым.</summary>
+    public static async Task<List<PhotoSession>> ListMeta() =>
+        JsonSerializer.Deserialize(await ListMetaJson(), PhotoJson.Default.ListPhotoSession) ?? [];
 
     /// <summary>Сессия из полей выбора файлов; замеры — снимок профиля на момент съёмки.</summary>
     public static async Task<PhotoSession> SaveFromInputs(BodyProfile p, string frontInputId, string sideInputId)

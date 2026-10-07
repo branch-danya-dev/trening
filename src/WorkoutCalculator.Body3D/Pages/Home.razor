@@ -1,5 +1,7 @@
 @using System.Diagnostics
+@using System.Runtime.InteropServices.JavaScript
 @using WorkoutCalculator.BodyModel.MakeHuman
+@using WorkoutCalculator.BodyModel.Photos
 @inject HttpClient Http
 
 <div class="app">
@@ -110,7 +112,7 @@
                 else
                 {
                     <HypothesisPanel Profile="_profile" Hypotheses="_hypotheses" Forecasts="_forecasts" OnChange="ChangeHypothesis"
-                                     OnHypotheses="ChangeHypotheses" />
+                                     OnHypotheses="ChangeHypotheses" Facts="Facts" OnLogWeight="LogWeight" OnRemoveWeight="RemoveWeight" />
                 }
             </div>
         </aside>
@@ -134,6 +136,13 @@
     private ConsistencyReport? _report;
     /// <summary>Прогнозы всех гипотез; <see cref="_forecast"/> — выбранной, она же в 3D.</summary>
     private IReadOnlyList<HypothesisForecast> _forecasts = [];
+
+    /// <summary>Факты для слежения за планом: взвешивания и фотосессии (вес и обхваты по фото).</summary>
+    private List<WeightEntry> _weights = [];
+    private List<FactPoint> _photoFacts = [];
+
+    private IReadOnlyList<FactPoint> Facts =>
+        _weights.Select(w => new FactPoint(w.Date, w.WeightKg)).Concat(_photoFacts).OrderBy(f => f.Date).ToList();
     private ForecastResult? _forecast;
 
     private BodyKind _kind = BodyKind.MakeHuman;
@@ -173,7 +182,44 @@
         _profile = ProfileStorage.LoadProfile() ?? BodyDefaults.Default();
         _hypotheses = ProfileStorage.LoadHypotheses() ?? StoredHypotheses.Of(DefaultHypothesis(_profile));
         _kind = ProfileStorage.LoadModelKind() == "mannequin" ? BodyKind.Mannequin : BodyKind.MakeHuman;
+        _weights = ProfileStorage.LoadWeights();
         _ = LoadMakeHumanAsync();
+        _ = LoadPhotoFactsAsync();
+    }
+
+    /// <summary>Фотосессии как факты: дата, вес на момент съёмки, обхваты талии и бёдер по фото.</summary>
+    private async Task LoadPhotoFactsAsync()
+    {
+        try
+        {
+            var sessions = await PhotoStore.ListMeta();
+            _photoFacts = sessions.Select(s =>
+            {
+                double? ByPhoto(Girth g) => s.Analysis is { Front: PhotoProfile f, Side: PhotoProfile side }
+                                            && PhotoGirths.Estimate(g, s.Sex, f, side) is PhotoGirthEstimate e ? e.GirthCm : null;
+                return new FactPoint(DateOnly.FromDateTime(s.CreatedAt.ToLocalTime().DateTime), s.WeightKg,
+                    ByPhoto(Girth.Waist), ByPhoto(Girth.Hips), FromPhotos: true);
+            }).ToList();
+            StateHasChanged();
+        }
+        catch (JSException)
+        {
+            // Хранилище фото недоступно (например, приватный режим) — слежение только по взвешиваниям
+        }
+    }
+
+    private void LogWeight(WeightEntry entry)
+    {
+        _weights.RemoveAll(w => w.Date == entry.Date);
+        _weights.Add(entry);
+        _weights.Sort((a, b) => a.Date.CompareTo(b.Date));
+        ProfileStorage.SaveWeights(_weights);
+    }
+
+    private void RemoveWeight(DateOnly date)
+    {
+        _weights.RemoveAll(w => w.Date == date);
+        ProfileStorage.SaveWeights(_weights);
     }
 
     /// <summary>По умолчанию — умеренный дефицит 400 ккал от текущего расхода.</summary>
@@ -261,6 +307,7 @@
     private void OpenHypothesis()
     {
         _tab = Tab.Hypothesis;
+        _ = LoadPhotoFactsAsync(); // фотосессии могли добавиться
         if (_mode == ViewMode.Current && _forecast is not null)
             SetMode(ViewMode.Compare); // на вкладке гипотез сразу видно разницу
     }
@@ -451,13 +498,14 @@
     }
 
     /// <summary>
-    /// Прогнозы всех гипотез от текущего профиля: это недельный цикл без сетки, он дешёвый.
-    /// Возвращает прогноз выбранной гипотезы.
+    /// Прогнозы всех гипотез: это недельный цикл без сетки, он дешёвый. Начатый план считается от профиля
+    /// в день начала, остальные — от текущего. Возвращает прогноз выбранной гипотезы.
     /// </summary>
     private ForecastResult RunForecasts()
     {
         _forecasts = _hypotheses.Items
-            .Select(h => new HypothesisForecast(h, ForecastEngine.Run(_profile.Clone(), h.Plan.ToInput())))
+            .Select(h => new HypothesisForecast(h,
+                ForecastEngine.Run(h.Plan.StartProfile?.ToProfile() ?? _profile.Clone(), h.Plan.ToInput())))
             .ToList();
         return _forecast = (_forecasts.FirstOrDefault(f => f.Hypothesis.Slot == _hypotheses.Selected) ?? _forecasts[0]).Forecast;
     }

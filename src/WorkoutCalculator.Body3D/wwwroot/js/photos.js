@@ -157,6 +157,14 @@ export async function listSessions() {
     return JSON.stringify(sessions);
 }
 
+/** Сессии без снимков и превью, от старых к новым: дата, вес, разбор — для слежения за планом. */
+export async function listMeta() {
+    const db = await openDb();
+    const sessions = await req(db.transaction('sessions', 'readonly').objectStore('sessions').getAll());
+    sessions.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    return JSON.stringify(sessions);
+}
+
 /** Снимок сессии целиком (для анализа и просмотра). */
 export async function getImage(id, view) {
     const db = await openDb();

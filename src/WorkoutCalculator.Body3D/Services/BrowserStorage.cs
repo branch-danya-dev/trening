@@ -29,6 +29,7 @@ public static class ProfileStorage
     /// <summary>Прежний формат — одна гипотеза без названия; читается, только пока нет нового.</summary>
     private const string SingleHypothesisKey = "workoutcalc.hypothesis.v1";
     private const string ModelKey = "workoutcalc.model.v1";
+    private const string WeightsKey = "workoutcalc.weights.v1";
 
     /// <summary>Какая модель показана: "makehuman" или "mannequin".</summary>
     public static string? LoadModelKind() => BrowserStorage.GetItem(ModelKey);
@@ -71,6 +72,30 @@ public static class ProfileStorage
 
     public static void SaveHypotheses(StoredHypotheses h) =>
         BrowserStorage.SetItem(HypothesesKey, JsonSerializer.Serialize(h, StorageJson.Default.StoredHypotheses));
+
+    /// <summary>Журнал взвешиваний: по одной записи на день, по дате.</summary>
+    public static List<WeightEntry> LoadWeights()
+    {
+        try
+        {
+            string? json = BrowserStorage.GetItem(WeightsKey);
+            return json is null ? [] : JsonSerializer.Deserialize(json, StorageJson.Default.ListWeightEntry) ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    public static void SaveWeights(List<WeightEntry> weights) =>
+        BrowserStorage.SetItem(WeightsKey, JsonSerializer.Serialize(weights, StorageJson.Default.ListWeightEntry));
+}
+
+/// <summary>Запись веса за день.</summary>
+public sealed class WeightEntry
+{
+    public DateOnly Date { get; set; }
+    public double WeightKg { get; set; }
 }
 
 public sealed class StoredProfile
@@ -130,6 +155,15 @@ public sealed class StoredHypothesis
     public Terrain CardioTerrain { get; set; } = Terrain.Asphalt;
     public int? CardioAvgHr { get; set; }
 
+    /// <summary>
+    /// День начала плана; null — план не начат: прогноз от текущего профиля, факта нет. У начатого прогноз
+    /// считается от <see cref="StartProfile"/>, чтобы не уезжать вслед за текущим весом.
+    /// </summary>
+    public DateOnly? StartDate { get; set; }
+
+    /// <summary>Профиль в день начала плана.</summary>
+    public StoredProfile? StartProfile { get; set; }
+
     public bool Strength { get; set; } = true;
     public int StrengthPerWeek { get; set; } = 3;
     public TrainingExperience Experience { get; set; } = TrainingExperience.Beginner;
@@ -179,4 +213,5 @@ public sealed class StoredHypothesis
 [JsonSerializable(typeof(StoredProfile))]
 [JsonSerializable(typeof(StoredHypothesis))]
 [JsonSerializable(typeof(StoredHypotheses))]
+[JsonSerializable(typeof(List<WeightEntry>))]
 internal sealed partial class StorageJson : JsonSerializerContext;
