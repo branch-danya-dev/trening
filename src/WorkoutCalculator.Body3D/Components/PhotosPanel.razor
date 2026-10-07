@@ -1,6 +1,7 @@
 @* Вкладка «Фото»: фотосессии — только на этом устройстве. Съёмка с подсказками (камера и проверка позы
    в браузере) или готовые снимки из файлов. *@
 @using System.Runtime.InteropServices.JavaScript
+@using System.Text.Json
 @using WorkoutCalculator.BodyModel.MakeHuman
 @using WorkoutCalculator.BodyModel.Photos
 @implements IDisposable
@@ -110,18 +111,37 @@
         }
         else
         {
+            @if (Model is not null && ForecastEnd is not null && a.Front is not null && a.Side is not null)
+            {
+                <div class="compare-row" style="margin: 0 0 10px">
+                    <button class="chip @Css.On(!ShowingForecast(o))" @onclick="() => HideForecast()">Сейчас</button>
+                    <button class="chip @Css.On(ShowingForecast(o))" disabled="@_warping" @onclick="() => ShowForecast(o, a)">
+                        @(_warping ? "Считаю прогноз…" : $"Прогноз: {ForecastLabel}")
+                    </button>
+                </div>
+            }
             <div class="overlay-row">
                 @foreach (string view in o.Views)
                 {
                     var profile = view == "side" ? a.Side : a.Front;
                     if (profile is not null && _urls.TryGetValue(view, out var url))
                     {
-                        <PhotoOverlay Url="@url" Profile="profile" KeyLevels="keys" Model="@ModelEdges(o, view)"
-                                      Ghost="@(view == "side" ? _ghost?.SideGhost : _ghost?.FrontGhost)"
-                                      Caption="@(view == "side" ? "Сбоку: глубина" : "Спереди: ширина")" />
+                        bool forecast = ShowingForecast(o) && _warpUrls.ContainsKey(view);
+                        <PhotoOverlay Url="@(forecast ? _warpUrls[view] : url)" Profile="profile" KeyLevels="keys"
+                                      Model="@(forecast ? null : ModelEdges(o, view))" ShowEdges="!forecast"
+                                      Ghost="@(forecast ? Contour(profile) : view == "side" ? _ghost?.SideGhost : _ghost?.FrontGhost)"
+                                      Caption="@(forecast ? (view == "side" ? "Прогноз сбоку" : "Прогноз спереди") : view == "side" ? "Сбоку: глубина" : "Спереди: ширина")" />
                     }
                 }
             </div>
+            @if (ShowingForecast(o))
+            {
+                <div class="note" style="margin-top: 8px">
+                    Снимок изменён так, как меняется модель MakeHuman от сегодняшних замеров к прогнозу выбранной
+                    гипотезы: спереди — ширина, сбоку — живот и спина, по уровням от бёдер до шеи. Белый пунктир — контур
+                    на снимке сейчас. Это иллюстрация прогноза, а не обещание: лицо, руки и ноги не меняются.
+                </div>
+            }
             @if ((_fit is not null && _fitSessionId == o.Id) || Compared(o) is not null)
             {
                 <div class="legend-line">
@@ -318,6 +338,10 @@
     [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
     /// <summary>Модель MakeHuman для подгонки под фото; null — ещё не загружена.</summary>
     [Parameter] public MakeHumanModel? Model { get; set; }
+    /// <summary>Итог прогноза выбранной гипотезы — для «прогноза на фото»; null — прогноза нет.</summary>
+    [Parameter] public BodyProfile? ForecastEnd { get; set; }
+    /// <summary>Подпись прогноза: гипотеза и срок.</summary>
+    [Parameter] public string ForecastLabel { get; set; } = "";
     /// <summary>Изменение профиля (осанка и форма после подгонки): родитель применяет, сохраняет и перестраивает модель.</summary>
     [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
 
@@ -346,6 +370,12 @@
     private (Posture Posture, BodyForm Form)? _undo;
     private bool _fitting;
     private int _fitBuilds;
+    /// <summary>«Прогноз на фото»: деформированные снимки открытой сессии (blob:) и для какого прогноза они.</summary>
+    private readonly Dictionary<string, string> _warpUrls = [];
+    private string? _warpSessionId;
+    private BodyProfile? _warpFor;
+    private bool _warpOn, _warping;
+
     /// <summary>Сравнение открытой сессии с другой: прежний контур на снимках и изменения (новее − старше).</summary>
     private string? _compareId;
     private PhotoComparison? _ghost, _change;
@@ -410,6 +440,8 @@
         _openId = null;
         _compareId = null;
         _ghost = _change = null;
+        HideForecast();
+        ReleaseWarps();
         foreach (string url in _urls.Values) PhotoStore.RevokeUrl(url);
         _urls.Clear();
     }
@@ -449,6 +481,67 @@
 
     private static string Size(PhotoProfile? profile, double fraction) =>
         profile?.At(fraction) is ProfileLevel l ? Fmt.N(l.SizeCm, 1) : "—";
+
+    private bool ShowingForecast(PhotoSession s) => _warpOn && _warpSessionId == s.Id && ReferenceEquals(_warpFor, ForecastEnd);
+
+    private void HideForecast() => _warpOn = false;
+
+    private void ReleaseWarps()
+    {
+        foreach (string url in _warpUrls.Values) PhotoStore.RevokeUrl(url);
+        _warpUrls.Clear();
+        _warpSessionId = null;
+        _warpFor = null;
+    }
+
+    /// <summary>
+    /// Прогноз на фото: модели «сейчас» и «прогноз» режутся на тех же уровнях, что и снимки, разница
+    /// переносится на края силуэта. Снимки пересчитываются, только если сменилась сессия или прогноз.
+    /// </summary>
+    private async Task ShowForecast(PhotoSession s, PhotoAnalysis a)
+    {
+        if (Model is null || ForecastEnd is null || a.Front is null || a.Side is null) return;
+        if (_warpSessionId == s.Id && ReferenceEquals(_warpFor, ForecastEnd))
+        {
+            _warpOn = true;
+            return;
+        }
+        _warping = true;
+        _message = null;
+        try
+        {
+            ReleaseWarps();
+            var target = ForecastEnd;
+            var fractions = a.Front.Levels.Concat(a.Side.Levels).Select(l => Math.Round(l.Fraction, 4)).Distinct().Order().ToArray();
+            await Task.Yield();
+            var now = Model.Build(Profile.Clone());
+            await Task.Delay(1); // дать браузеру отрисовать «Считаю прогноз…»
+            var later = Model.Build(target.Clone());
+            double height = Profile.HeightCm / 100;
+            var cur = ModelSilhouette.Measure(now.Mesh.Positions, Model.Data.Triangles, height, fractions);
+            var fut = ModelSilhouette.Measure(later.Mesh.Positions, Model.Data.Triangles, height, fractions);
+            foreach (var (view, profile) in new[] { ("front", a.Front), ("side", a.Side) })
+            {
+                var rows = PhotoWarp.Plan(profile, fractions, cur, fut).ToList();
+                _warpUrls[view] = await PhotoWarpInterop.WarpImage(s.Id, view, JsonSerializer.Serialize(rows, PhotoJson.Default.ListWarpRow));
+            }
+            _warpSessionId = s.Id;
+            _warpFor = target;
+            _warpOn = true;
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        finally
+        {
+            _warping = false;
+        }
+    }
+
+    /// <summary>Контур снимка как «прежний» — поверх снимка с прогнозом.</summary>
+    private static IReadOnlyList<GhostLevel> Contour(PhotoProfile p) =>
+        p.Levels.Where(l => !l.ArmOverlap).Select(l => new GhostLevel(l.Fraction, l.Row, l.Left, l.Right)).ToList();
 
     /// <summary>Разобранные сессии, с которыми можно сравнить открытую, — от новых к старым.</summary>
     private IEnumerable<PhotoSession> Others(PhotoSession open) =>

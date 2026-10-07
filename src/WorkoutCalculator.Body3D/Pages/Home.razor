@@ -107,7 +107,8 @@
                 }
                 else if (_tab == Tab.Photos)
                 {
-                    <PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" />
+                    <PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End"
+                                 ForecastLabel="@ForecastLabel" />
                 }
                 else
                 {
@@ -176,6 +177,11 @@
 
     private bool UseMakeHuman => _kind == BodyKind.MakeHuman && _mh is not null;
     private bool ManyHypotheses => _hypotheses.Items.Count > 1;
+
+    /// <summary>Подпись прогноза выбранной гипотезы: название и срок.</summary>
+    private string ForecastLabel => _forecast is null
+        ? ""
+        : $"«{_hypotheses.Current.Name}», {_forecast.Weeks[^1].Week} нед.";
 
     protected override void OnInitialized()
     {

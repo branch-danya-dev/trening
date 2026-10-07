@@ -8,14 +8,17 @@
         <image href="@Url" width="@Profile.Width" height="@Profile.Height" />
         <line class="scale" x1="0" x2="@Profile.Width" y1="@F(Profile.Crown)" y2="@F(Profile.Crown)" vector-effect="non-scaling-stroke" />
         <line class="scale" x1="0" x2="@Profile.Width" y1="@F(Profile.Floor)" y2="@F(Profile.Floor)" vector-effect="non-scaling-stroke" />
-        @foreach (var points in _edges)
+        @if (ShowEdges)
         {
-            <polyline class="edge" points="@points" vector-effect="non-scaling-stroke" />
-        }
-        @foreach (var l in Profile.Levels.Where(l => l.ArmOverlap))
-        {
-            <circle class="arm" cx="@F(l.Left)" cy="@l.Row" r="@F(_dot)" />
-            <circle class="arm" cx="@F(l.Right)" cy="@l.Row" r="@F(_dot)" />
+            @foreach (var points in _edges)
+            {
+                <polyline class="edge" points="@points" vector-effect="non-scaling-stroke" />
+            }
+            @foreach (var l in Profile.Levels.Where(l => l.ArmOverlap))
+            {
+                <circle class="arm" cx="@F(l.Left)" cy="@l.Row" r="@F(_dot)" />
+                <circle class="arm" cx="@F(l.Right)" cy="@l.Row" r="@F(_dot)" />
+            }
         }
         @foreach (var points in _ghost)
         {
@@ -25,7 +28,7 @@
         {
             <polyline class="model" points="@points" vector-effect="non-scaling-stroke" />
         }
-        @foreach (var (_, fraction) in KeyLevels)
+        @foreach (var (_, fraction) in ShowEdges ? KeyLevels : [])
         {
             if (Profile.At(fraction) is ProfileLevel l)
             {
@@ -45,6 +48,9 @@
     [Parameter] public IReadOnlyList<PhotoFitLevel>? Model { get; set; }
 
     private List<string> _model = [];
+
+    /// <summary>Показывать найденный контур и уровни; false — снимок изменён (прогноз на фото), контур к нему не подходит.</summary>
+    [Parameter] public bool ShowEdges { get; set; } = true;
 
     /// <summary>Прежний контур при сравнении сессий (в пикселях этого снимка); null — сравнения нет.</summary>
     [Parameter] public IReadOnlyList<GhostLevel>? Ghost { get; set; }

@@ -2,6 +2,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using WorkoutCalculator.BodyModel;
+using WorkoutCalculator.BodyModel.Photos;
 
 namespace WorkoutCalculator.Body3D.Services;
 
@@ -124,6 +125,7 @@ public sealed record StorageInfo(long? Usage, long? Quota, bool Persisted);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, UseStringEnumConverter = true)]
 [JsonSerializable(typeof(PhotoMeta))]
+[JsonSerializable(typeof(List<WarpRow>))]
 [JsonSerializable(typeof(PhotoSession))]
 [JsonSerializable(typeof(List<PhotoSession>))]
 [JsonSerializable(typeof(ExportResult))]
