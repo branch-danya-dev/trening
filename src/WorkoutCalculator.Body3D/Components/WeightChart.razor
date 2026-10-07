@@ -1,95 +1,165 @@
-@* График веса по неделям: одна линия, перекрестие с подсказкой (мышь и стрелки), цель — тонкая линия. *@
-<div class="chart">
-    <svg viewBox="0 0 @W @H" role="img" aria-label="@AriaLabel" tabindex="0"
-         @onkeydown="OnKey" @onpointerleave="() => _hover = null" @onblur="() => _hover = null">
-        @foreach (var t in _yTicks)
-        {
-            <g>
-                <line class="grid" x1="@F(Left)" x2="@F(W - Right)" y1="@F(Y(t))" y2="@F(Y(t))" />
-                <text class="tick" x="@F(Left - 6)" y="@F(Y(t) + 3.5)" text-anchor="end">@Fmt.N(t, _yDecimals)</text>
-            </g>
-        }
-        @foreach (int w in _xTicks)
-        {
-            <g><text class="tick" x="@F(X(w))" y="@F(H - 6)" text-anchor="middle">@w</text></g>
-        }
+@* График веса по неделям: линия на гипотезу, перекрестие с подсказкой (мышь и стрелки), цель — тонкая линия.
+   Цвет линии закреплён за гипотезой; выбранная толще и с подписью конца, остальные — в легенде и подсказке. *@
+@if (Series.Count > 0)
+{
+    @if (Multi)
+    {
+        <div class="chart-legend">
+            @foreach (var s in Series)
+            {
+                int slot = s.Hypothesis.Slot;
+                <button class="series-@slot @Css.On(slot == _selected)" aria-pressed="@(slot == _selected ? "true" : "false")"
+                        title="Показать в редакторе и в 3D" @onclick="() => OnSelect.InvokeAsync(slot)">
+                    <i class="key"></i>@s.Hypothesis.Name
+                </button>
+            }
+        </div>
+    }
+    <div class="chart">
+        <svg viewBox="0 0 @W @H" role="img" aria-label="@AriaLabel" tabindex="0"
+             @onkeydown="OnKey" @onpointerleave="() => _hover = null" @onblur="() => _hover = null">
+            @foreach (var t in _yTicks)
+            {
+                <g>
+                    <line class="grid" x1="@F(Left)" x2="@F(W - Right)" y1="@F(Y(t))" y2="@F(Y(t))" />
+                    <text class="tick" x="@F(Left - 6)" y="@F(Y(t) + 3.5)" text-anchor="end">@Fmt.N(t, _yDecimals)</text>
+                </g>
+            }
+            @foreach (int w in _xTicks)
+            {
+                <g><text class="tick" x="@F(X(w))" y="@F(H - 6)" text-anchor="middle">@w</text></g>
+            }
 
-        @if (Target is double target && target >= _yMin && target <= _yMax)
-        {
-            <g>
-                <line class="target" x1="@F(Left)" x2="@F(W - Right)" y1="@F(Y(target))" y2="@F(Y(target))" />
-                <text class="tick" x="@F(Left + 4)" y="@F(Y(target) - 4)">цель @Fmt.N(target, 1) кг</text>
-            </g>
-        }
+            @if (Target is double target && target >= _yMin && target <= _yMax)
+            {
+                <g>
+                    <line class="target" x1="@F(Left)" x2="@F(W - Right)" y1="@F(Y(target))" y2="@F(Y(target))" />
+                    <text class="tick" x="@F(Left + 4)" y="@F(Y(target) - 4)">цель @Fmt.N(target, 1) кг</text>
+                </g>
+            }
 
-        <path class="line" d="@_path" />
-        <circle class="dot" cx="@F(X(0))" cy="@F(Y(Weeks[0].WeightKg))" r="4" />
-        <circle class="dot" cx="@F(X(_last))" cy="@F(Y(Weeks[_last].WeightKg))" r="4" />
-        <text class="end-label" x="@F(X(_last))" y="@F(EndLabelY())" text-anchor="end">@Fmt.N(Weeks[_last].WeightKg, 1) кг</text>
+            @foreach (var (slot, path) in _paths)
+            {
+                <path class="line series-@slot @(Multi && slot != _selected ? "other" : null)" d="@path" />
+            }
+            @{
+                var sel = SelectedSeries.Forecast.Weeks;
+                int end = sel.Count - 1;
+            }
+            <circle class="dot series-@SelectedSeries.Hypothesis.Slot" cx="@F(X(0))" cy="@F(Y(sel[0].WeightKg))" r="4" />
+            <circle class="dot series-@SelectedSeries.Hypothesis.Slot" cx="@F(X(end))" cy="@F(Y(sel[end].WeightKg))" r="4" />
+            @if (_hover is null) // при наведении значение — в подсказке, подпись конца ей бы мешала
+            {
+                <g><text class="end-label" x="@F(X(end))" y="@F(EndLabelY(sel[end].WeightKg))" text-anchor="end">@Fmt.N(sel[end].WeightKg, 1) кг</text></g>
+            }
 
-        @if (_hover is int i)
-        {
-            var wk = Weeks[i];
-            double x = X(i);
-            bool flip = x > Left + PlotW * 0.6;
-            double bx = flip ? x - 8 - TipW : x + 8;
-            <line class="crosshair" x1="@F(x)" x2="@F(x)" y1="@F(Top)" y2="@F(Top + PlotH)" />
-            <circle class="dot" cx="@F(x)" cy="@F(Y(wk.WeightKg))" r="4" />
-            <g class="tip">
-                <rect x="@F(bx)" y="@F(Top + 2)" width="@TipW" height="46" rx="6" />
-                <text class="tip-value" x="@F(bx + 8)" y="@F(Top + 19)">@Fmt.N(wk.WeightKg, 1) кг</text>
-                <text class="tip-label" x="@F(bx + 8)" y="@F(Top + 33)">неделя @wk.Week · жир @Fmt.N(wk.FatPercent, 1) %</text>
-                <text class="tip-label" x="@F(bx + 8)" y="@F(Top + 44)">баланс @Fmt.Signed(wk.BalanceKcalPerDay, 0) ккал/день</text>
-            </g>
-        }
+            @if (_hover is int i)
+            {
+                double x = X(i);
+                bool flip = x > Left + PlotW * 0.6;
+                double tipW = Multi ? MultiTipW : TipW;
+                double bx = flip ? x - 8 - tipW : x + 8;
+                var rows = Series.Where(s => i < s.Forecast.Weeks.Count).ToList();
+                <line class="crosshair" x1="@F(x)" x2="@F(x)" y1="@F(Top)" y2="@F(Top + PlotH)" />
+                @foreach (var s in rows)
+                {
+                    <circle class="dot series-@s.Hypothesis.Slot" cx="@F(x)" cy="@F(Y(s.Forecast.Weeks[i].WeightKg))" r="4" />
+                }
+                @if (!Multi)
+                {
+                    var wk = sel[i];
+                    <g class="tip">
+                        <rect x="@F(bx)" y="@F(Top + 2)" width="@TipW" height="46" rx="6" />
+                        <text class="tip-value" x="@F(bx + 8)" y="@F(Top + 19)">@Fmt.N(wk.WeightKg, 1) кг</text>
+                        <text class="tip-label" x="@F(bx + 8)" y="@F(Top + 33)">неделя @wk.Week · жир @Fmt.N(wk.FatPercent, 1) %</text>
+                        <text class="tip-label" x="@F(bx + 8)" y="@F(Top + 44)">баланс @Fmt.Signed(wk.BalanceKcalPerDay, 0) ккал/день</text>
+                    </g>
+                }
+                else
+                {
+                    // Одна подсказка на все гипотезы: значение впереди, название за ним; ключ — отрезок цвета линии
+                    <g class="tip">
+                        <rect x="@F(bx)" y="@F(Top + 2)" width="@MultiTipW" height="@F(20 + RowH * rows.Count)" rx="6" />
+                        <text class="tip-label" x="@F(bx + 8)" y="@F(Top + 15)">неделя @i · вес, кг</text>
+                        @for (int r = 0; r < rows.Count; r++)
+                        {
+                            double ry = Top + 16 + RowH * (r + 1);
+                            <g>
+                                <line class="key series-@rows[r].Hypothesis.Slot" x1="@F(bx + 8)" x2="@F(bx + 18)" y1="@F(ry - 4)" y2="@F(ry - 4)" />
+                                <text class="tip-value" x="@F(bx + 24)" y="@F(ry)">@Fmt.N(rows[r].Forecast.Weeks[i].WeightKg, 1)</text>
+                                <text class="tip-label" x="@F(bx + 62)" y="@F(ry)">@Short(rows[r].Hypothesis.Name)</text>
+                            </g>
+                        }
+                    </g>
+                }
+            }
 
-        @* Зоны наведения шире линии: каждая неделя — полоса во всю высоту *@
-        @for (int w = 0; w <= _last; w++)
-        {
-            int week = w;
-            double half = PlotW / Math.Max(1, _last) / 2;
-            <rect class="hit" x="@F(X(week) - half)" y="@F(Top)" width="@F(2 * half)" height="@F(PlotH)"
-                  @onpointerenter="() => _hover = week" @onpointermove="() => _hover = week" />
-        }
-    </svg>
-</div>
+            @* Зоны наведения шире линии: каждая неделя — полоса во всю высоту *@
+            @for (int w = 0; w <= _last; w++)
+            {
+                int week = w;
+                double half = PlotW / Math.Max(1, _last) / 2;
+                <rect class="hit" x="@F(X(week) - half)" y="@F(Top)" width="@F(2 * half)" height="@F(PlotH)"
+                      @onpointerenter="() => _hover = week" @onpointermove="() => _hover = week" />
+            }
+        </svg>
+    </div>
+}
 
 @code {
-    [Parameter, EditorRequired] public IReadOnlyList<ForecastWeek> Weeks { get; set; } = [];
+    /// <summary>Гипотезы с прогнозами; порядок — как в списке гипотез.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<HypothesisForecast> Series { get; set; } = [];
+    /// <summary>Слот выбранной гипотезы.</summary>
+    [Parameter] public int Selected { get; set; }
     [Parameter] public double? Target { get; set; }
+    [Parameter] public EventCallback<int> OnSelect { get; set; }
 
-    private const double W = 360, H = 176, Left = 34, Right = 14, Top = 10, Bottom = 22, TipW = 150;
+    private const double W = 360, H = 176, Left = 34, Right = 14, Top = 10, Bottom = 22, TipW = 150, MultiTipW = 164, RowH = 15;
     private const double PlotW = W - Left - Right, PlotH = H - Top - Bottom;
+    private const int TipNameLength = 15;
 
     private int? _hover;
     private int _last;
+    private int _selected;
     private double _yMin, _yMax;
     private int _yDecimals;
     private List<double> _yTicks = [];
     private List<int> _xTicks = [];
-    private string _path = "";
+    /// <summary>Линии в порядке рисования: выбранная последней, поверх остальных.</summary>
+    private List<(int Slot, string Path)> _paths = [];
 
-    private string AriaLabel => Weeks.Count == 0 ? "" :
-        $"Вес по неделям: с {Fmt.N(Weeks[0].WeightKg, 1)} до {Fmt.N(Weeks[^1].WeightKg, 1)} кг за {_last} нед.";
+    private bool Multi => Series.Count > 1;
+
+    private HypothesisForecast SelectedSeries => Series.FirstOrDefault(s => s.Hypothesis.Slot == Selected) ?? Series[0];
+
+    private string AriaLabel => Multi
+        ? "Вес по неделям: " + string.Join("; ", Series.Select(s =>
+              $"{s.Hypothesis.Name} — {Fmt.N(s.Forecast.Weeks[^1].WeightKg, 1)} кг через {s.Forecast.Weeks[^1].Week} нед."))
+        : $"Вес по неделям: с {Fmt.N(Series[0].Forecast.Weeks[0].WeightKg, 1)} до {Fmt.N(Series[0].Forecast.Weeks[^1].WeightKg, 1)} кг за {_last} нед.";
 
     private static string F(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
     private double X(int week) => Left + (_last == 0 ? 0 : PlotW * week / _last);
     private double Y(double kg) => Top + PlotH * (1 - (kg - _yMin) / (_yMax - _yMin));
 
+    private static string Short(string name) => name.Length <= TipNameLength ? name : name[..(TipNameLength - 1)].TrimEnd() + "…";
+
     /// <summary>Подпись конца над точкой, а если линия идёт вверх к краю — под ней.</summary>
-    private double EndLabelY()
+    private double EndLabelY(double kg)
     {
-        double y = Y(Weeks[_last].WeightKg);
+        double y = Y(kg);
         return y - 10 < Top + 8 ? y + 16 : y - 10;
     }
 
     protected override void OnParametersSet()
     {
-        _last = Math.Max(0, Weeks.Count - 1);
+        if (Series.Count == 0) return;
+        _selected = SelectedSeries.Hypothesis.Slot;
+        _last = Math.Max(0, Series.Max(s => s.Forecast.Weeks.Count) - 1);
         if (_hover > _last) _hover = null;
 
         // Ось Y: «круглые» деления, не больше 4–5 штук
-        double min = Weeks.Min(w => w.WeightKg), max = Weeks.Max(w => w.WeightKg);
+        var weights = Series.SelectMany(s => s.Forecast.Weeks).Select(w => w.WeightKg).ToList();
+        double min = weights.Min(), max = weights.Max();
         if (Target is double t)
         {
             min = Math.Min(min, t);
@@ -109,7 +179,11 @@
         for (int w = 0; w <= _last; w += xStep)
             _xTicks.Add(w);
 
-        _path = string.Join(" ", Weeks.Select((w, i) => $"{(i == 0 ? "M" : "L")}{F(X(i))},{F(Y(w.WeightKg))}"));
+        _paths = Series
+            .OrderBy(s => s.Hypothesis.Slot == _selected)
+            .Select(s => (s.Hypothesis.Slot,
+                string.Join(" ", s.Forecast.Weeks.Select((w, i) => $"{(i == 0 ? "M" : "L")}{F(X(i))},{F(Y(w.WeightKg))}"))))
+            .ToList();
     }
 
     private void OnKey(KeyboardEventArgs e)

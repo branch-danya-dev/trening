@@ -1,4 +1,49 @@
-@* Вкладка «Гипотеза»: питание и тренировки на N недель → прогноз веса, % жира и обхватов. *@
+@* Вкладка «Гипотеза»: питание и тренировки на N недель → прогноз веса, % жира и обхватов.
+   Гипотез может быть несколько: редактор и 3D показывают выбранную, сравнение — все. *@
+
+<div class="card">
+    <div class="card-title">
+        Гипотезы
+        <span class="title-note">@Hypotheses.Items.Count из @StoredHypotheses.Max</span>
+    </div>
+    <div class="chips" role="radiogroup" aria-label="Выбранная гипотеза">
+        @foreach (var h in Hypotheses.Items)
+        {
+            int slot = h.Slot;
+            bool on = slot == Hypotheses.Selected;
+            <button class="chip series-@slot @Css.On(on)" role="radio" aria-checked="@(on ? "true" : "false")"
+                    @onclick="() => Select(slot)"><i class="key"></i><span class="chip-name">@h.Name</span></button>
+        }
+        <button class="chip add" disabled="@(!Hypotheses.CanAdd)" @onclick="Add"
+                title="@(Hypotheses.CanAdd ? "Новая гипотеза — копия выбранной" : $"Не больше {StoredHypotheses.Max} гипотез: удалите ненужную")">
+            + Копия
+        </button>
+    </div>
+    <div class="field-row" style="margin-top: 12px">
+        <label for="hypothesis-name">Название</label>
+        <input id="hypothesis-name" class="text-input" maxlength="@StoredHypotheses.MaxNameLength" @key="(Hypotheses.Selected, _nameVersion)"
+               value="@Hypotheses.Current.Name" @onchange="Rename" />
+    </div>
+    @if (Hypotheses.Items.Count > 1)
+    {
+        <div class="confirm">
+            @if (_confirmDelete == Hypotheses.Selected)
+            {
+                <span>Удалить «@Hypotheses.Current.Name»?</span>
+                <button class="btn-link" @onclick="Remove">Удалить</button>
+                <button class="btn-link muted" @onclick="() => _confirmDelete = null">Отмена</button>
+            }
+            else
+            {
+                <button class="btn-link muted" @onclick="() => _confirmDelete = Hypotheses.Selected">Удалить гипотезу</button>
+            }
+        </div>
+    }
+    <div class="note" style="margin-top: 8px">
+        Ниже и в 3D — выбранная гипотеза, изменения сразу сохраняются в этом браузере.
+        @(Hypotheses.Items.Count > 1 ? "Сравнение всех — под итогом." : "Чтобы сравнить варианты, сделайте копию и измените её.")
+    </div>
+</div>
 
 <div class="card">
     <div class="card-title">План</div>
@@ -112,7 +157,7 @@
 {
     var f = Forecast;
     <div class="card">
-        <div class="card-title">Через @f.Weeks[^1].Week нед.</div>
+        <div class="card-title">Через @f.Weeks[^1].Week нед. @SelectedNote</div>
         <div class="summary">
             Вес <b>@Fmt.N(f.Start.WeightKg, 1) → @Fmt.N(f.End.WeightKg, 1) кг</b> (@Fmt.Signed(f.WeightChangeKg)),
             жир <b>@Fmt.N(f.Start.BodyFatPercent, 1) → @Fmt.N(f.End.BodyFatPercent, 1)&nbsp;%</b>.
@@ -120,7 +165,7 @@
         <div class="volume-line">
             Жир @Fmt.Signed(f.FatChangeKg) кг, безжировая ткань @Fmt.Signed(f.LeanChangeKg) кг,
             вода и гликоген @Fmt.Signed(f.WaterChangeKg) кг.
-            Средний баланс @Fmt.Signed(f.Weeks.Take(f.Weeks.Count - 1).DefaultIfEmpty(f.Weeks[0]).Average(w => w.BalanceKcalPerDay), 0) ккал в день.
+            Средний баланс @Fmt.Signed(Selected!.AverageBalanceKcalPerDay, 0) ккал в день.
             @if (Math.Abs(f.AdaptationKcalPerDay) >= 1)
             {
                 <text>Обмен подстроится под питание: к концу срока расход на @Fmt.N(Math.Abs(f.AdaptationKcalPerDay)) ккал в день
@@ -142,8 +187,57 @@
         </div>
     </div>
 
+    @if (Forecasts.Count > 1)
+    {
+        var now = f.Start;
+        <div class="card">
+            <div class="card-title">Сравнение гипотез</div>
+            <div class="table-scroll">
+                <table class="changes compare">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th class="now">Сейчас</th>
+                            @foreach (var hf in Forecasts)
+                            {
+                                int slot = hf.Hypothesis.Slot;
+                                bool on = slot == Hypotheses.Selected;
+                                <th class="@SelClass(hf)">
+                                    <button class="col-btn series-@slot" aria-pressed="@(on ? "true" : "false")" title="Показать в редакторе и в 3D"
+                                            @onclick="() => Select(slot)"><i class="key"></i>@hf.Hypothesis.Name</button>
+                                </th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @Group("План")
+                        @PlanRow("Срок, нед.", hf => Fmt.N(hf.Forecast.Weeks[^1].Week))
+                        @PlanRow("Питание, ккал/д", hf => Fmt.N(hf.Hypothesis.Plan.IntakeKcalPerDay))
+                        @PlanRow("Кардио, раз/нед.", hf => hf.Hypothesis.Plan.CardioKind < 0 ? "—" : Fmt.N(hf.Hypothesis.Plan.CardioPerWeek))
+                        @PlanRow("Силовые, раз/нед.", hf => hf.Hypothesis.Plan.Strength ? Fmt.N(hf.Hypothesis.Plan.StrengthPerWeek) : "—")
+                        @PlanRow("Ср. баланс, ккал/д", hf => Fmt.Signed(hf.AverageBalanceKcalPerDay, 0))
+                        @Group("К концу срока")
+                        @ResultRow("Вес, кг", now.WeightKg, hf => hf.Forecast.End.WeightKg, 1)
+                        @ResultRow("Жир, %", now.BodyFatPercent, hf => hf.Forecast.End.BodyFatPercent, 1)
+                        @ResultRow("Жир, кг", f.Weeks[0].FatMassKg, hf => hf.Forecast.Weeks[^1].FatMassKg, 1)
+                        @ResultRow("Безжир. ткань, кг", f.Weeks[0].LeanMassKg, hf => hf.Forecast.Weeks[^1].LeanMassKg, 1)
+                        @foreach (Girth g in ShownGirths(now))
+                        {
+                            @ResultRow(ShortGirthName(g) + ", см", now.GetGirth(g), hf => hf.Forecast.End.GetGirth(g), 1)
+                        }
+                        @PlanRow("Предупреждения", hf => hf.Forecast.Warnings.Count == 0 ? "—" : Fmt.N(hf.Forecast.Warnings.Count))
+                    </tbody>
+                </table>
+            </div>
+            <div class="note" style="margin-top: 8px">
+                Все гипотезы считаются от текущих параметров. Текст предупреждений — в итоге гипотезы:
+                нажмите на её название.
+            </div>
+        </div>
+    }
+
     <div class="card">
-        <div class="card-title">Было → станет</div>
+        <div class="card-title">Было → станет @SelectedNote</div>
         <table class="changes">
             <thead>
                 <tr><th></th><th>Сейчас</th><th>Прогноз</th><th>Изменение</th></tr>
@@ -154,7 +248,7 @@
                 @Row("Жировая масса, кг", f.Weeks[0].FatMassKg, f.Weeks[^1].FatMassKg, 1)
                 @Row("Безжировая ткань, кг", f.Weeks[0].LeanMassKg, f.Weeks[^1].LeanMassKg, 1)
                 @Row("Вода и гликоген (сдвиг), кг", 0, f.WaterChangeKg, 1)
-                @foreach (Girth g in Enum.GetValues<Girth>().Where(g => g is not (Girth.Calf or Girth.Wrist) || f.Start.IsSpecified(g)))
+                @foreach (Girth g in ShownGirths(f.Start))
                 {
                     @Row(BodyProfile.GirthName(g) + ", см", f.Start.GetGirth(g), f.End.GetGirth(g), 1)
                 }
@@ -164,9 +258,9 @@
 
     <div class="card">
         <div class="card-title">Вес по неделям, кг</div>
-        <WeightChart Weeks="f.Weeks" Target="Hypothesis.TargetWeightKg" />
+        <WeightChart Series="Forecasts" Selected="Hypotheses.Selected" Target="Hypothesis.TargetWeightKg" OnSelect="Select" />
         <details style="margin-top: 8px">
-            <summary class="note">Таблица по неделям</summary>
+            <summary class="note">Таблица по неделям@(Forecasts.Count > 1 ? $" — «{Hypotheses.Current.Name}»" : "")</summary>
             <table class="changes" style="margin-top: 6px">
                 <thead>
                     <tr><th>Неделя</th><th>Вес, кг</th><th>Жир, %</th><th>Расход, ккал/д</th><th>Баланс</th></tr>
@@ -190,9 +284,22 @@
 
 @code {
     [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
-    [Parameter, EditorRequired] public StoredHypothesis Hypothesis { get; set; } = default!;
-    [Parameter] public ForecastResult? Forecast { get; set; }
+    [Parameter, EditorRequired] public StoredHypotheses Hypotheses { get; set; } = default!;
+    /// <summary>Прогнозы всех гипотез в порядке списка; пусто, пока не посчитаны.</summary>
+    [Parameter] public IReadOnlyList<HypothesisForecast> Forecasts { get; set; } = [];
+    /// <summary>Изменение плана выбранной гипотезы.</summary>
     [Parameter] public EventCallback<Action<StoredHypothesis>> OnChange { get; set; }
+    /// <summary>Выбор, копия, удаление, переименование гипотез.</summary>
+    [Parameter] public EventCallback<Action<StoredHypotheses>> OnHypotheses { get; set; }
+
+    private StoredHypothesis Hypothesis => Hypotheses.Current.Plan;
+    private HypothesisForecast? Selected => Forecasts.FirstOrDefault(f => f.Hypothesis.Slot == Hypotheses.Selected);
+    private ForecastResult? Forecast => Selected?.Forecast;
+
+    /// <summary>Удаление выбранной гипотезы ждёт подтверждения: слот, для которого спросили.</summary>
+    private int? _confirmDelete;
+    /// <summary>Пересоздаёт поле названия, если сохранённое название отличается от набранного.</summary>
+    private int _nameVersion;
 
     private static readonly (TrainingExperience, string)[] Experiences =
     [
@@ -214,6 +321,73 @@
     }
 
     private Task Change(Action<StoredHypothesis> change) => OnChange.InvokeAsync(change);
+
+    private Task Select(int slot) => OnHypotheses.InvokeAsync(h => h.Select(slot));
+
+    private Task Add() => OnHypotheses.InvokeAsync(h => h.AddCopy());
+
+    private Task Remove()
+    {
+        int slot = Hypotheses.Selected;
+        _confirmDelete = null;
+        return OnHypotheses.InvokeAsync(h => h.Remove(slot));
+    }
+
+    private async Task Rename(ChangeEventArgs e)
+    {
+        int slot = Hypotheses.Selected;
+        string typed = e.Value?.ToString() ?? "";
+        await OnHypotheses.InvokeAsync(h => h.Rename(slot, typed));
+        if (Hypotheses.Current.Name != typed) _nameVersion++;
+    }
+
+    /// <summary>Подпись выбранной гипотезы в заголовке карточки — когда гипотез несколько.</summary>
+    private RenderFragment? SelectedNote => Hypotheses.Items.Count < 2 ? null : __builder =>
+    {
+        <span class="title-note series-@Hypotheses.Current.Slot"><i class="key"></i>@Hypotheses.Current.Name</span>
+    };
+
+    /// <summary>Икра и запястье — только если указаны: иначе это оценка, а не замер.</summary>
+    private static IEnumerable<Girth> ShownGirths(BodyProfile start) =>
+        Enum.GetValues<Girth>().Where(g => g is not (Girth.Calf or Girth.Wrist) || start.IsSpecified(g));
+
+    /// <summary>Без пояснения в скобках: «Бёдра (ягодицы)» → «Бёдра» — столбец подписей в сравнении узкий.</summary>
+    private static string ShortGirthName(Girth g) => BodyProfile.GirthName(g).Split(" (")[0];
+
+    private string? SelClass(HypothesisForecast hf) => hf.Hypothesis.Slot == Hypotheses.Selected ? "sel" : null;
+
+    /// <summary>Заголовок группы — только в столбце подписей: он не прокручивается вбок вместе с таблицей.</summary>
+    private RenderFragment Group(string name) => __builder =>
+    {
+        <tr class="group">
+            <th>@name</th>
+            <td colspan="@(Forecasts.Count + 1)"></td>
+        </tr>
+    };
+
+    private RenderFragment PlanRow(string name, Func<HypothesisForecast, string> value) => __builder =>
+    {
+        <tr>
+            <td>@name</td>
+            <td class="now"></td>
+            @foreach (var hf in Forecasts)
+            {
+                <td class="@SelClass(hf)">@value(hf)</td>
+            }
+        </tr>
+    };
+
+    private RenderFragment ResultRow(string name, double now, Func<HypothesisForecast, double> value, int decimals) => __builder =>
+    {
+        <tr>
+            <td>@name</td>
+            <td class="now">@Fmt.N(now, decimals)</td>
+            @foreach (var hf in Forecasts)
+            {
+                <td class="@SelClass(hf)">@Fmt.N(value(hf), decimals)</td>
+            }
+        </tr>
+    };
 
     private static int ParseInt(ChangeEventArgs e, int fallback) =>
         int.TryParse(e.Value?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
