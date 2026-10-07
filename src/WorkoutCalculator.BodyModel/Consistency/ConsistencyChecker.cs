@@ -1,3 +1,4 @@
+using WorkoutCalculator.BodyModel.Anthropometry;
 using WorkoutCalculator.BodyModel.Geometry;
 
 namespace WorkoutCalculator.BodyModel.Consistency;
@@ -63,6 +64,13 @@ public static class ConsistencyChecker
         if (fat < essential)
             yield return new ConsistencyHint(
                 $"{fat:0}\u00A0% жира — ниже незаменимого минимума (≈\u00A0{essential:0}\u00A0%). Проверьте значение.");
+
+        // Формула ВМС США: расхождение больше двух её стандартных ошибок — повод перепроверить ввод
+        if (NavyBodyFat.Estimate(p) is double navy && Math.Abs(navy - fat) > NavyBodyFat.HintThresholdPercent)
+            yield return new ConsistencyHint(
+                $"По обхватам {(male ? "талии" : "талии, бёдер")} и шеи (формула ВМС США) жира ≈ {navy:0} %, " +
+                $"а указано {fat:0} %. Формула ошибается на 3–4 %, расхождение больше — повод перепроверить " +
+                "% жира или замеры.");
 
         double lean = male ? 15 : 22;
         if (p.WaistCm > p.ChestCm && fat < lean)

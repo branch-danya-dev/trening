@@ -19,6 +19,17 @@
         <ParamSlider Label="Жир" Unit="%" Min="4" Max="50" Step="0.5"
                      Hint="Калипер, весы с биоимпедансом или DEXA"
                      Value="Profile.BodyFatPercent" ValueChanged="v => Change(p => p.BodyFatPercent = v)" />
+        <div class="volume-line">
+            @if (NavyBodyFat.Estimate(Profile) is double navy)
+            {
+                <span>По обхватам (формула ВМС США, ошибка 3–4&nbsp;%): ≈&nbsp;@Fmt.N(navy, 1)&nbsp;%</span>
+                <button class="btn-link" @onclick="() => ApplyNavy(navy)">Подставить</button>
+            }
+            else
+            {
+                <span>Укажите обхват шеи — тогда % жира можно оценить по обхватам (формула ВМС США).</span>
+            }
+        </div>
     </div>
 </div>
 
@@ -29,7 +40,7 @@
     </div>
     <ParamSlider Label="Грудь" Unit="см" Min="70" Max="150" Step="0.5" Hint="По сосковой линии, руки опущены"
                  Value="Profile.ChestCm" ValueChanged="v => Change(p => p.ChestCm = v)" />
-    <ParamSlider Label="Талия" Unit="см" Min="55" Max="150" Step="0.5" Hint="В самом узком месте или на уровне пупка"
+    <ParamSlider Label="Талия" Unit="см" Min="55" Max="150" Step="0.5" Hint="@WaistHint"
                  Value="Profile.WaistCm" ValueChanged="v => Change(p => p.WaistCm = v)" />
     <ParamSlider Label="Бёдра (ягодицы)" Unit="см" Min="70" Max="150" Step="0.5" Hint="По самой выступающей точке ягодиц"
                  Value="Profile.HipsCm" ValueChanged="v => Change(p => p.HipsCm = v)" />
@@ -129,6 +140,12 @@
         (Girth.Calf, 25, 55, "В самом широком месте голени", "Не указана — оценка по бедру, росту и весу (данные ANSUR II)"),
         (Girth.Wrist, 12, 22, "Над косточкой запястья", "Не указано — оценка по росту и весу (данные ANSUR II)"),
     ];
+
+    /// <summary>Где мерить талию: так же, как в модели и в формуле ВМС США.</summary>
+    private string WaistHint => Profile.Sex == Sex.Male ? "На уровне пупка" : "В самом узком месте, выше пупка";
+
+    /// <summary>Подставить оценку по формуле ВМС США, округлив до шага ползунка и в его пределах.</summary>
+    private Task ApplyNavy(double navy) => Change(p => p.BodyFatPercent = Math.Round(Math.Clamp(navy, 4, 50) * 2) / 2);
 
     private Task ResetToAverages() => Change(p =>
     {
