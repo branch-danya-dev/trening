@@ -1,0 +1,245 @@
+@* Вкладка «Фото»: фотосессии — только на этом устройстве. Пока снимки добавляются из файлов,
+   съёмка с подсказками появится следующим шагом. *@
+@using System.Runtime.InteropServices.JavaScript
+
+<div class="card">
+    <div class="card-title">Новая фотосессия</div>
+    <div class="note">
+        Фото хранятся только на этом устройстве и никуда не отправляются — политика безопасности страницы
+        этого и не позволит. При сохранении снимки уменьшаются до 2048&nbsp;px, а метаданные, в том числе
+        геопозиция, удаляются.
+    </div>
+    <ul class="tips">
+        <li>бельё или облегающая одежда — для силуэта раздеваться не нужно;</li>
+        <li>однотонный фон, ровный свет, волосы собраны, без обуви;</li>
+        <li>телефон на уровне пояса в 2–3&nbsp;м, вы целиком в кадре;</li>
+        <li>спереди — руки чуть в стороны, сбоку — руки вдоль тела.</li>
+    </ul>
+    @foreach (var (view, inputId, title) in Inputs)
+    {
+        <div class="file-row">
+            <label class="btn file-btn">
+                @title
+                <input id="@inputId" type="file" accept="image/*" @onchange="e => Picked(view, e)" />
+            </label>
+            <span class="file-name">@(_picked.GetValueOrDefault(view) ?? "не выбрано")</span>
+        </div>
+    }
+    <button class="btn primary" style="margin-top: 12px" disabled="@(_busy || _picked.Count == 0)" @onclick="Save">
+        @(_busy ? "Сохраняю…" : "Сохранить сессию")
+    </button>
+    @if (_message is not null)
+    {
+        <div class="@(_error ? "hint" : "note")" style="margin-top: 10px">@_message</div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-title">
+        Сессии
+        @if (_sessions.Count > 0)
+        {
+            <span class="title-note">@_sessions.Count</span>
+        }
+    </div>
+    @if (!_loaded)
+    {
+        <div class="note">Загрузка…</div>
+    }
+    else if (_sessions.Count == 0)
+    {
+        <div class="note">Пока нет ни одной. Сохраните первую — с ней будут сравниваться следующие.</div>
+    }
+    @foreach (var s in _sessions)
+    {
+        <div class="session">
+            <div class="session-thumbs">
+                @foreach (var (view, url) in s.Thumbs)
+                {
+                    <img src="@url" alt="@(view == "side" ? "Сбоку" : "Спереди")" />
+                }
+            </div>
+            <div class="session-info">
+                <b>@Fmt.DateTime(s.CreatedAt)</b>
+                <span>@Fmt.N(s.HeightCm, 0)&nbsp;см · @Fmt.N(s.WeightKg, 1)&nbsp;кг · жир @Fmt.N(s.BodyFatPercent, 1)&nbsp;%</span>
+                @if (_confirmDelete == s.Id)
+                {
+                    <span class="confirm">
+                        Удалить сессию?
+                        <button class="btn-link" @onclick="() => Delete(s.Id)">Удалить</button>
+                        <button class="btn-link muted" @onclick="() => _confirmDelete = null">Отмена</button>
+                    </span>
+                }
+                else
+                {
+                    <button class="btn-link muted" @onclick="() => _confirmDelete = s.Id">Удалить</button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-title">Хранилище</div>
+    <div class="volume-line" style="margin-top: 0">
+        @if (_storage?.Usage is long usage)
+        {
+            <text>Сайт занимает ≈&nbsp;@Megabytes(usage)&nbsp;МБ@(_storage.Quota is long quota ? $" из {Megabytes(quota)} МБ" : "").</text>
+        }
+        @(_storage?.Persisted == true
+            ? " Браузер не сотрёт данные при нехватке места."
+            : " Браузер может стереть данные при нехватке места или долгом перерыве (Safari — через неделю без захода). " +
+              "Надёжнее установить приложение на главный экран и время от времени сохранять архив.")
+    </div>
+    <div class="file-row" style="margin-top: 12px">
+        <button class="btn" disabled="@(_busy || _sessions.Count == 0)" @onclick="Export">Сохранить архив (zip)</button>
+        <label class="btn file-btn">
+            Загрузить архив
+            <input id="photo-import" type="file" accept=".zip,application/zip" @onchange="Import" />
+        </label>
+    </div>
+    @if (_sessions.Count > 0)
+    {
+        <div class="confirm">
+            @if (_confirmDeleteAll)
+            {
+                <span>Удалить все сессии с этого устройства? Это необратимо.</span>
+                <button class="btn-link" @onclick="DeleteAll">Удалить всё</button>
+                <button class="btn-link muted" @onclick="() => _confirmDeleteAll = false">Отмена</button>
+            }
+            else
+            {
+                <button class="btn-link muted" @onclick="() => _confirmDeleteAll = true">Удалить все фото</button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+
+    private const string FrontInput = "photo-front", SideInput = "photo-side", ImportInput = "photo-import";
+
+    private static readonly (string View, string InputId, string Title)[] Inputs =
+    [
+        ("front", FrontInput, "Фото спереди"),
+        ("side", SideInput, "Фото сбоку"),
+    ];
+
+    private List<PhotoSession> _sessions = [];
+    private StorageInfo? _storage;
+    private bool _loaded, _busy, _error;
+    private string? _message;
+    private string? _confirmDelete;
+    private bool _confirmDeleteAll;
+    /// <summary>Имена выбранных файлов по ракурсам.</summary>
+    private readonly Dictionary<string, string> _picked = [];
+
+    protected override async Task OnInitializedAsync() => await Reload();
+
+    private async Task Reload()
+    {
+        try
+        {
+            _sessions = await PhotoStore.List();
+            _storage = await PhotoStore.Storage();
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        _loaded = true;
+    }
+
+    private void Picked(string view, ChangeEventArgs e)
+    {
+        // Браузер отдаёт «C:\fakepath\имя.jpg» — показываем только имя
+        string? path = e.Value?.ToString();
+        if (string.IsNullOrEmpty(path)) _picked.Remove(view);
+        else _picked[view] = path[(path.LastIndexOfAny(['\\', '/']) + 1)..];
+    }
+
+    private async Task Save()
+    {
+        await Run(async () =>
+        {
+            await PhotoStore.SaveFromInputs(Profile, FrontInput, SideInput);
+            _picked.Clear();
+            await Reload();
+            Show("Сессия сохранена.");
+        });
+    }
+
+    private async Task Delete(string id)
+    {
+        _confirmDelete = null;
+        await Run(async () =>
+        {
+            await PhotoStore.DeleteSession(id);
+            await Reload();
+        });
+    }
+
+    private async Task DeleteAll()
+    {
+        _confirmDeleteAll = false;
+        await Run(async () =>
+        {
+            await PhotoStore.DeleteAll();
+            await Reload();
+            Show("Все фото удалены с этого устройства.");
+        });
+    }
+
+    private async Task Export()
+    {
+        await Run(async () =>
+        {
+            var r = await PhotoStore.Export();
+            Show($"Архив «{r.Name}» сохранён: сессий — {r.Sessions}. Он нужен, чтобы перенести фото на другое " +
+                 "устройство или восстановить их, если браузер сотрёт данные.");
+        });
+    }
+
+    private async Task Import(ChangeEventArgs _)
+    {
+        await Run(async () =>
+        {
+            var r = await PhotoStore.Import(ImportInput);
+            await Reload();
+            Show(r.Skipped == 0 ? $"Добавлено сессий: {r.Added}."
+                                : $"Добавлено сессий: {r.Added}, уже были или без снимков: {r.Skipped}.");
+        });
+    }
+
+    /// <summary>Одна операция за раз; ошибка JS — текстом под кнопками.</summary>
+    private async Task Run(Func<Task> action)
+    {
+        _busy = true;
+        _message = null;
+        try
+        {
+            await action();
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void Show(string message, bool error = false)
+    {
+        _message = message;
+        _error = error;
+    }
+
+    /// <summary>Текст ошибки из JS без технического «Error: » в начале.</summary>
+    private static string JsError(JSException e) =>
+        e.Message.StartsWith("Error: ", StringComparison.Ordinal) ? e.Message["Error: ".Length..] : e.Message;
+
+    private static string Megabytes(long bytes) => Fmt.N(bytes / 1048576.0, bytes < 10 * 1048576 ? 1 : 0);
+}

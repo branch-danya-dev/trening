@@ -554,6 +554,37 @@ table.compare tr.group th {
 
 .chart-legend button.on { color: var(--text); }
 
+/* ---------- Фото ---------- */
+
+.tips { margin: 10px 0 12px; padding-left: 18px; color: var(--muted); font-size: 12.5px; }
+.tips li + li { margin-top: 2px; }
+
+.file-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.file-row + .file-row { margin-top: 8px; }
+.file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12.5px; }
+
+/* Поле выбора файла спрятано внутри кнопки: у родного поля в каждом браузере свой вид */
+.file-btn { position: relative; overflow: hidden; }
+.file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.file-btn:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.btn.primary { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+
+.session { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+.session:first-of-type { border-top: none; padding-top: 0; }
+.session-thumbs { display: flex; gap: 6px; flex: none; }
+.session-thumbs img {
+    width: 56px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--card-2);
+}
+.session-info { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; font-size: 13px; }
+.session-info span { color: var(--muted); }
+.session-info .confirm { margin-top: 0; gap: 10px; flex-wrap: wrap; }
+
 /* ---------- График ---------- */
 
 .chart .grid { stroke: var(--border); stroke-width: 1; }

@@ -93,6 +93,8 @@
                         @onclick="() => _tab = Tab.Params">Параметры</button>
                 <button role="tab" aria-selected="@(_tab == Tab.Hypothesis ? "true" : "false")" class="@Css.On(_tab == Tab.Hypothesis)"
                         @onclick="OpenHypothesis">Гипотеза</button>
+                <button role="tab" aria-selected="@(_tab == Tab.Photos ? "true" : "false")" class="@Css.On(_tab == Tab.Photos)"
+                        @onclick="() => _tab = Tab.Photos">Фото</button>
             </nav>
 
             <div class="panel-body">
@@ -100,6 +102,10 @@
                 {
                     <ProfilePanel Profile="_profile" Report="_report" ModelHints="ModelHints()" ModelNote="@ModelNote()" OnHighlight="SetHighlight"
                                   OnChange="ChangeProfile" />
+                }
+                else if (_tab == Tab.Photos)
+                {
+                    <PhotosPanel Profile="_profile" />
                 }
                 else
                 {
@@ -112,7 +118,7 @@
 </div>
 
 @code {
-    private enum Tab { Params, Hypothesis }
+    private enum Tab { Params, Hypothesis, Photos }
     private enum ViewMode { Current, Forecast, Compare }
     private enum BodyKind { MakeHuman, Mannequin }
 
