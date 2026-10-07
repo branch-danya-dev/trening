@@ -84,6 +84,55 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
         Assert.All(fx.Data.Zones, z => Assert.Equal(z.Value, copy.Zones[z.Key]));
     }
 
+    [Fact]
+    public void Skeleton_HasBodyBonesInParentOrderAndFullWeights()
+    {
+        var sk = fx.Data.Skeleton!;
+        Assert.Equal(104, sk.Bones.Count);
+        Assert.Equal("root", sk.Bones[0].Name);
+        Assert.Equal(-1, sk.Bones[0].Parent);
+        for (int b = 1; b < sk.Bones.Count; b++)
+            Assert.InRange(sk.Bones[b].Parent, 0, b - 1);
+        foreach (string bone in new[] { "spine05", "spine01", "neck01", "head", "clavicle.L", "upperarm01.R", "wrist.L",
+                     "finger3-2.R", "upperleg01.L", "foot.R", "toe1-1.L" })
+            Assert.InRange(sk.Bone(bone), 0, sk.Bones.Count - 1);
+        Assert.DoesNotContain(sk.Bones, b => b.Name.StartsWith("jaw") || b.Name.StartsWith("tongue") || b.Name.StartsWith("eye"));
+
+        // У каждой вершины доли костей в сумме 255, индексы — существующие кости
+        for (int v = 0; v < fx.Data.VertexCount; v++)
+        {
+            int sum = 0;
+            for (int i = 0; i < MakeHumanSkeleton.Influences; i++)
+            {
+                int slot = v * MakeHumanSkeleton.Influences + i;
+                sum += sk.SkinWeights[slot];
+                Assert.True(sk.SkinBones[slot] < sk.Bones.Count);
+            }
+            Assert.Equal(255, sum);
+        }
+
+        // Суставы — центры кубиков MakeHuman: ориентиры замеров совпадают с суставами скелета
+        var shoulder = fx.Data.Landmarks["joint-l-shoulder"];
+        Assert.Single(shoulder);
+        Assert.Contains(sk.Joints, j => j.SequenceEqual(shoulder));
+    }
+
+    [Fact]
+    public void Skeleton_SurvivesWriteAndRead()
+    {
+        using var ms = new MemoryStream();
+        fx.Data.Write(ms);
+        var copy = MakeHumanData.Read(ms.ToArray()).Skeleton!;
+        var sk = fx.Data.Skeleton!;
+
+        Assert.Equal(sk.Bones.Select(b => (b.Name, b.Parent, b.Head, b.Tail)), copy.Bones.Select(b => (b.Name, b.Parent, b.Head, b.Tail)));
+        Assert.All(sk.Bones.Zip(copy.Bones), p => Assert.Equal(p.First.Plane, p.Second.Plane));
+        Assert.Equal(sk.Joints.Count, copy.Joints.Count);
+        Assert.All(sk.Joints.Zip(copy.Joints), p => Assert.Equal(p.First, p.Second));
+        Assert.Equal(sk.SkinBones, copy.SkinBones);
+        Assert.Equal(sk.SkinWeights, copy.SkinWeights);
+    }
+
     [Theory]
     [MemberData(nameof(TestProfiles.All), MemberType = typeof(TestProfiles))]
     public void AllLevels_FitInputWithin1PercentAndEstimatesWithin2(string name, BodyProfile profile)

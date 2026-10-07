@@ -554,6 +554,141 @@ table.compare tr.group th {
 
 .chart-legend button.on { color: var(--text); }
 
+/* ---------- Фото ---------- */
+
+.tips { margin: 10px 0 12px; padding-left: 18px; color: var(--muted); font-size: 12.5px; }
+.tips li + li { margin-top: 2px; }
+
+.file-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.file-row + .file-row { margin-top: 8px; }
+.file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12.5px; }
+
+/* Поле выбора файла спрятано внутри кнопки: у родного поля в каждом браузере свой вид */
+.file-btn { position: relative; overflow: hidden; }
+.file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.file-btn:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.btn.primary { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+
+.session { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+.session:first-of-type { border-top: none; padding-top: 0; }
+.session-thumbs { display: flex; gap: 6px; flex: none; }
+.session-thumbs img {
+    width: 56px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--card-2);
+}
+button.session-thumbs { padding: 0; border: none; background: none; cursor: pointer; border-radius: 6px; }
+button.session-thumbs:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.session.on button.session-thumbs img { outline: 2px solid var(--accent); }
+.badge { padding: 1px 7px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); font-size: 11.5px; }
+
+.overlay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.photo-overlay { margin: 0; min-width: 0; }
+.photo-overlay svg { display: block; width: 100%; height: auto; border-radius: 8px; background: #000; }
+.photo-overlay figcaption { margin-top: 4px; color: var(--muted); font-size: 12px; text-align: center; }
+.photo-overlay .edge { fill: none; stroke: var(--accent); stroke-width: 2; }
+.photo-overlay .level { stroke: #fff; stroke-width: 2; }
+.photo-overlay .scale { stroke: rgba(255, 255, 255, 0.45); stroke-width: 1; stroke-dasharray: 4 4; }
+.photo-overlay .arm { fill: var(--warn); }
+.photo-overlay .model { fill: none; stroke: #ffb347; stroke-width: 2; stroke-dasharray: 6 4; }
+.card-subtitle {
+    margin: 18px 0 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.legend-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; color: var(--muted); font-size: 12px; }
+.legend-line .key { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--accent); margin-left: 6px; }
+.legend-line .key:first-child { margin-left: 0; }
+.legend-line .key.model { border-top: 2px dashed #ffb347; }
+
+.session-info { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; font-size: 13px; }
+.session-info span { color: var(--muted); }
+.session-info .confirm { margin-top: 0; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- Съёмка (js/capture.js) ---------- */
+
+.capture {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    background: #000;
+}
+
+.capture-stage { position: relative; min-height: 0; }
+.capture-video, .capture-overlay { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* Кадр целиком, без обрезки: что видно на экране, то и попадёт в снимок */
+.capture-video { object-fit: contain; }
+/* Фронтальная камера — как зеркало; сам снимок не зеркальный */
+.capture-stage.mirror .capture-video, .capture-stage.mirror .capture-overlay { transform: scaleX(-1); }
+
+.capture-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 16px 28px;
+    background: linear-gradient(rgba(0, 0, 0, 0.75), transparent);
+    text-align: center;
+    pointer-events: none;
+}
+
+.capture-steps { display: flex; justify-content: center; gap: 14px; color: var(--muted); font-size: 13px; }
+.capture-steps .on { color: var(--accent); font-weight: 600; }
+.capture-status { margin-top: 6px; color: #fff; font-size: 20px; font-weight: 600; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); }
+
+.capture-count {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 30vmin;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.capture-bottom {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--panel);
+}
+
+/* Кнопки по шагу: наведение — сменить камеру и снять вручную, просмотр — переснять и сохранить */
+.capture .capture-flip, .capture .capture-shoot, .capture .capture-retake, .capture .capture-save { display: none; }
+.capture[data-mode="aim"] .capture-flip, .capture[data-mode="aim"] .capture-shoot,
+.capture[data-mode="review"] .capture-retake, .capture[data-mode="review"] .capture-save { display: inline-block; }
+
+.capture-review { display: none; }
+.capture[data-mode="review"] .capture-stage { visibility: hidden; }
+.capture[data-mode="review"] .capture-review {
+    position: absolute;
+    top: 96px;
+    bottom: 76px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 12px;
+}
+.capture-review figure { flex: 1; max-width: 45%; min-width: 0; margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.capture-review img { min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; background: #111; }
+.capture-review figcaption { color: var(--muted); font-size: 13px; }
+
 /* ---------- График ---------- */
 
 .chart .grid { stroke: var(--border); stroke-width: 1; }

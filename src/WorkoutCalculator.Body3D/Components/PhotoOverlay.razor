@@ -1,0 +1,80 @@
+@* Снимок с найденным контуром туловища: края по уровням, уровни груди, талии и бёдер, рост (макушка и пол под телом).
+   Где рядом рука, край помечен точками и в измерения не идёт. После подгонки — края модели пунктиром. *@
+@using WorkoutCalculator.BodyModel.Photos
+
+<figure class="photo-overlay">
+    <svg viewBox="0 0 @Profile.Width @Profile.Height" role="img" aria-label="@Caption">
+        <image href="@Url" width="@Profile.Width" height="@Profile.Height" />
+        <line class="scale" x1="0" x2="@Profile.Width" y1="@F(Profile.Crown)" y2="@F(Profile.Crown)" vector-effect="non-scaling-stroke" />
+        <line class="scale" x1="0" x2="@Profile.Width" y1="@F(Profile.Floor)" y2="@F(Profile.Floor)" vector-effect="non-scaling-stroke" />
+        @foreach (var points in _edges)
+        {
+            <polyline class="edge" points="@points" vector-effect="non-scaling-stroke" />
+        }
+        @foreach (var l in Profile.Levels.Where(l => l.ArmOverlap))
+        {
+            <circle class="arm" cx="@F(l.Left)" cy="@l.Row" r="@F(_dot)" />
+            <circle class="arm" cx="@F(l.Right)" cy="@l.Row" r="@F(_dot)" />
+        }
+        @foreach (var points in _model)
+        {
+            <polyline class="model" points="@points" vector-effect="non-scaling-stroke" />
+        }
+        @foreach (var (_, fraction) in KeyLevels)
+        {
+            if (Profile.At(fraction) is ProfileLevel l)
+            {
+                <line class="level" x1="@F(l.Left)" x2="@F(l.Right)" y1="@l.Row" y2="@l.Row" vector-effect="non-scaling-stroke" />
+            }
+        }
+    </svg>
+    <figcaption>@Caption</figcaption>
+</figure>
+
+@code {
+    [Parameter, EditorRequired] public string Url { get; set; } = "";
+    [Parameter, EditorRequired] public PhotoProfile Profile { get; set; } = default!;
+    [Parameter] public IReadOnlyList<(string Name, double Fraction)> KeyLevels { get; set; } = [];
+    [Parameter] public string Caption { get; set; } = "";
+    /// <summary>Края модели после подгонки (в пикселях снимка); null — подгонки нет.</summary>
+    [Parameter] public IReadOnlyList<PhotoFitLevel>? Model { get; set; }
+
+    private List<string> _model = [];
+
+    /// <summary>Левый и правый края, разбитые на куски там, где мешает рука: через руку линия не идёт.</summary>
+    private List<string> _edges = [];
+    private double _dot;
+
+    private static string F(double v) => v.ToString("0.#", CultureInfo.InvariantCulture);
+
+    protected override void OnParametersSet()
+    {
+        _dot = Profile.Width / 160.0;
+        _edges = [];
+        foreach (var edge in new Func<ProfileLevel, double>[] { l => l.Left, l => l.Right })
+        {
+            var piece = new List<string>();
+            foreach (var l in Profile.Levels.OrderByDescending(l => l.Row))
+            {
+                if (l.ArmOverlap)
+                {
+                    Flush(piece);
+                    continue;
+                }
+                piece.Add($"{F(edge(l))},{l.Row}");
+            }
+            Flush(piece);
+        }
+
+        _model = [];
+        if (Model is { Count: > 1 })
+            foreach (var edge in new Func<PhotoFitLevel, double>[] { l => l.ModelA, l => l.ModelB })
+                _model.Add(string.Join(" ", Model.OrderByDescending(l => l.Row).Select(l => $"{F(edge(l))},{l.Row}")));
+    }
+
+    private void Flush(List<string> piece)
+    {
+        if (piece.Count > 1) _edges.Add(string.Join(" ", piece));
+        piece.Clear();
+    }
+}

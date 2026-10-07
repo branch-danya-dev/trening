@@ -21,3 +21,5 @@ jobs:
         run: dotnet build WorkoutCalculator.sln -c Release
       - name: Тесты
         run: dotnet test WorkoutCalculator.sln -c Release --no-build
+      - name: JS-тесты (проверка позы, архив)
+        run: node --test tests/js/*.test.mjs

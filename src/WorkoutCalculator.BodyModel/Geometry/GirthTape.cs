@@ -85,6 +85,49 @@ public static class GirthTape
     public static double? Measure(double[] positions, int[] triangles, int[] candidates, Vec3 origin, Vec3 normal,
         List<Vec3>? tape)
     {
+        var (px, py, loops, u, v) = Section(positions, triangles, candidates, origin, normal);
+
+        // Берём наименьший из контуров, охватывающих точку (контуры тела не вложены)
+        double? best = null;
+        List<int>? bestLoop = null;
+        foreach (var loop in loops)
+        {
+            if (!ContainsOrigin(loop, px, py)) continue;
+            double perimeter = HullPerimeter(loop, px, py);
+            if (best is null || perimeter < best)
+            {
+                best = perimeter;
+                bestLoop = loop;
+            }
+        }
+
+        if (tape is not null)
+        {
+            tape.Clear();
+            if (bestLoop is not null)
+            {
+                var hull = Hull(bestLoop, px, py, out int count);
+                for (int i = 0; i < count; i++)
+                    tape.Add(origin + u * hull[i].X + v * hull[i].Y);
+            }
+        }
+        return best;
+    }
+
+    /// <summary>Все замкнутые контуры сечения плоскостью — точки в 3D (туловище, руки, ноги по отдельности).</summary>
+    public static List<Vec3[]> Contours(double[] positions, int[] triangles, int[] candidates, Vec3 origin, Vec3 normal)
+    {
+        var (px, py, loops, u, v) = Section(positions, triangles, candidates, origin, normal);
+        return loops.Select(loop => loop.Select(i => origin + u * px[i] + v * py[i]).ToArray()).ToList();
+    }
+
+    /// <summary>
+    /// Сечение плоскостью: узлы (пересечения рёбер с плоскостью) в координатах плоскости u, v относительно
+    /// <paramref name="origin"/> и замкнутые контуры — обходы узлов.
+    /// </summary>
+    private static (List<double> Px, List<double> Py, List<List<int>> Loops, Vec3 U, Vec3 V) Section(
+        double[] positions, int[] triangles, int[] candidates, Vec3 origin, Vec3 normal)
+    {
         var n = normal.Normalized;
         var (u, v) = MeshBuilder.Frame(n);
 
@@ -139,15 +182,13 @@ public static class GirthTape
             Link(e0, e1);
         }
 
-        // Обходим контуры; берём наименьший из охватывающих точку (контуры тела не вложены)
+        // Обходим контуры; оборванные (у замкнутой сетки их не бывает) пропускаем
+        var loops = new List<List<int>>();
         var visited = new bool[px.Count];
-        double? best = null;
-        var loop = new List<int>();
-        List<int>? bestLoop = null;
         for (int start = 0; start < px.Count; start++)
         {
             if (visited[start]) continue;
-            loop.Clear();
+            var loop = new List<int>();
             int prev = -1, cur = start;
             bool closed = false;
             while (true)
@@ -156,33 +197,15 @@ public static class GirthTape
                 loop.Add(cur);
                 var (l1, l2) = link[cur];
                 int next = l1 != prev ? l1 : l2;
-                if (next < 0) break;          // контур оборван (не должно быть у замкнутой сетки)
+                if (next < 0) break;
                 if (next == start) { closed = true; break; }
                 if (visited[next]) break;
                 prev = cur;
                 cur = next;
             }
-            if (!closed || loop.Count < 3 || !ContainsOrigin(loop, px, py)) continue;
-
-            double perimeter = HullPerimeter(loop, px, py);
-            if (best is null || perimeter < best)
-            {
-                best = perimeter;
-                if (tape is not null) bestLoop = [.. loop];
-            }
+            if (closed && loop.Count >= 3) loops.Add(loop);
         }
-
-        if (tape is not null)
-        {
-            tape.Clear();
-            if (bestLoop is not null)
-            {
-                var hull = Hull(bestLoop, px, py, out int count);
-                for (int i = 0; i < count; i++)
-                    tape.Add(origin + u * hull[i].X + v * hull[i].Y);
-            }
-        }
-        return best;
+        return (px, py, loops, u, v);
     }
 
     /// <summary>Чётно-нечётное правило для точки (0, 0) в координатах плоскости.</summary>

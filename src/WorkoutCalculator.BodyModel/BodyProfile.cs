@@ -34,6 +34,12 @@ public sealed class BodyProfile
     /// <summary>Запястье: над косточкой. Необязательно — иначе оценка по росту и весу (ANSUR II).</summary>
     public double? WristCm { get; set; }
 
+    /// <summary>Осанка — только для модели MakeHuman; манекен её не учитывает.</summary>
+    public Posture Posture { get; set; } = Posture.Neutral;
+
+    /// <summary>Форма при тех же обхватах — только для модели MakeHuman.</summary>
+    public BodyForm Form { get; set; } = BodyForm.Neutral;
+
     public double LeanMassKg => WeightKg * (1 - BodyFatPercent / 100.0);
     public double FatMassKg => WeightKg * BodyFatPercent / 100.0;
     public double Bmi => WeightKg / Math.Pow(HeightCm / 100.0, 2);

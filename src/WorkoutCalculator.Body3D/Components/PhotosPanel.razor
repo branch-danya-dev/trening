@@ -1,0 +1,522 @@
+@* Вкладка «Фото»: фотосессии — только на этом устройстве. Съёмка с подсказками (камера и проверка позы
+   в браузере) или готовые снимки из файлов. *@
+@using System.Runtime.InteropServices.JavaScript
+@using WorkoutCalculator.BodyModel.MakeHuman
+@using WorkoutCalculator.BodyModel.Photos
+@implements IDisposable
+
+<div class="card">
+    <div class="card-title">Новая фотосессия</div>
+    <div class="note">
+        Фото хранятся только на этом устройстве и никуда не отправляются — политика безопасности страницы
+        этого и не позволит. При сохранении снимки уменьшаются до 2048&nbsp;px, а метаданные, в том числе
+        геопозиция, удаляются.
+    </div>
+    <ul class="tips">
+        <li>бельё или облегающая одежда — для силуэта раздеваться не нужно;</li>
+        <li>однотонный фон, ровный свет, волосы собраны, без обуви;</li>
+        <li>телефон на уровне пояса в 2–3&nbsp;м, вы целиком в кадре;</li>
+        <li>спереди — руки чуть в стороны, ноги на ширине таза; сбоку — руки вдоль тела, ноги вместе.</li>
+    </ul>
+    <button class="btn primary" disabled="@_busy" @onclick="Shoot">Снять с подсказками</button>
+    <div class="note" style="margin: 6px 0 12px">
+        Поставьте телефон вертикально на полку на уровне пояса. Приложение подскажет, как встать, и снимет само.
+        Первый раз загрузится распознавание позы — около 22&nbsp;МБ.
+    </div>
+    <div class="note" style="margin-bottom: 8px">Или выберите готовые фото:</div>
+    @foreach (var (view, inputId, title) in Inputs)
+    {
+        <div class="file-row">
+            <label class="btn file-btn">
+                @title
+                <input id="@inputId" type="file" accept="image/*" @onchange="e => Picked(view, e)" />
+            </label>
+            <span class="file-name">@(_picked.GetValueOrDefault(view) ?? "не выбрано")</span>
+        </div>
+    }
+    <button class="btn primary" style="margin-top: 12px" disabled="@(_busy || _picked.Count == 0)" @onclick="Save">
+        @(_busy ? "Сохраняю…" : "Сохранить сессию")
+    </button>
+    @if (_message is not null)
+    {
+        <div class="@(_error ? "hint" : "note")" style="margin-top: 10px">@_message</div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-title">
+        Сессии
+        @if (_sessions.Count > 0)
+        {
+            <span class="title-note">@_sessions.Count</span>
+        }
+    </div>
+    @if (!_loaded)
+    {
+        <div class="note">Загрузка…</div>
+    }
+    else if (_sessions.Count == 0)
+    {
+        <div class="note">Пока нет ни одной. Сохраните первую — с ней будут сравниваться следующие.</div>
+    }
+    @foreach (var s in _sessions)
+    {
+        <div class="session @Css.On(s.Id == _openId)">
+            <button class="session-thumbs" title="Открыть и разобрать" @onclick="() => Open(s)">
+                @foreach (var (view, url) in s.Thumbs)
+                {
+                    <img src="@url" alt="@(view == "side" ? "Сбоку" : "Спереди")" />
+                }
+            </button>
+            <div class="session-info">
+                <b>@Fmt.DateTime(s.CreatedAt)</b>
+                @if (s.Analysis is not null)
+                {
+                    <span class="badge">разобрано</span>
+                }
+                <span>@Fmt.N(s.HeightCm, 0)&nbsp;см · @Fmt.N(s.WeightKg, 1)&nbsp;кг · жир @Fmt.N(s.BodyFatPercent, 1)&nbsp;%</span>
+                @if (_confirmDelete == s.Id)
+                {
+                    <span class="confirm">
+                        Удалить сессию?
+                        <button class="btn-link" @onclick="() => Delete(s.Id)">Удалить</button>
+                        <button class="btn-link muted" @onclick="() => _confirmDelete = null">Отмена</button>
+                    </span>
+                }
+                else
+                {
+                    <button class="btn-link muted" @onclick="() => _confirmDelete = s.Id">Удалить</button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@if (_sessions.FirstOrDefault(s => s.Id == _openId) is PhotoSession o)
+{
+    var keys = KeyLevels(o.Sex);
+    <div class="card">
+        <div class="card-title">
+            Разбор фото
+            <span class="title-note">@Fmt.DateTime(o.CreatedAt)</span>
+        </div>
+        @if (o.Analysis is not PhotoAnalysis a)
+        {
+            <div class="note" style="margin-bottom: 10px">
+                Найдёт контур тела и измерит ширину туловища спереди и глубину сбоку на каждом уровне — всё на этом
+                устройстве. Масштаб — по росту на момент съёмки (@Fmt.N(o.HeightCm, 0)&nbsp;см).
+            </div>
+            <button class="btn primary" disabled="@_busy" @onclick="() => Analyze(o)">@(_busy ? "Разбираю…" : "Разобрать фото")</button>
+        }
+        else
+        {
+            <div class="overlay-row">
+                @foreach (string view in o.Views)
+                {
+                    var profile = view == "side" ? a.Side : a.Front;
+                    if (profile is not null && _urls.TryGetValue(view, out var url))
+                    {
+                        <PhotoOverlay Url="@url" Profile="profile" KeyLevels="keys" Model="@ModelEdges(o, view)"
+                                      Caption="@(view == "side" ? "Сбоку: глубина" : "Спереди: ширина")" />
+                    }
+                }
+            </div>
+            @if (_fit is not null && _fitSessionId == o.Id)
+            {
+                <div class="legend-line">
+                    <span class="key photo"></span>контур на фото <span class="key model"></span>модель после подгонки
+                </div>
+            }
+            <table class="changes" style="margin-top: 10px">
+                <thead>
+                    <tr><th></th><th>Ширина, см</th><th>Глубина, см</th><th>Обхват по фото, см</th><th>Замер, см</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var (name, fraction, girth) in keys.Zip(KeyGirths, (k, g) => (k.Name, k.Fraction, g)))
+                    {
+                        <tr>
+                            <td>@name</td>
+                            <td>@Size(a.Front, fraction)</td>
+                            <td>@Size(a.Side, fraction)</td>
+                            <td>@PhotoGirth(girth, o.Sex, a)</td>
+                            <td>@Fmt.N(Profile.GetGirth(girth), 1)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="note" style="margin-top: 8px">
+                Ширина — по снимку спереди, глубина (от груди или живота до спины) — сбоку. «—»: уровень закрыт
+                рукой или не найден. Обхват по фото — по ширине и глубине, формула по 6 тыс. людей ANSUR II
+                (± — её средняя ошибка). Для груди такой формулы нет: в ANSUR II ширину груди мерили под мышками,
+                без широчайших мышц, — со снимком не сравнить. Сильно расходится с замером — перемерьте лентой
+                или переснимите.
+            </div>
+
+            <div class="card-subtitle">Модель по фото</div>
+            @if (Model is null)
+            {
+                <div class="note">Подгонка работает с моделью MakeHuman — она ещё загружается или не загрузилась.</div>
+            }
+            else if (a.Front is null || a.Side is null)
+            {
+                <div class="note">Для подгонки нужны оба снимка — спереди и сбоку.</div>
+            }
+            else
+            {
+                <div class="note" style="margin-bottom: 10px">
+                    Подберёт осанку и форму модели так, чтобы её силуэт совпал со снимками: спереди — ширина, сбоку —
+                    живот, грудь и изгиб спины. Обхваты остаются вашими замерами. Займёт несколько секунд.
+                </div>
+                <button class="btn primary" disabled="@(_busy || _fitting)" @onclick="() => FitModel(o, a)">
+                    @(_fitting ? $"Подгоняю… сборка {_fitBuilds}" : "Подогнать модель по фото")
+                </button>
+                @if (_fit is PhotoFitResult f && _fitSessionId == o.Id)
+                {
+                    <div class="volume-line">
+                        Силуэты расходились в среднем на @Fmt.N(f.ErrorBeforeCm, 1)&nbsp;см, после подгонки —
+                        на @Fmt.N(f.ErrorAfterCm, 1)&nbsp;см · @f.Builds сборок тела
+                    </div>
+                    <table class="changes" style="margin-top: 8px">
+                        <tbody>
+                            <tr><td>Наклон таза</td><td>@Fmt.Signed(f.Posture.PelvicTilt, 0)°</td></tr>
+                            <tr><td>Прогиб в пояснице</td><td>@Fmt.Signed(f.Posture.Lordosis, 0)°</td></tr>
+                            <tr><td>Сутулость</td><td>@Fmt.Signed(f.Posture.Kyphosis, 0)°</td></tr>
+                            <tr><td>Живот</td><td>@Fmt.Signed(f.Form.Stomach * 100, 0)</td></tr>
+                            <tr><td>Ягодицы</td><td>@Fmt.Signed(f.Form.Buttocks * 100, 0)</td></tr>
+                            <tr><td>Глубина корпуса</td><td>@Fmt.Signed(f.Form.TorsoDepth * 100, 0)</td></tr>
+                            <tr><td>V-силуэт</td><td>@Fmt.Signed(f.Form.VShape * 100, 0)</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="confirm">
+                        <span>Применено к модели — ползунки «Осанка и форма» на вкладке «Параметры».</span>
+                        @if (_undo is not null)
+                        {
+                            <button class="btn-link" @onclick="Undo">Вернуть как было</button>
+                        }
+                    </div>
+                }
+            }
+            @if ((a.Front?.Warnings ?? []).Concat(a.Side?.Warnings ?? []).Distinct().ToList() is { Count: > 0 } warnings)
+            {
+                <div class="hints" style="margin-top: 10px">
+                    @foreach (var w in warnings)
+                    {
+                        <div class="hint">@w</div>
+                    }
+                </div>
+            }
+            <div class="volume-line">
+                1&nbsp;пиксель ≈ @Fmt.N((a.Front ?? a.Side)!.CmPerPixel * 10, 1)&nbsp;мм@(a.Front?.ScaleFromSide == true ? " (масштаб спереди — по снимку сбоку)" : "")
+                · разбор @Fmt.N(a.Milliseconds)&nbsp;мс
+            </div>
+            <button class="btn-link" style="margin-top: 8px" disabled="@_busy" @onclick="() => Analyze(o)">
+                @(_busy ? "Разбираю…" : "Разобрать заново")
+            </button>
+        }
+        <div class="confirm">
+            <button class="btn-link muted" @onclick="Close">Закрыть</button>
+        </div>
+    </div>
+}
+
+<div class="card">
+    <div class="card-title">Хранилище</div>
+    <div class="volume-line" style="margin-top: 0">
+        @if (_storage?.Usage is long usage)
+        {
+            <text>Сайт занимает ≈&nbsp;@Megabytes(usage)&nbsp;МБ@(_storage.Quota is long quota ? $" из {Megabytes(quota)} МБ" : "").</text>
+        }
+        @(_storage?.Persisted == true
+            ? " Браузер не сотрёт данные при нехватке места."
+            : " Браузер может стереть данные при нехватке места или долгом перерыве (Safari — через неделю без захода). " +
+              "Надёжнее установить приложение на главный экран и время от времени сохранять архив.")
+    </div>
+    <div class="file-row" style="margin-top: 12px">
+        <button class="btn" disabled="@(_busy || _sessions.Count == 0)" @onclick="Export">Сохранить архив (zip)</button>
+        <label class="btn file-btn">
+            Загрузить архив
+            <input id="photo-import" type="file" accept=".zip,application/zip" @onchange="Import" />
+        </label>
+    </div>
+    @if (_sessions.Count > 0)
+    {
+        <div class="confirm">
+            @if (_confirmDeleteAll)
+            {
+                <span>Удалить все сессии с этого устройства? Это необратимо.</span>
+                <button class="btn-link" @onclick="DeleteAll">Удалить всё</button>
+                <button class="btn-link muted" @onclick="() => _confirmDeleteAll = false">Отмена</button>
+            }
+            else
+            {
+                <button class="btn-link muted" @onclick="() => _confirmDeleteAll = true">Удалить все фото</button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    /// <summary>Модель MakeHuman для подгонки под фото; null — ещё не загружена.</summary>
+    [Parameter] public MakeHumanModel? Model { get; set; }
+    /// <summary>Изменение профиля (осанка и форма после подгонки): родитель применяет, сохраняет и перестраивает модель.</summary>
+    [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
+
+    private const string FrontInput = "photo-front", SideInput = "photo-side", ImportInput = "photo-import";
+
+    private static readonly (string View, string InputId, string Title)[] Inputs =
+    [
+        ("front", FrontInput, "Фото спереди"),
+        ("side", SideInput, "Фото сбоку"),
+    ];
+
+    private List<PhotoSession> _sessions = [];
+    private StorageInfo? _storage;
+    private bool _loaded, _busy, _error;
+    private string? _message;
+    private string? _confirmDelete;
+    private bool _confirmDeleteAll;
+    /// <summary>Имена выбранных файлов по ракурсам.</summary>
+    private readonly Dictionary<string, string> _picked = [];
+    /// <summary>Открытая сессия и адреса её снимков целиком (blob:) — освобождаются при закрытии.</summary>
+    private string? _openId;
+    private readonly Dictionary<string, string> _urls = [];
+    /// <summary>Последняя подгонка: к какой сессии, что было до неё (для «Вернуть как было»), ход.</summary>
+    private PhotoFitResult? _fit;
+    private string? _fitSessionId;
+    private (Posture Posture, BodyForm Form)? _undo;
+    private bool _fitting;
+    private int _fitBuilds;
+
+    protected override async Task OnInitializedAsync() => await Reload();
+
+    private async Task Reload()
+    {
+        try
+        {
+            _sessions = await PhotoStore.List();
+            _storage = await PhotoStore.Storage();
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        _loaded = true;
+    }
+
+    private void Picked(string view, ChangeEventArgs e)
+    {
+        // Браузер отдаёт «C:\fakepath\имя.jpg» — показываем только имя
+        string? path = e.Value?.ToString();
+        if (string.IsNullOrEmpty(path)) _picked.Remove(view);
+        else _picked[view] = path[(path.LastIndexOfAny(['\\', '/']) + 1)..];
+    }
+
+    private async Task Save()
+    {
+        await Run(async () =>
+        {
+            await PhotoStore.SaveFromInputs(Profile, FrontInput, SideInput);
+            _picked.Clear();
+            await Reload();
+            Show("Сессия сохранена.");
+        });
+    }
+
+    private async Task Shoot()
+    {
+        await Run(async () =>
+        {
+            var session = await Capture.Run(Profile);
+            if (session is null) return;
+            await Reload();
+            Show("Сессия сохранена.");
+        });
+    }
+
+    private async Task Open(PhotoSession s)
+    {
+        if (_openId == s.Id) return;
+        Close();
+        _openId = s.Id;
+        foreach (string view in s.Views)
+            _urls[view] = await PhotoStore.ImageUrl(s.Id, view);
+    }
+
+    private void Close()
+    {
+        _openId = null;
+        foreach (string url in _urls.Values) PhotoStore.RevokeUrl(url);
+        _urls.Clear();
+    }
+
+    public void Dispose() => Close();
+
+    private async Task Analyze(PhotoSession s)
+    {
+        _busy = true;
+        _message = null;
+        if (_fitSessionId == s.Id) _fit = null; // разбор заново — прежняя подгонка к нему не относится
+        try
+        {
+            await PhotoAnalyzer.Analyze(s);
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        catch (InvalidOperationException e)
+        {
+            Show(e.Message, error: true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    /// <summary>Уровни груди, талии и бёдер — те же доли роста, что у моделей.</summary>
+    private static IReadOnlyList<(string Name, double Fraction)> KeyLevels(Sex sex) =>
+    [
+        ("Грудь", Proportions.ChestHeight(sex)),
+        ("Талия", Proportions.WaistHeight(sex)),
+        ("Бёдра", Proportions.HipsGirthHeight(sex)),
+    ];
+
+    private static string Size(PhotoProfile? profile, double fraction) =>
+        profile?.At(fraction) is ProfileLevel l ? Fmt.N(l.SizeCm, 1) : "—";
+
+    /// <summary>Обхваты строк таблицы — в том же порядке, что <see cref="KeyLevels"/>.</summary>
+    private static readonly Girth[] KeyGirths = [Girth.Chest, Girth.Waist, Girth.Hips];
+
+    private static string PhotoGirth(Girth g, Sex sex, PhotoAnalysis a) =>
+        PhotoGirths.Girths.Contains(g) && a.Front is not null && a.Side is not null
+            && PhotoGirths.Estimate(g, sex, a.Front, a.Side) is PhotoGirthEstimate e
+            ? $"{Fmt.N(e.GirthCm, 0)} ± {Fmt.N(e.RmseCm, 1)}"
+            : "—";
+
+    /// <summary>Края модели после подгонки на снимке ракурса; null — подгонки к этой сессии нет.</summary>
+    private IReadOnlyList<PhotoFitLevel>? ModelEdges(PhotoSession s, string view) =>
+        _fit is null || _fitSessionId != s.Id ? null : view == "side" ? _fit.Side : _fit.Front;
+
+    private async Task FitModel(PhotoSession s, PhotoAnalysis a)
+    {
+        if (Model is null || a.Front is null || a.Side is null) return;
+        _fitting = true;
+        _fitBuilds = 0;
+        _message = null;
+        var before = (Profile.Posture, Profile.Form);
+        try
+        {
+            // После каждой сборки отдаём поток браузеру: виден ход, страница не замирает
+            var result = await PhotoFitter.FitAsync(Model, Profile.Clone(), a.Front, a.Side, async n =>
+            {
+                _fitBuilds = n;
+                StateHasChanged();
+                await Task.Delay(1);
+            });
+            _fit = result;
+            _fitSessionId = s.Id;
+            _undo = before;
+            await OnChange.InvokeAsync(p =>
+            {
+                p.Posture = result.Posture;
+                p.Form = result.Form;
+            });
+        }
+        catch (InvalidOperationException e)
+        {
+            Show(e.Message, error: true);
+        }
+        finally
+        {
+            _fitting = false;
+        }
+    }
+
+    private async Task Undo()
+    {
+        if (_undo is not (Posture posture, BodyForm form)) return;
+        _undo = null;
+        await OnChange.InvokeAsync(p =>
+        {
+            p.Posture = posture;
+            p.Form = form;
+        });
+    }
+
+    private async Task Delete(string id)
+    {
+        _confirmDelete = null;
+        if (_openId == id) Close();
+        await Run(async () =>
+        {
+            await PhotoStore.DeleteSession(id);
+            await Reload();
+        });
+    }
+
+    private async Task DeleteAll()
+    {
+        _confirmDeleteAll = false;
+        Close();
+        await Run(async () =>
+        {
+            await PhotoStore.DeleteAll();
+            await Reload();
+            Show("Все фото удалены с этого устройства.");
+        });
+    }
+
+    private async Task Export()
+    {
+        await Run(async () =>
+        {
+            var r = await PhotoStore.Export();
+            Show($"Архив «{r.Name}» сохранён: сессий — {r.Sessions}. Он нужен, чтобы перенести фото на другое " +
+                 "устройство или восстановить их, если браузер сотрёт данные.");
+        });
+    }
+
+    private async Task Import(ChangeEventArgs _)
+    {
+        await Run(async () =>
+        {
+            var r = await PhotoStore.Import(ImportInput);
+            await Reload();
+            Show(r.Skipped == 0 ? $"Добавлено сессий: {r.Added}."
+                                : $"Добавлено сессий: {r.Added}, уже были или без снимков: {r.Skipped}.");
+        });
+    }
+
+    /// <summary>Одна операция за раз; ошибка JS — текстом под кнопками.</summary>
+    private async Task Run(Func<Task> action)
+    {
+        _busy = true;
+        _message = null;
+        try
+        {
+            await action();
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void Show(string message, bool error = false)
+    {
+        _message = message;
+        _error = error;
+    }
+
+    /// <summary>Текст ошибки из JS без технического «Error: » в начале.</summary>
+    private static string JsError(JSException e) =>
+        e.Message.StartsWith("Error: ", StringComparison.Ordinal) ? e.Message["Error: ".Length..] : e.Message;
+
+    private static string Megabytes(long bytes) => Fmt.N(bytes / 1048576.0, bytes < 10 * 1048576 ? 1 : 0);
+}

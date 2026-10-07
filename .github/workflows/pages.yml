@@ -27,7 +27,9 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Тесты (сломанное не выкладываем)
-        run: dotnet test WorkoutCalculator.sln -c Release
+        run: |
+          dotnet test WorkoutCalculator.sln -c Release
+          node --test tests/js/*.test.mjs
       - name: Публикация Body3D
         run: dotnet publish src/WorkoutCalculator.Body3D -c Release -o publish
       - uses: actions/upload-pages-artifact@v5

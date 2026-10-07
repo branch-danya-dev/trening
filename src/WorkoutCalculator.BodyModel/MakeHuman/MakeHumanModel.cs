@@ -44,12 +44,16 @@ public sealed class MakeHumanFit
 
 /// <summary>
 /// Тело на основе базовой сетки MakeHuman. Порядок построения:
-/// 1) макро-таргеты: пол, возраст, полнота и мускулатура (<see cref="MakeHumanMapping"/>);
-/// 2) равномерный масштаб под рост, ступни на полу;
+/// 1) макро-таргеты: пол, возраст, полнота и мускулатура (<see cref="MakeHumanMapping"/>), таргеты формы
+///    (<see cref="BodyForm"/>);
+/// 2) равномерный масштаб под рост в позе, ступни на полу;
 /// 3) слой мягких тканей вдоль нормалей — подбирается так, чтобы объём сетки сошёлся с весом
 ///    (вес должен где-то «лежать», а не только в местах замеров); толщина слоя по зонам тела разная;
 /// 4) таргеты замеров MakeHuman подгоняют обхваты на тех же уровнях, что и у манекена: введённые
 ///    и оценённые по ANSUR II (необязательные замеры, низ бедра, щиколотка).
+/// Осанка (<see cref="Posture"/>) — скиннинг по скелету MakeHuman. Слой и таргеты добавляются к исходной
+/// форме и сразу переносятся в позу (<see cref="PostureRig"/>), а обхваты, рост и объём меряются в позе —
+/// как у живого человека, который стоит, как стоит.
 /// </summary>
 public sealed class MakeHumanModel
 {
@@ -112,9 +116,10 @@ public sealed class MakeHumanModel
     private const int ShapeCacheSize = 2;
 
     /// <param name="LayerArea">Площадь поверхности, взвешенная толщиной слоя по зонам, м²: dV ≈ LayerArea · dLayer.</param>
-    private sealed record CachedShape(ShapeKey Key, double[] Positions, double[] Normals, double LayerArea, double Scale);
+    /// <param name="Rig">Осанка; null — исходная поза MakeHuman.</param>
+    private sealed record CachedShape(ShapeKey Key, double[] Positions, double[] Normals, double LayerArea, double Scale, PostureRig? Rig);
 
-    private readonly record struct ShapeKey(Sex Sex, double HeightCm, MakeHumanMapping.Macros Macros);
+    private readonly record struct ShapeKey(Sex Sex, double HeightCm, MakeHumanMapping.Macros Macros, Posture Posture, BodyForm Form);
 
     public MakeHumanModel(MakeHumanData data)
     {
@@ -200,13 +205,13 @@ public sealed class MakeHumanModel
         var factors = LayerFactors(p.Sex);
 
         // 1–2. Форма после макро и масштаба (из кэша, если менялись только обхваты)
-        var key = new ShapeKey(p.Sex, p.HeightCm, macros);
+        var key = new ShapeKey(p.Sex, p.HeightCm, macros, p.Posture.Clamped(), p.Form.Clamped());
         var cache = _shapeCache.Find(c => c.Key == key);
         if (cache is null)
         {
-            var shape = MacroShape(p, macros, out double scale);
+            var shape = MacroShape(p, macros, out double scale, out var rig);
             var (normals, layerArea) = Normals(shape, factors);
-            cache = new CachedShape(key, shape, normals, layerArea, scale);
+            cache = new CachedShape(key, shape, normals, layerArea, scale, rig);
             if (_shapeCache.Count == ShapeCacheSize) _shapeCache.RemoveAt(0);
         }
         else
@@ -215,9 +220,10 @@ public sealed class MakeHumanModel
         }
         _shapeCache.Add(cache); // в конце — самая свежая
         var pos = (double[])cache.Positions.Clone();
+        var posed = cache.Rig?.Pose(pos) ?? pos;
 
         // 3. Слой мягких тканей и таргеты замеров с прошлого решения
-        var state = new FitState(this, p, pos, cache.Normals, factors, cache.Scale, fit);
+        var state = new FitState(this, p, pos, posed, cache.Rig, cache.Normals, factors, cache.Scale, fit);
         double warmLayer = fit.LayerM;
         fit.LayerM = 0;
         state.ShiftLayer(warmLayer);
@@ -237,7 +243,7 @@ public sealed class MakeHumanModel
             state.FitGirths(GirthTolerance, maxSweeps: 6);
             double expected = ConsistencyChecker.ExpectedVolumeLiters(p) / 1000;
             double typical = LayerVolumeShare * cache.LayerArea;
-            double slope = typical, v = Volume(pos);
+            double slope = typical, v = Volume(posed);
             for (int step = 0; step < MaxLayerSteps && Math.Abs(v - expected) > 0.003 * expected; step++)
             {
                 double d = fit.LayerM;
@@ -245,7 +251,7 @@ public sealed class MakeHumanModel
                 if (next == d) break; // упёрлись в предел
                 state.ShiftLayer(next - d);
                 state.FitGirths(GirthTolerance, maxSweeps: 6);
-                double vNext = Volume(pos);
+                double vNext = Volume(posed);
                 // Дальше — секущей, но только по правдоподобному наклону: после короткого шага подгонка
                 // обхватов может перестроить таргеты так, что объём будто бы падает от слоя, и секущая
                 // уводила слой в противоположный предел (тело на 5–10 % объёмнее, чем по весу)
@@ -258,7 +264,7 @@ public sealed class MakeHumanModel
         // Итог: обхваты по готовой сетке (перемеряются только устаревшие), вершины тела — в меш
         var results = state.Results();
         var body = new float[Data.BodyVertexCount * 3];
-        for (int i = 0; i < body.Length; i++) body[i] = (float)pos[i];
+        for (int i = 0; i < body.Length; i++) body[i] = (float)posed[i];
         var mesh = new BodyMesh
         {
             Positions = body,
@@ -267,7 +273,8 @@ public sealed class MakeHumanModel
             Rings = [],
         };
 
-        return new MakeHumanBody(p, mesh, results, macros, fit, state.Measurements, () => Tapes(pos, p));
+        return new MakeHumanBody(p, mesh, results, macros, fit, state.Measurements, () => Tapes(posed, p),
+            name => Joint(posed, name));
     }
 
     /// <summary>Ленты по готовой сетке: выпуклые оболочки сечений на уровнях обхватов профиля.</summary>
@@ -321,8 +328,26 @@ public sealed class MakeHumanModel
         return f;
     }
 
-    /// <summary>Базовая сетка + макро-таргеты, масштаб под рост, ступни на y = 0.</summary>
-    private double[] MacroShape(BodyProfile p, MakeHumanMapping.Macros macros, out double scale)
+    /// <summary>
+    /// Таргет «живот» MakeHuman — это беременность: дальше 0,6 живот уже провисает складкой. Поэтому +1
+    /// ползунка — 0,6 таргета (минус — плоский живот — без ограничения).
+    /// </summary>
+    public const double MaxStomachTarget = 0.6;
+
+    /// <summary>Таргеты формы: имя в данных → вес таргета по значению из <see cref="BodyForm"/>.</summary>
+    private static (string Target, double Value)[] FormTargets(BodyForm f) =>
+    [
+        ("stomach-pregnant", f.Stomach > 0 ? f.Stomach * MaxStomachTarget : f.Stomach),
+        ("buttocks-volume", f.Buttocks),
+        ("torso-scale-depth", f.TorsoDepth),
+        ("torso-vshape", f.VShape),
+    ];
+
+    /// <summary>
+    /// Базовая сетка + макро-таргеты и таргеты формы, масштаб под рост, ступни на y = 0. Рост и пол
+    /// считаются в позе: сутулый человек ниже, и его рост в позе должен совпасть с замером.
+    /// </summary>
+    private double[] MacroShape(BodyProfile p, MakeHumanMapping.Macros macros, out double scale, out PostureRig? rig)
     {
         var pos = (double[])_basePositions.Clone();
         string sex = p.Sex == Sex.Male ? "male" : "female";
@@ -339,8 +364,14 @@ public sealed class MakeHumanModel
                     if (wm * ww > 0)
                         Data.Target($"macro/{sex}-{age}-{m}muscle-{w}weight")?.AddTo(pos, wa * wm * ww);
         }
+        foreach (var (target, value) in FormTargets(p.Form.Clamped()))
+            Data.Target($"form/{target}-{(value > 0 ? "incr" : "decr")}")?.AddTo(pos, Math.Abs(value));
 
-        var (floor, top) = BodyRange(pos);
+        // Поза перестановочна с масштабом и сдвигом (суставы — вершины сетки), поэтому рост и пол
+        // в позе можно найти до масштабирования, а скелет построить уже на готовой форме
+        var posture = p.Posture.Clamped();
+        bool posed = !posture.IsNeutral && Data.Skeleton is not null;
+        var (floor, top) = BodyRange(posed ? PostureRig.Create(Data.Skeleton!, pos, posture).Pose(pos) : pos);
         scale = p.HeightCm / 100 / (top - floor);
         for (int i = 0; i < pos.Length; i += 3)
         {
@@ -348,6 +379,7 @@ public sealed class MakeHumanModel
             pos[i + 1] = (pos[i + 1] - floor) * scale;
             pos[i + 2] *= scale;
         }
+        rig = posed ? PostureRig.Create(Data.Skeleton!, pos, posture) : null;
         return pos;
     }
 
@@ -522,9 +554,12 @@ public sealed class MakeHumanModel
         return sum / 6;
     }
 
-    /// <summary>Подгонка одного тела: позиции меняются на месте, решение копится в <see cref="MakeHumanFit"/>.</summary>
-    private sealed class FitState(MakeHumanModel model, BodyProfile p, double[] pos, double[] normals,
-        double[] factors, double scale, MakeHumanFit fit)
+    /// <summary>
+    /// Подгонка одного тела: позиции меняются на месте, решение копится в <see cref="MakeHumanFit"/>.
+    /// pos — исходная поза, posed — с осанкой (тот же массив, если осанки нет); меряется posed.
+    /// </summary>
+    private sealed class FitState(MakeHumanModel model, BodyProfile p, double[] pos, double[] posed, PostureRig? rig,
+        double[] normals, double[] factors, double scale, MakeHumanFit fit)
     {
         private readonly double _height = p.HeightCm / 100;
         /// <summary>Номер версии позиций: растёт при каждом изменении сетки.</summary>
@@ -538,7 +573,7 @@ public sealed class MakeHumanModel
         {
             if (_measured.TryGetValue(level, out var m) && m.Version == _version) return m.Girth;
             Measurements++;
-            double? girth = model.MeasureLevel(level, pos, _height, p.Sex, null);
+            double? girth = model.MeasureLevel(level, posed, _height, p.Sex, null);
             _measured[level] = (girth, _version);
             return girth;
         }
@@ -562,6 +597,7 @@ public sealed class MakeHumanModel
                 pos[i] += d * normals[i];
                 pos[i + 1] += d * normals[i + 1];
                 pos[i + 2] += d * normals[i + 2];
+                rig?.AddDelta(posed, v, d * normals[i], d * normals[i + 1], d * normals[i + 2]);
             }
             fit.LayerM += delta;
             _version++;
@@ -575,17 +611,24 @@ public sealed class MakeHumanModel
             var incr = model.Data.Target($"measure/{name}-incr");
             var decr = model.Data.Target($"measure/{name}-decr");
             // u > 0 — таргет «больше» с весом u, u < 0 — таргет «меньше» с весом −u
-            if (old >= 0 && u >= 0) incr?.AddTo(pos, (u - old) * scale);
-            else if (old <= 0 && u <= 0) decr?.AddTo(pos, (old - u) * scale);
+            if (old >= 0 && u >= 0) Add(incr, (u - old) * scale);
+            else if (old <= 0 && u <= 0) Add(decr, (old - u) * scale);
             else
             {
-                if (old > 0) incr?.AddTo(pos, -old * scale);
-                else decr?.AddTo(pos, old * scale);
-                if (u > 0) incr?.AddTo(pos, u * scale);
-                else decr?.AddTo(pos, -u * scale);
+                if (old > 0) Add(incr, -old * scale);
+                else Add(decr, old * scale);
+                if (u > 0) Add(incr, u * scale);
+                else Add(decr, -u * scale);
             }
             fit.U[level] = u;
             _version++;
+        }
+
+        private void Add(SparseTarget? target, double weight)
+        {
+            if (target is null) return;
+            target.AddTo(pos, weight);
+            rig?.AddTarget(posed, target, weight);
         }
 
         private static string Target(FitLevel level)
@@ -650,9 +693,13 @@ public sealed class MakeHumanBody : IBodyShape
     private readonly Func<IReadOnlyList<TapeLoop>> _computeTapes;
     private IReadOnlyList<TapeLoop>? _tapes;
 
+    private readonly Func<string, Vec3> _landmark;
+
     internal MakeHumanBody(BodyProfile profile, BodyMesh mesh, IReadOnlyList<FitResult> results,
-        MakeHumanMapping.Macros macros, MakeHumanFit fit, int measurements, Func<IReadOnlyList<TapeLoop>> tapes)
+        MakeHumanMapping.Macros macros, MakeHumanFit fit, int measurements, Func<IReadOnlyList<TapeLoop>> tapes,
+        Func<string, Vec3> landmark)
     {
+        _landmark = landmark;
         Profile = profile;
         Mesh = mesh;
         Results = results;
@@ -664,6 +711,12 @@ public sealed class MakeHumanBody : IBodyShape
 
     /// <summary>Ленты замеров — считаются, только когда их показывают.</summary>
     public IReadOnlyList<TapeLoop> Tapes => _tapes ??= _computeTapes();
+
+    /// <summary>
+    /// Ориентир в позе, м: суставы (joint-neck, joint-head, joint-l-shoulder, …; левая сторона, правая —
+    /// зеркально по X) и промежность (crotch).
+    /// </summary>
+    public Vec3 Landmark(string name) => _landmark(name);
 
     public BodyProfile Profile { get; }
     public BodyMesh Mesh { get; }
