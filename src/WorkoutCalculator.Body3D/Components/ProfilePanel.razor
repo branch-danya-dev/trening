@@ -1,0 +1,197 @@
+@* Вкладка «Параметры»: замеры, производные значения и проверка согласованности. *@
+
+<div class="card">
+    <div class="card-title">Профиль</div>
+    <div class="field-row">
+        <span>Пол</span>
+        <div class="seg">
+            <button class="@Css.On(Profile.Sex == Sex.Male)" @onclick="() => Change(p => p.Sex = Sex.Male)">Мужской</button>
+            <button class="@Css.On(Profile.Sex == Sex.Female)" @onclick="() => Change(p => p.Sex = Sex.Female)">Женский</button>
+        </div>
+    </div>
+    <div style="margin-top: 12px">
+        <ParamSlider Label="Возраст" Unit="лет" Min="16" Max="90" Step="1"
+                     Value="Profile.Age" ValueChanged="v => Change(p => p.Age = (int)v)" />
+        <ParamSlider Label="Рост" Unit="см" Min="140" Max="210" Step="0.5"
+                     Value="Profile.HeightCm" ValueChanged="v => Change(p => p.HeightCm = v)" />
+        <ParamSlider Label="Вес" Unit="кг" Min="40" Max="180" Step="0.1"
+                     Value="Profile.WeightKg" ValueChanged="v => Change(p => p.WeightKg = v)" />
+        <ParamSlider Label="Жир" Unit="%" Min="4" Max="50" Step="0.5"
+                     Hint="Калипер, весы с биоимпедансом или DEXA"
+                     Value="Profile.BodyFatPercent" ValueChanged="v => Change(p => p.BodyFatPercent = v)" />
+        <div class="volume-line">
+            @if (NavyBodyFat.Estimate(Profile) is double navy)
+            {
+                <span>По обхватам (формула ВМС США, ошибка 3–4&nbsp;%): ≈&nbsp;@Fmt.N(navy, 1)&nbsp;%</span>
+                <button class="btn-link" @onclick="() => ApplyNavy(navy)">Подставить</button>
+            }
+            else
+            {
+                <span>Укажите обхват шеи — тогда % жира можно оценить по обхватам (формула ВМС США).</span>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">
+        Обхваты
+        <button class="btn-link" @onclick="ResetToAverages">Средние для пола</button>
+    </div>
+    <ParamSlider Label="Грудь" Unit="см" Min="70" Max="150" Step="0.5" Hint="По сосковой линии, руки опущены"
+                 Active="a => Highlight(Girth.Chest, a)"
+                 Value="Profile.ChestCm" ValueChanged="v => Change(p => p.ChestCm = v)" />
+    <ParamSlider Label="Талия" Unit="см" Min="55" Max="150" Step="0.5" Hint="@WaistHint"
+                 Active="a => Highlight(Girth.Waist, a)"
+                 Value="Profile.WaistCm" ValueChanged="v => Change(p => p.WaistCm = v)" />
+    <ParamSlider Label="Бёдра (ягодицы)" Unit="см" Min="70" Max="150" Step="0.5" Hint="По самой выступающей точке ягодиц"
+                 Active="a => Highlight(Girth.Hips, a)"
+                 Value="Profile.HipsCm" ValueChanged="v => Change(p => p.HipsCm = v)" />
+    <ParamSlider Label="Плечо (бицепс)" Unit="см" Min="20" Max="55" Step="0.5" Hint="Посередине плеча, рука расслаблена"
+                 Active="a => Highlight(Girth.Biceps, a)"
+                 Value="Profile.BicepsCm" ValueChanged="v => Change(p => p.BicepsCm = v)" />
+    <ParamSlider Label="Бедро" Unit="см" Min="35" Max="85" Step="0.5" Hint="Сразу под ягодичной складкой"
+                 Active="a => Highlight(Girth.Thigh, a)"
+                 Value="Profile.ThighCm" ValueChanged="v => Change(p => p.ThighCm = v)" />
+    @foreach (var opt in Optional)
+    {
+        var g = opt.Girth;
+        bool given = Profile.IsSpecified(g);
+        <ParamSlider Label="@BodyProfile.GirthName(g)" Unit="см" Min="opt.Min" Max="opt.Max" Step="0.5" Disabled="!given"
+                     Active="a => Highlight(g, a)"
+                     Hint="@(given ? opt.Where : opt.Estimate)"
+                     Value="Profile.GetGirth(g)" ValueChanged="v => Change(p => p.SetGirth(g, v))" />
+        <label class="check" style="margin-top: 6px">
+            <input type="checkbox" checked="@given" @onchange="e => ToggleOptional(g, e)" />
+            Указать: @BodyProfile.GirthName(g).ToLowerInvariant()
+        </label>
+    }
+</div>
+
+<div class="card">
+    <div class="card-title">Производные</div>
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value">@Fmt.N(Profile.LeanMassKg, 1)<small>кг</small></div>
+            <div class="stat-label">Безжировая масса</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">@Fmt.N(Profile.FatMassKg, 1)<small>кг</small></div>
+            <div class="stat-label">Жировая масса</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">@Fmt.N(Profile.Bmi, 1)</div>
+            <div class="stat-label">ИМТ</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">@Fmt.N(Profile.WaistToHeight, 2)</div>
+            <div class="stat-label">Талия / рост</div>
+        </div>
+    </div>
+    @if (Report is not null)
+    {
+        <div class="volume-line">
+            Объём по замерам @Fmt.N(Report.MeshVolumeLiters, 1) л (манекен) · по весу и % жира
+            @Fmt.N(Report.ExpectedVolumeLiters, 1) л (@Fmt.Signed(Report.Deviation * 100)&nbsp;%)
+        </div>
+    }
+    @if (ModelNote is not null)
+    {
+        <div class="volume-line">@ModelNote</div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-title">Проверка замеров</div>
+    @if (Report is { Hints.Count: > 0 } || ModelHints.Count > 0)
+    {
+        <div class="hints">
+            @foreach (var hint in Report?.Hints ?? [])
+            {
+                <div class="hint">@hint.Text</div>
+            }
+            @foreach (var hint in ModelHints)
+            {
+                <div class="hint">@hint</div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="ok">Замеры и вес согласуются между собой.</div>
+    }
+</div>
+
+<div class="note">
+    Профиль хранится только в этом браузере. Модель MakeHuman — базовая сетка и таргеты
+    makehumancommunity.org, лицензия CC0.
+</div>
+
+@code {
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    [Parameter] public ConsistencyReport? Report { get; set; }
+    /// <summary>Подсказки выбранной модели (например, MakeHuman не смог подогнать обхват).</summary>
+    [Parameter] public IReadOnlyList<string> ModelHints { get; set; } = [];
+    /// <summary>Пояснение, как выбранная модель построена.</summary>
+    [Parameter] public string? ModelNote { get; set; }
+    /// <summary>Подсветить на модели ленту обхвата (null — снять подсветку).</summary>
+    [Parameter] public Action<Girth?>? OnHighlight { get; set; }
+
+    private Girth? _highlighted;
+
+    /// <summary>Снимаем подсветку, только если она ещё у этого обхвата: мышь могла уйти на другой.</summary>
+    private void Highlight(Girth g, bool active)
+    {
+        if (active) _highlighted = g;
+        else if (_highlighted == g) _highlighted = null;
+        else return;
+        OnHighlight?.Invoke(_highlighted);
+    }
+
+    /// <summary>Изменение профиля: родитель применяет его, сохраняет и перестраивает модель.</summary>
+    [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
+
+    private Task Change(Action<BodyProfile> change) => OnChange.InvokeAsync(change);
+
+    /// <summary>Необязательные обхваты: пока не указаны, показывается оценка.</summary>
+    private static readonly (Girth Girth, double Min, double Max, string Where, string Estimate)[] Optional =
+    [
+        (Girth.Neck, 28, 55, "Посередине шеи", "Не указана — оценка по росту и весу (данные ANSUR II)"),
+        (Girth.Calf, 25, 55, "В самом широком месте голени", "Не указана — оценка по бедру, росту и весу (данные ANSUR II)"),
+        (Girth.Wrist, 12, 22, "Над косточкой запястья", "Не указано — оценка по росту и весу (данные ANSUR II)"),
+    ];
+
+    /// <summary>Где мерить талию: так же, как в модели и в формуле ВМС США.</summary>
+    private string WaistHint => Profile.Sex == Sex.Male ? "На уровне пупка" : "В самом узком месте, выше пупка";
+
+    /// <summary>Подставить оценку по формуле ВМС США, округлив до шага ползунка и в его пределах.</summary>
+    private Task ApplyNavy(double navy) => Change(p => p.BodyFatPercent = Math.Round(Math.Clamp(navy, 4, 50) * 2) / 2);
+
+    private Task ResetToAverages() => Change(p =>
+    {
+        var d = BodyDefaults.For(p.Sex);
+        p.HeightCm = d.HeightCm;
+        p.WeightKg = d.WeightKg;
+        p.BodyFatPercent = d.BodyFatPercent;
+        p.ChestCm = d.ChestCm;
+        p.WaistCm = d.WaistCm;
+        p.HipsCm = d.HipsCm;
+        p.BicepsCm = d.BicepsCm;
+        p.ThighCm = d.ThighCm;
+        p.NeckCm = d.NeckCm;
+        p.CalfCm = d.CalfCm;
+        p.WristCm = d.WristCm;
+    });
+
+    /// <summary>Галочка «указать»: включаем с текущей оценкой (округлённой до 0,5 см) или убираем.</summary>
+    private Task ToggleOptional(Girth g, ChangeEventArgs e) => Change(p =>
+    {
+        double? value = e.Value is true ? Math.Round(p.GetGirth(g) * 2) / 2 : null;
+        switch (g)
+        {
+            case Girth.Neck: p.NeckCm = value; break;
+            case Girth.Calf: p.CalfCm = value; break;
+            default: p.WristCm = value; break;
+        }
+    });
+}

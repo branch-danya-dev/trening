@@ -9,6 +9,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.Core", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.Cli", "src\WorkoutCalculator.Cli\WorkoutCalculator.Cli.csproj", "{44C1B022-FFED-5A9A-B8D3-9C878017F6B6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.Tests", "tests\WorkoutCalculator.Tests\WorkoutCalculator.Tests.csproj", "{CE5601D6-596E-5C4B-BCD6-C2766C5FFC8B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.BodyModel", "src\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj", "{2DD85E54-1798-56D2-A5B5-EA5FA499E4F9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.Body3D", "src\WorkoutCalculator.Body3D\WorkoutCalculator.Body3D.csproj", "{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.MakeHumanImport", "tools\WorkoutCalculator.MakeHumanImport\WorkoutCalculator.MakeHumanImport.csproj", "{DC52D536-2C07-5CE2-B793-FA9BA015A132}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkoutCalculator.AnsurFit", "tools\WorkoutCalculator.AnsurFit\WorkoutCalculator.AnsurFit.csproj", "{00B9DB21-6DB9-5A33-9356-DE516C87D829}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +37,26 @@ Global
 		{44C1B022-FFED-5A9A-B8D3-9C878017F6B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44C1B022-FFED-5A9A-B8D3-9C878017F6B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44C1B022-FFED-5A9A-B8D3-9C878017F6B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE5601D6-596E-5C4B-BCD6-C2766C5FFC8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE5601D6-596E-5C4B-BCD6-C2766C5FFC8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE5601D6-596E-5C4B-BCD6-C2766C5FFC8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE5601D6-596E-5C4B-BCD6-C2766C5FFC8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DD85E54-1798-56D2-A5B5-EA5FA499E4F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DD85E54-1798-56D2-A5B5-EA5FA499E4F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DD85E54-1798-56D2-A5B5-EA5FA499E4F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DD85E54-1798-56D2-A5B5-EA5FA499E4F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35B4373B-5FBD-5CF8-81C0-AFE14FAD13D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC52D536-2C07-5CE2-B793-FA9BA015A132}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC52D536-2C07-5CE2-B793-FA9BA015A132}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC52D536-2C07-5CE2-B793-FA9BA015A132}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC52D536-2C07-5CE2-B793-FA9BA015A132}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00B9DB21-6DB9-5A33-9356-DE516C87D829}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00B9DB21-6DB9-5A33-9356-DE516C87D829}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00B9DB21-6DB9-5A33-9356-DE516C87D829}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00B9DB21-6DB9-5A33-9356-DE516C87D829}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

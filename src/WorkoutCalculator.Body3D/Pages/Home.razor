@@ -1,0 +1,395 @@
+@using System.Diagnostics
+@using WorkoutCalculator.BodyModel.MakeHuman
+@inject HttpClient Http
+
+<div class="app">
+    <header class="topbar">
+        <span class="brand-dot"></span>
+        <span class="brand">Модель тела</span>
+        <span class="brand-sub">прототип: тело по замерам и прогноз изменений</span>
+        <div class="topbar-right">
+            <span class="brand-sub">Модель</span>
+            <div class="seg" role="group" aria-label="Модель тела">
+                <button class="@Css.On(_kind == BodyKind.MakeHuman)" @onclick="() => SetKind(BodyKind.MakeHuman)">MakeHuman</button>
+                <button class="@Css.On(_kind == BodyKind.Mannequin)" @onclick="() => SetKind(BodyKind.Mannequin)">Манекен</button>
+            </div>
+            @if (_kind == BodyKind.MakeHuman && _mhStatus is not null)
+            {
+                <span class="brand-sub">@_mhStatus</span>
+            }
+        </div>
+    </header>
+
+    <div class="main">
+        <section class="viewport" aria-label="3D-модель">
+            <canvas id="body-canvas" tabindex="0"></canvas>
+
+            <div class="view-toolbar">
+                <button class="btn" @onclick='() => ViewerInterop.SetView("front")'>Спереди</button>
+                <button class="btn" @onclick='() => ViewerInterop.SetView("side")'>Сбоку</button>
+                <button class="btn" @onclick='() => ViewerInterop.SetView("back")'>Сзади</button>
+                <button class="btn" @onclick='() => ViewerInterop.SetView("reset")'>Сброс камеры</button>
+            </div>
+
+            @if (_mode == ViewMode.Compare && _forecast is not null)
+            {
+                @if (_sideBySide)
+                {
+                    <div class="view-labels"><span>Сейчас</span><span>Прогноз</span></div>
+                }
+                else
+                {
+                    <div class="legend">
+                        <span class="now">Сейчас (контур)</span>
+                        <span class="later">Через @_forecast.Weeks[^1].Week нед.</span>
+                    </div>
+                }
+            }
+
+            <div class="mode-bar">
+                <div class="seg" role="group" aria-label="Что показать">
+                    <button class="@Css.On(_mode == ViewMode.Current)" @onclick="() => SetMode(ViewMode.Current)">Сейчас</button>
+                    <button class="@Css.On(_mode == ViewMode.Forecast)" disabled="@(_forecast is null)"
+                            @onclick="() => SetMode(ViewMode.Forecast)">Прогноз</button>
+                    <button class="@Css.On(_mode == ViewMode.Compare)" disabled="@(_forecast is null)"
+                            @onclick="() => SetMode(ViewMode.Compare)">Сравнение</button>
+                </div>
+                @if (_mode == ViewMode.Compare)
+                {
+                    <label class="check">
+                        <input type="checkbox" checked="@_sideBySide" @onchange="ToggleSideBySide" /> рядом
+                    </label>
+                }
+            </div>
+
+            <label class="check view-tapes" title="Где меряется каждый обхват. Лента обхвата подсвечивается и при наведении на его поле">
+                <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
+            </label>
+
+            @if (_current is not null)
+            {
+                <div class="view-stats">
+                    @(_current is MakeHumanBody mhb ? $"MakeHuman, сечений {mhb.Measurements}" : $"Манекен, {Mannequin.Segments} точек на сечение") ·
+                    @Fmt.N(_current.Mesh.VertexCount) вершин · сетка @Fmt.N(_buildMs) мс + передача @Fmt.N(_uploadMs) мс ·
+                    проверка @Fmt.N(_checkMs) мс
+                </div>
+            }
+        </section>
+
+        <aside class="panel">
+            <nav class="tabs" role="tablist">
+                <button role="tab" aria-selected="@(_tab == Tab.Params ? "true" : "false")" class="@Css.On(_tab == Tab.Params)"
+                        @onclick="() => _tab = Tab.Params">Параметры</button>
+                <button role="tab" aria-selected="@(_tab == Tab.Hypothesis ? "true" : "false")" class="@Css.On(_tab == Tab.Hypothesis)"
+                        @onclick="OpenHypothesis">Гипотеза</button>
+            </nav>
+
+            <div class="panel-body">
+                @if (_tab == Tab.Params)
+                {
+                    <ProfilePanel Profile="_profile" Report="_report" ModelHints="ModelHints()" ModelNote="@ModelNote()" OnHighlight="SetHighlight"
+                                  OnChange="ChangeProfile" />
+                }
+                else
+                {
+                    <HypothesisPanel Profile="_profile" Hypothesis="_hypothesis" Forecast="_forecast" OnChange="ChangeHypothesis" />
+                }
+            </div>
+        </aside>
+    </div>
+</div>
+
+@code {
+    private enum Tab { Params, Hypothesis }
+    private enum ViewMode { Current, Forecast, Compare }
+    private enum BodyKind { MakeHuman, Mannequin }
+
+    private BodyProfile _profile = BodyDefaults.Default();
+    private StoredHypothesis _hypothesis = new();
+    private IBodyShape? _current;
+    private IBodyShape? _forecastBody;
+
+    /// <summary>Ленты замеров: все (галочка) или только обхват, над полем которого мышь или фокус.</summary>
+    private bool _showTapes;
+    private Girth? _highlight;
+    private bool TapesNeeded => _showTapes || _highlight is not null;
+    private ConsistencyReport? _report;
+    private ForecastResult? _forecast;
+
+    private BodyKind _kind = BodyKind.MakeHuman;
+    private MakeHumanModel? _mh;
+    /// <summary>Пока данные MakeHuman не загружены — текст состояния; показывается манекен.</summary>
+    private string? _mhStatus = "загрузка…";
+    /// <summary>Решения подгонки MakeHuman для «сейчас» и «прогноза» — тёплый старт следующих сборок.</summary>
+    private MakeHumanFit? _fitCurrent;
+    private MakeHumanFit? _fitForecast;
+
+    private Tab _tab = Tab.Params;
+    private ViewMode _mode = ViewMode.Current;
+    private bool _sideBySide;
+
+    private bool _viewerReady;
+    private bool _dirty;
+    private bool _rebuilding;
+    private double _buildMs;
+    private double _uploadMs;
+    private double _checkMs;
+
+    /// <summary>
+    /// Проверка замеров и точная подгонка MakeHuman (слой под вес) дороже быстрой сборки —
+    /// делаются, когда ползунок отпустили.
+    /// </summary>
+    private const int CheckDelayMs = 150;
+    /// <summary>Прогноз пересчитывается после паузы во вводе.</summary>
+    private const int ForecastDelayMs = 200;
+    private int _checkVersion;
+    private int _forecastVersion;
+
+    private bool UseMakeHuman => _kind == BodyKind.MakeHuman && _mh is not null;
+
+    protected override void OnInitialized()
+    {
+        _profile = ProfileStorage.LoadProfile() ?? BodyDefaults.Default();
+        _hypothesis = ProfileStorage.LoadHypothesis() ?? DefaultHypothesis(_profile);
+        _kind = ProfileStorage.LoadModelKind() == "mannequin" ? BodyKind.Mannequin : BodyKind.MakeHuman;
+        _ = LoadMakeHumanAsync();
+    }
+
+    /// <summary>По умолчанию — умеренный дефицит 400 ккал от текущего расхода.</summary>
+    private static StoredHypothesis DefaultHypothesis(BodyProfile p)
+    {
+        var h = new StoredHypothesis();
+        double maintenance = ForecastEngine.Expenditure(p, p.WeightKg, h.ToInput()).Total;
+        h.IntakeKcalPerDay = Math.Round((maintenance - 400) / 50) * 50;
+        return h;
+    }
+
+    /// <summary>Данные MakeHuman (~2 МБ) грузятся в фоне; до этого показывается манекен.</summary>
+    private async Task LoadMakeHumanAsync()
+    {
+        try
+        {
+            // Версия в адресе — чтобы браузер не взял из кэша файл старого формата
+            var bytes = await Http.GetByteArrayAsync($"data/{MakeHumanData.FileName}?v={MakeHumanData.Version}");
+            _mh = new MakeHumanModel(MakeHumanData.Read(bytes));
+            _mhStatus = null;
+        }
+        catch (Exception e) when (e is HttpRequestException or InvalidDataException)
+        {
+            _mhStatus = "не загрузилась, показан манекен";
+        }
+        if (_kind == BodyKind.MakeHuman)
+            Refresh();
+        StateHasChanged();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender) return;
+        ViewerInterop.Init("body-canvas");
+        _viewerReady = true;
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        RequestRebuild();
+        _ = ForecastLaterAsync(++_forecastVersion, 0);
+    }
+
+    private void SetKind(BodyKind kind)
+    {
+        if (_kind == kind) return;
+        _kind = kind;
+        ProfileStorage.SaveModelKind(kind == BodyKind.Mannequin ? "mannequin" : "makehuman");
+        Refresh();
+    }
+
+    private void ChangeProfile(Action<BodyProfile> change)
+    {
+        change(_profile);
+        ProfileStorage.SaveProfile(_profile);
+        RequestRebuild();
+        _ = ForecastLaterAsync(++_forecastVersion, ForecastDelayMs);
+    }
+
+    private void ChangeHypothesis(Action<StoredHypothesis> change)
+    {
+        change(_hypothesis);
+        ProfileStorage.SaveHypothesis(_hypothesis);
+        _ = ForecastLaterAsync(++_forecastVersion, ForecastDelayMs);
+    }
+
+    private void OpenHypothesis()
+    {
+        _tab = Tab.Hypothesis;
+        if (_mode == ViewMode.Current && _forecast is not null)
+            SetMode(ViewMode.Compare); // на вкладке гипотез сразу видно разницу
+    }
+
+    private void SetMode(ViewMode mode)
+    {
+        _mode = mode;
+        ApplyMode();
+    }
+
+    private void ToggleTapes(ChangeEventArgs e)
+    {
+        _showTapes = e.Value is true;
+        if (_showTapes) SendTapes();
+        ViewerInterop.ShowTapes(_showTapes);
+    }
+
+    private void SetHighlight(Girth? g)
+    {
+        if (_highlight == g) return;
+        bool had = TapesNeeded;
+        _highlight = g;
+        if (!had && TapesNeeded) SendTapes();
+        ViewerInterop.HighlightTape(g is Girth x ? (int)x : -1);
+    }
+
+    /// <summary>Ленты для уже показанных тел (MakeHuman считает их только по запросу).</summary>
+    private void SendTapes()
+    {
+        if (_current is not null) ViewerInterop.SetTapes("current", _current.Tapes);
+        if (_forecastBody is not null) ViewerInterop.SetTapes("forecast", _forecastBody.Tapes);
+    }
+
+    /// <summary>Сетка в 3D-вид и, если ленты сейчас показываются, её ленты.</summary>
+    private void Show(string slot, IBodyShape body)
+    {
+        ViewerInterop.SetMesh(slot, body.Mesh);
+        if (TapesNeeded) ViewerInterop.SetTapes(slot, body.Tapes);
+    }
+
+    private void ToggleSideBySide(ChangeEventArgs e)
+    {
+        _sideBySide = e.Value is true;
+        ApplyMode();
+    }
+
+    private void ApplyMode()
+    {
+        string mode = _mode switch
+        {
+            ViewMode.Forecast => "forecast",
+            ViewMode.Compare => "compare",
+            _ => "current",
+        };
+        ViewerInterop.SetMode(mode, _sideBySide);
+    }
+
+    /// <summary>Подсказки, которые есть только у MakeHuman: не подогнанные обхваты, слой на пределе.</summary>
+    private IReadOnlyList<string> ModelHints()
+    {
+        if (_current is not MakeHumanBody body) return [];
+        var hints = body.Misfits()
+            .Select(m => $"MakeHuman не смог точно подогнать «{BodyProfile.GirthName(m.Girth)}»: " +
+                         $"{Fmt.N(m.Got, 1)} см вместо {Fmt.N(m.Wanted, 1)} см.")
+            .ToList();
+        if (body.LayerAtMax && body.VolumeDeviation < -0.02)
+            hints.Add("Для таких размеров у MakeHuman не хватает запаса формы: объём модели на " +
+                      $"{Fmt.N(-body.VolumeDeviation * 100, 0)} % меньше, чем следует из веса. " +
+                      "Замеры при этом проверяются по манекену.");
+        if (body.LayerAtMin && body.VolumeDeviation > 0.02)
+            hints.Add("Даже без слоя мягких тканей модель MakeHuman больше, чем следует из веса, — " +
+                      "замеры и вес, скорее всего, не согласуются.");
+        return hints;
+    }
+
+    private string? ModelNote()
+    {
+        if (_current is not MakeHumanBody body) return null;
+        double mm = body.LayerMm;
+        string layer = Math.Abs(mm) < 1
+            ? "Объём сошёлся с весом без слоя мягких тканей."
+            : mm > 0
+                ? $"Чтобы объём сошёлся с весом, добавлен слой мягких тканей: до {Fmt.N(mm, 0)} мм на животе, ягодицах " +
+                  "и спине, тоньше на руках и голенях, почти нет на кистях, стопах и лице."
+                : $"Чтобы объём сошёлся с весом, мягкие ткани сделаны тоньше формы MakeHuman — до {Fmt.N(-mm, 0)} мм.";
+        return "MakeHuman: обхваты подогнаны таргетами замеров, а где замеров нет (колено, щиколотка, неуказанные) — " +
+               "по оценке ANSUR II. " + layer;
+    }
+
+    /// <summary>
+    /// Перестройка не чаще, чем успевает: пока строится сетка, новые значения ползунков только
+    /// запоминаются, и следующий проход берёт самые свежие.
+    /// </summary>
+    private void RequestRebuild()
+    {
+        _dirty = true;
+        if (_viewerReady && !_rebuilding)
+            _ = RebuildLoopAsync();
+    }
+
+    private async Task RebuildLoopAsync()
+    {
+        _rebuilding = true;
+        try
+        {
+            while (_dirty)
+            {
+                _dirty = false;
+                var sw = Stopwatch.StartNew();
+                // Быстрая сборка: MakeHuman — с прошлого решения и без подгонки слоя под вес
+                IBodyShape body = UseMakeHuman ? BuildMakeHuman(_profile, ref _fitCurrent, fitVolume: false) : Mannequin.Build(_profile.Clone());
+                _buildMs = sw.Elapsed.TotalMilliseconds;
+                sw.Restart();
+                Show("current", body);
+                _uploadMs = sw.Elapsed.TotalMilliseconds;
+
+                _current = body;
+                _ = CheckLaterAsync(++_checkVersion);
+                StateHasChanged();
+                await Task.Delay(1); // отдать управление браузеру: кадр и новые события ползунка
+            }
+        }
+        finally
+        {
+            _rebuilding = false;
+        }
+    }
+
+    private MakeHumanBody BuildMakeHuman(BodyProfile profile, ref MakeHumanFit? fit, bool fitVolume)
+    {
+        var body = _mh!.Build(profile, fit, fitVolume);
+        fit = body.Fit;
+        return body;
+    }
+
+    private async Task CheckLaterAsync(int version)
+    {
+        await Task.Delay(CheckDelayMs);
+        if (version != _checkVersion) return; // ползунок ещё двигают
+        var sw = Stopwatch.StartNew();
+        var profile = _profile.Clone();
+
+        // Проверка замеров — по манекену: он откалиброван под объём из веса и не зависит от выбранной модели
+        _report = ConsistencyChecker.Check(Mannequin.Build(profile));
+
+        if (UseMakeHuman)
+        {
+            var body = BuildMakeHuman(profile, ref _fitCurrent, fitVolume: true);
+            Show("current", body);
+            _current = body;
+        }
+        _checkMs = sw.Elapsed.TotalMilliseconds;
+        StateHasChanged();
+    }
+
+    private async Task ForecastLaterAsync(int version, int delayMs)
+    {
+        await Task.Delay(delayMs);
+        if (version != _forecastVersion || !_viewerReady) return;
+
+        _forecast = ForecastEngine.Run(_profile.Clone(), _hypothesis.ToInput());
+        _fitForecast ??= _fitCurrent?.Clone();
+        IBodyShape body = UseMakeHuman
+            ? BuildMakeHuman(_forecast.End, ref _fitForecast, fitVolume: true)
+            : Mannequin.Build(_forecast.End);
+        Show("forecast", body);
+        _forecastBody = body;
+        StateHasChanged();
+    }
+}

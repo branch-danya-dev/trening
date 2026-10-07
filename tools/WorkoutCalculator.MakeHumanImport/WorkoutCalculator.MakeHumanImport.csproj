@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Конвертер данных MakeHuman (CC0) в компактный двоичный файл для BodyModel и Body3D -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>WorkoutCalculator.MakeHumanImport</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,242 @@
+@* Вкладка «Гипотеза»: питание и тренировки на N недель → прогноз веса, % жира и обхватов. *@
+
+<div class="card">
+    <div class="card-title">План</div>
+    <ParamSlider Label="Срок" Unit="нед." Min="1" Max="52" Step="1"
+                 Value="Hypothesis.Weeks" ValueChanged="v => Change(h => h.Weeks = (int)v)" />
+    <ParamSlider Label="Питание" Unit="ккал/д" Min="1000" Max="5000" Step="10"
+                 Hint="@($"Поддержание сейчас ≈ {Fmt.N(Maintenance.Total)} ккал в день")"
+                 Value="Hypothesis.IntakeKcalPerDay" ValueChanged="v => Change(h => h.IntakeKcalPerDay = v)" />
+    <button class="btn-link" @onclick="SetMaintenance">Поставить поддержание</button>
+    <ParamSlider Label="Бытовая активность" Unit="× БМР" Min="1.1" Max="1.9" Step="0.05"
+                 Hint="@ActivityHint(Hypothesis.ActivityFactor)"
+                 Value="Hypothesis.ActivityFactor" ValueChanged="v => Change(h => h.ActivityFactor = v)" />
+    <ParamSlider Label="Целевой вес" Unit="кг" Min="40" Max="180" Step="0.5" Disabled="Hypothesis.TargetWeightKg is null"
+                 Hint="Необязательно: нужен для проверки, достижима ли цель"
+                 Value="Hypothesis.TargetWeightKg ?? Profile.WeightKg" ValueChanged="v => Change(h => h.TargetWeightKg = v)" />
+    <label class="check" style="margin-top: 6px">
+        <input type="checkbox" checked="@(Hypothesis.TargetWeightKg is not null)"
+               @onchange="e => Change(h => h.TargetWeightKg = e.Value is true ? Math.Round(Profile.WeightKg) : null)" />
+        Указать цель
+    </label>
+</div>
+
+<div class="card">
+    <div class="card-title">Кардио</div>
+    <div class="field-row">
+        <label for="cardio-kind">Тренировка</label>
+        <select id="cardio-kind" class="select" value="@Hypothesis.CardioKind" @onchange="OnCardioKind">
+            <option value="-1">Нет</option>
+            <option value="0">Ходьба на дорожке</option>
+            <option value="1">Бег на дорожке</option>
+            <option value="2">Ходьба на улице</option>
+            <option value="3">Бег на улице</option>
+        </select>
+    </div>
+    @if (Hypothesis.CardioKind >= 0)
+    {
+        <div style="margin-top: 12px">
+            <ParamSlider Label="Раз в неделю" Min="1" Max="14" Step="1"
+                         Value="Hypothesis.CardioPerWeek" ValueChanged="v => Change(h => h.CardioPerWeek = (int)v)" />
+            @if (Hypothesis.CardioKind < 2)
+            {
+                <ParamSlider Label="Длительность" Unit="мин" Min="10" Max="180" Step="1"
+                             Value="Hypothesis.CardioMinutes" ValueChanged="v => Change(h => h.CardioMinutes = v)" />
+                <ParamSlider Label="Скорость" Unit="км/ч" Min="2" Max="20" Step="0.1"
+                             Value="Hypothesis.CardioSpeedKmh" ValueChanged="v => Change(h => h.CardioSpeedKmh = v)" />
+                <ParamSlider Label="Уклон" Unit="%" Min="0" Max="15" Step="0.5"
+                             Value="Hypothesis.CardioInclinePercent" ValueChanged="v => Change(h => h.CardioInclinePercent = v)" />
+            }
+            else
+            {
+                <ParamSlider Label="Дистанция" Unit="км" Min="1" Max="42" Step="0.1"
+                             Value="Hypothesis.CardioDistanceKm" ValueChanged="v => Change(h => h.CardioDistanceKm = v)" />
+                <ParamSlider Label="Время" Unit="мин" Min="10" Max="300" Step="1"
+                             Value="Hypothesis.CardioMinutes" ValueChanged="v => Change(h => h.CardioMinutes = v)" />
+                <ParamSlider Label="Набор высоты" Unit="м" Min="0" Max="2000" Step="10"
+                             Value="Hypothesis.CardioElevationGainM" ValueChanged="v => Change(h => h.CardioElevationGainM = v)" />
+                <div class="field-row" style="margin-top: 12px">
+                    <label for="cardio-terrain">Покрытие</label>
+                    <select id="cardio-terrain" class="select" value="@((int)Hypothesis.CardioTerrain)" @onchange="OnTerrain">
+                        <option value="0">Асфальт / плитка</option>
+                        <option value="1">Грунтовка</option>
+                        <option value="2">Трава</option>
+                        <option value="3">Песок</option>
+                    </select>
+                </div>
+            }
+            <ParamSlider Label="Средний пульс" Unit="уд/мин" Min="80" Max="200" Step="1" Disabled="Hypothesis.CardioAvgHr is null"
+                         Hint="Необязательно: добавляет оценку по пульсу (Кейтел)"
+                         Value="Hypothesis.CardioAvgHr ?? 130" ValueChanged="v => Change(h => h.CardioAvgHr = (int)v)" />
+            <label class="check" style="margin-top: 6px">
+                <input type="checkbox" checked="@(Hypothesis.CardioAvgHr is not null)"
+                       @onchange="e => Change(h => h.CardioAvgHr = e.Value is true ? 130 : null)" />
+                Указать пульс
+            </label>
+            <div class="volume-line">
+                За тренировку ≈&nbsp;@Fmt.N(Maintenance.CardioPerSession) ккал сверх базового обмена (калькулятор тренировок)
+            </div>
+        </div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-title">Силовые</div>
+    <label class="check">
+        <input type="checkbox" checked="@Hypothesis.Strength" @onchange="e => Change(h => h.Strength = e.Value is true)" />
+        Есть силовые тренировки
+    </label>
+    @if (Hypothesis.Strength)
+    {
+        <div style="margin-top: 12px">
+            <ParamSlider Label="Раз в неделю" Min="1" Max="7" Step="1"
+                         Value="Hypothesis.StrengthPerWeek" ValueChanged="v => Change(h => h.StrengthPerWeek = (int)v)" />
+            <div class="field-row" style="margin-top: 12px">
+                <span>Стаж</span>
+                <div class="seg">
+                    @foreach (var (exp, name) in Experiences)
+                    {
+                        <button class="@Css.On(Hypothesis.Experience == exp)" @onclick="() => Change(h => h.Experience = exp)">@name</button>
+                    }
+                </div>
+            </div>
+            <div class="volume-line">
+                За тренировку ≈&nbsp;@Fmt.N(Maintenance.StrengthPerSession) ккал (3,5 MET × 1 ч).
+                Потолок прироста мышц ≈&nbsp;@Fmt.N(MonthlyCeilingKg, 2) кг в месяц.
+            </div>
+        </div>
+    }
+</div>
+
+@if (Forecast is not null)
+{
+    var f = Forecast;
+    <div class="card">
+        <div class="card-title">Через @f.Weeks[^1].Week нед.</div>
+        <div class="summary">
+            Вес <b>@Fmt.N(f.Start.WeightKg, 1) → @Fmt.N(f.End.WeightKg, 1) кг</b> (@Fmt.Signed(f.WeightChangeKg)),
+            жир <b>@Fmt.N(f.Start.BodyFatPercent, 1) → @Fmt.N(f.End.BodyFatPercent, 1)&nbsp;%</b>.
+        </div>
+        <div class="volume-line">
+            Жир @Fmt.Signed(f.FatChangeKg) кг, безжировая ткань @Fmt.Signed(f.LeanChangeKg) кг,
+            вода и гликоген @Fmt.Signed(f.WaterChangeKg) кг.
+            Средний баланс @Fmt.Signed(f.Weeks.Take(f.Weeks.Count - 1).DefaultIfEmpty(f.Weeks[0]).Average(w => w.BalanceKcalPerDay), 0) ккал в день.
+            @if (Math.Abs(f.AdaptationKcalPerDay) >= 1)
+            {
+                <text>Обмен подстроится под питание: к концу срока расход на @Fmt.N(Math.Abs(f.AdaptationKcalPerDay)) ккал в день
+                @(f.AdaptationKcalPerDay < 0 ? "ниже" : "выше") (модель Холла).</text>
+            }
+        </div>
+        @if (f.Warnings.Count > 0)
+        {
+            <div class="hints" style="margin-top: 10px">
+                @foreach (var w in f.Warnings)
+                {
+                    <div class="hint">@w</div>
+                }
+            </div>
+        }
+        <div class="disclaimer" style="margin-top: 10px">
+            Это грубая оценка, а не обещание. Обмен веществ у всех подстраивается по-разному, а колебания воды,
+            гормоны и реальная приверженность плану в модели не учтены.
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Было → станет</div>
+        <table class="changes">
+            <thead>
+                <tr><th></th><th>Сейчас</th><th>Прогноз</th><th>Изменение</th></tr>
+            </thead>
+            <tbody>
+                @Row("Вес, кг", f.Start.WeightKg, f.End.WeightKg, 1)
+                @Row("Жир, %", f.Start.BodyFatPercent, f.End.BodyFatPercent, 1)
+                @Row("Жировая масса, кг", f.Weeks[0].FatMassKg, f.Weeks[^1].FatMassKg, 1)
+                @Row("Безжировая ткань, кг", f.Weeks[0].LeanMassKg, f.Weeks[^1].LeanMassKg, 1)
+                @Row("Вода и гликоген (сдвиг), кг", 0, f.WaterChangeKg, 1)
+                @foreach (Girth g in Enum.GetValues<Girth>().Where(g => g is not (Girth.Calf or Girth.Wrist) || f.Start.IsSpecified(g)))
+                {
+                    @Row(BodyProfile.GirthName(g) + ", см", f.Start.GetGirth(g), f.End.GetGirth(g), 1)
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Вес по неделям, кг</div>
+        <WeightChart Weeks="f.Weeks" Target="Hypothesis.TargetWeightKg" />
+        <details style="margin-top: 8px">
+            <summary class="note">Таблица по неделям</summary>
+            <table class="changes" style="margin-top: 6px">
+                <thead>
+                    <tr><th>Неделя</th><th>Вес, кг</th><th>Жир, %</th><th>Расход, ккал/д</th><th>Баланс</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var w in f.Weeks)
+                    {
+                        <tr>
+                            <td>@w.Week</td>
+                            <td>@Fmt.N(w.WeightKg, 1)</td>
+                            <td>@Fmt.N(w.FatPercent, 1)</td>
+                            <td>@Fmt.N(w.ExpenditureKcalPerDay)</td>
+                            <td>@Fmt.Signed(w.BalanceKcalPerDay, 0)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </details>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    [Parameter, EditorRequired] public StoredHypothesis Hypothesis { get; set; } = default!;
+    [Parameter] public ForecastResult? Forecast { get; set; }
+    [Parameter] public EventCallback<Action<StoredHypothesis>> OnChange { get; set; }
+
+    private static readonly (TrainingExperience, string)[] Experiences =
+    [
+        (TrainingExperience.Beginner, "Новичок"),
+        (TrainingExperience.Intermediate, "Средний"),
+        (TrainingExperience.Advanced, "Опытный"),
+    ];
+
+    private (double Bmr, double Total, double CardioPerSession, double StrengthPerSession) Maintenance;
+
+    private string MaintenanceHint => "Поддержание сейчас ≈\u00A0" + Fmt.N(Maintenance.Total) + " ккал в день";
+
+    private double MonthlyCeilingKg =>
+        ForecastConstants.MonthlyLeanGainCeilingPercent(Profile.Sex, Hypothesis.Experience) / 100 * Profile.WeightKg;
+
+    protected override void OnParametersSet()
+    {
+        Maintenance = ForecastEngine.Expenditure(Profile, Profile.WeightKg, Hypothesis.ToInput());
+    }
+
+    private Task Change(Action<StoredHypothesis> change) => OnChange.InvokeAsync(change);
+
+    private static int ParseInt(ChangeEventArgs e, int fallback) =>
+        int.TryParse(e.Value?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
+
+    private Task OnCardioKind(ChangeEventArgs e) => Change(h => h.CardioKind = ParseInt(e, -1));
+
+    private Task OnTerrain(ChangeEventArgs e) => Change(h => h.CardioTerrain = (Terrain)ParseInt(e, 0));
+
+    private Task SetMaintenance() => Change(h => h.IntakeKcalPerDay = Math.Round(Maintenance.Total / 10) * 10);
+
+    private static string ActivityHint(double k) => "Без учёта тренировок: " + (
+        k < 1.25 ? "сидячая работа, мало ходьбы" :
+        k < 1.45 ? "немного ходьбы в течение дня" :
+        k < 1.65 ? "много на ногах" :
+        "физический труд");
+
+    private static RenderFragment Row(string name, double before, double after, int decimals) => __builder =>
+    {
+        <tr>
+            <td>@name</td>
+            <td>@Fmt.N(before, decimals)</td>
+            <td>@Fmt.N(after, decimals)</td>
+            <td class="delta">@Fmt.Signed(after - before, decimals)</td>
+        </tr>
+    };
+}
