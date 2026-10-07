@@ -125,6 +125,13 @@ button, input, select { font: inherit; color: inherit; }
     font-variant-numeric: tabular-nums;
 }
 
+/* Галочка лент — в левом нижнем углу: сверху она заезжала бы на голову модели */
+.view-tapes {
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+}
+
 .view-labels {
     position: absolute;
     bottom: 48px;

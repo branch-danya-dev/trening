@@ -62,6 +62,10 @@
                 }
             </div>
 
+            <label class="check view-tapes" title="Где меряется каждый обхват. Лента обхвата подсвечивается и при наведении на его поле">
+                <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
+            </label>
+
             @if (_current is not null)
             {
                 <div class="view-stats">
@@ -83,7 +87,7 @@
             <div class="panel-body">
                 @if (_tab == Tab.Params)
                 {
-                    <ProfilePanel Profile="_profile" Report="_report" ModelHints="ModelHints()" ModelNote="@ModelNote()"
+                    <ProfilePanel Profile="_profile" Report="_report" ModelHints="ModelHints()" ModelNote="@ModelNote()" OnHighlight="SetHighlight"
                                   OnChange="ChangeProfile" />
                 }
                 else
@@ -103,6 +107,12 @@
     private BodyProfile _profile = BodyDefaults.Default();
     private StoredHypothesis _hypothesis = new();
     private IBodyShape? _current;
+    private IBodyShape? _forecastBody;
+
+    /// <summary>Ленты замеров: все (галочка) или только обхват, над полем которого мышь или фокус.</summary>
+    private bool _showTapes;
+    private Girth? _highlight;
+    private bool TapesNeeded => _showTapes || _highlight is not null;
     private ConsistencyReport? _report;
     private ForecastResult? _forecast;
 
@@ -223,6 +233,36 @@
         ApplyMode();
     }
 
+    private void ToggleTapes(ChangeEventArgs e)
+    {
+        _showTapes = e.Value is true;
+        if (_showTapes) SendTapes();
+        ViewerInterop.ShowTapes(_showTapes);
+    }
+
+    private void SetHighlight(Girth? g)
+    {
+        if (_highlight == g) return;
+        bool had = TapesNeeded;
+        _highlight = g;
+        if (!had && TapesNeeded) SendTapes();
+        ViewerInterop.HighlightTape(g is Girth x ? (int)x : -1);
+    }
+
+    /// <summary>Ленты для уже показанных тел (MakeHuman считает их только по запросу).</summary>
+    private void SendTapes()
+    {
+        if (_current is not null) ViewerInterop.SetTapes("current", _current.Tapes);
+        if (_forecastBody is not null) ViewerInterop.SetTapes("forecast", _forecastBody.Tapes);
+    }
+
+    /// <summary>Сетка в 3D-вид и, если ленты сейчас показываются, её ленты.</summary>
+    private void Show(string slot, IBodyShape body)
+    {
+        ViewerInterop.SetMesh(slot, body.Mesh);
+        if (TapesNeeded) ViewerInterop.SetTapes(slot, body.Tapes);
+    }
+
     private void ToggleSideBySide(ChangeEventArgs e)
     {
         _sideBySide = e.Value is true;
@@ -296,7 +336,7 @@
                 IBodyShape body = UseMakeHuman ? BuildMakeHuman(_profile, ref _fitCurrent, fitVolume: false) : Mannequin.Build(_profile.Clone());
                 _buildMs = sw.Elapsed.TotalMilliseconds;
                 sw.Restart();
-                ViewerInterop.SetMesh("current", body.Mesh);
+                Show("current", body);
                 _uploadMs = sw.Elapsed.TotalMilliseconds;
 
                 _current = body;
@@ -331,7 +371,7 @@
         if (UseMakeHuman)
         {
             var body = BuildMakeHuman(profile, ref _fitCurrent, fitVolume: true);
-            ViewerInterop.SetMesh("current", body.Mesh);
+            Show("current", body);
             _current = body;
         }
         _checkMs = sw.Elapsed.TotalMilliseconds;
@@ -348,7 +388,8 @@
         IBodyShape body = UseMakeHuman
             ? BuildMakeHuman(_forecast.End, ref _fitForecast, fitVolume: true)
             : Mannequin.Build(_forecast.End);
-        ViewerInterop.SetMesh("forecast", body.Mesh);
+        Show("forecast", body);
+        _forecastBody = body;
         StateHasChanged();
     }
 }

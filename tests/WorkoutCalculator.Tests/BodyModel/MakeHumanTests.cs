@@ -1,4 +1,5 @@
 using WorkoutCalculator.BodyModel;
+using WorkoutCalculator.BodyModel.Anthropometry;
 using WorkoutCalculator.BodyModel.Consistency;
 using WorkoutCalculator.BodyModel.Geometry;
 using WorkoutCalculator.BodyModel.MakeHuman;
@@ -178,6 +179,22 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
     }
 
     [Fact]
+    public void Tapes_AreClosedLoopsWithTheMeasuredGirth()
+    {
+        var p = BodyDefaults.For(Sex.Female);
+        var body = fx.Model.Build(p);
+
+        Assert.Equal(Enum.GetValues<Girth>().Order(), body.Tapes.Select(t => t.Girth).Order());
+        foreach (var tape in body.Tapes)
+            Assert.Equal(body.MeasureGirthCm(tape.Girth), TapeMath.PerimeterCm(tape), 2);
+
+        // Талия — горизонтальная лента на своём уровне
+        var waist = body.Tapes.First(t => t.Girth == Girth.Waist).Points;
+        for (int i = 1; i < waist.Length; i += 3)
+            Assert.Equal(Proportions.WaistHeight(Sex.Female) * p.HeightCm / 100, waist[i], 3);
+    }
+
+    [Fact]
     public void Tape_OnCylinder_MeasuresPerimeterAndFindsOnlyEnclosingLoop()
     {
         var (positions, indices) = Primitives.Cylinder(0.15, 0.6);
@@ -191,5 +208,23 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
 
         // Точка вне цилиндра — контура вокруг неё нет
         Assert.Null(GirthTape.Measure(pos, indices, all, new Vec3(0.5, 0.3, 0), new Vec3(0, 1, 0)));
+    }
+}
+
+/// <summary>Длина замкнутой ленты, см.</summary>
+public static class TapeMath
+{
+    public static double PerimeterCm(TapeLoop tape)
+    {
+        var p = tape.Points;
+        int n = p.Length / 3;
+        double sum = 0;
+        for (int i = 0; i < n; i++)
+        {
+            int a = i * 3, b = (i + 1) % n * 3;
+            double dx = p[b] - p[a], dy = p[b + 1] - p[a + 1], dz = p[b + 2] - p[a + 2];
+            sum += Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        }
+        return sum * 100;
     }
 }

@@ -4,6 +4,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const FOV = 30;
 const TWEEN_MS = 380;
+const TAPE_RADIUS = 0.0022; // толщина ленты замера, м
+const TAPE_LIFT = 0.003;    // лента чуть снаружи кожи, чтобы не тонула в ней
 
 let renderer, scene, camera, controls, canvas;
 let frameRequested = false;
@@ -50,6 +52,17 @@ const materials = {
             }`,
     }),
 };
+
+// Ленты замеров: тонкие трубки по контуру, где меряется обхват. Группа ленты — дочерняя к сетке
+// своего слота, поэтому сдвигается и прячется вместе с ней (в сравнении контур «сейчас» — без лент).
+const tapeMaterials = {
+    current: new THREE.MeshBasicMaterial({ color: 0x3dd6c6 }),  // на сером теле
+    forecast: new THREE.MeshBasicMaterial({ color: 0xf4f7fa }), // на бирюзовом прогнозе
+    active: new THREE.MeshBasicMaterial({ color: 0xffb347 }),
+};
+const tapes = { current: null, forecast: null };
+let showAllTapes = false;
+let activeTape = -1;
 
 // Только глубина контура: первый проход, чтобы второй нарисовал лишь ближайшую поверхность
 // (у манекена части перекрываются, и без этого видны их внутренние края)
@@ -131,6 +144,7 @@ export function setMesh(slot, positionBytes, indexBytes) {
         mesh = new THREE.Mesh(geometry, materials.current);
         meshes[slot] = mesh;
         scene.add(mesh);
+        if (tapes[slot]) mesh.add(tapes[slot]);
     }
 
     if (slot === 'current') {
@@ -148,10 +162,80 @@ export function setMesh(slot, positionBytes, indexBytes) {
 export function clearMesh(slot) {
     const mesh = meshes[slot];
     if (!mesh) return;
+    disposeTapes(slot);
     scene.remove(mesh);
     mesh.geometry.dispose();
     meshes[slot] = null;
     applyMode();
+}
+
+/** Ленты слота: float32 подряд — код обхвата, число точек, затем x, y, z каждой точки (метры). */
+export function setTapes(slot, bytes) {
+    const data = new Float32Array(bytes.slice().buffer);
+    const group = new THREE.Group();
+    for (let i = 0; i < data.length;) {
+        const code = data[i], count = data[i + 1];
+        const points = [];
+        const center = new THREE.Vector3();
+        for (let k = 0; k < count; k++) {
+            const j = i + 2 + k * 3;
+            const p = new THREE.Vector3(data[j], data[j + 1], data[j + 2]);
+            points.push(p);
+            center.add(p);
+        }
+        i += 2 + count * 3;
+        if (count < 3) continue;
+        center.divideScalar(count);
+        for (const p of points) {
+            const d = p.clone().sub(center);
+            const len = d.length();
+            if (len > 0) p.addScaledVector(d, TAPE_LIFT / len);
+        }
+        const curve = new THREE.CatmullRomCurve3(points, true, 'centripetal');
+        const tube = new THREE.Mesh(
+            new THREE.TubeGeometry(curve, Math.max(64, count * 2), TAPE_RADIUS, 6, true), tapeMaterials[slot]);
+        tube.userData.code = code;
+        group.add(tube);
+    }
+    disposeTapes(slot);
+    tapes[slot] = group;
+    meshes[slot]?.add(group);
+    applyTapes();
+}
+
+/** all — показывать все ленты; иначе только подсвеченную. */
+export function showTapes(all) {
+    showAllTapes = all;
+    applyTapes();
+}
+
+/** code — обхват, ленту которого подсветить; −1 — никакую. */
+export function highlightTape(code) {
+    activeTape = code;
+    applyTapes();
+}
+
+function disposeTapes(slot) {
+    const group = tapes[slot];
+    if (!group) return;
+    group.parent?.remove(group);
+    for (const tube of group.children) tube.geometry.dispose();
+    tapes[slot] = null;
+}
+
+function applyTapes() {
+    for (const [slot, group] of Object.entries(tapes)) {
+        if (!group) continue;
+        let any = false;
+        for (const tube of group.children) {
+            const active = tube.userData.code === activeTape;
+            tube.visible = showAllTapes || active;
+            tube.material = active ? tapeMaterials.active : tapeMaterials[slot];
+            any ||= tube.visible;
+        }
+        group.visible = any;
+    }
+    requestRender();
 }
 
 /** mode: current | forecast | compare; sideBySide — в сравнении поставить модели рядом. */

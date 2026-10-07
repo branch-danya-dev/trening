@@ -78,7 +78,12 @@ public static class GirthTape
     /// Обхват в единицах координат (м) или null, если плоскость не даёт контура вокруг <paramref name="origin"/>.
     /// </summary>
     /// <param name="candidates">Смещения в <paramref name="triangles"/> (кратные 3) треугольников, которые стоит проверять.</param>
-    public static double? Measure(double[] positions, int[] triangles, int[] candidates, Vec3 origin, Vec3 normal)
+    public static double? Measure(double[] positions, int[] triangles, int[] candidates, Vec3 origin, Vec3 normal) =>
+        Measure(positions, triangles, candidates, origin, normal, null);
+
+    /// <param name="tape">Если задан — сюда кладутся точки ленты: выпуклая оболочка сечения в 3D.</param>
+    public static double? Measure(double[] positions, int[] triangles, int[] candidates, Vec3 origin, Vec3 normal,
+        List<Vec3>? tape)
     {
         var n = normal.Normalized;
         var (u, v) = MeshBuilder.Frame(n);
@@ -138,6 +143,7 @@ public static class GirthTape
         var visited = new bool[px.Count];
         double? best = null;
         var loop = new List<int>();
+        List<int>? bestLoop = null;
         for (int start = 0; start < px.Count; start++)
         {
             if (visited[start]) continue;
@@ -159,7 +165,22 @@ public static class GirthTape
             if (!closed || loop.Count < 3 || !ContainsOrigin(loop, px, py)) continue;
 
             double perimeter = HullPerimeter(loop, px, py);
-            if (best is null || perimeter < best) best = perimeter;
+            if (best is null || perimeter < best)
+            {
+                best = perimeter;
+                if (tape is not null) bestLoop = [.. loop];
+            }
+        }
+
+        if (tape is not null)
+        {
+            tape.Clear();
+            if (bestLoop is not null)
+            {
+                var hull = Hull(bestLoop, px, py, out int count);
+                for (int i = 0; i < count; i++)
+                    tape.Add(origin + u * hull[i].X + v * hull[i].Y);
+            }
         }
         return best;
     }
@@ -180,25 +201,7 @@ public static class GirthTape
     /// <summary>Периметр выпуклой оболочки (монотонная цепь Эндрю).</summary>
     public static double HullPerimeter(List<int> loop, List<double> px, List<double> py)
     {
-        int count = loop.Count;
-        var pts = new (double X, double Y)[count];
-        for (int i = 0; i < count; i++) pts[i] = (px[loop[i]], py[loop[i]]);
-        Array.Sort(pts, static (a, b) => a.X != b.X ? a.X.CompareTo(b.X) : a.Y.CompareTo(b.Y));
-
-        var hull = new (double X, double Y)[count * 2];
-        int h = 0;
-        for (int pass = 0; pass < 2; pass++)
-        {
-            int chainStart = h;
-            for (int k = 0; k < count; k++)
-            {
-                var p = pass == 0 ? pts[k] : pts[count - 1 - k];
-                while (h >= chainStart + 2 && Cross(hull[h - 2], hull[h - 1], p) <= 0) h--;
-                hull[h++] = p;
-            }
-            h--; // последняя точка — начало следующей половины
-        }
-
+        var hull = Hull(loop, px, py, out int h);
         double perimeter = 0;
         for (int i = 0; i < h; i++)
         {
@@ -207,6 +210,31 @@ public static class GirthTape
             perimeter += Math.Sqrt((b.X - a.X) * (b.X - a.X) + (b.Y - a.Y) * (b.Y - a.Y));
         }
         return perimeter;
+    }
+
+    /// <summary>Выпуклая оболочка точек контура (монотонная цепь Эндрю), против часовой; count — число вершин.</summary>
+    private static (double X, double Y)[] Hull(List<int> loop, List<double> px, List<double> py, out int count)
+    {
+        int n = loop.Count;
+        var pts = new (double X, double Y)[n];
+        for (int i = 0; i < n; i++) pts[i] = (px[loop[i]], py[loop[i]]);
+        Array.Sort(pts, static (a, b) => a.X != b.X ? a.X.CompareTo(b.X) : a.Y.CompareTo(b.Y));
+
+        var hull = new (double X, double Y)[n * 2];
+        int h = 0;
+        for (int pass = 0; pass < 2; pass++)
+        {
+            int chainStart = h;
+            for (int k = 0; k < n; k++)
+            {
+                var p = pass == 0 ? pts[k] : pts[n - 1 - k];
+                while (h >= chainStart + 2 && Cross(hull[h - 2], hull[h - 1], p) <= 0) h--;
+                hull[h++] = p;
+            }
+            h--; // последняя точка — начало следующей половины
+        }
+        count = h;
+        return hull;
 
         static double Cross((double X, double Y) o, (double X, double Y) a, (double X, double Y) b) =>
             (a.X - o.X) * (b.Y - o.Y) - (a.Y - o.Y) * (b.X - o.X);

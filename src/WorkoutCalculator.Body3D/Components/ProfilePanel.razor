@@ -39,20 +39,26 @@
         <button class="btn-link" @onclick="ResetToAverages">Средние для пола</button>
     </div>
     <ParamSlider Label="Грудь" Unit="см" Min="70" Max="150" Step="0.5" Hint="По сосковой линии, руки опущены"
+                 Active="a => Highlight(Girth.Chest, a)"
                  Value="Profile.ChestCm" ValueChanged="v => Change(p => p.ChestCm = v)" />
     <ParamSlider Label="Талия" Unit="см" Min="55" Max="150" Step="0.5" Hint="@WaistHint"
+                 Active="a => Highlight(Girth.Waist, a)"
                  Value="Profile.WaistCm" ValueChanged="v => Change(p => p.WaistCm = v)" />
     <ParamSlider Label="Бёдра (ягодицы)" Unit="см" Min="70" Max="150" Step="0.5" Hint="По самой выступающей точке ягодиц"
+                 Active="a => Highlight(Girth.Hips, a)"
                  Value="Profile.HipsCm" ValueChanged="v => Change(p => p.HipsCm = v)" />
     <ParamSlider Label="Плечо (бицепс)" Unit="см" Min="20" Max="55" Step="0.5" Hint="Посередине плеча, рука расслаблена"
+                 Active="a => Highlight(Girth.Biceps, a)"
                  Value="Profile.BicepsCm" ValueChanged="v => Change(p => p.BicepsCm = v)" />
     <ParamSlider Label="Бедро" Unit="см" Min="35" Max="85" Step="0.5" Hint="Сразу под ягодичной складкой"
+                 Active="a => Highlight(Girth.Thigh, a)"
                  Value="Profile.ThighCm" ValueChanged="v => Change(p => p.ThighCm = v)" />
     @foreach (var opt in Optional)
     {
         var g = opt.Girth;
         bool given = Profile.IsSpecified(g);
         <ParamSlider Label="@BodyProfile.GirthName(g)" Unit="см" Min="opt.Min" Max="opt.Max" Step="0.5" Disabled="!given"
+                     Active="a => Highlight(g, a)"
                      Hint="@(given ? opt.Where : opt.Estimate)"
                      Value="Profile.GetGirth(g)" ValueChanged="v => Change(p => p.SetGirth(g, v))" />
         <label class="check" style="margin-top: 6px">
@@ -128,6 +134,20 @@
     [Parameter] public IReadOnlyList<string> ModelHints { get; set; } = [];
     /// <summary>Пояснение, как выбранная модель построена.</summary>
     [Parameter] public string? ModelNote { get; set; }
+    /// <summary>Подсветить на модели ленту обхвата (null — снять подсветку).</summary>
+    [Parameter] public Action<Girth?>? OnHighlight { get; set; }
+
+    private Girth? _highlighted;
+
+    /// <summary>Снимаем подсветку, только если она ещё у этого обхвата: мышь могла уйти на другой.</summary>
+    private void Highlight(Girth g, bool active)
+    {
+        if (active) _highlighted = g;
+        else if (_highlighted == g) _highlighted = null;
+        else return;
+        OnHighlight?.Invoke(_highlighted);
+    }
+
     /// <summary>Изменение профиля: родитель применяет его, сохраняет и перестраивает модель.</summary>
     [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
 

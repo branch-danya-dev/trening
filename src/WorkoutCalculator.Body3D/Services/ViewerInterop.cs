@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.JavaScript;
+using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Geometry;
 
 namespace WorkoutCalculator.Body3D.Services;
@@ -26,6 +27,32 @@ public static partial class ViewerInterop
 
     [JSImport("clearMesh", Module)]
     public static partial void ClearMesh(string slot);
+
+    [JSImport("setTapes", Module)]
+    private static partial void SetTapesBytes(string slot, [JSMarshalAs<JSType.MemoryView>] Span<byte> data);
+
+    /// <summary>Ленты замеров слота одним массивом float32: код обхвата, число точек, затем x, y, z точек.</summary>
+    public static void SetTapes(string slot, IReadOnlyList<TapeLoop> tapes)
+    {
+        var data = new float[tapes.Sum(t => 2 + t.Points.Length)];
+        int i = 0;
+        foreach (var t in tapes)
+        {
+            data[i++] = (int)t.Girth;
+            data[i++] = t.Points.Length / 3;
+            t.Points.CopyTo(data, i);
+            i += t.Points.Length;
+        }
+        SetTapesBytes(slot, MemoryMarshal.AsBytes(data.AsSpan()));
+    }
+
+    /// <summary>Показывать все ленты или только подсвеченную.</summary>
+    [JSImport("showTapes", Module)]
+    public static partial void ShowTapes(bool all);
+
+    /// <param name="code">Обхват, ленту которого подсветить; −1 — никакую.</param>
+    [JSImport("highlightTape", Module)]
+    public static partial void HighlightTape(int code);
 
     /// <param name="mode">"current", "forecast" или "compare".</param>
     [JSImport("setMode", Module)]

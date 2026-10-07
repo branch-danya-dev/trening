@@ -97,4 +97,14 @@ public class MannequinTests
 
         Assert.True(after > before + 1);
     }
+
+    [Fact]
+    public void Tapes_AreTheMeasureRings()
+    {
+        var m = Mannequin.Build(BodyDefaults.For(Sex.Male));
+
+        Assert.Equal(Enum.GetValues<Girth>().Order(), m.Tapes.Select(t => t.Girth).Order());
+        foreach (var tape in m.Tapes)
+            Assert.Equal(m.MeasureGirthCm(tape.Girth), TapeMath.PerimeterCm(tape), 6);
+    }
 }

@@ -78,6 +78,13 @@ public sealed class Mannequin : IBodyShape
         return MeshMetrics.RingPerimeter(Mesh.Positions, ring.FirstVertex, ring.Count) * 100;
     }
 
+    /// <summary>Ленты — кольца сетки, по которым меряются обхваты (у рук и ног — левые).</summary>
+    public IReadOnlyList<TapeLoop> Tapes => _tapes ??= Mesh.Rings
+        .Select(r => new TapeLoop(r.Girth, Mesh.Positions.AsSpan(r.FirstVertex * 3, r.Count * 3).ToArray()))
+        .ToArray();
+
+    private IReadOnlyList<TapeLoop>? _tapes;
+
     public static Mannequin Build(BodyProfile profile)
     {
         var layout = BodyLayout.From(profile);

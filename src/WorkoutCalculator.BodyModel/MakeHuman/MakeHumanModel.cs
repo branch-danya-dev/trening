@@ -251,7 +251,30 @@ public sealed class MakeHumanModel
             Rings = [],
         };
 
-        return new MakeHumanBody(p, mesh, results, macros, fit, state.Measurements);
+        return new MakeHumanBody(p, mesh, results, macros, fit, state.Measurements, () => Tapes(pos, p));
+    }
+
+    /// <summary>Ленты по готовой сетке: выпуклые оболочки сечений на уровнях обхватов профиля.</summary>
+    private IReadOnlyList<TapeLoop> Tapes(double[] pos, BodyProfile p)
+    {
+        var result = new List<TapeLoop>();
+        var tape = new List<Vec3>();
+        double height = p.HeightCm / 100;
+        foreach (var (level, _) in Fitted)
+        {
+            if (GirthOf(level) is not Girth g) continue;
+            var (o, n) = Plane(level, pos, height, p.Sex);
+            if (GirthTape.Measure(pos, Data.Triangles, _candidates[level], o, n, tape) is null || tape.Count < 3) continue;
+            var points = new float[tape.Count * 3];
+            for (int i = 0; i < tape.Count; i++)
+            {
+                points[i * 3] = (float)tape[i].X;
+                points[i * 3 + 1] = (float)tape[i].Y;
+                points[i * 3 + 2] = (float)tape[i].Z;
+            }
+            result.Add(new TapeLoop(g, points));
+        }
+        return result;
     }
 
     /// <summary>Толщина слоя в каждой вершине тела относительно самой толстой зоны (0…1).</summary>
@@ -585,9 +608,11 @@ public sealed class MakeHumanModel
 public sealed class MakeHumanBody : IBodyShape
 {
     private double? _volume;
+    private readonly Func<IReadOnlyList<TapeLoop>> _computeTapes;
+    private IReadOnlyList<TapeLoop>? _tapes;
 
     internal MakeHumanBody(BodyProfile profile, BodyMesh mesh, IReadOnlyList<FitResult> results,
-        MakeHumanMapping.Macros macros, MakeHumanFit fit, int measurements)
+        MakeHumanMapping.Macros macros, MakeHumanFit fit, int measurements, Func<IReadOnlyList<TapeLoop>> tapes)
     {
         Profile = profile;
         Mesh = mesh;
@@ -595,7 +620,11 @@ public sealed class MakeHumanBody : IBodyShape
         Macros = macros;
         Fit = fit;
         Measurements = measurements;
+        _computeTapes = tapes;
     }
+
+    /// <summary>Ленты замеров — считаются, только когда их показывают.</summary>
+    public IReadOnlyList<TapeLoop> Tapes => _tapes ??= _computeTapes();
 
     public BodyProfile Profile { get; }
     public BodyMesh Mesh { get; }

@@ -1,5 +1,7 @@
 @* Параметр: подпись, числовое поле и ползунок. Поле принимает и запятую, и точку. *@
-<div class="param @(Disabled ? "disabled" : null)">
+<div class="param @(Disabled ? "disabled" : null)"
+     @onmouseenter="() => SetActive(hover: true)" @onmouseleave="() => SetActive(hover: false)"
+     @onfocusin="() => SetActive(focus: true)" @onfocusout="() => SetActive(focus: false)">
     <div class="param-head">
         <label for="@_id">@Label</label>
         <div class="param-value">
@@ -29,6 +31,22 @@
     [Parameter] public string? Unit { get; set; }
     [Parameter] public string? Hint { get; set; }
     [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Вызывается, когда параметр становится активным (мышь над ним или фокус внутри) и перестаёт им быть.
+    /// Обычный делегат, а не EventCallback: подсветка не должна перерисовывать страницу.
+    /// </summary>
+    [Parameter] public Action<bool>? Active { get; set; }
+
+    private bool _hover, _focus;
+
+    private void SetActive(bool? hover = null, bool? focus = null)
+    {
+        bool was = _hover || _focus;
+        _hover = hover ?? _hover;
+        _focus = focus ?? _focus;
+        if ((_hover || _focus) != was) Active?.Invoke(_hover || _focus);
+    }
 
     private static string Invariant(double v) => v.ToString(CultureInfo.InvariantCulture);
 
