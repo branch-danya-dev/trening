@@ -8,7 +8,7 @@
         <span class="brand">Модель тела</span>
         <span class="brand-sub">прототип: тело по замерам и прогноз изменений</span>
         <div class="topbar-right">
-            <span class="brand-sub">Модель</span>
+            <span class="brand-sub model-label">Модель</span>
             <div class="seg" role="group" aria-label="Модель тела">
                 <button class="@Css.On(_kind == BodyKind.MakeHuman)" @onclick="() => SetKind(BodyKind.MakeHuman)">MakeHuman</button>
                 <button class="@Css.On(_kind == BodyKind.Mannequin)" @onclick="() => SetKind(BodyKind.Mannequin)">Манекен</button>
@@ -25,10 +25,10 @@
             <canvas id="body-canvas" tabindex="0"></canvas>
 
             <div class="view-toolbar">
-                <button class="btn" @onclick='() => ViewerInterop.SetView("front")'>Спереди</button>
-                <button class="btn" @onclick='() => ViewerInterop.SetView("side")'>Сбоку</button>
-                <button class="btn" @onclick='() => ViewerInterop.SetView("back")'>Сзади</button>
-                <button class="btn" @onclick='() => ViewerInterop.SetView("reset")'>Сброс камеры</button>
+                <button class="btn" @onclick='() => SetView("front")'>Спереди</button>
+                <button class="btn" @onclick='() => SetView("side")'>Сбоку</button>
+                <button class="btn" @onclick='() => SetView("back")'>Сзади</button>
+                <button class="btn" @onclick='() => SetView("reset")'>Сброс камеры</button>
             </div>
 
             @if (_mode == ViewMode.Compare && _forecast is not null)
@@ -47,6 +47,8 @@
             }
 
             <div class="mode-bar">
+                @* На телефоне вместо четырёх кнопок камеры — одна, ракурсы по кругу *@
+                <button class="btn view-cycle" aria-label="Сменить ракурс" @onclick="CycleView">⟳ @ViewName(NextView)</button>
                 <div class="seg" role="group" aria-label="Что показать">
                     <button class="@Css.On(_mode == ViewMode.Current)" @onclick="() => SetMode(ViewMode.Current)">Сейчас</button>
                     <button class="@Css.On(_mode == ViewMode.Forecast)" disabled="@(_forecast is null)"
@@ -256,6 +258,28 @@
         if (_mode == ViewMode.Current && _forecast is not null)
             SetMode(ViewMode.Compare); // на вкладке гипотез сразу видно разницу
     }
+
+    /// <summary>Последний выбранный ракурс камеры: front, side или back.</summary>
+    private string _view = "front";
+
+    private static readonly string[] Views = ["front", "side", "back"];
+
+    private string NextView => Views[(Array.IndexOf(Views, _view) + 1) % Views.Length];
+
+    private static string ViewName(string view) => view switch
+    {
+        "side" => "Сбоку",
+        "back" => "Сзади",
+        _ => "Спереди",
+    };
+
+    private void SetView(string view)
+    {
+        _view = view == "reset" ? "front" : view;
+        ViewerInterop.SetView(view);
+    }
+
+    private void CycleView() => SetView(NextView);
 
     private void SetMode(ViewMode mode)
     {

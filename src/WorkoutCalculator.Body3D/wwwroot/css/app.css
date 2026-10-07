@@ -106,6 +106,9 @@ button, input, select { font: inherit; color: inherit; }
     flex-wrap: wrap;
 }
 
+/* Одна кнопка ракурса — только на телефоне (см. медиазапрос ниже) */
+.view-cycle { display: none; }
+
 .mode-bar {
     position: absolute;
     top: 56px;
@@ -582,19 +585,73 @@ details summary { cursor: pointer; }
 
 .chart svg { width: 100%; height: auto; display: block; }
 
-/* ---------- Узкий экран ---------- */
+/* ---------- Телефон и планшет ---------- */
 
+/*
+ * Как приложение на весь экран: 3D-вид сверху, панель снизу со своей прокруткой — тело остаётся на экране,
+ * пока двигаешь ползунки. dvh — высота без панелей браузера на телефоне; vh — запасной вариант.
+ */
 @media (max-width: 900px) {
-    .app { height: auto; min-height: 100vh; }
-    /* Шапка не должна распирать страницу шире экрана */
-    .topbar { flex-wrap: wrap; }
-    .topbar > .brand-sub { display: none; }
-    .main { grid-template-columns: 1fr; }
-    .viewport { height: 62vh; }
-    /* Вверху справа легенда с названием гипотезы наезжала бы на кнопки камеры */
-    .legend { top: auto; bottom: 56px; max-width: 60%; text-align: right; }
+    .app { height: 100vh; height: 100dvh; }
+    .main {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    }
     .panel { border-left: none; border-top: 1px solid var(--border); }
-    .panel-body { overflow: visible; }
+
+    .topbar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+    .topbar > .brand-sub, .model-label { display: none; }
+    .topbar-right { gap: 8px; }
+
+    .view-stats, .view-toolbar { display: none; }
+    .view-cycle { display: inline-block; order: 1; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+    .mode-bar { top: 8px; left: 8px; max-width: calc(100% - 16px); gap: 6px 8px; }
+    .mode-bar .seg { order: 0; }
+    .mode-bar > :not(.seg):not(.view-cycle) { order: 2; }
+    .seg button { padding: 5px 10px; }
+    /* Вверху справа легенда с названием гипотезы наезжала бы на кнопки камеры */
+    .legend { top: auto; bottom: 36px; right: 10px; max-width: 60%; text-align: right; }
+    .view-labels { bottom: 36px; }
+    .view-tapes { left: 10px; bottom: 8px; }
+
+    .panel-body { padding: 12px; gap: 10px; }
+    /* 16px: при меньшем шрифте iOS увеличивает страницу, когда поле получает фокус */
+    input, select { font-size: 16px; }
+}
+
+/* Телефон боком: вид и панель рядом */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 560px) {
+    .main {
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 44%);
+        grid-template-rows: minmax(0, 1fr);
+    }
+    .panel { border-top: none; border-left: 1px solid var(--border); }
+    .topbar { padding: 6px 12px; }
+}
+
+/* Пальцем: ползунки и ссылки-кнопки с запасом по высоте */
+@media (pointer: coarse) {
+    .param input[type=range] { height: 28px; }
+    .btn-link { padding: 6px 0; }
+}
+
+/* ---------- Обновление приложения (js/pwa.js) ---------- */
+
+.update-banner {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 8px 8px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--card-2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    font-size: 13px;
 }
 
 /* ---------- Загрузка и ошибки Blazor ---------- */
