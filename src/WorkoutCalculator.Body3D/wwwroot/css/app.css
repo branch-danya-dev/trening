@@ -598,6 +598,50 @@ button.session-thumbs:focus-visible { outline: 2px solid var(--accent); outline-
 .photo-overlay .ghost { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-width: 2; stroke-dasharray: 3 3; }
 .legend-line .key.ghost { border-top: 2px dashed rgba(255, 255, 255, 0.85); }
 
+/* ---------- Защита снимков ---------- */
+
+.pin-input {
+    width: 112px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--card-2);
+    color: var(--text);
+    font: inherit;
+    letter-spacing: 0.2em;
+}
+.pin-input::placeholder { letter-spacing: normal; color: var(--faint); }
+.privacy-options { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 14px; }
+.file-btn.disabled { opacity: 0.45; }
+.file-btn.disabled input { cursor: default; }
+button.session-thumbs:disabled { cursor: default; }
+.thumb-locked {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 84px;
+    border-radius: 6px;
+    background: var(--card-2);
+}
+.thumb-locked svg { width: 20px; height: 20px; fill: none; stroke: var(--faint); stroke-width: 1.8; stroke-linecap: round; }
+.session-thumbs.private img { filter: blur(5px); }
+.photo-overlay.blurred svg { cursor: pointer; }
+.photo-overlay svg:focus { outline: none; }
+.photo-overlay svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.photo-overlay .watermark {
+    fill: rgba(255, 255, 255, 0.2);
+    stroke: rgba(0, 0, 0, 0.14);
+    stroke-width: 1px;
+    paint-order: stroke;
+    font-weight: 600;
+    vector-effect: non-scaling-stroke;
+}
+/* Вкладка в фоне: снимки размыты — в переключателе приложений их не видно */
+html.page-hidden .photo-overlay svg,
+html.page-hidden .session-thumbs img,
+html.page-hidden .capture-review img,
+html.page-hidden .capture-video { filter: blur(24px); }
+
 /* ---------- Карта изменений между сессиями ---------- */
 
 .change-chart { margin-top: 10px; }

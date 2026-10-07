@@ -30,6 +30,7 @@ public static class ProfileStorage
     private const string SingleHypothesisKey = "workoutcalc.hypothesis.v1";
     private const string ModelKey = "workoutcalc.model.v1";
     private const string WeightsKey = "workoutcalc.weights.v1";
+    private const string PrivacyKey = "workoutcalc.photoprivacy.v1";
 
     /// <summary>Какая модель показана: "makehuman" или "mannequin".</summary>
     public static string? LoadModelKind() => BrowserStorage.GetItem(ModelKey);
@@ -89,6 +90,29 @@ public static class ProfileStorage
 
     public static void SaveWeights(List<WeightEntry> weights) =>
         BrowserStorage.SetItem(WeightsKey, JsonSerializer.Serialize(weights, StorageJson.Default.ListWeightEntry));
+
+    public static PhotoPrivacy LoadPrivacy()
+    {
+        try
+        {
+            string? json = BrowserStorage.GetItem(PrivacyKey);
+            return json is null ? new() : JsonSerializer.Deserialize(json, StorageJson.Default.PhotoPrivacy) ?? new();
+        }
+        catch (JsonException)
+        {
+            return new();
+        }
+    }
+
+    public static void SavePrivacy(PhotoPrivacy p) =>
+        BrowserStorage.SetItem(PrivacyKey, JsonSerializer.Serialize(p, StorageJson.Default.PhotoPrivacy));
+}
+
+/// <summary>Как показывать снимки: размытыми до нажатия и с водяным знаком «личное фото».</summary>
+public sealed class PhotoPrivacy
+{
+    public bool Blur { get; set; }
+    public bool Watermark { get; set; } = true;
 }
 
 /// <summary>Запись веса за день.</summary>
@@ -214,4 +238,5 @@ public sealed class StoredHypothesis
 [JsonSerializable(typeof(StoredHypothesis))]
 [JsonSerializable(typeof(StoredHypotheses))]
 [JsonSerializable(typeof(List<WeightEntry>))]
+[JsonSerializable(typeof(PhotoPrivacy))]
 internal sealed partial class StorageJson : JsonSerializerContext;

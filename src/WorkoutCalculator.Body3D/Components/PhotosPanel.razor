@@ -6,6 +6,27 @@
 @using WorkoutCalculator.BodyModel.Photos
 @implements IDisposable
 
+@if (_pin.Locked)
+{
+    <div class="card">
+        <div class="card-title">Фото под PIN-кодом</div>
+        <div class="note" style="margin-bottom: 10px">
+            Снимки на этом устройстве зашифрованы. Введите PIN-код, чтобы смотреть, снимать и разбирать их. Даты,
+            вес и итоги разбора видны и без него — по ним строятся графики.
+        </div>
+        <form class="file-row" @onsubmit="Unlock">
+            <input class="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="8"
+                   aria-label="PIN-код" placeholder="PIN-код" @bind="_pinA" @bind:event="oninput" />
+            <button class="btn primary" type="submit" disabled="@(_busy || _pinA.Length < 4)">@(_busy ? "Проверяю…" : "Открыть")</button>
+        </form>
+        @if (_pinMessage is not null)
+        {
+            <div class="@(_pinError ? "hint" : "note")" style="margin-top: 10px">@_pinMessage</div>
+        }
+    </div>
+}
+else
+{
 <div class="card">
     <div class="card-title">Новая фотосессия</div>
     <div class="note">
@@ -43,6 +64,7 @@
         <div class="@(_error ? "hint" : "note")" style="margin-top: 10px">@_message</div>
     }
 </div>
+}
 
 <div class="card">
     <div class="card-title">
@@ -63,10 +85,23 @@
     @foreach (var s in _sessions)
     {
         <div class="session @Css.On(s.Id == _openId)">
-            <button class="session-thumbs" title="Открыть и разобрать" @onclick="() => Open(s)">
-                @foreach (var (view, url) in s.Thumbs)
+            <button class="session-thumbs @(_privacy.Blur ? "private" : "")" disabled="@_pin.Locked"
+                    title="@(_pin.Locked ? "Снимки под PIN-кодом" : "Открыть и разобрать")" @onclick="() => Open(s)">
+                @if (_pin.Locked)
                 {
-                    <img src="@url" alt="@(view == "side" ? "Сбоку" : "Спереди")" />
+                    @foreach (string view in s.Views)
+                    {
+                        <span class="thumb-locked" aria-label="@(view == "side" ? "Сбоку" : "Спереди"), под PIN-кодом">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+                        </span>
+                    }
+                }
+                else
+                {
+                    @foreach (var (view, url) in s.Thumbs)
+                    {
+                        <img src="@url" alt="@(view == "side" ? "Сбоку" : "Спереди")" />
+                    }
                 }
             </button>
             <div class="session-info">
@@ -128,6 +163,7 @@
                     {
                         bool forecast = ShowingForecast(o) && _warpUrls.ContainsKey(view);
                         <PhotoOverlay Url="@(forecast ? _warpUrls[view] : url)" Profile="profile" KeyLevels="keys"
+                                      Blur="_privacy.Blur" Watermark="@(_privacy.Watermark ? WatermarkText : null)"
                                       Model="@(forecast ? null : ModelEdges(o, view))" ShowEdges="!forecast"
                                       Ghost="@(forecast ? Contour(profile) : view == "side" ? _ghost?.SideGhost : _ghost?.FrontGhost)"
                                       Caption="@(forecast ? (view == "side" ? "Прогноз сбоку" : "Прогноз спереди") : view == "side" ? "Сбоку: глубина" : "Спереди: ширина")" />
@@ -299,6 +335,92 @@
 }
 
 <div class="card">
+    <div class="card-title">
+        Защита
+        @if (_pin.Enabled)
+        {
+            <span class="badge">PIN</span>
+        }
+    </div>
+    @if (!_pin.Enabled)
+    {
+        <div class="note" style="margin-bottom: 10px">
+            PIN-код шифрует снимки и превью на этом устройстве (AES-256, ключ — из PIN-кода). Без него их не
+            открыть ни в приложении, ни в данных браузера. Снимки закрываются после перезагрузки, кнопкой и через
+            2&nbsp;минуты в фоне. Забудете PIN-код — снимки не восстановить, только из архива.
+        </div>
+    }
+    else
+    {
+        <div class="note" style="margin-bottom: 10px">
+            Снимки и превью зашифрованы. @(_pin.Unlocked
+                ? "Сейчас открыты: закроются после перезагрузки, кнопкой или через 2 минуты в фоне."
+                : "Сейчас закрыты — PIN-код вводится вверху вкладки.")
+            Даты, вес и итоги разбора не шифруются — по ним строятся графики.
+        </div>
+    }
+    @if (_pinMode == PinMode.Enable)
+    {
+        <form @onsubmit="EnablePin">
+            <div class="file-row">
+                <input class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"
+                       aria-label="Новый PIN-код" placeholder="PIN-код" @bind="_pinA" @bind:event="oninput" />
+                <input class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"
+                       aria-label="PIN-код ещё раз" placeholder="ещё раз" @bind="_pinB" @bind:event="oninput" />
+            </div>
+            <div class="confirm">
+                <button class="btn primary" type="submit" disabled="@(_busy || _pinA.Length < 4 || _pinB.Length < 4)">
+                    @(_busy ? "Шифрую снимки…" : "Включить")
+                </button>
+                <button class="btn-link muted" type="button" @onclick="CancelPin">Отмена</button>
+            </div>
+            <div class="note" style="margin-top: 6px">От 4 до 8 цифр.</div>
+        </form>
+    }
+    else if (_pinMode == PinMode.Disable)
+    {
+        <form @onsubmit="DisablePin">
+            <div class="file-row">
+                <input class="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="8"
+                       aria-label="PIN-код" placeholder="PIN-код" @bind="_pinA" @bind:event="oninput" />
+                <button class="btn" type="submit" disabled="@(_busy || _pinA.Length < 4)">@(_busy ? "Расшифровываю…" : "Снять защиту")</button>
+                <button class="btn-link muted" type="button" @onclick="CancelPin">Отмена</button>
+            </div>
+        </form>
+    }
+    else if (!_pin.Enabled)
+    {
+        <button class="btn" disabled="@_busy" @onclick="() => StartPin(PinMode.Enable)">Установить PIN-код</button>
+    }
+    else if (_pin.Unlocked)
+    {
+        <div class="file-row">
+            <button class="btn" @onclick="Lock">Закрыть снимки</button>
+            <button class="btn-link muted" @onclick="() => StartPin(PinMode.Disable)">Снять защиту</button>
+        </div>
+    }
+    @if (_pinMessage is not null && !_pin.Locked)
+    {
+        <div class="@(_pinError ? "hint" : "note")" style="margin-top: 10px">@_pinMessage</div>
+    }
+    <div class="privacy-options">
+        <label class="check">
+            <input type="checkbox" checked="@_privacy.Blur" @onchange="e => SetPrivacy(p => p.Blur = e.Value is true)" />
+            Размывать снимки, пока не нажмёте на них
+        </label>
+        <label class="check">
+            <input type="checkbox" checked="@_privacy.Watermark" @onchange="e => SetPrivacy(p => p.Watermark = e.Value is true)" />
+            Водяной знак «@WatermarkText» поверх снимков
+        </label>
+    </div>
+    <div class="note" style="margin-top: 8px">
+        Запретить снимок экрана веб-страница не может — водяной знак останется на нём и напомнит, чьё это фото.
+        Пока приложение свёрнуто, снимки размыты и в переключателе приложений не видны. PIN-код защищает от
+        случайного взгляда и чужих рук, но не от взлома устройства — поэтому лучше ещё и блокировка самого телефона.
+    </div>
+</div>
+
+<div class="card">
     <div class="card-title">Хранилище</div>
     <div class="volume-line" style="margin-top: 0">
         @if (_storage?.Usage is long usage)
@@ -311,18 +433,24 @@
               "Надёжнее установить приложение на главный экран и время от времени сохранять архив.")
     </div>
     <div class="file-row" style="margin-top: 12px">
-        <button class="btn" disabled="@(_busy || _sessions.Count == 0)" @onclick="Export">Сохранить архив (zip)</button>
-        <label class="btn file-btn">
+        <button class="btn" disabled="@(_busy || _sessions.Count == 0 || _pin.Locked)" @onclick="Export">Сохранить архив (zip)</button>
+        <label class="btn file-btn @(_pin.Locked ? "disabled" : "")">
             Загрузить архив
-            <input id="photo-import" type="file" accept=".zip,application/zip" @onchange="Import" />
+            <input id="photo-import" type="file" accept=".zip,application/zip" disabled="@_pin.Locked" @onchange="Import" />
         </label>
     </div>
+    @if (_pin.Enabled)
+    {
+        <div class="note" style="margin-top: 8px">
+            Архив — обычные JPEG, без шифрования: его можно открыть на любом компьютере. Храните его в надёжном месте.
+        </div>
+    }
     @if (_sessions.Count > 0)
     {
         <div class="confirm">
             @if (_confirmDeleteAll)
             {
-                <span>Удалить все сессии с этого устройства? Это необратимо.</span>
+                <span>Удалить все сессии@(_pin.Enabled ? " и PIN-код" : "") с этого устройства? Это необратимо.</span>
                 <button class="btn-link" @onclick="DeleteAll">Удалить всё</button>
                 <button class="btn-link muted" @onclick="() => _confirmDeleteAll = false">Отмена</button>
             }
@@ -330,6 +458,13 @@
             {
                 <button class="btn-link muted" @onclick="() => _confirmDeleteAll = true">Удалить все фото</button>
             }
+        </div>
+    }
+    @if (_pin.Locked)
+    {
+        <div class="note" style="margin-top: 8px">
+            Забыли PIN-код? Снимки без него не расшифровать: удалите все фото — PIN-код удалится вместе с ними —
+            и загрузите архив, если он есть.
         </div>
     }
 </div>
@@ -353,8 +488,19 @@
         ("side", SideInput, "Фото сбоку"),
     ];
 
+    private const string WatermarkText = "личное фото · не пересылать";
+
+    private enum PinMode { None, Enable, Disable }
+
     private List<PhotoSession> _sessions = [];
     private StorageInfo? _storage;
+    /// <summary>Защита: PIN-код, ввод (дважды при установке), сообщение карточки; размытие и водяной знак.</summary>
+    private PinStatus _pin = new(false, false);
+    private PinMode _pinMode;
+    private string _pinA = "", _pinB = "";
+    private string? _pinMessage;
+    private bool _pinError;
+    private PhotoPrivacy _privacy = new();
     private bool _loaded, _busy, _error;
     private string? _message;
     private string? _confirmDelete;
@@ -380,12 +526,24 @@
     private string? _compareId;
     private PhotoComparison? _ghost, _change;
 
-    protected override async Task OnInitializedAsync() => await Reload();
+    protected override async Task OnInitializedAsync()
+    {
+        _privacy = ProfileStorage.LoadPrivacy();
+        // Блокировка — кнопкой или через 2 минуты в фоне: снимки закрываются, список — с замками
+        PhotoStore.OnLock(() => _ = InvokeAsync(async () =>
+        {
+            Close();
+            await Reload();
+            StateHasChanged();
+        }));
+        await Reload();
+    }
 
     private async Task Reload()
     {
         try
         {
+            _pin = await PhotoStore.Pin();
             _sessions = await PhotoStore.List();
             _storage = await PhotoStore.Storage();
         }
@@ -428,11 +586,21 @@
 
     private async Task Open(PhotoSession s)
     {
-        if (_openId == s.Id) return;
+        if (_openId == s.Id || _pin.Locked) return;
         Close();
         _openId = s.Id;
-        foreach (string view in s.Views)
-            _urls[view] = await PhotoStore.ImageUrl(s.Id, view);
+        try
+        {
+            foreach (string view in s.Views)
+                _urls[view] = await PhotoStore.ImageUrl(s.Id, view);
+        }
+        catch (JSException e)
+        {
+            // Закрылись между нажатием и чтением
+            Close();
+            Show(JsError(e), error: true);
+            await Reload();
+        }
     }
 
     private void Close()
@@ -446,7 +614,103 @@
         _urls.Clear();
     }
 
-    public void Dispose() => Close();
+    public void Dispose()
+    {
+        PhotoStore.OnLock(null);
+        Close();
+    }
+
+    private void StartPin(PinMode mode)
+    {
+        _pinMode = mode;
+        _pinA = _pinB = "";
+        _pinMessage = null;
+    }
+
+    private void CancelPin() => StartPin(PinMode.None);
+
+    private void ShowPin(string message, bool error = false)
+    {
+        _pinMessage = message;
+        _pinError = error;
+    }
+
+    private static bool ValidPin(string pin) => pin.Length is >= 4 and <= 8 && pin.All(char.IsAsciiDigit);
+
+    private async Task EnablePin()
+    {
+        if (!ValidPin(_pinA))
+        {
+            ShowPin("PIN-код — от 4 до 8 цифр.", error: true);
+            return;
+        }
+        if (_pinA != _pinB)
+        {
+            ShowPin("PIN-коды не совпадают.", error: true);
+            return;
+        }
+        await RunPin(async () =>
+        {
+            await PhotoStore.EnablePin(_pinA);
+            StartPin(PinMode.None);
+            await Reload();
+            ShowPin("PIN-код установлен: снимки зашифрованы. Запомните его — без PIN-кода снимки не восстановить.");
+        });
+    }
+
+    private async Task DisablePin()
+    {
+        await RunPin(async () =>
+        {
+            Close();
+            await PhotoStore.DisablePin(_pinA);
+            StartPin(PinMode.None);
+            await Reload();
+            ShowPin("Защита снята: снимки хранятся без шифрования.");
+        });
+    }
+
+    private async Task Unlock()
+    {
+        await RunPin(async () =>
+        {
+            await PhotoStore.Unlock(_pinA);
+            StartPin(PinMode.None);
+            await Reload();
+        });
+    }
+
+    /// <summary>Закрыть снимки: дальше — через обработчик <see cref="PhotoStore.OnLock"/>.</summary>
+    private void Lock()
+    {
+        _pinMessage = null;
+        PhotoStore.Lock();
+    }
+
+    private async Task RunPin(Func<Task> action)
+    {
+        _busy = true;
+        _pinMessage = null;
+        try
+        {
+            await action();
+        }
+        catch (JSException e)
+        {
+            _pinA = _pinB = "";
+            ShowPin(JsError(e), error: true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void SetPrivacy(Action<PhotoPrivacy> change)
+    {
+        change(_privacy);
+        ProfileStorage.SavePrivacy(_privacy);
+    }
 
     private async Task Analyze(PhotoSession s)
     {
