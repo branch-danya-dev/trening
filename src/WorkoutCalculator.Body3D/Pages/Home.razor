@@ -35,13 +35,13 @@
             {
                 @if (_sideBySide)
                 {
-                    <div class="view-labels"><span>Сейчас</span><span>Прогноз</span></div>
+                    <div class="view-labels"><span>Сейчас</span><span>@(ManyHypotheses ? _hypotheses.Current.Name : "Прогноз")</span></div>
                 }
                 else
                 {
                     <div class="legend">
                         <span class="now">Сейчас (контур)</span>
-                        <span class="later">Через @_forecast.Weeks[^1].Week нед.</span>
+                        <span class="later">@(ManyHypotheses ? $"«{_hypotheses.Current.Name}», через" : "Через") @_forecast.Weeks[^1].Week нед.</span>
                     </div>
                 }
             }
@@ -59,6 +59,15 @@
                     <label class="check">
                         <input type="checkbox" checked="@_sideBySide" @onchange="ToggleSideBySide" /> рядом
                     </label>
+                }
+                @if (_mode != ViewMode.Current && ManyHypotheses)
+                {
+                    <select class="select" aria-label="Какую гипотезу показать" value="@_hypotheses.Selected" @onchange="OnViewHypothesis">
+                        @foreach (var h in _hypotheses.Items)
+                        {
+                            <option value="@h.Slot">@h.Name</option>
+                        }
+                    </select>
                 }
             </div>
 
@@ -92,7 +101,8 @@
                 }
                 else
                 {
-                    <HypothesisPanel Profile="_profile" Hypothesis="_hypothesis" Forecast="_forecast" OnChange="ChangeHypothesis" />
+                    <HypothesisPanel Profile="_profile" Hypotheses="_hypotheses" Forecasts="_forecasts" OnChange="ChangeHypothesis"
+                                     OnHypotheses="ChangeHypotheses" />
                 }
             </div>
         </aside>
@@ -105,7 +115,7 @@
     private enum BodyKind { MakeHuman, Mannequin }
 
     private BodyProfile _profile = BodyDefaults.Default();
-    private StoredHypothesis _hypothesis = new();
+    private StoredHypotheses _hypotheses = StoredHypotheses.Of(new StoredHypothesis());
     private IBodyShape? _current;
     private IBodyShape? _forecastBody;
 
@@ -114,6 +124,8 @@
     private Girth? _highlight;
     private bool TapesNeeded => _showTapes || _highlight is not null;
     private ConsistencyReport? _report;
+    /// <summary>Прогнозы всех гипотез; <see cref="_forecast"/> — выбранной, она же в 3D.</summary>
+    private IReadOnlyList<HypothesisForecast> _forecasts = [];
     private ForecastResult? _forecast;
 
     private BodyKind _kind = BodyKind.MakeHuman;
@@ -146,11 +158,12 @@
     private int _forecastVersion;
 
     private bool UseMakeHuman => _kind == BodyKind.MakeHuman && _mh is not null;
+    private bool ManyHypotheses => _hypotheses.Items.Count > 1;
 
     protected override void OnInitialized()
     {
         _profile = ProfileStorage.LoadProfile() ?? BodyDefaults.Default();
-        _hypothesis = ProfileStorage.LoadHypothesis() ?? DefaultHypothesis(_profile);
+        _hypotheses = ProfileStorage.LoadHypotheses() ?? StoredHypotheses.Of(DefaultHypothesis(_profile));
         _kind = ProfileStorage.LoadModelKind() == "mannequin" ? BodyKind.Mannequin : BodyKind.MakeHuman;
         _ = LoadMakeHumanAsync();
     }
@@ -215,9 +228,26 @@
 
     private void ChangeHypothesis(Action<StoredHypothesis> change)
     {
-        change(_hypothesis);
-        ProfileStorage.SaveHypothesis(_hypothesis);
+        change(_hypotheses.Current.Plan);
+        ProfileStorage.SaveHypotheses(_hypotheses);
         _ = ForecastLaterAsync(++_forecastVersion, ForecastDelayMs);
+    }
+
+    /// <summary>Выбор, копия, удаление, переименование. Таблица и график обновляются сразу, 3D — следующим кадром.</summary>
+    private void ChangeHypotheses(Action<StoredHypotheses> change)
+    {
+        int selected = _hypotheses.Selected, count = _hypotheses.Items.Count;
+        change(_hypotheses);
+        ProfileStorage.SaveHypotheses(_hypotheses);
+        if (_hypotheses.Selected == selected && _hypotheses.Items.Count == count) return; // только название
+        RunForecasts();
+        _ = ForecastLaterAsync(++_forecastVersion, 1);
+    }
+
+    private void OnViewHypothesis(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int slot))
+            ChangeHypotheses(h => h.Select(slot));
     }
 
     private void OpenHypothesis()
@@ -292,9 +322,6 @@
             hints.Add("Для таких размеров у MakeHuman не хватает запаса формы: объём модели на " +
                       $"{Fmt.N(-body.VolumeDeviation * 100, 0)} % меньше, чем следует из веса. " +
                       "Замеры при этом проверяются по манекену.");
-        if (body.LayerAtMin && body.VolumeDeviation > 0.02)
-            hints.Add("Даже без слоя мягких тканей модель MakeHuman больше, чем следует из веса, — " +
-                      "замеры и вес, скорее всего, не согласуются.");
         return hints;
     }
 
@@ -383,13 +410,25 @@
         await Task.Delay(delayMs);
         if (version != _forecastVersion || !_viewerReady) return;
 
-        _forecast = ForecastEngine.Run(_profile.Clone(), _hypothesis.ToInput());
+        var forecast = RunForecasts();
         _fitForecast ??= _fitCurrent?.Clone();
         IBodyShape body = UseMakeHuman
-            ? BuildMakeHuman(_forecast.End, ref _fitForecast, fitVolume: true)
-            : Mannequin.Build(_forecast.End);
+            ? BuildMakeHuman(forecast.End, ref _fitForecast, fitVolume: true)
+            : Mannequin.Build(forecast.End);
         Show("forecast", body);
         _forecastBody = body;
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// Прогнозы всех гипотез от текущего профиля: это недельный цикл без сетки, он дешёвый.
+    /// Возвращает прогноз выбранной гипотезы.
+    /// </summary>
+    private ForecastResult RunForecasts()
+    {
+        _forecasts = _hypotheses.Items
+            .Select(h => new HypothesisForecast(h, ForecastEngine.Run(_profile.Clone(), h.Plan.ToInput())))
+            .ToList();
+        return _forecast = (_forecasts.FirstOrDefault(f => f.Hypothesis.Slot == _hypotheses.Selected) ?? _forecasts[0]).Forecast;
     }
 }

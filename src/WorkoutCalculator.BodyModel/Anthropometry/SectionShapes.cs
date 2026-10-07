@@ -7,20 +7,29 @@ namespace WorkoutCalculator.BodyModel.Anthropometry;
 /// </summary>
 public static class SectionShapes
 {
-    /// <summary>Соотношение глубина/ширина (b/a) сечения на уровне.</summary>
-    public static double DepthToWidth(TorsoLevel level, Sex sex, double bodyFatPercent)
+    /// <summary>ИМТ, к которому отнесены базовые соотношения глубина/ширина.</summary>
+    public const double ReferenceBmi = 25;
+
+    /// <summary>
+    /// Соотношение глубина/ширина (b/a) сечения на уровне. У груди, низа груди, талии и бёдер оно растёт
+    /// с ИМТ — у полных сечения круглее — с тем же относительным наклоном, что и отношение глубины к ширине
+    /// у людей ANSUR II (на единицу ИМТ: грудь +1,25–1,3 %, талия +0,9–1,0 %, бёдра +0,9–1,1 %). Сами значения
+    /// ниже реальных (у ANSUR II при ИМТ 25: грудь 0,85–0,91, талия 0,71, бёдра 0,66–0,69): эллипс с тем же
+    /// периметром, что и обхват, по площади больше реального сечения. Поэтому значения при ИМТ 25 откалиброваны
+    /// так, чтобы объём манекена сходился с весом у людей ANSUR II (tools/WorkoutCalculator.AnsurFit --validate).
+    /// </summary>
+    public static double DepthToWidth(TorsoLevel level, Sex sex, double bmi)
     {
         bool male = sex == Sex.Male;
+        double Trend(double atReference, double slopePerBmi) =>
+            Math.Clamp(atReference * (1 + slopePerBmi * (bmi - ReferenceBmi)), 0.5, 1.0);
         return level switch
         {
             TorsoLevel.Crotch => 0.55,
-            TorsoLevel.Hips => male ? 0.74 : 0.70,
-            // Живот округляется с ростом жира: +0,006 (м) / +0,005 (ж) на процент выше типичного
-            TorsoLevel.Waist => Math.Clamp(male
-                ? 0.74 + 0.006 * (bodyFatPercent - 15)
-                : 0.72 + 0.005 * (bodyFatPercent - 25), 0.62, 0.95),
-            TorsoLevel.Underbust => 0.70,
-            TorsoLevel.Chest => male ? 0.72 : 0.75,
+            TorsoLevel.Hips => male ? Trend(0.74, 0.0106) : Trend(0.70, 0.0094),
+            TorsoLevel.Waist => male ? Trend(0.74, 0.0088) : Trend(0.72, 0.0098),
+            TorsoLevel.Underbust => Trend(0.70, male ? 0.0107 : 0.0114),
+            TorsoLevel.Chest => male ? Trend(0.72, 0.0125) : Trend(0.75, 0.0129),
             TorsoLevel.Armpit => 0.66,
             TorsoLevel.Shoulders => 0.50,
             _ => 0.85, // основание шеи

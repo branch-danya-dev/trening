@@ -110,7 +110,9 @@ button, input, select { font: inherit; color: inherit; }
     position: absolute;
     top: 56px;
     left: 14px;
+    max-width: calc(100% - 28px);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 10px;
 }
@@ -197,6 +199,9 @@ button, input, select { font: inherit; color: inherit; }
     cursor: pointer;
     font-size: 13px;
 }
+
+.btn-link.muted { color: var(--muted); }
+.btn-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
 
 .seg {
     display: inline-flex;
@@ -417,15 +422,155 @@ table.changes th:first-child, table.changes td:first-child { text-align: left; }
 table.changes tr:last-child td { border-bottom: none; }
 table.changes td.delta { color: var(--muted); }
 
+/* ---------- Гипотезы ---------- */
+
+/*
+ * Цвет гипотезы закреплён за ней (слот 0–4), а не за местом в списке. Порядок проверен на тёмных
+ * поверхностях карточки и подсказки: соседние цвета различимы и при дальтонизме (ΔE ≥ 8,4), контраст ≥ 3:1.
+ * Текст цветом гипотезы не пишется — рядом с ним стоит ключ-отрезок.
+ */
+.series-0 { --series: #3987e5; }
+.series-1 { --series: #d95926; }
+.series-2 { --series: #199e70; }
+.series-3 { --series: #c98500; }
+.series-4 { --series: #d55181; }
+
+i.key {
+    display: inline-block;
+    flex: none;
+    width: 14px;
+    height: 3px;
+    margin-right: 6px;
+    border-radius: 2px;
+    background: var(--series);
+    vertical-align: middle;
+}
+
+.title-note {
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 5px 11px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--card-2);
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.chip:hover { border-color: var(--faint); }
+.chip.on { color: var(--text); border-color: var(--accent); }
+.chip.add { color: var(--accent); border-style: dashed; background: none; }
+.chip:disabled { opacity: 0.45; cursor: default; }
+.chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chip:focus-visible, .col-btn:focus-visible, .chart-legend button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.text-input {
+    flex: 1;
+    min-width: 0;
+    max-width: 250px;
+    padding: 5px 8px;
+    border-radius: 7px;
+    border: 1px solid var(--border-strong);
+    background: var(--card-2);
+}
+
+.text-input:focus { outline: none; border-color: var(--accent); }
+
+.confirm { display: flex; align-items: center; gap: 14px; margin-top: 10px; font-size: 13px; }
+
+/* Таблица сравнения: столбец на гипотезу; при 4–5 гипотезах прокручивается, названия строк остаются на месте */
+.table-scroll { overflow-x: auto; }
+table.compare { font-size: 13px; }
+table.compare th, table.compare td { min-width: 54px; }
+table.compare th:first-child, table.compare td:first-child {
+    white-space: nowrap;
+    position: sticky;
+    left: 0;
+    background: var(--card);
+    padding-right: 8px;
+}
+table.compare thead th { vertical-align: bottom; }
+table.compare .now { color: var(--muted); }
+table.compare .sel { background: var(--card-2); }
+table.compare th.sel { color: var(--text); font-weight: 600; }
+table.compare tr.group th {
+    padding-top: 14px;
+    color: var(--faint);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Название переносится по словам; ключ — отдельной строкой над ним */
+.col-btn {
+    border: none;
+    background: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    text-align: right;
+    overflow-wrap: break-word;
+    cursor: pointer;
+}
+
+.col-btn i.key { display: block; margin: 0 0 5px auto; }
+
+.chart-legend { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-bottom: 6px; }
+
+.chart-legend button {
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    background: none;
+    padding: 2px 0;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.chart-legend button.on { color: var(--text); }
+
 /* ---------- График ---------- */
 
 .chart .grid { stroke: var(--border); stroke-width: 1; }
 .chart .tick { fill: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
-.chart .line { fill: none; stroke: #20a898; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.chart .dot { fill: #20a898; stroke: var(--card); stroke-width: 2; }
+.chart .line { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .line.other { stroke-width: 1.5; }
+.chart .dot { fill: var(--series); stroke: var(--card); stroke-width: 2; }
+.chart .key { stroke: var(--series); stroke-width: 2.5; stroke-linecap: round; }
 .chart .target { stroke: var(--faint); stroke-width: 1; }
 .chart .crosshair { stroke: var(--border-strong); stroke-width: 1; }
-.chart .end-label { fill: var(--text); font-size: 11px; font-weight: 600; }
+/* Подпись конца может лечь на чужие линии — обводка цветом карточки держит её читаемой */
+.chart .end-label {
+    fill: var(--text);
+    font-size: 11px;
+    font-weight: 600;
+    paint-order: stroke;
+    stroke: var(--card);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
 .chart .tip rect { fill: var(--card-2); stroke: var(--border-strong); }
 .chart .tip-value { fill: var(--text); font-size: 12px; font-weight: 650; }
 .chart .tip-label { fill: var(--muted); font-size: 9.5px; }
@@ -441,8 +586,13 @@ details summary { cursor: pointer; }
 
 @media (max-width: 900px) {
     .app { height: auto; min-height: 100vh; }
+    /* Шапка не должна распирать страницу шире экрана */
+    .topbar { flex-wrap: wrap; }
+    .topbar > .brand-sub { display: none; }
     .main { grid-template-columns: 1fr; }
     .viewport { height: 62vh; }
+    /* Вверху справа легенда с названием гипотезы наезжала бы на кнопки камеры */
+    .legend { top: auto; bottom: 56px; max-width: 60%; text-align: right; }
     .panel { border-left: none; border-top: 1px solid var(--border); }
     .panel-body { overflow: visible; }
 }

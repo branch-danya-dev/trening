@@ -10,6 +10,9 @@ namespace WorkoutCalculator.BodyModel.MakeHuman;
 /// </summary>
 public static class SoftTissue
 {
+    /// <summary>Зона шеи: на ней слой гасится по её доле (см. MakeHumanModel.LayerFactors).</summary>
+    public const string NeckZone = "neck";
+
     /// <summary>Зоны, которые знает модель (их же пишет конвертер данных).</summary>
     public static readonly IReadOnlyList<string> Zones =
     [
@@ -27,8 +30,8 @@ public static class SoftTissue
             "pelvis" => 1.0,                      // ягодицы
             "upper-arm" => 0.6,
             "chest" => male ? 0.7 : 0.3,
-            "neck" => 0.25,
-            "forearm" => 0.35,
+            "neck" => 0.1,
+            "forearm" => 0.2,
             "lower-leg" => 0.15,
             "head" => 0.15,
             "hand" or "foot" => 0.08,

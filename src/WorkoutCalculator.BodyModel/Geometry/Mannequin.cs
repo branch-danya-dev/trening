@@ -122,7 +122,8 @@ public sealed class Mannequin : IBodyShape
             Rings = rings,
         };
 
-        // Манекен симметричен: перекрытия левой стороны считаем один раз и удваиваем
+        // Манекен симметричен: перекрытия левой стороны считаем один раз и удваиваем. Пересечение бёдер
+        // не вычитаем: у полных бёдра касаются и сплющиваются, но ткань никуда не девается
         var overlaps = new List<(ISolid, ISolid, int)>
         {
             (torso, neck, 1),
@@ -131,7 +132,6 @@ public sealed class Mannequin : IBodyShape
             (leftArm, leftHand, 2),
             (torso, leftLeg, 2),
             (leftLeg, leftFoot, 2),
-            (leftLeg, rightLeg, 1),
         };
 
         return new Mannequin(profile, layout, mesh, overlaps);

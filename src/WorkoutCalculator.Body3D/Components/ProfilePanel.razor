@@ -91,7 +91,7 @@
     @if (Report is not null)
     {
         <div class="volume-line">
-            Объём по замерам @Fmt.N(Report.MeshVolumeLiters, 1) л (манекен) · по весу и % жира
+            Объём по замерам @Fmt.N(Report.VolumeLiters, 1) л (манекен) · по весу и % жира
             @Fmt.N(Report.ExpectedVolumeLiters, 1) л (@Fmt.Signed(Report.Deviation * 100)&nbsp;%)
         </div>
     }

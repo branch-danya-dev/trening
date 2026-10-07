@@ -19,13 +19,15 @@ public static partial class BrowserStorage
 }
 
 /// <summary>
-/// Сохранение профиля и гипотезы. Профиль — плоский JSON: Sex, Age, HeightCm, WeightKg как в
+/// Сохранение профиля и гипотез. Профиль — плоский JSON: Sex, Age, HeightCm, WeightKg как в
 /// UserProfile (его можно прочитать и как профиль калькулятора), плюс % жира и обхваты.
 /// </summary>
 public static class ProfileStorage
 {
     private const string ProfileKey = "workoutcalc.body.v1";
-    private const string HypothesisKey = "workoutcalc.hypothesis.v1";
+    private const string HypothesesKey = "workoutcalc.hypotheses.v1";
+    /// <summary>Прежний формат — одна гипотеза без названия; читается, только пока нет нового.</summary>
+    private const string SingleHypothesisKey = "workoutcalc.hypothesis.v1";
     private const string ModelKey = "workoutcalc.model.v1";
 
     /// <summary>Какая модель показана: "makehuman" или "mannequin".</summary>
@@ -50,12 +52,16 @@ public static class ProfileStorage
     public static void SaveProfile(BodyProfile p) =>
         BrowserStorage.SetItem(ProfileKey, JsonSerializer.Serialize(StoredProfile.From(p), StorageJson.Default.StoredProfile));
 
-    public static StoredHypothesis? LoadHypothesis()
+    public static StoredHypotheses? LoadHypotheses()
     {
         try
         {
-            string? json = BrowserStorage.GetItem(HypothesisKey);
-            return json is null ? null : JsonSerializer.Deserialize(json, StorageJson.Default.StoredHypothesis);
+            if (BrowserStorage.GetItem(HypothesesKey) is string json)
+                return JsonSerializer.Deserialize(json, StorageJson.Default.StoredHypotheses)?.Normalize();
+
+            string? single = BrowserStorage.GetItem(SingleHypothesisKey);
+            var plan = single is null ? null : JsonSerializer.Deserialize(single, StorageJson.Default.StoredHypothesis);
+            return plan is null ? null : StoredHypotheses.Of(plan);
         }
         catch (JsonException)
         {
@@ -63,8 +69,8 @@ public static class ProfileStorage
         }
     }
 
-    public static void SaveHypothesis(StoredHypothesis h) =>
-        BrowserStorage.SetItem(HypothesisKey, JsonSerializer.Serialize(h, StorageJson.Default.StoredHypothesis));
+    public static void SaveHypotheses(StoredHypotheses h) =>
+        BrowserStorage.SetItem(HypothesesKey, JsonSerializer.Serialize(h, StorageJson.Default.StoredHypotheses));
 }
 
 public sealed class StoredProfile
@@ -121,6 +127,9 @@ public sealed class StoredHypothesis
     public TrainingExperience Experience { get; set; } = TrainingExperience.Beginner;
     public double? TargetWeightKg { get; set; }
 
+    /// <summary>Все поля — значения, поэтому поверхностной копии достаточно.</summary>
+    public StoredHypothesis Clone() => (StoredHypothesis)MemberwiseClone();
+
     public ForecastInput ToInput() => new()
     {
         Weeks = Weeks,
@@ -161,4 +170,5 @@ public sealed class StoredHypothesis
 
 [JsonSerializable(typeof(StoredProfile))]
 [JsonSerializable(typeof(StoredHypothesis))]
+[JsonSerializable(typeof(StoredHypotheses))]
 internal sealed partial class StorageJson : JsonSerializerContext;

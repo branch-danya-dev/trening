@@ -6,9 +6,10 @@ namespace WorkoutCalculator.BodyModel.Consistency;
 /// <param name="Text">Мягкая подсказка для пользователя — не ошибка, ввод не блокируется.</param>
 public sealed record ConsistencyHint(string Text);
 
-/// <param name="Deviation">(объём сетки − ожидаемый) / ожидаемый: +0,10 — манекен на 10 % объёмнее.</param>
+/// <param name="VolumeLiters">Объём тела по обхватам: манекен с поправкой по ИМТ.</param>
+/// <param name="Deviation">(объём по обхватам − ожидаемый) / ожидаемый: +0,10 — на 10 % объёмнее.</param>
 public sealed record ConsistencyReport(
-    double MeshVolumeLiters,
+    double VolumeLiters,
     double ExpectedVolumeLiters,
     double Deviation,
     IReadOnlyList<ConsistencyHint> Hints);
@@ -17,10 +18,12 @@ public sealed record ConsistencyReport(
 public static class ConsistencyChecker
 {
     /// <summary>
-    /// Допустимое расхождение объёма сетки и объёма из веса. Манекен грубый (предплечья, голени,
-    /// голова — производные), поэтому порог широкий: подсказываем только явные нестыковки.
+    /// Допустимое расхождение объёма по обхватам и объёма из веса. На людях ANSUR II (% жира — по формуле
+    /// ВМС США) с поправкой по ИМТ разброс — 2,2–2,5 %, дальше 8 % уходят 0–0,1 % людей
+    /// (tools/WorkoutCalculator.AnsurFit --validate). Свой % жира с весов или калипера тоже ошибается
+    /// на несколько процентов, так что 8 % — около трёх стандартных отклонений: подсказка — к ошибке ввода.
     /// </summary>
-    public const double VolumeTolerance = 0.12;
+    public const double VolumeTolerance = 0.08;
 
     /// <summary>
     /// Воздух в лёгких при спокойном выдохе (функциональная остаточная ёмкость, ≈ 2,5–3 л у взрослых).
@@ -32,12 +35,31 @@ public static class ConsistencyChecker
     public static double ExpectedVolumeLiters(BodyProfile p) =>
         BodyDensity.TissueVolumeLiters(p.WeightKg, p.BodyFatPercent) + LungAirLiters(p.Sex);
 
-    public static ConsistencyReport Check(IBodyShape body) => Check(body.Profile, body.VolumeLiters);
+    /// <summary>
+    /// Поправка объёма манекена по ИМТ, подобранная на людях ANSUR II (tools/WorkoutCalculator.AnsurFit
+    /// --validate): у худых манекен по обхватам выходит объёмнее реального тела, у полных — меньше.
+    /// Вероятная причина — живот между уровнями замеров у полных и форма сечений, которую эллипс
+    /// передаёт неточно. Отклонение = Offset + Slope · (ИМТ − 25), ИМТ ограничен 16…45.
+    /// </summary>
+    public static (double Offset, double Slope) MannequinBias(Sex sex) => sex == Sex.Male
+        ? (0.0251, -0.00404)   // 4081 мужчина
+        : (-0.0101, -0.00363); // 1978 женщин
 
-    public static ConsistencyReport Check(BodyProfile p, double meshVolumeLiters)
+    /// <summary>Множитель к объёму манекена, который убирает перекос по ИМТ.</summary>
+    public static double MannequinCalibration(Sex sex, double bmi)
+    {
+        var (offset, slope) = MannequinBias(sex);
+        return 1 / (1 + offset + slope * (Math.Clamp(bmi, 16, 45) - 25));
+    }
+
+    /// <summary>Объём по обхватам — по манекену с поправкой по ИМТ.</summary>
+    public static ConsistencyReport Check(Mannequin mannequin) =>
+        Check(mannequin.Profile, mannequin.VolumeLiters * MannequinCalibration(mannequin.Profile.Sex, mannequin.Profile.Bmi));
+
+    public static ConsistencyReport Check(BodyProfile p, double volumeLiters)
     {
         double expected = ExpectedVolumeLiters(p);
-        double deviation = meshVolumeLiters / expected - 1;
+        double deviation = volumeLiters / expected - 1;
 
         var hints = new List<ConsistencyHint>();
         if (deviation > VolumeTolerance)
@@ -50,7 +72,7 @@ public static class ConsistencyChecker
                 "чем следует из веса и % жира. Возможно, обхваты занижены или вес указан с одеждой."));
 
         hints.AddRange(PlausibilityHints(p));
-        return new ConsistencyReport(meshVolumeLiters, expected, deviation, hints);
+        return new ConsistencyReport(volumeLiters, expected, deviation, hints);
     }
 
     /// <summary>Сочетания, которые встречаются редко и чаще говорят об ошибке ввода.</summary>

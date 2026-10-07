@@ -1,4 +1,5 @@
 using WorkoutCalculator.BodyModel;
+using WorkoutCalculator.BodyModel.Anthropometry;
 using WorkoutCalculator.BodyModel.Consistency;
 using WorkoutCalculator.BodyModel.Geometry;
 
@@ -29,6 +30,36 @@ public class ConsistencyTests
 
         Assert.InRange(report.Deviation, -0.05, 0.05);
         Assert.Empty(report.Hints);
+    }
+
+    [Theory]
+    [InlineData(Sex.Male)]
+    [InlineData(Sex.Female)]
+    public void Calibration_RemovesBmiBias(Sex sex)
+    {
+        var (offset, slope) = ConsistencyChecker.MannequinBias(sex);
+
+        // При ИМТ 25 убирается только средний сдвиг; у худых манекен объёмнее — поправка уменьшает объём
+        Assert.Equal(1 / (1 + offset), ConsistencyChecker.MannequinCalibration(sex, 25), 12);
+        Assert.True(slope < 0);
+        Assert.True(ConsistencyChecker.MannequinCalibration(sex, 19) < ConsistencyChecker.MannequinCalibration(sex, 33));
+        // За пределами данных ИМТ не экстраполируем
+        Assert.Equal(ConsistencyChecker.MannequinCalibration(sex, 45), ConsistencyChecker.MannequinCalibration(sex, 60), 12);
+
+        var m = Mannequin.Build(BodyDefaults.For(sex));
+        double raw = m.VolumeLiters / ConsistencyChecker.ExpectedVolumeLiters(m.Profile) - 1;
+        Assert.Equal((1 + raw) * ConsistencyChecker.MannequinCalibration(sex, m.Profile.Bmi) - 1,
+            ConsistencyChecker.Check(m).Deviation, 12);
+    }
+
+    [Theory]
+    [InlineData(TorsoLevel.Chest)]
+    [InlineData(TorsoLevel.Waist)]
+    [InlineData(TorsoLevel.Hips)]
+    public void Sections_GetRounderWithBmi(TorsoLevel level)
+    {
+        foreach (var sex in new[] { Sex.Male, Sex.Female })
+            Assert.True(SectionShapes.DepthToWidth(level, sex, 32) > SectionShapes.DepthToWidth(level, sex, 20), $"{sex} {level}");
     }
 
     [Fact]
