@@ -19,6 +19,16 @@ public static class Fmt
     public static string N(double v, int decimals = 0) =>
         v.ToString(decimals == 0 ? "#,0" : "#,0." + new string('0', decimals), Ru);
 
+    private static readonly string[] Months =
+        ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+
+    /// <summary>Дата и время по часам браузера: «7 октября 2026, 17:05».</summary>
+    public static string DateTime(DateTimeOffset when)
+    {
+        var local = when.ToLocalTime();
+        return $"{local.Day} {Months[local.Month - 1]} {local.Year}, {local.Hour:00}:{local.Minute:00}";
+    }
+
     /// <summary>Со знаком: «+1,2», «−0,8», «0».</summary>
     public static string Signed(double v, int decimals = 1)
     {
