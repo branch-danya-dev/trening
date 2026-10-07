@@ -1,6 +1,10 @@
 // Подбирает коэффициенты AnsurGirths и сверяет уровни Proportions по открытым данным ANSUR II.
 //
 //   dotnet run --project tools/WorkoutCalculator.AnsurFit -- "<ANSUR II MALE Public.csv>" "<ANSUR II FEMALE Public.csv>"
+//       [--validate [<makehuman-hm08.bin>]]
+//
+// С --validate ещё проверяет обе модели на реальных людях (см. Validation.cs). Без пути к данным MakeHuman
+// берётся src/WorkoutCalculator.Body3D/wwwroot/data/makehuman-hm08.bin от текущей папки, если он есть.
 //
 // ANSUR II — антропометрическое обследование армии США 2010–2012 гг., открытый выпуск:
 // https://ph.health.mil/topics/workplacehealth/ergo/Pages/Anthropometric-Database.aspx
@@ -8,12 +12,21 @@
 using System.Globalization;
 using WorkoutCalculator;
 using WorkoutCalculator.BodyModel.Anthropometry;
+using WorkoutCalculator.BodyModel.MakeHuman;
 
 if (args.Length < 2)
 {
-    Console.Error.WriteLine("Использование: <ANSUR II MALE Public.csv> <ANSUR II FEMALE Public.csv>");
+    Console.Error.WriteLine("Использование: <ANSUR II MALE Public.csv> <ANSUR II FEMALE Public.csv> [--validate [<makehuman-hm08.bin>]]");
     return 2;
 }
+
+bool validate = args.Length > 2 && args[2] == "--validate";
+string makeHumanPath = args.Length > 3 ? args[3] : Path.Combine("src", "WorkoutCalculator.Body3D", "wwwroot", "data", MakeHumanData.FileName);
+MakeHumanModel? makeHuman = validate && File.Exists(makeHumanPath)
+    ? new MakeHumanModel(MakeHumanData.Read(File.ReadAllBytes(makeHumanPath)))
+    : null;
+if (validate && makeHuman is null)
+    Console.WriteLine($"Данных MakeHuman нет ({makeHumanPath}) — проверяю только манекен.");
 
 var columns = new Dictionary<AnsurGirth, string>
 {
@@ -70,6 +83,13 @@ foreach (var (sex, path) in new[] { (Sex.Male, args[0]), (Sex.Female, args[1]) }
     Level("crotchheight", Proportions.CrotchHeight, "промежность (CrotchHeight)");
     Level("kneeheightmidpatella", Proportions.KneeHeight, "середина надколенника (KneeHeight)");
     Level("lateralmalleolusheight", Proportions.AnkleHeight, "лодыжка (AnkleHeight)");
+
+    if (validate)
+    {
+        var people = Validation.Profiles(sex, data);
+        Validation.Mannequins(people);
+        if (makeHuman is not null) Validation.MakeHumanBodies(people, makeHuman);
+    }
 }
 
 if (mismatch)
@@ -141,4 +161,7 @@ sealed record Table(string[] Header, string[][] Rows)
 
     /// <summary>Вес в килограммах (в файле — десятые доли килограмма).</summary>
     public double[] Kg(string name) => Column(name, 0.1);
+
+    /// <summary>Значения как есть (например, возраст в годах).</summary>
+    public double[] Raw(string name) => Column(name, 1);
 }
