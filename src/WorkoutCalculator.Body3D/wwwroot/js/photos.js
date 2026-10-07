@@ -317,7 +317,7 @@ function dosDateTime(d) {
 }
 
 /** files: [{ name, data: Uint8Array }] → zip (метод «store», имена в UTF-8). */
-function zip(files) {
+export function zip(files) {
     const encoder = new TextEncoder();
     const { time, date } = dosDateTime(new Date());
     const locals = [], centrals = [];
@@ -366,7 +366,7 @@ function zip(files) {
 }
 
 /** Оглавление zip: Map имя → { read(): Promise<Uint8Array> }. Поддерживаются «store» и deflate. */
-function unzip(bytes) {
+export function unzip(bytes) {
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     let endAt = -1;
     for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 22 - 65535); i--) {
