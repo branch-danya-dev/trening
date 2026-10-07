@@ -65,6 +65,17 @@ public sealed class MakeHumanModel
     /// <summary>Пределы слоя мягких тканей в самой толстой зоне, м: тоньше формы MakeHuman на 15 мм … толще на 45 мм.</summary>
     public const double MinLayer = -0.015, MaxLayer = 0.045;
 
+    /// <summary>
+    /// Какую долю «площадь слоя × толщина» объём набирает на деле: после слоя таргеты замеров снова
+    /// подгоняют обхваты и снимают бо́льшую часть добавленного. У людей ANSUR II — 0,1–0,4, медиана 0,28.
+    /// С этой долей делается первый шаг подбора слоя под вес, и к ней возвращаемся, если измеренный наклон
+    /// неправдоподобен.
+    /// </summary>
+    public const double LayerVolumeShare = 0.28;
+
+    /// <summary>Сколько раз подбор слоя под вес перестраивает тело (каждый раз — с подгонкой обхватов).</summary>
+    public const int MaxLayerSteps = 3;
+
     /// <summary>Бедро меряется на 1,5 % роста ниже промежности — сразу под ягодичной складкой.</summary>
     public const double ThighBelowCrotch = 0.015;
 
@@ -225,20 +236,22 @@ public sealed class MakeHumanModel
         {
             state.FitGirths(GirthTolerance, maxSweeps: 6);
             double expected = ConsistencyChecker.ExpectedVolumeLiters(p) / 1000;
-            double v0 = Volume(pos);
-            if (Math.Abs(v0 - expected) > 0.003 * expected)
+            double typical = LayerVolumeShare * cache.LayerArea;
+            double slope = typical, v = Volume(pos);
+            for (int step = 0; step < MaxLayerSteps && Math.Abs(v - expected) > 0.003 * expected; step++)
             {
-                double d0 = fit.LayerM;
-                double d1 = Math.Clamp(d0 + (expected - v0) / cache.LayerArea, MinLayer, MaxLayer);
-                state.ShiftLayer(d1 - d0);
+                double d = fit.LayerM;
+                double next = Math.Clamp(d + (expected - v) / slope, MinLayer, MaxLayer);
+                if (next == d) break; // упёрлись в предел
+                state.ShiftLayer(next - d);
                 state.FitGirths(GirthTolerance, maxSweeps: 6);
-                double v1 = Volume(pos);
-                if (Math.Abs(v1 - expected) > 0.003 * expected && Math.Abs(v1 - v0) > 1e-7 && d1 != d0)
-                {
-                    double d2 = Math.Clamp(d1 + (expected - v1) * (d1 - d0) / (v1 - v0), MinLayer, MaxLayer);
-                    state.ShiftLayer(d2 - d1);
-                    state.FitGirths(GirthTolerance, maxSweeps: 6);
-                }
+                double vNext = Volume(pos);
+                // Дальше — секущей, но только по правдоподобному наклону: после короткого шага подгонка
+                // обхватов может перестроить таргеты так, что объём будто бы падает от слоя, и секущая
+                // уводила слой в противоположный предел (тело на 5–10 % объёмнее, чем по весу)
+                double measured = (vNext - v) / (next - d);
+                slope = measured > 0.05 * cache.LayerArea && measured < cache.LayerArea ? measured : typical;
+                v = vNext;
             }
         }
 
@@ -677,7 +690,8 @@ public sealed class MakeHumanBody : IBodyShape
 
     /// <summary>
     /// Слой упёрся в нижний предел: даже с самыми тонкими тканями модель объёмнее, чем следует из веса.
-    /// У худых это свойство формы MakeHuman, а не ошибка в замерах (их проверяет манекен).
+    /// У людей ANSUR II так чаще у полных мужчин: форма MakeHuman с их обхватами объёмнее тела. Это предел
+    /// модели, а не ошибка в замерах (их проверяет манекен).
     /// </summary>
     public bool LayerAtMin => Fit.LayerM <= MakeHumanModel.MinLayer + 1e-6;
 

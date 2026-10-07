@@ -120,6 +120,27 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
     }
 
     [Theory]
+    [InlineData(25, 187.1, 125.8, 29.5, 128.0, 113.5, 115.9, 40.1, 74.8, 44.1, 47.7, 20.1)]
+    [InlineData(41, 179.2, 108.2, 30.2, 121.7, 110.0, 115.8, 39.4, 73.2, 41.7, 44.2, 18.5)]
+    public void Layer_StopsAtLimit_OnlyOnTheSideTheVolumeNeeds(int age, double height, double weight, double fat,
+        double chest, double waist, double hips, double biceps, double thigh, double neck, double calf, double wrist)
+    {
+        // Полные мужчины из ANSUR II: после первого короткого шага подгонка обхватов «съедала» слой, наклон
+        // объёма выходил отрицательным, и секущая уводила слой в верхний предел — тело на 9–11 % объёмнее веса
+        var p = new BodyProfile
+        {
+            Sex = Sex.Male, Age = age, HeightCm = height, WeightKg = weight, BodyFatPercent = fat,
+            ChestCm = chest, WaistCm = waist, HipsCm = hips, BicepsCm = biceps, ThighCm = thigh,
+            NeckCm = neck, CalfCm = calf, WristCm = wrist,
+        };
+        var body = fx.Model.Build(p);
+        double dev = body.VolumeDeviation;
+
+        Assert.True(Math.Abs(dev) <= 0.03 || (dev > 0 ? body.LayerAtMin : body.LayerAtMax),
+            $"объём {dev:+0.0%;-0.0%} от веса, слой {body.LayerMm:0} мм");
+    }
+
+    [Theory]
     [InlineData(Sex.Male)]
     [InlineData(Sex.Female)]
     public void Layer_IsThickOnTrunkAndThinOnHandsFeetAndFace(Sex sex)
