@@ -136,6 +136,32 @@ public class ForecastTests
     }
 
     [Fact]
+    public void Deficit_MetabolicAdaptationFollowsHall()
+    {
+        var plan = Plan(-500, strength: true);
+        var r = ForecastEngine.Run(Start(), plan);
+
+        // Термический эффект пищи — сразу 10 % от изменения питания; адаптивный термогенез — 14 %,
+        // нарастает с постоянной 14 дней: в первую неделю в среднем ~21 % от своего уровня
+        double share = 2 * (1 - Math.Exp(-0.5));
+        Assert.Equal(-50 - 70 * (1 - share), r.Weeks[0].AdaptationKcalPerDay, 6);
+        Assert.Equal(-120, r.AdaptationKcalPerDay, 0);
+        Assert.Equal(ForecastEngine.Expenditure(Start(), Start().WeightKg, plan).Total, r.MaintenanceKcalPerDay, 9);
+        Assert.Equal(r.MaintenanceKcalPerDay + r.Weeks[0].AdaptationKcalPerDay, r.Weeks[0].ExpenditureKcalPerDay, 6);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(+400)]
+    public void Adaptation_IsZeroAtMaintenanceAndPositiveInSurplus(double offset)
+    {
+        var r = ForecastEngine.Run(Start(), Plan(offset, strength: true));
+
+        if (offset == 0) Assert.All(r.Weeks, w => Assert.Equal(0, w.AdaptationKcalPerDay, 9));
+        else Assert.InRange(r.AdaptationKcalPerDay, 0.2 * offset, 0.25 * offset);
+    }
+
+    [Fact]
     public void Deficit_AllGirthsShrink_NoSpotReduction()
     {
         var r = ForecastEngine.Run(Start(), Plan(-500, strength: true));

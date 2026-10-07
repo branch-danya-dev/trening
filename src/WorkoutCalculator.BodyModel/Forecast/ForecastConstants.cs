@@ -64,6 +64,24 @@ public static class ForecastConstants
     /// </summary>
     public const double GlycogenWaterKcalPerKg = 1000;
 
+    // --- Адаптация обмена (Hall et al., Lancet, 2011, приложение с уравнениями модели) ---
+
+    /// <summary>
+    /// Термический эффект пищи: на переваривание уходит около 10 % съеденного, поэтому при изменении
+    /// питания расход сразу меняется на 10 % от этого изменения (β_TEF = 0,1).
+    /// </summary>
+    public const double ThermicEffectOfFood = 0.10;
+
+    /// <summary>
+    /// Адаптивный термогенез: сверх снижения веса расход меняется ещё на 14 % от изменения питания
+    /// (β_AT = 0,14). Изменение питания считается от поддержания в начале плана — по всему дефициту
+    /// или профициту плана, даже если его даёт кардио (у Холла — только питание; так проще и осторожнее).
+    /// </summary>
+    public const double AdaptiveThermogenesis = 0.14;
+
+    /// <summary>Адаптивный термогенез нарастает с постоянной времени 14 дней (τ_AT).</summary>
+    public const double AdaptiveThermogenesisDays = 14;
+
     /// <summary>Порог предупреждения о темпе похудения: 1 % веса в неделю.</summary>
     public const double MaxWeeklyLossFraction = 0.01;
 

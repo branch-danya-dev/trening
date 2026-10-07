@@ -25,6 +25,7 @@ public sealed class ForecastInput
 
 /// <param name="Week">0 — исходное состояние.</param>
 /// <param name="WeightKg">Вес на весах: жир + безжировая масса + изменение воды и гликогена.</param>
+/// <param name="ExpenditureKcalPerDay">Расход за неделю в среднем за день, с адаптацией обмена.</param>
 /// <param name="BalanceKcalPerDay">Потребление минус расход; отрицательный — дефицит.</param>
 public sealed record ForecastWeek(
     int Week,
@@ -37,6 +38,12 @@ public sealed record ForecastWeek(
 {
     /// <summary>Изменение запаса гликогена с водой от исходного, кг: на весах есть, на обхватах — нет.</summary>
     public double GlycogenWaterKg { get; init; }
+
+    /// <summary>
+    /// Адаптация обмена в среднем за неделю, ккал/день: термический эффект пищи и адаптивный термогенез.
+    /// Уже входит в <see cref="ExpenditureKcalPerDay"/>; при дефиците отрицательная.
+    /// </summary>
+    public double AdaptationKcalPerDay { get; init; }
 
     public double FatPercent => FatMassKg / WeightKg * 100;
 }
@@ -53,8 +60,11 @@ public sealed class ForecastResult
     /// <summary>Расход за одну силовую тренировку в начале (активные ккал).</summary>
     public required double StrengthKcalPerSession { get; init; }
 
-    /// <summary>Расход в первую неделю, ккал/день: при таком потреблении вес стоит.</summary>
-    public double StartExpenditureKcalPerDay => Weeks[0].ExpenditureKcalPerDay;
+    /// <summary>Поддержание в начале плана, ккал/день: при таком потреблении вес стоит.</summary>
+    public required double MaintenanceKcalPerDay { get; init; }
+
+    /// <summary>Адаптация обмена к концу срока, ккал/день (при дефиците отрицательная).</summary>
+    public double AdaptationKcalPerDay => Weeks[^1].AdaptationKcalPerDay;
 
     /// <summary>Изменение веса на весах, кг (вместе с водой и гликогеном).</summary>
     public double WeightChangeKg => End.WeightKg - Start.WeightKg;

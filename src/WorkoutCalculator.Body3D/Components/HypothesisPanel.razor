@@ -121,6 +121,11 @@
             Жир @Fmt.Signed(f.FatChangeKg) кг, безжировая ткань @Fmt.Signed(f.LeanChangeKg) кг,
             вода и гликоген @Fmt.Signed(f.WaterChangeKg) кг.
             Средний баланс @Fmt.Signed(f.Weeks.Take(f.Weeks.Count - 1).DefaultIfEmpty(f.Weeks[0]).Average(w => w.BalanceKcalPerDay), 0) ккал в день.
+            @if (Math.Abs(f.AdaptationKcalPerDay) >= 1)
+            {
+                <text>Обмен подстроится под питание: к концу срока расход на @Fmt.N(Math.Abs(f.AdaptationKcalPerDay)) ккал в день
+                @(f.AdaptationKcalPerDay < 0 ? "ниже" : "выше") (модель Холла).</text>
+            }
         </div>
         @if (f.Warnings.Count > 0)
         {
@@ -132,8 +137,8 @@
             </div>
         }
         <div class="disclaimer" style="margin-top: 10px">
-            Это грубая оценка, а не обещание. Модель простая: адаптация обмена веществ, колебания воды,
-            гормоны и реальная приверженность плану в ней не учтены.
+            Это грубая оценка, а не обещание. Обмен веществ у всех подстраивается по-разному, а колебания воды,
+            гормоны и реальная приверженность плану в модели не учтены.
         </div>
     </div>
 

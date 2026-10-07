@@ -5,7 +5,9 @@ namespace WorkoutCalculator.BodyModel.Forecast;
 /// <summary>
 /// Прогноз изменения тела по неделям. Каждую неделю:
 /// 1) БМР по Миффлину — Сан Жеору от текущего веса (снижение расхода при похудении);
-/// 2) расход = БМР × коэффициент активности + активные ккал тренировок (кардио — через EnergyCalculator);
+/// 2) расход = БМР × коэффициент активности + активные ккал тренировок (кардио — через EnergyCalculator)
+///    + адаптация обмена по Холлу: термический эффект пищи и адаптивный термогенез от того, насколько
+///    питание отличается от поддержания в начале плана;
 /// 3) баланс = потребление − расход;
 /// 4) вода и гликоген: при дефиците запас за 1–2 недели уходит, при профиците — пополняется;
 ///    его энергия входит в баланс, а масса — в вес на весах;
@@ -25,20 +27,39 @@ public static class ForecastEngine
         var history = new List<ForecastWeek>();
         double maxWeeklyLoss = 0;
         bool hitFatFloor = false;
-        double cardioStart = 0, strengthStart = 0;
+        double cardioStart = 0, strengthStart = 0, maintenance = 0;
+
+        // Адаптивный термогенез нарастает экспоненциально: за неделю остаётся e^(−7/τ) от разрыва
+        // до своего уровня, а в среднем за неделю — доля τ/7 · (1 − e^(−7/τ))
+        double atDecay = Math.Exp(-7 / C.AdaptiveThermogenesisDays);
+        double atWeekShare = C.AdaptiveThermogenesisDays / 7 * (1 - atDecay);
+        double adaptive = 0;
 
         for (int week = 0; week <= weeks; week++)
         {
             double weight = fat + lean + water;
-            var (bmr, expenditure, cardio, strength) = Expenditure(start, weight, input);
-            double balance = input.IntakeKcalPerDay - expenditure;
-            history.Add(new ForecastWeek(week, weight, fat, lean, bmr, expenditure, balance) { GlycogenWaterKg = water });
+            var (bmr, baseExpenditure, cardio, strength) = Expenditure(start, weight, input);
             if (week == 0)
             {
+                maintenance = baseExpenditure;
                 cardioStart = cardio;
                 strengthStart = strength;
             }
+
+            // Адаптация: на сколько питание отличается от поддержания в начале плана
+            double intakeChange = input.IntakeKcalPerDay - maintenance;
+            double adaptiveTarget = C.AdaptiveThermogenesis * intakeChange;
+            double adaptation = C.ThermicEffectOfFood * intakeChange
+                              + adaptiveTarget + (adaptive - adaptiveTarget) * atWeekShare;
+            double expenditure = baseExpenditure + adaptation;
+            double balance = input.IntakeKcalPerDay - expenditure;
+            history.Add(new ForecastWeek(week, weight, fat, lean, bmr, expenditure, balance)
+            {
+                GlycogenWaterKg = water,
+                AdaptationKcalPerDay = adaptation,
+            });
             if (week == weeks) break;
+            adaptive = adaptiveTarget + (adaptive - adaptiveTarget) * atDecay;
 
             // Вода и гликоген идут к уровню, который задаёт текущий баланс; их энергия — часть баланса
             double effect = Math.Clamp(balance / C.GlycogenWaterFullEffectKcal, -1, 1);
@@ -95,6 +116,7 @@ public static class ForecastEngine
             End = end,
             Weeks = history,
             Warnings = warnings,
+            MaintenanceKcalPerDay = maintenance,
             CardioKcalPerSession = cardioStart,
             StrengthKcalPerSession = strengthStart,
         };
