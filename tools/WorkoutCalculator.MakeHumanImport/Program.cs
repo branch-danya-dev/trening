@@ -3,8 +3,9 @@
 //   dotnet run --project tools/WorkoutCalculator.MakeHumanImport -- <makehuman/data> <выходной файл> [<источник>]
 //
 // <makehuman/data> — папка makehuman/data из репозитория makehumancommunity/makehuman.
-// Берутся только ассеты под CC0: базовая сетка hm08 и таргеты. Код MakeHuman (AGPL) не используется.
+// Берутся только ассеты под CC0: базовая сетка hm08, таргеты и веса скелета. Код MakeHuman (AGPL) не используется.
 using System.Globalization;
+using System.Text.Json;
 using WorkoutCalculator.BodyModel.MakeHuman;
 
 if (args.Length < 2)
@@ -106,18 +107,43 @@ foreach (string sex in sexes)
     }
 }
 
-foreach (string measure in new[] { "bust", "waist", "hips", "upperarm", "thigh", "neck", "calf", "wrist" })
+foreach (string measure in new[] { "bust", "waist", "hips", "upperarm", "thigh", "neck", "calf", "wrist", "knee", "ankle" })
     foreach (string dir in new[] { "incr", "decr" })
         Add($"measure/{measure}-{dir}", ReadTarget(Path.Combine("measure", $"measure-{measure}-circ-{dir}.target")));
 
-var data = new MakeHumanData(source, bodyCount, positions, quads, landmarks, targets);
+// --- Зоны тела: веса скелета MakeHuman (rigs/default_weights.mhw, тоже CC0), сложенные по зонам ---
+var zoneSums = new Dictionary<string, double[]>();
+using (var json = JsonDocument.Parse(File.ReadAllText(Path.Combine(dataDir, "rigs", "default_weights.mhw"))))
+{
+    foreach (var bone in json.RootElement.GetProperty("weights").EnumerateObject())
+    {
+        string zone = ZoneOf(bone.Name);
+        if (!zoneSums.TryGetValue(zone, out var sums)) zoneSums[zone] = sums = new double[bodyCount];
+        foreach (var pair in bone.Value.EnumerateArray())
+        {
+            int v = pair[0].GetInt32();
+            if (v < bodyCount) sums[v] += pair[1].GetDouble();
+        }
+    }
+}
+var zones = new Dictionary<string, byte[]>();
+foreach (var name in zoneSums.Keys) zones[name] = new byte[bodyCount];
+for (int v = 0; v < bodyCount; v++)
+{
+    double total = zoneSums.Values.Sum(s => s[v]);
+    if (total <= 0) throw new InvalidDataException($"У вершины {v} нет весов скелета.");
+    foreach (var (name, sums) in zoneSums)
+        zones[name][v] = (byte)Math.Round(sums[v] / total * 255);
+}
+
+var data = new MakeHumanData(source, bodyCount, positions, quads, landmarks, targets, zones);
 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
 using (var file = File.Create(output))
     data.Write(file);
 
 Console.WriteLine($"Вершин тела: {bodyCount}, всего: {remap.Count}, четырёхугольников: {quads.Length / 4}");
 Console.WriteLine($"Ориентиров: {landmarks.Count}, таргетов: {targets.Count}, " +
-                  $"записей в таргетах: {targets.Values.Sum(t => t.Indices.Length)}");
+                  $"записей в таргетах: {targets.Values.Sum(t => t.Indices.Length)}, зон: {string.Join(", ", zones.Keys.Order())}");
 Console.WriteLine($"Файл: {output}, {new FileInfo(output).Length / 1024.0:0} КБ");
 return 0;
 
@@ -157,3 +183,28 @@ static Dictionary<int, float[]> Average(Dictionary<int, float[]>[] parts)
 }
 
 static float Parse(string s) => float.Parse(s, CultureInfo.InvariantCulture);
+
+// Кость скелета MakeHuman → зона тела для слоя мягких тканей
+static string ZoneOf(string bone)
+{
+    string b = bone.EndsWith(".L", StringComparison.Ordinal) || bone.EndsWith(".R", StringComparison.Ordinal) ? bone[..^2] : bone;
+    string[] face = ["head", "jaw", "eye", "oculi", "orbicularis", "levator", "oris", "risorius", "special", "tongue", "temporalis"];
+    return b switch
+    {
+        "neck01" or "neck02" or "neck03" => "neck",
+        "spine01" or "clavicle" => "upper-trunk",
+        "spine02" or "breast" => "chest",
+        "spine03" or "spine04" or "spine05" or "root" => "abdomen",
+        "pelvis" => "pelvis",
+        "shoulder01" or "upperarm01" or "upperarm02" => "upper-arm",
+        "lowerarm01" or "lowerarm02" => "forearm",
+        "upperleg01" or "upperleg02" => "thigh",
+        "lowerleg01" or "lowerleg02" => "lower-leg",
+        "foot" => "foot",
+        _ when b.StartsWith("toe", StringComparison.Ordinal) => "foot",
+        "wrist" => "hand",
+        _ when b.StartsWith("metacarpal", StringComparison.Ordinal) || b.StartsWith("finger", StringComparison.Ordinal) => "hand",
+        _ when face.Any(f => b.StartsWith(f, StringComparison.Ordinal)) => "head",
+        _ => throw new InvalidDataException($"Неизвестная кость скелета: {bone}"),
+    };
+}

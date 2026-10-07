@@ -159,7 +159,8 @@
     {
         try
         {
-            var bytes = await Http.GetByteArrayAsync("data/" + MakeHumanData.FileName);
+            // Версия в адресе — чтобы браузер не взял из кэша файл старого формата
+            var bytes = await Http.GetByteArrayAsync($"data/{MakeHumanData.FileName}?v={MakeHumanData.Version}");
             _mh = new MakeHumanModel(MakeHumanData.Read(bytes));
             _mhStatus = null;
         }
@@ -247,16 +248,29 @@
             .Select(m => $"MakeHuman не смог точно подогнать «{BodyProfile.GirthName(m.Girth)}»: " +
                          $"{Fmt.N(m.Got, 1)} см вместо {Fmt.N(m.Wanted, 1)} см.")
             .ToList();
-        if (body.LayerAtLimit)
-            hints.Add("Чтобы объём модели MakeHuman сошёлся с весом, не хватило предельного слоя мягких тканей — " +
+        if (body.LayerAtMax && body.VolumeDeviation < -0.02)
+            hints.Add("Для таких размеров у MakeHuman не хватает запаса формы: объём модели на " +
+                      $"{Fmt.N(-body.VolumeDeviation * 100, 0)} % меньше, чем следует из веса. " +
+                      "Замеры при этом проверяются по манекену.");
+        if (body.LayerAtMin && body.VolumeDeviation > 0.02)
+            hints.Add("Даже без слоя мягких тканей модель MakeHuman больше, чем следует из веса, — " +
                       "замеры и вес, скорее всего, не согласуются.");
         return hints;
     }
 
-    private string? ModelNote() => _current is MakeHumanBody body
-        ? $"MakeHuman: обхваты подогнаны таргетами замеров; чтобы объём сошёлся с весом, добавлен слой мягких тканей " +
-          $"{Fmt.Signed(body.LayerMm, 1)} мм."
-        : null;
+    private string? ModelNote()
+    {
+        if (_current is not MakeHumanBody body) return null;
+        double mm = body.LayerMm;
+        string layer = Math.Abs(mm) < 1
+            ? "Объём сошёлся с весом без слоя мягких тканей."
+            : mm > 0
+                ? $"Чтобы объём сошёлся с весом, добавлен слой мягких тканей: до {Fmt.N(mm, 0)} мм на животе, ягодицах " +
+                  "и спине, тоньше на руках и голенях, почти нет на кистях, стопах и лице."
+                : $"Чтобы объём сошёлся с весом, мягкие ткани сделаны тоньше формы MakeHuman — до {Fmt.N(-mm, 0)} мм.";
+        return "MakeHuman: обхваты подогнаны таргетами замеров, а где замеров нет (колено, щиколотка, неуказанные) — " +
+               "по оценке ANSUR II. " + layer;
+    }
 
     /// <summary>
     /// Перестройка не чаще, чем успевает: пока строится сетка, новые значения ползунков только

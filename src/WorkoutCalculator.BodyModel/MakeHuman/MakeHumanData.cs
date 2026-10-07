@@ -38,8 +38,8 @@ public sealed class SparseTarget
 }
 
 /// <summary>
-/// Данные MakeHuman, нужные приложению: базовая сетка hm08 (только тело), точки суставов и таргеты.
-/// Источник — makehumancommunity/makehuman, ассеты под лицензией CC0 1.0. Файл собирает
+/// Данные MakeHuman, нужные приложению: базовая сетка hm08 (только тело), точки суставов, таргеты
+/// и зоны тела. Источник — makehumancommunity/makehuman, ассеты под лицензией CC0 1.0. Файл собирает
 /// tools/WorkoutCalculator.MakeHumanImport; формат описан в <see cref="Read"/>.
 /// Координаты — как в MakeHuman (ось Y вверх, лицом к +Z), но в метрах, без масштабирования под рост.
 /// </summary>
@@ -47,10 +47,13 @@ public sealed class MakeHumanData
 {
     public const string FileName = "makehuman-hm08.bin";
     private const string Magic = "MHB1";
-    private const int Version = 1;
+
+    /// <summary>Версия формата: 2 — с зонами тела. Файлы версии 1 читаются без зон.</summary>
+    public const int Version = 2;
 
     public MakeHumanData(string source, int bodyVertexCount, float[] positions, int[] quads,
-        IReadOnlyDictionary<string, int[]> landmarks, IReadOnlyDictionary<string, SparseTarget> targets)
+        IReadOnlyDictionary<string, int[]> landmarks, IReadOnlyDictionary<string, SparseTarget> targets,
+        IReadOnlyDictionary<string, byte[]>? zones = null)
     {
         Source = source;
         BodyVertexCount = bodyVertexCount;
@@ -58,6 +61,10 @@ public sealed class MakeHumanData
         Quads = quads;
         Landmarks = landmarks;
         Targets = targets;
+        Zones = zones ?? new Dictionary<string, byte[]>();
+        foreach (var (name, w) in Zones)
+            if (w.Length != bodyVertexCount)
+                throw new ArgumentException($"Зона {name}: нужен вес для каждой вершины тела.");
 
         // Четырёхугольники → треугольники (0,1,2) и (0,2,3); обход сохраняет нормали наружу
         Triangles = new int[quads.Length / 4 * 6];
@@ -87,6 +94,12 @@ public sealed class MakeHumanData
     public IReadOnlyDictionary<string, int[]> Landmarks { get; }
     public IReadOnlyDictionary<string, SparseTarget> Targets { get; }
 
+    /// <summary>
+    /// Зоны тела (голова, туловище, бедро, кисть…): для каждой вершины тела — доля зоны, 0…255,
+    /// в сумме по зонам ≈ 255. Получены из весов скелета MakeHuman. Пусто — файл версии 1.
+    /// </summary>
+    public IReadOnlyDictionary<string, byte[]> Zones { get; }
+
     public SparseTarget? Target(string name) => Targets.TryGetValue(name, out var t) ? t : null;
 
     /// <summary>
@@ -94,7 +107,8 @@ public sealed class MakeHumanData
     /// int32 всего вершин, float32[всего·3] координаты, int32 число четырёхугольников, uint16[4·n] индексы,
     /// int32 число ориентиров, для каждого — строка-имя, int32 n, uint16[n]; int32 число таргетов,
     /// для каждого — строка-имя, float32 шаг квантования, int32 n, uint16[n] вершины, int16[3·n] смещения
-    /// (смещение = int16 · шаг). Строки — как в BinaryWriter (длина 7-битным кодом + UTF-8).
+    /// (смещение = int16 · шаг). С версии 2 — int32 число зон, для каждой — строка-имя и uint8[число вершин тела].
+    /// Строки — как в BinaryWriter (длина 7-битным кодом + UTF-8).
     /// </summary>
     public static MakeHumanData Read(Stream stream)
     {
@@ -110,7 +124,7 @@ public sealed class MakeHumanData
         var r = new Reader(bytes);
         if (Encoding.ASCII.GetString(r.Bytes(4)) != Magic) throw new InvalidDataException("Это не файл данных MakeHuman.");
         int version = r.Int32();
-        if (version != Version) throw new InvalidDataException($"Неизвестная версия данных MakeHuman: {version}.");
+        if (version is < 1 or > Version) throw new InvalidDataException($"Неизвестная версия данных MakeHuman: {version}.");
 
         string source = r.String();
         int body = r.Int32();
@@ -142,7 +156,18 @@ public sealed class MakeHumanData
             targets[name] = new SparseTarget(name, idx, deltas);
         }
 
-        return new MakeHumanData(source, body, positions, quads, landmarks, targets);
+        var zones = new Dictionary<string, byte[]>();
+        if (version >= 2)
+        {
+            int zoneCount = r.Int32();
+            for (int z = 0; z < zoneCount; z++)
+            {
+                string name = r.String();
+                zones[name] = r.Bytes(body).ToArray();
+            }
+        }
+
+        return new MakeHumanData(source, body, positions, quads, landmarks, targets, zones);
     }
 
     private sealed class Reader(byte[] data)
@@ -217,6 +242,13 @@ public sealed class MakeHumanData
             w.Write(t.Indices.Length);
             foreach (int i in t.Indices) w.Write(checked((ushort)i));
             foreach (float d in t.Deltas) w.Write((short)Math.Round(d / step));
+        }
+
+        w.Write(Zones.Count);
+        foreach (var (name, weights) in Zones)
+        {
+            w.Write(name);
+            w.Write(weights);
         }
     }
 }

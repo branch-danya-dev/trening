@@ -61,6 +61,7 @@ public static class Proportions
     public const double TorsoTopHeight = 0.840;     // основание шеи
     public const double NeckGirthHeight = 0.852;    // середина шеи
     public const double CalfGirthHeight = 0.205;    // самое широкое место голени
+    public const double AnkleGirthHeight = 0.075;   // самое узкое место над лодыжками
 
     /// <summary>Низ бедра — сразу над надколенником (середина надколенника по ANSUR II — 0,277).</summary>
     public const double LowerThighHeight = 0.295;

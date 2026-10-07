@@ -30,13 +30,24 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
         foreach (string landmark in new[] { "joint-neck", "joint-head", "joint-l-shoulder", "joint-l-elbow",
                      "joint-l-upper-leg", "joint-l-knee", "crotch" })
             Assert.True(fx.Data.Landmarks.ContainsKey(landmark), landmark);
-        foreach (string target in new[] { "bust", "waist", "hips", "upperarm", "thigh", "neck" })
+        foreach (string target in new[] { "bust", "waist", "hips", "upperarm", "thigh", "neck", "calf", "wrist", "knee", "ankle" })
         {
             Assert.NotNull(fx.Data.Target($"measure/{target}-incr"));
             Assert.NotNull(fx.Data.Target($"measure/{target}-decr"));
         }
         Assert.NotNull(fx.Data.Target("macro/race-male-young"));
         Assert.NotNull(fx.Data.Target("macro/female-old-maxmuscle-maxweight"));
+    }
+
+    [Fact]
+    public void Data_HasKnownZonesCoveringEveryVertex()
+    {
+        Assert.Equal(SoftTissue.Zones.Order(), fx.Data.Zones.Keys.Order());
+        for (int v = 0; v < fx.Data.BodyVertexCount; v++)
+        {
+            int sum = fx.Data.Zones.Values.Sum(w => w[v]);
+            Assert.InRange(sum, 255 - 6, 255 + 6); // округление долей до байта
+        }
     }
 
     [Fact]
@@ -68,22 +79,29 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
         Assert.Equal(a.Indices, b.Indices);
         float step = a.Deltas.Max(Math.Abs) / short.MaxValue;
         Assert.All(a.Deltas.Zip(b.Deltas), d => Assert.InRange(d.Second - d.First, -step, step));
+        Assert.Equal(fx.Data.Zones.Keys.Order(), copy.Zones.Keys.Order());
+        Assert.All(fx.Data.Zones, z => Assert.Equal(z.Value, copy.Zones[z.Key]));
     }
 
     [Theory]
     [MemberData(nameof(TestProfiles.All), MemberType = typeof(TestProfiles))]
-    public void FittedGirths_MatchInputWithin1Percent(string name, BodyProfile profile)
+    public void AllLevels_FitInputWithin1PercentAndEstimatesWithin2(string name, BodyProfile profile)
     {
         var body = fx.Model.Build(profile);
 
         Assert.Empty(body.Misfits());
-        foreach (var g in body.FittedGirths)
+        Assert.Equal(Enum.GetValues<FitLevel>().Length, body.Results.Count);
+        foreach (var r in body.Results)
         {
-            double measured = body.MeasureGirthCm(g), wanted = profile.GetGirth(g);
-            Assert.True(Math.Abs(measured / wanted - 1) <= 0.01, $"{name}: {g} {measured:0.0} см вместо {wanted:0.0}");
+            Assert.True(Math.Abs(r.Error) <= (r.FromInput ? 0.01 : 0.02),
+                $"{name}: {r.Level} {r.GotCm:0.0} см вместо {r.WantedCm:0.0}");
+            if (MakeHumanModel.GirthOf(r.Level) is Girth g)
+            {
+                Assert.Equal(profile.IsSpecified(g), r.FromInput);
+                Assert.Equal(profile.GetGirth(g), r.WantedCm, 9); // неуказанные — по оценке ANSUR II
+                Assert.Equal(r.GotCm, body.MeasureGirthCm(g));
+            }
         }
-        foreach (var g in new[] { Girth.Neck, Girth.Calf, Girth.Wrist })
-            Assert.Equal(profile.IsSpecified(g), body.FittedGirths.Contains(g));
     }
 
     [Theory]
@@ -93,9 +111,39 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
         var body = fx.Model.Build(profile);
         double expected = ConsistencyChecker.ExpectedVolumeLiters(profile);
 
-        Assert.False(body.LayerAtLimit, name);
+        Assert.False(body.LayerAtMax || body.LayerAtMin, name);
         Assert.InRange(body.VolumeLiters / expected, 0.97, 1.03);
+        Assert.InRange(body.VolumeDeviation, -0.03, 0.03);
         Assert.InRange(body.LayerMm, MakeHumanModel.MinLayer * 1000, MakeHumanModel.MaxLayer * 1000);
+    }
+
+    [Theory]
+    [InlineData(Sex.Male)]
+    [InlineData(Sex.Female)]
+    public void Layer_IsThickOnTrunkAndThinOnHandsFeetAndFace(Sex sex)
+    {
+        var f = fx.Model.LayerFactors(sex);
+        double Mean(string zone)
+        {
+            var w = fx.Data.Zones[zone];
+            var inZone = Enumerable.Range(0, f.Length).Where(v => w[v] > 230).ToArray();
+            return inZone.Average(v => f[v]);
+        }
+
+        Assert.True(Mean("abdomen") > 0.9);
+        Assert.True(Mean("upper-trunk") > 0.9);
+        foreach (string zone in new[] { "hand", "foot", "head" })
+            Assert.True(Mean(zone) < 0.2, $"{zone}: {Mean(zone):0.00}");
+        Assert.All(f, k => Assert.InRange(k, 0, 1.03));
+    }
+
+    [Fact]
+    public void DataWithoutZones_GivesUniformLayer()
+    {
+        var d = fx.Data;
+        var noZones = new MakeHumanData(d.Source, d.BodyVertexCount, d.Positions, d.Quads, d.Landmarks, d.Targets);
+
+        Assert.All(new MakeHumanModel(noZones).LayerFactors(Sex.Male), k => Assert.Equal(1, k));
     }
 
     [Fact]

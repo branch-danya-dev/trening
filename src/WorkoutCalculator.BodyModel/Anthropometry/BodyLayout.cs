@@ -194,7 +194,7 @@ public sealed class BodyLayout
             new TubeKey(S(Proportions.LowerThighHeight), Radius(lowerThigh)),
             new TubeKey(S(0.255), Radius(SectionShapes.BelowKneeGirth(lowerThigh))),
             new TubeKey(S(Proportions.CalfGirthHeight), Radius(p.EffectiveCalfCm), Girth.Calf),
-            new TubeKey(S(0.075), Radius(ankle)),
+            new TubeKey(S(Proportions.AnkleGirthHeight), Radius(ankle)),
             new TubeKey(legLength, 1.05 * Radius(ankle)),
         };
         TubeLayout Leg(string name, int side)
