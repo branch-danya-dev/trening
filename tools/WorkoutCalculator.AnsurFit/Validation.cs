@@ -110,6 +110,7 @@ static class Validation
         if (d.Count == 0) return;
         var sorted = d.Order().ToArray();
         double mean = d.Average(), sd = Math.Sqrt(d.Sum(x => (x - mean) * (x - mean)) / d.Count);
+        mean = Math.Round(mean, 1) + 0.0; // «−0,0» печаталось бы как «-+0.0»: + 0.0 превращает −0 в +0
         int over = d.Count(x => Math.Abs(x) > ConsistencyChecker.VolumeTolerance * 100);
         Console.WriteLine($"  {label,-10} {d.Count,5} чел.: среднее {mean,5:+0.0;-0.0} %, ст. откл. {sd:0.0}, " +
                           $"5–95 %: {Percentile(sorted, 0.05):+0.0;-0.0} … {Percentile(sorted, 0.95):+0.0;-0.0}, " +
