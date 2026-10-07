@@ -69,6 +69,44 @@
 </div>
 
 <div class="card">
+    <div class="card-title">
+        Осанка и форма
+        @if (!Profile.Posture.IsNeutral || !Profile.Form.IsNeutral)
+        {
+            <button class="btn-link" @onclick="ResetPostureAndForm">Сбросить</button>
+        }
+    </div>
+    @if (!PostureApplies)
+    {
+        <div class="param-hint">Меняют только модель MakeHuman — манекен строится по обхватам.</div>
+    }
+    <ParamSlider Label="Наклон таза" Unit="°" Min="Posture.MinPelvicTilt" Max="Posture.MaxPelvicTilt" Step="1"
+                 Hint="Плюс — таз наклонён вперёд: ягодицы отходят назад, прогиб в пояснице глубже"
+                 Value="Profile.Posture.PelvicTilt" ValueChanged="v => Change(p => p.Posture = p.Posture with { PelvicTilt = v })" />
+    <ParamSlider Label="Прогиб в пояснице" Unit="°" Min="Posture.MinLordosis" Max="Posture.MaxLordosis" Step="1"
+                 Hint="Плюс — глубже, минус — поясница площе"
+                 Value="Profile.Posture.Lordosis" ValueChanged="v => Change(p => p.Posture = p.Posture with { Lordosis = v })" />
+    <ParamSlider Label="Сутулость" Unit="°" Min="Posture.MinKyphosis" Max="Posture.MaxKyphosis" Step="1"
+                 Hint="Плюс — круглее верх спины, голова уходит вперёд"
+                 Value="Profile.Posture.Kyphosis" ValueChanged="v => Change(p => p.Posture = p.Posture with { Kyphosis = v })" />
+    <ParamSlider Label="Плечи вперёд" Unit="°" Min="Posture.MinShouldersForward" Max="Posture.MaxShouldersForward" Step="1"
+                 Hint="Плюс — плечи сведены вперёд, минус — расправлены"
+                 Value="Profile.Posture.ShouldersForward" ValueChanged="v => Change(p => p.Posture = p.Posture with { ShouldersForward = v })" />
+    <ParamSlider Label="Живот" Min="-100" Max="100" Step="5"
+                 Hint="При той же талии: плюс — живот вперёд, бока уже; минус — плоский"
+                 Value="Profile.Form.Stomach * 100" ValueChanged="v => Change(p => p.Form = p.Form with { Stomach = v / 100 })" />
+    <ParamSlider Label="Ягодицы" Min="-100" Max="100" Step="5"
+                 Hint="Объём ягодиц при тех же бёдрах"
+                 Value="Profile.Form.Buttocks * 100" ValueChanged="v => Change(p => p.Form = p.Form with { Buttocks = v / 100 })" />
+    <ParamSlider Label="Глубина корпуса" Min="-100" Max="100" Step="5"
+                 Hint="Спереди назад при тех же обхватах: плюс — корпус «бочкой», минус — шире и площе"
+                 Value="Profile.Form.TorsoDepth * 100" ValueChanged="v => Change(p => p.Form = p.Form with { TorsoDepth = v / 100 })" />
+    <ParamSlider Label="V-силуэт" Min="-100" Max="100" Step="5"
+                 Hint="Плюс — плечи и спина шире, талия уже"
+                 Value="Profile.Form.VShape * 100" ValueChanged="v => Change(p => p.Form = p.Form with { VShape = v / 100 })" />
+</div>
+
+<div class="card">
     <div class="card-title">Производные</div>
     <div class="stats">
         <div class="stat">
@@ -134,6 +172,8 @@
     [Parameter] public IReadOnlyList<string> ModelHints { get; set; } = [];
     /// <summary>Пояснение, как выбранная модель построена.</summary>
     [Parameter] public string? ModelNote { get; set; }
+    /// <summary>Осанку и форму учитывает показанная модель (MakeHuman).</summary>
+    [Parameter] public bool PostureApplies { get; set; }
     /// <summary>Подсветить на модели ленту обхвата (null — снять подсветку).</summary>
     [Parameter] public Action<Girth?>? OnHighlight { get; set; }
 
@@ -181,6 +221,12 @@
         p.NeckCm = d.NeckCm;
         p.CalfCm = d.CalfCm;
         p.WristCm = d.WristCm;
+    });
+
+    private Task ResetPostureAndForm() => Change(p =>
+    {
+        p.Posture = Posture.Neutral;
+        p.Form = BodyForm.Neutral;
     });
 
     /// <summary>Галочка «указать»: включаем с текущей оценкой (округлённой до 0,5 см) или убираем.</summary>

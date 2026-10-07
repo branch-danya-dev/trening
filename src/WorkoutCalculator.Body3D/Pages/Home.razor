@@ -100,7 +100,7 @@
             <div class="panel-body">
                 @if (_tab == Tab.Params)
                 {
-                    <ProfilePanel Profile="_profile" Report="_report" ModelHints="ModelHints()" ModelNote="@ModelNote()" OnHighlight="SetHighlight"
+                    <ProfilePanel Profile="_profile" Report="_report" ModelHints="ModelHints()" ModelNote="@ModelNote()" OnHighlight="SetHighlight" PostureApplies="UseMakeHuman"
                                   OnChange="ChangeProfile" />
                 }
                 else if (_tab == Tab.Photos)
