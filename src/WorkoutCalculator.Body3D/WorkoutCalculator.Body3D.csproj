@@ -4,9 +4,21 @@
   <PropertyGroup>
     <RootNamespace>WorkoutCalculator.Body3D</RootNamespace>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <!--
+      Файлы среды .NET без хеша в имени: иначе опубликованная версия находит dotnet.js через import map,
+      которую генерирует Blazor, а в index.html своя import map для three.js (в документе может быть только
+      одна). Версии файлов различает service worker: кэш у каждой сборки свой.
+    -->
+    <WasmFingerprintAssets>false</WasmFingerprintAssets>
     <!-- Нужно генератору кода для [JSImport] (бинарная передача сетки в JS) -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- PWA: список файлов с хешами для офлайн-кэша (wwwroot/service-worker.published.js) -->
+    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
