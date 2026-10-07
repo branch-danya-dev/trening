@@ -18,9 +18,9 @@ public class PhotoFitTests(MakeHumanFixture fx, ITestOutputHelper output) : ICla
         return p;
     }
 
-    private async Task<PhotoFitResult> RoundTrip(BodyProfile truth, double distance)
+    private async Task<PhotoFitResult> RoundTrip(BodyProfile truth, double distance, bool feetTogether = true)
     {
-        var (front, side) = SyntheticPhoto.Analyze(fx.Model.Build(truth), fx.Data, distance);
+        var (front, side) = SyntheticPhoto.Analyze(fx.Model.Build(truth), fx.Data, distance, feetTogether);
         var start = truth.Clone();
         start.Posture = Posture.Neutral;
         start.Form = BodyForm.Neutral;
@@ -51,17 +51,33 @@ public class PhotoFitTests(MakeHumanFixture fx, ITestOutputHelper output) : ICla
     }
 
     [Fact]
-    public async Task WithPhonePerspective_FitsSilhouetteToMillimetres()
+    public async Task WithPhonePerspective_RecoversPostureAndForm()
     {
-        // 3 м: перспектива и разведённые ступни модели сдвигают уровни; это забирают масштаб и сдвиг,
-        // а силуэт сходится до миллиметров. Наклон таза при этом путается с ягодицами — его не проверяем
+        // 3 м, ноги вместе: перспективу и волосы забирают масштаб и сдвиг уровней
         var truth = Truth();
         var fit = await RoundTrip(truth, distance: 3);
 
+        Assert.True(fit.ErrorAfterCm < 0.3, $"расхождение {fit.ErrorAfterCm:0.00} см");
+        Assert.True(fit.ErrorBeforeCm > 4 * fit.ErrorAfterCm);
+        Assert.InRange(fit.Posture.PelvicTilt - truth.Posture.PelvicTilt, -4, 4);
+        Assert.InRange(fit.Posture.Lordosis - truth.Posture.Lordosis, -4, 4);
+        Assert.InRange(fit.Posture.Kyphosis - truth.Posture.Kyphosis, -4, 4);
+        Assert.InRange(fit.Form.Stomach - truth.Form.Stomach, -0.15, 0.15);
+        foreach (var (got, want) in new[] { (fit.Form.Buttocks, truth.Form.Buttocks), (fit.Form.TorsoDepth, truth.Form.TorsoDepth),
+                     (fit.Form.VShape, truth.Form.VShape) })
+            Assert.InRange(got - want, -0.25, 0.25);
+    }
+
+    [Fact]
+    public async Task FeetApart_StillFitsSilhouette()
+    {
+        // Ступни на 20 см от средней линии: сбоку ближняя ближе к камере, низ фигуры и масштаб сдвигаются.
+        // Силуэт сходится, но наклон таза, прогиб и живот путаются — поэтому съёмка просит ноги вместе
+        var fit = await RoundTrip(Truth(), distance: 3, feetTogether: false);
+
         Assert.True(fit.ErrorAfterCm < 0.4, $"расхождение {fit.ErrorAfterCm:0.00} см");
         Assert.True(fit.ErrorBeforeCm > 3 * fit.ErrorAfterCm);
-        Assert.InRange(fit.Posture.Kyphosis - truth.Posture.Kyphosis, -5, 5);
-        Assert.InRange(fit.Form.Stomach - truth.Form.Stomach, -0.2, 0.2);
+        Assert.InRange(fit.Posture.Kyphosis - Truth().Posture.Kyphosis, -4, 4); // верх спины от стоп далеко
     }
 
     [Fact]
@@ -94,8 +110,9 @@ public class PhotoFitTests(MakeHumanFixture fx, ITestOutputHelper output) : ICla
         // Модель на снимке — в пикселях рядом с краями фигуры
         Assert.All(fit.Front, l => Assert.InRange(l.ModelA - l.PhotoA, -5, 5));
         Assert.All(fit.Side, l => Assert.InRange(l.ModelB - l.PhotoB, -5, 5));
-        Assert.All(fit.Front.Concat(fit.Side), l =>
-            Assert.InRange(l.Fraction, PhotoFitter.FromFraction - 1e-9, PhotoFitter.ToFraction(truth.Sex) + 1e-9));
+        Assert.All(fit.Front, l => Assert.InRange(l.Fraction, PhotoFitter.FromFraction - 1e-9, PhotoFitter.ToFraction(truth.Sex) + 1e-9));
+        Assert.All(fit.Side, l => Assert.InRange(l.Fraction, PhotoFitter.FromFraction - 1e-9, PhotoFitter.SideToFraction + 1e-9));
+        Assert.Contains(fit.Side, l => l.Fraction > PhotoFitter.ToFraction(truth.Sex)); // сбоку — и верх спины
     }
 
     [Fact]

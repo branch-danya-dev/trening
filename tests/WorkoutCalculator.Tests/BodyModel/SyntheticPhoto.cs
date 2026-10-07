@@ -1,3 +1,4 @@
+using WorkoutCalculator.BodyModel.Anthropometry;
 using WorkoutCalculator.BodyModel.Geometry;
 using WorkoutCalculator.BodyModel.MakeHuman;
 using WorkoutCalculator.BodyModel.Photos;
@@ -8,8 +9,16 @@ namespace WorkoutCalculator.Tests.BodyModel;
 /// «Снимок» модели MakeHuman: перспективная камера, маска фигуры (как у MediaPipe — чуть размытая и раздутая)
 /// и точки позы из суставов. Спереди камера смотрит в −Z, сбоку стоит слева от модели (+X) и смотрит в −X —
 /// человек на кадре смотрит влево. Руки модели — в A-позе, а не вдоль тела, как просит съёмка; поэтому по
-/// умолчанию снимок без рук (треугольники, привязанные к костям рук, пропускаются), а точки рук «не видны».
+/// умолчанию руки ниже подмышек на снимке нет (треугольники руки ниже этого уровня пропускаются), а точки
+/// рук «не видны». Выше подмышек рука остаётся: там она срастается с плечом и входит в контур модели —
+/// как и на живом снимке, где опущенная рука ниже подмышек висит внутри силуэта сбоку.
 /// Распознавание рук на снимке проверяют тесты разбора силуэта.
+/// <para>
+/// Ступни у модели тоже разведены (±20 см от средней линии), а снимают «ноги вместе». Сбоку ближняя стопа
+/// на 20 см ближе к камере и опускает низ фигуры на кадре — масштаб по росту врёт на 4–5 %. Поэтому по
+/// умолчанию ниже 30 % роста глубина для перспективы сбоку считается от средней плоскости, как при
+/// сведённых ногах; <c>feetTogether: false</c> оставляет перспективу как есть.
+/// </para>
 /// </summary>
 public static class SyntheticPhoto
 {
@@ -17,26 +26,29 @@ public static class SyntheticPhoto
 
     /// <param name="cameraHeightM">Высота камеры; null — середина роста (фигура по центру кадра).</param>
     public static PhotoInput Render(MakeHumanBody body, MakeHumanData data, PhotoView view, double distanceM = 3.0,
-        double? cameraHeightM = null, bool arms = false)
+        double? cameraHeightM = null, bool arms = false, bool feetTogether = true)
     {
-        var triangles = data.Triangles;
-        var armVertex = ArmVertices(data);
         double stature = body.Profile.HeightCm / 100;
+        var triangles = data.Triangles;
+        var pos = body.Mesh.Positions;
+        var armVertex = ArmVertices(data);
+        double armpit = Proportions.ArmpitHeight(body.Profile.Sex) * stature;
+        bool Hidden(int v) => !arms && armVertex[v] && pos[v * 3 + 1] < armpit;
         double camera = cameraHeightM ?? stature / 2;
         double focal = 0.86 * H * distanceM / stature; // фигура — около 86 % высоты кадра
         (double X, double Y, bool Ok) Project(Vec3 p)
         {
             // Камера: спереди — в (0, h, D), сбоку — в (D, h, 0)
-            double depth = view == PhotoView.Front ? distanceM - p.Z : distanceM - p.X;
+            double x = feetTogether && p.Y < 0.3 * stature ? 0 : p.X;
+            double depth = view == PhotoView.Front ? distanceM - p.Z : distanceM - x;
             double right = view == PhotoView.Front ? p.X : -p.Z;
             return (W / 2.0 + focal * right / depth, H * 0.5 - focal * (p.Y - camera) / depth, depth > 0.1);
         }
 
-        var pos = body.Mesh.Positions;
         var inside = new bool[W * H];
         for (int t = 0; t < triangles.Length; t += 3)
         {
-            if (!arms && armVertex[triangles[t]] && armVertex[triangles[t + 1]] && armVertex[triangles[t + 2]]) continue;
+            if (Hidden(triangles[t]) && Hidden(triangles[t + 1]) && Hidden(triangles[t + 2])) continue;
             var a = Project(V(pos, triangles[t]));
             var b = Project(V(pos, triangles[t + 1]));
             var c = Project(V(pos, triangles[t + 2]));
@@ -110,10 +122,11 @@ public static class SyntheticPhoto
 
     /// <summary>Разбор пары снимков, как в приложении: сначала сбоку, затем спереди с масштабом со снимка сбоку.</summary>
     /// <param name="distanceM">Расстояние до камеры: 50 м — почти без перспективы, 3 м — как при съёмке телефоном.</param>
-    public static (PhotoProfile Front, PhotoProfile Side) Analyze(MakeHumanBody body, MakeHumanData data, double distanceM = 3.0)
+    public static (PhotoProfile Front, PhotoProfile Side) Analyze(MakeHumanBody body, MakeHumanData data, double distanceM = 3.0,
+        bool feetTogether = true)
     {
-        var side = SilhouetteProfiler.Analyze(Render(body, data, PhotoView.Side, distanceM));
-        var frontInput = Render(body, data, PhotoView.Front, distanceM);
+        var side = SilhouetteProfiler.Analyze(Render(body, data, PhotoView.Side, distanceM, feetTogether: feetTogether));
+        var frontInput = Render(body, data, PhotoView.Front, distanceM, feetTogether: feetTogether);
         var front = SilhouetteProfiler.Analyze(frontInput);
         if (PhotoScale.FrontFromSide(front, side) is double cm) front = SilhouetteProfiler.Analyze(frontInput, cm);
         return (front, side);

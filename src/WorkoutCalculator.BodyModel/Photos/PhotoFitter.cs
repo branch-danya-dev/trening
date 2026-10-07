@@ -19,8 +19,9 @@ public sealed record PhotoFitResult(Posture Posture, BodyForm Form, double Scale
 /// <summary>
 /// Подгонка осанки и формы MakeHuman под снимки спереди и сбоку. Обхваты остаются замерами (их держит
 /// <see cref="MakeHumanModel"/>), подбирается то, чего лента не видит: как объём распределён по ширине
-/// и глубине и как изогнута спина. Сравниваются края туловища на уровнях от ягодиц до подмышек:
-/// спереди — ширина, сбоку — перед и спина.
+/// и глубине и как изогнута спина. Сравниваются края туловища: спереди — ширина от ягодиц до подмышек
+/// (выше в силуэт входят руки), сбоку — перед и спина от ягодиц до основания шеи (рука висит посередине
+/// силуэта и края не закрывает, а сутулость видна как раз у лопаток).
 /// <para>
 /// Метод Левенберга — Марквардта с численными производными. Масштаб и сдвиг снимка сбоку относительно
 /// модели на каждом шаге находятся точно (МНК); сдвиг уровней по высоте у каждого снимка — тоже параметр:
@@ -35,8 +36,11 @@ public static class PhotoFitter
     /// <summary>Нижний уровень — низ ягодиц, выше промежности: ниже средняя линия идёт между ног.</summary>
     public const double FromFraction = 0.49;
 
-    /// <summary>Верхний уровень — чуть ниже подмышек: выше в контур попадают руки.</summary>
+    /// <summary>Верхний уровень спереди — чуть ниже подмышек: выше в контур попадают руки.</summary>
     public static double ToFraction(Sex sex) => Proportions.ArmpitHeight(sex) - 0.01;
+
+    /// <summary>Верхний уровень сбоку — основание шеи (C7 — около 0,84 роста).</summary>
+    public const double SideToFraction = 0.83;
 
     public const double MinScale = 0.9, MaxScale = 1.1;
 
@@ -82,12 +86,12 @@ public static class PhotoFitter
         PhotoProfile side, Func<int, Task>? onBuild = null)
     {
         double to = ToFraction(profile.Sex);
-        var target = new Target(front, side, FromFraction, to);
+        var target = new Target(front, side, FromFraction, to, SideToFraction);
         if (target.FrontLevels.Count + target.SideLevels.Count < 10)
             throw new InvalidOperationException("На снимках слишком мало уровней туловища без рук — подгонять не по чему.");
 
         // Сетка уровней модели — с запасом на сдвиг
-        int gridCount = (int)Math.Round((to - FromFraction + 2 * MaxShift + 0.01) / GridStep) + 1;
+        int gridCount = (int)Math.Round((Math.Max(to, SideToFraction) - FromFraction + 2 * MaxShift + 0.01) / GridStep) + 1;
         var grid = Enumerable.Range(0, gridCount).Select(k => Math.Round(FromFraction - MaxShift - 0.005 + k * GridStep, 5)).ToArray();
 
         // Полная сборка один раз: слой мягких тканей под вес, дальше быстрые сборки стартуют с него
@@ -231,14 +235,13 @@ public static class PhotoFitter
         /// <summary>Сбоку: +1 — перед справа на кадре, −1 — слева. Координата «вперёд» = знак · x · масштаб.</summary>
         private readonly double _sign;
 
-        public Target(PhotoProfile front, PhotoProfile side, double from, double to)
+        public Target(PhotoProfile front, PhotoProfile side, double from, double frontTo, double sideTo)
         {
             _front = front;
             _side = side;
             _sign = side.FacingLeft ? -1 : 1;
-            bool InRange(ProfileLevel l) => !l.ArmOverlap && l.Fraction >= from - 1e-9 && l.Fraction <= to + 1e-9;
-            FrontLevels = front.Levels.Where(InRange).ToList();
-            SideLevels = side.Levels.Where(InRange).ToList();
+            FrontLevels = front.Levels.Where(l => !l.ArmOverlap && l.Fraction >= from - 1e-9 && l.Fraction <= frontTo + 1e-9).ToList();
+            SideLevels = side.Levels.Where(l => !l.ArmOverlap && l.Fraction >= from - 1e-9 && l.Fraction <= sideTo + 1e-9).ToList();
         }
 
         public List<ProfileLevel> FrontLevels { get; }
