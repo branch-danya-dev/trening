@@ -79,11 +79,11 @@ public sealed class BodyLayout
         var torso = new List<TorsoKey>
         {
             Key(TorsoLevel.Crotch, Proportions.CrotchHeight, SectionShapes.CrotchGirth(p.HipsCm), null),
-            Key(TorsoLevel.Hips, Proportions.HipsGirthHeight, p.HipsCm, Girth.Hips),
+            Key(TorsoLevel.Hips, Proportions.HipsGirthHeight(sex), p.HipsCm, Girth.Hips),
             Key(TorsoLevel.Waist, Proportions.WaistHeight(sex), p.WaistCm, Girth.Waist),
             Key(TorsoLevel.Underbust, Proportions.UnderbustHeight(sex),
                 SectionShapes.UnderbustGirth(sex, p.ChestCm, p.WaistCm), null),
-            Key(TorsoLevel.Chest, Proportions.ChestHeight, p.ChestCm, Girth.Chest),
+            Key(TorsoLevel.Chest, Proportions.ChestHeight(sex), p.ChestCm, Girth.Chest),
             Key(TorsoLevel.Armpit, Proportions.ArmpitHeight(sex), SectionShapes.ArmpitGirth(sex, p.ChestCm), null),
         };
 
@@ -139,7 +139,7 @@ public sealed class BodyLayout
             new TubeKey(0, rDeltoid),
             new TubeKey(upper / 2, rBiceps, Girth.Biceps),
             new TubeKey(upper, Radius(SectionShapes.ElbowGirth(p.BicepsCm, hc))),
-            new TubeKey(upper + 0.27 * fore, Radius(SectionShapes.ForearmGirth(p.BicepsCm, hc))),
+            new TubeKey(upper + 0.27 * fore, Radius(AnsurGirths.Estimate(AnsurGirth.Forearm, p))),
             new TubeKey(upper + Proportions.WristAlongForearm * fore, Radius(p.EffectiveWristCm), Girth.Wrist),
             new TubeKey(upper + fore, Radius(p.EffectiveWristCm)),
         };
@@ -184,16 +184,18 @@ public sealed class BodyLayout
         double legLength = Math.Sqrt(Math.Pow(hipY - ankleY, 2) + Math.Pow(ankleX - hipX, 2));
         double S(double levelFraction) => (hipY - levelFraction * h) / (hipY - ankleY) * legLength;
 
+        double lowerThigh = AnsurGirths.Estimate(AnsurGirth.LowerThigh, p);
+        double ankle = AnsurGirths.Estimate(AnsurGirth.Ankle, p);
         var legKeys = new[]
         {
             new TubeKey(0, Radius(SectionShapes.HipRootGirth(p.ThighCm))),
             new TubeKey(S(Proportions.GlutealFoldHeight), Radius(p.ThighCm), Girth.Thigh),
             new TubeKey(S(0.375), Radius(SectionShapes.MidThighGirth(p.ThighCm))),
-            new TubeKey(S(Proportions.KneeHeight), Radius(SectionShapes.KneeGirth(p.ThighCm, hc))),
-            new TubeKey(S(0.255), Radius(SectionShapes.BelowKneeGirth(p.ThighCm, hc))),
+            new TubeKey(S(Proportions.LowerThighHeight), Radius(lowerThigh)),
+            new TubeKey(S(0.255), Radius(SectionShapes.BelowKneeGirth(lowerThigh))),
             new TubeKey(S(Proportions.CalfGirthHeight), Radius(p.EffectiveCalfCm), Girth.Calf),
-            new TubeKey(S(0.075), Radius(SectionShapes.AnkleGirth(p.ThighCm, hc))),
-            new TubeKey(legLength, 1.05 * Radius(SectionShapes.AnkleGirth(p.ThighCm, hc))),
+            new TubeKey(S(0.075), Radius(ankle)),
+            new TubeKey(legLength, 1.05 * Radius(ankle)),
         };
         TubeLayout Leg(string name, int side)
         {

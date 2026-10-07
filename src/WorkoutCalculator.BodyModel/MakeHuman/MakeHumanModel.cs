@@ -94,21 +94,22 @@ public sealed class MakeHumanModel
         {
             int[] cand = g switch
             {
-                Girth.Chest => Torso(Proportions.ChestHeight, Proportions.ChestHeight),
+                Girth.Chest => Torso(Proportions.ChestHeight(Sex.Male), Proportions.ChestHeight(Sex.Female)),
                 Girth.Waist => Torso(Proportions.WaistHeight(Sex.Male), Proportions.WaistHeight(Sex.Female)),
-                Girth.Hips => Torso(Proportions.HipsGirthHeight, Proportions.HipsGirthHeight),
+                Girth.Hips => Torso(Proportions.HipsGirthHeight(Sex.Male), Proportions.HipsGirthHeight(Sex.Female)),
                 _ => Limb(g),
             };
             _candidates[g] = cand;
             _candidateVertices[g] = cand.SelectMany(t => new[] { tris[t], tris[t + 1], tris[t + 2] }).Distinct().ToArray();
         }
 
-        int[] Torso(double from, double to)
+        // Уровни мужчины и женщины: слой охватывает оба с запасом
+        int[] Torso(double male, double female)
         {
-            double y = floor + (from + to) / 2 * hb;
+            double y = floor + (male + female) / 2 * hb;
             double z = TorsoCenterZ(_basePositions, all, y);
             return GirthTape.TrianglesInSlab(_basePositions, tris, new Vec3(0, y, z), new Vec3(0, 1, 0),
-                (0.045 + (to - from) / 2) * hb, 0.15 * hb);
+                (0.045 + Math.Abs(male - female) / 2) * hb, 0.15 * hb);
         }
 
         int[] Limb(Girth g)
@@ -236,9 +237,9 @@ public sealed class MakeHumanModel
     {
         double y = g switch
         {
-            Girth.Chest => Proportions.ChestHeight * height,
+            Girth.Chest => Proportions.ChestHeight(sex) * height,
             Girth.Waist => Proportions.WaistHeight(sex) * height,
-            Girth.Hips => Proportions.HipsGirthHeight * height,
+            Girth.Hips => Proportions.HipsGirthHeight(sex) * height,
             _ => double.NaN,
         };
         return double.IsNaN(y)

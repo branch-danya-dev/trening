@@ -27,11 +27,11 @@ public sealed class BodyProfile
     public double BicepsCm { get; set; }
     /// <summary>Бедро: сразу под ягодичной складкой.</summary>
     public double ThighCm { get; set; }
-    /// <summary>Шея: посередине. Необязательно — если не задана, оценивается по груди и росту.</summary>
+    /// <summary>Шея: посередине. Необязательно — если не задана, оценивается по росту и весу (ANSUR II).</summary>
     public double? NeckCm { get; set; }
-    /// <summary>Голень: в самом широком месте. Необязательно — иначе оценка по бедру и росту.</summary>
+    /// <summary>Голень: в самом широком месте. Необязательно — иначе оценка по бедру, росту и весу (ANSUR II).</summary>
     public double? CalfCm { get; set; }
-    /// <summary>Запястье: над косточкой. Необязательно — иначе оценка по плечу и росту.</summary>
+    /// <summary>Запястье: над косточкой. Необязательно — иначе оценка по росту и весу (ANSUR II).</summary>
     public double? WristCm { get; set; }
 
     public double LeanMassKg => WeightKg * (1 - BodyFatPercent / 100.0);
@@ -39,13 +39,10 @@ public sealed class BodyProfile
     public double Bmi => WeightKg / Math.Pow(HeightCm / 100.0, 2);
     public double WaistToHeight => WaistCm / HeightCm;
 
-    /// <summary>Обхват шеи: введённый или оценка (у мужчин шея толще при той же груди).</summary>
-    public double EffectiveNeckCm => NeckCm ?? (Sex == Sex.Male
-        ? 0.24 * ChestCm + 0.08 * HeightCm
-        : 0.20 * ChestCm + 0.085 * HeightCm);
-
-    public double EffectiveCalfCm => CalfCm ?? SectionShapes.CalfGirth(ThighCm, HeightCm);
-    public double EffectiveWristCm => WristCm ?? SectionShapes.WristGirth(BicepsCm, HeightCm);
+    /// <summary>Обхват шеи: введённый или оценка по ANSUR II.</summary>
+    public double EffectiveNeckCm => NeckCm ?? AnsurGirths.Estimate(AnsurGirth.Neck, this);
+    public double EffectiveCalfCm => CalfCm ?? AnsurGirths.Estimate(AnsurGirth.Calf, this);
+    public double EffectiveWristCm => WristCm ?? AnsurGirths.Estimate(AnsurGirth.Wrist, this);
 
     /// <summary>Введён ли обхват (шея, голень и запястье необязательны).</summary>
     public bool IsSpecified(Girth g) => g switch

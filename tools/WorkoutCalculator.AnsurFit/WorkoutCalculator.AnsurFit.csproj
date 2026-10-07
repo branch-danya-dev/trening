@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Подбор коэффициентов AnsurGirths и сверка уровней Proportions по открытым данным ANSUR II -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>WorkoutCalculator.AnsurFit</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj" />
+  </ItemGroup>
+
+</Project>

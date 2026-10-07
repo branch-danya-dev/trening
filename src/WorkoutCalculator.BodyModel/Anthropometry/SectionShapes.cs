@@ -67,20 +67,18 @@ public static class SectionShapes
     /// <summary>Основание шеи — чуть уже шеи, чтобы торец туловища прятался внутри шеи.</summary>
     public static double TorsoTopGirth(double neck) => 0.95 * neck;
 
-    // --- Производные обхваты рук и ног (см): от введённых обхватов и роста ---
+    // --- Производные обхваты рук и ног (см). Голень, щиколотка, низ бедра, предплечье и запястье
+    //     оцениваются по ANSUR II (AnsurGirths); здесь — то, чего в ANSUR II нет ---
 
     public static double DeltoidGirth(double biceps) => 1.08 * biceps;
     public static double ElbowGirth(double biceps, double heightCm) => 0.50 * biceps + 0.060 * heightCm;
-    public static double ForearmGirth(double biceps, double heightCm) => 0.45 * biceps + 0.075 * heightCm;
-    public static double WristGirth(double biceps, double heightCm) => 0.20 * biceps + 0.060 * heightCm;
 
     /// <summary>Верх бедра внутри таза — уже, чтобы трубка ноги не выходила за туловище.</summary>
     public static double HipRootGirth(double thigh) => 0.75 * thigh;
     public static double MidThighGirth(double thigh) => 0.86 * thigh;
-    public static double KneeGirth(double thigh, double heightCm) => 0.50 * thigh + 0.060 * heightCm;
-    public static double BelowKneeGirth(double thigh, double heightCm) => 0.92 * KneeGirth(thigh, heightCm);
-    public static double CalfGirth(double thigh, double heightCm) => 0.50 * thigh + 0.055 * heightCm;
-    public static double AnkleGirth(double thigh, double heightCm) => 0.12 * thigh + 0.080 * heightCm;
+
+    /// <summary>Сразу под коленом — чуть уже низа бедра.</summary>
+    public static double BelowKneeGirth(double lowerThigh) => 0.92 * lowerThigh;
 }
 
 /// <summary>Анатомические уровни туловища снизу вверх.</summary>
