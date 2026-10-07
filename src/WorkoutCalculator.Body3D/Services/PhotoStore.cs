@@ -34,6 +34,17 @@ public static partial class PhotoStore
     [JSImport("storageInfo", Module)]
     private static partial Task<string> StorageInfoJson();
 
+    /// <summary>Дописывает поля в сессию (JSON-объект с новыми полями).</summary>
+    [JSImport("updateSession", Module)]
+    public static partial Task Update(string id, string patchJson);
+
+    /// <summary>Адрес снимка целиком (blob:) для показа; освободить — <see cref="RevokeUrl"/>.</summary>
+    [JSImport("imageUrl", Module)]
+    public static partial Task<string> ImageUrl(string id, string view);
+
+    [JSImport("revokeUrl", Module)]
+    public static partial void RevokeUrl(string url);
+
     public static async Task<List<PhotoSession>> List() =>
         JsonSerializer.Deserialize(await ListJson(), PhotoJson.Default.ListPhotoSession) ?? [];
 
@@ -92,6 +103,8 @@ public sealed class PhotoSession
     public List<string> Views { get; set; } = [];
     /// <summary>Адреса превью (blob:) по ракурсам; действуют до следующего вызова <see cref="PhotoStore.List"/>.</summary>
     public Dictionary<string, string> Thumbs { get; set; } = [];
+    /// <summary>Разбор снимков — если уже делался.</summary>
+    public PhotoAnalysis? Analysis { get; set; }
 }
 
 public sealed record ExportResult(string Name, int Sessions);
@@ -102,11 +115,13 @@ public sealed record ImportResult(int Added, int Skipped);
 /// <param name="Persisted">Браузер обещал не стирать данные сайта при нехватке места.</param>
 public sealed record StorageInfo(long? Usage, long? Quota, bool Persisted);
 
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, UseStringEnumConverter = true)]
 [JsonSerializable(typeof(PhotoMeta))]
 [JsonSerializable(typeof(PhotoSession))]
 [JsonSerializable(typeof(List<PhotoSession>))]
 [JsonSerializable(typeof(ExportResult))]
 [JsonSerializable(typeof(ImportResult))]
 [JsonSerializable(typeof(StorageInfo))]
+[JsonSerializable(typeof(PreparedPhoto))]
+[JsonSerializable(typeof(AnalysisPatch))]
 internal sealed partial class PhotoJson : JsonSerializerContext;

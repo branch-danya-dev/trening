@@ -1,6 +1,8 @@
 @* Вкладка «Фото»: фотосессии — только на этом устройстве. Съёмка с подсказками (камера и проверка позы
    в браузере) или готовые снимки из файлов. *@
 @using System.Runtime.InteropServices.JavaScript
+@using WorkoutCalculator.BodyModel.Photos
+@implements IDisposable
 
 <div class="card">
     <div class="card-title">Новая фотосессия</div>
@@ -13,7 +15,7 @@
         <li>бельё или облегающая одежда — для силуэта раздеваться не нужно;</li>
         <li>однотонный фон, ровный свет, волосы собраны, без обуви;</li>
         <li>телефон на уровне пояса в 2–3&nbsp;м, вы целиком в кадре;</li>
-        <li>спереди — руки чуть в стороны, сбоку — руки вдоль тела.</li>
+        <li>спереди — руки чуть в стороны, ноги на ширине таза; сбоку — руки вдоль тела, ноги вместе.</li>
     </ul>
     <button class="btn primary" disabled="@_busy" @onclick="Shoot">Снять с подсказками</button>
     <div class="note" style="margin: 6px 0 12px">
@@ -58,15 +60,19 @@
     }
     @foreach (var s in _sessions)
     {
-        <div class="session">
-            <div class="session-thumbs">
+        <div class="session @Css.On(s.Id == _openId)">
+            <button class="session-thumbs" title="Открыть и разобрать" @onclick="() => Open(s)">
                 @foreach (var (view, url) in s.Thumbs)
                 {
                     <img src="@url" alt="@(view == "side" ? "Сбоку" : "Спереди")" />
                 }
-            </div>
+            </button>
             <div class="session-info">
                 <b>@Fmt.DateTime(s.CreatedAt)</b>
+                @if (s.Analysis is not null)
+                {
+                    <span class="badge">разобрано</span>
+                }
                 <span>@Fmt.N(s.HeightCm, 0)&nbsp;см · @Fmt.N(s.WeightKg, 1)&nbsp;кг · жир @Fmt.N(s.BodyFatPercent, 1)&nbsp;%</span>
                 @if (_confirmDelete == s.Id)
                 {
@@ -84,6 +90,77 @@
         </div>
     }
 </div>
+
+@if (_sessions.FirstOrDefault(s => s.Id == _openId) is PhotoSession o)
+{
+    var keys = KeyLevels(o.Sex);
+    <div class="card">
+        <div class="card-title">
+            Разбор фото
+            <span class="title-note">@Fmt.DateTime(o.CreatedAt)</span>
+        </div>
+        @if (o.Analysis is not PhotoAnalysis a)
+        {
+            <div class="note" style="margin-bottom: 10px">
+                Найдёт контур тела и измерит ширину туловища спереди и глубину сбоку на каждом уровне — всё на этом
+                устройстве. Масштаб — по росту на момент съёмки (@Fmt.N(o.HeightCm, 0)&nbsp;см).
+            </div>
+            <button class="btn primary" disabled="@_busy" @onclick="() => Analyze(o)">@(_busy ? "Разбираю…" : "Разобрать фото")</button>
+        }
+        else
+        {
+            <div class="overlay-row">
+                @foreach (string view in o.Views)
+                {
+                    var profile = view == "side" ? a.Side : a.Front;
+                    if (profile is not null && _urls.TryGetValue(view, out var url))
+                    {
+                        <PhotoOverlay Url="@url" Profile="profile" KeyLevels="keys"
+                                      Caption="@(view == "side" ? "Сбоку: глубина" : "Спереди: ширина")" />
+                    }
+                }
+            </div>
+            <table class="changes" style="margin-top: 10px">
+                <thead>
+                    <tr><th></th><th>Ширина, см</th><th>Глубина, см</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var (name, fraction) in keys)
+                    {
+                        <tr>
+                            <td>@name</td>
+                            <td>@Size(a.Front, fraction)</td>
+                            <td>@Size(a.Side, fraction)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="note" style="margin-top: 8px">
+                Ширина — по снимку спереди, глубина (от груди или живота до спины) — сбоку. «—»: уровень закрыт
+                рукой или не найден. Обхваты по этим цифрам появятся после калибровки на данных ANSUR II.
+            </div>
+            @if ((a.Front?.Warnings ?? []).Concat(a.Side?.Warnings ?? []).Distinct().ToList() is { Count: > 0 } warnings)
+            {
+                <div class="hints" style="margin-top: 10px">
+                    @foreach (var w in warnings)
+                    {
+                        <div class="hint">@w</div>
+                    }
+                </div>
+            }
+            <div class="volume-line">
+                1&nbsp;пиксель ≈ @Fmt.N((a.Front ?? a.Side)!.CmPerPixel * 10, 1)&nbsp;мм@(a.Front?.ScaleFromSide == true ? " (масштаб спереди — по снимку сбоку)" : "")
+                · разбор @Fmt.N(a.Milliseconds)&nbsp;мс
+            </div>
+            <button class="btn-link" style="margin-top: 8px" disabled="@_busy" @onclick="() => Analyze(o)">
+                @(_busy ? "Разбираю…" : "Разобрать заново")
+            </button>
+        }
+        <div class="confirm">
+            <button class="btn-link muted" @onclick="Close">Закрыть</button>
+        </div>
+    </div>
+}
 
 <div class="card">
     <div class="card-title">Хранилище</div>
@@ -140,6 +217,9 @@
     private bool _confirmDeleteAll;
     /// <summary>Имена выбранных файлов по ракурсам.</summary>
     private readonly Dictionary<string, string> _picked = [];
+    /// <summary>Открытая сессия и адреса её снимков целиком (blob:) — освобождаются при закрытии.</summary>
+    private string? _openId;
+    private readonly Dictionary<string, string> _urls = [];
 
     protected override async Task OnInitializedAsync() => await Reload();
 
@@ -187,9 +267,61 @@
         });
     }
 
+    private async Task Open(PhotoSession s)
+    {
+        if (_openId == s.Id) return;
+        Close();
+        _openId = s.Id;
+        foreach (string view in s.Views)
+            _urls[view] = await PhotoStore.ImageUrl(s.Id, view);
+    }
+
+    private void Close()
+    {
+        _openId = null;
+        foreach (string url in _urls.Values) PhotoStore.RevokeUrl(url);
+        _urls.Clear();
+    }
+
+    public void Dispose() => Close();
+
+    private async Task Analyze(PhotoSession s)
+    {
+        _busy = true;
+        _message = null;
+        try
+        {
+            await PhotoAnalyzer.Analyze(s);
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        catch (InvalidOperationException e)
+        {
+            Show(e.Message, error: true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    /// <summary>Уровни груди, талии и бёдер — те же доли роста, что у моделей.</summary>
+    private static IReadOnlyList<(string Name, double Fraction)> KeyLevels(Sex sex) =>
+    [
+        ("Грудь", Proportions.ChestHeight(sex)),
+        ("Талия", Proportions.WaistHeight(sex)),
+        ("Бёдра", Proportions.HipsGirthHeight(sex)),
+    ];
+
+    private static string Size(PhotoProfile? profile, double fraction) =>
+        profile?.At(fraction) is ProfileLevel l ? Fmt.N(l.SizeCm, 1) : "—";
+
     private async Task Delete(string id)
     {
         _confirmDelete = null;
+        if (_openId == id) Close();
         await Run(async () =>
         {
             await PhotoStore.DeleteSession(id);
@@ -200,6 +332,7 @@
     private async Task DeleteAll()
     {
         _confirmDeleteAll = false;
+        Close();
         await Run(async () =>
         {
             await PhotoStore.DeleteAll();

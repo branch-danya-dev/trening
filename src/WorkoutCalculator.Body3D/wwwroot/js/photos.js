@@ -164,6 +164,25 @@ export async function getImage(id, view) {
     return record?.blob ?? null;
 }
 
+/** Дописывает в сессию поля из patchJson (например, результат разбора снимков). */
+export async function updateSession(id, patchJson) {
+    const patch = JSON.parse(patchJson);
+    const db = await openDb();
+    const session = await req(db.transaction('sessions', 'readonly').objectStore('sessions').get(id));
+    if (!session) throw new Error('Сессия не найдена');
+    await transact('readwrite', sessions => { sessions.put({ ...session, ...patch, id }); });
+}
+
+/** Адрес снимка целиком (blob:) для показа; освободить — revokeUrl. */
+export async function imageUrl(id, view) {
+    const blob = await getImage(id, view);
+    return blob ? URL.createObjectURL(blob) : '';
+}
+
+export function revokeUrl(url) {
+    if (url) URL.revokeObjectURL(url);
+}
+
 export async function deleteSession(id) {
     await transact('readwrite', (sessions, images) => {
         sessions.delete(id);

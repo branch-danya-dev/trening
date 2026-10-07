@@ -24,5 +24,6 @@ await JSHost.ImportAsync(ViewerInterop.Module, "../js/viewer.js");
 await JSHost.ImportAsync(BrowserStorage.Module, "../js/storage.js");
 await JSHost.ImportAsync(PhotoStore.Module, "../js/photos.js");
 await JSHost.ImportAsync(Capture.Module, "../js/capture.js");
+await JSHost.ImportAsync(PhotoAnalyzer.Module, "../js/analysis.js");
 
 await builder.Build().RunAsync();

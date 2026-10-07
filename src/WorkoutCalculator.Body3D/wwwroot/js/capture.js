@@ -4,8 +4,8 @@
 // кадр снимается сам. Подсказки — на экране и голосом. Снимки никуда не отправляются: их сохраняет
 // photos.js на этом устройстве, и только после «Сохранить».
 import { saveSession } from './photos.js';
+import { landmarker as poseModel } from './pose.js';
 
-const MP = 'lib/mediapipe-1.1.0/';
 const INFER_INTERVAL_MS = 90;      // ~11 кадров в секунду: хватает для подсказок и не греет телефон
 const INFER_SHARE = 0.5;           // распознавание занимает не больше половины времени — кнопки отзываются
 const STILL_MS = 800;              // сколько стоять неподвижно перед отсчётом
@@ -15,7 +15,7 @@ const REPEAT_MS = 7000;            // та же подсказка повтор�
 
 const STEPS = [
     { view: 'front', title: 'Спереди', start: 'Встаньте лицом к камере во весь рост, руки чуть в стороны' },
-    { view: 'side', title: 'Сбоку', start: 'Теперь повернитесь боком, руки вдоль тела' },
+    { view: 'side', title: 'Сбоку', start: 'Теперь повернитесь боком: руки вдоль тела, ноги вместе' },
 ];
 
 // Точки BlazePose
@@ -23,66 +23,6 @@ const NOSE = 0, L_SHOULDER = 11, R_SHOULDER = 12, L_WRIST = 15, R_WRIST = 16, L_
 const L_ANKLE = 27, R_ANKLE = 28, L_HEEL = 29, R_HEEL = 30, L_FOOT = 31, R_FOOT = 32;
 const BONES = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24],
     [23, 25], [25, 27], [27, 29], [29, 31], [27, 31], [24, 26], [26, 28], [28, 30], [30, 32], [28, 32]];
-
-let landmarkerPromise = null;
-
-// ---------- Загрузка модели (один раз за сессию страницы) ----------
-
-const assetUrl = path => new URL(MP + path, document.baseURI).href;
-
-/** Файл целиком с прогрессом 0…1 (при сжатии на сервере длина неизвестна точно — прогресс не выше 0,99). */
-async function fetchBytes(url, onProgress) {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Не удалось загрузить ${url.split('/').pop()} (${response.status})`);
-    const total = Number(response.headers.get('content-length')) || 0;
-    const reader = response.body.getReader();
-    const chunks = [];
-    let received = 0;
-    for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        received += value.length;
-        if (total) onProgress(Math.min(0.99, received / total));
-    }
-    const bytes = new Uint8Array(received);
-    let at = 0;
-    for (const c of chunks) { bytes.set(c, at); at += c.length; }
-    onProgress(1);
-    return bytes;
-}
-
-function loadLandmarker(onProgress) {
-    landmarkerPromise ??= (async () => {
-        const parts = { wasm: 0, model: 0 };
-        const report = () => onProgress(0.6 * parts.wasm + 0.4 * parts.model); // движок ~13 МБ, модель ~9 МБ
-        // Движок качаем заранее с прогрессом — MediaPipe потом возьмёт его из кэша браузера
-        const [, model] = await Promise.all([
-            fetchBytes(assetUrl('wasm/vision_wasm_internal.wasm'), p => { parts.wasm = p; report(); }),
-            fetchBytes(assetUrl('pose_landmarker_full.bin'), p => { parts.model = p; report(); }),
-        ]);
-        const { PoseLandmarker } = await import(assetUrl('vision_bundle.mjs'));
-        const fileset = {
-            wasmLoaderPath: assetUrl('wasm/vision_wasm_internal.js'),
-            wasmBinaryPath: assetUrl('wasm/vision_wasm_internal.wasm'),
-        };
-        const options = delegate => ({
-            baseOptions: { modelAssetBuffer: model.slice(), delegate },
-            runningMode: 'VIDEO',
-            numPoses: 1,
-            minPoseDetectionConfidence: 0.6,
-            minPosePresenceConfidence: 0.6,
-            minTrackingConfidence: 0.6,
-        });
-        try {
-            return await PoseLandmarker.createFromOptions(fileset, options('GPU'));
-        } catch {
-            return await PoseLandmarker.createFromOptions(fileset, options('CPU')); // нет WebGL2 — медленнее, но работает
-        }
-    })();
-    landmarkerPromise.catch(() => { landmarkerPromise = null; }); // при ошибке — попробовать снова в следующий раз
-    return landmarkerPromise;
-}
 
 // ---------- Проверка позы ----------
 
@@ -343,7 +283,7 @@ export function run(metaJson) {
         (async () => {
             mode('loading');
             setStatus('Загружаю распознавание позы…');
-            const landmarker = await loadLandmarker(p => setStatus(`Загружаю распознавание позы… ${Math.round(p * 100)} %`));
+            const landmarker = await poseModel('video', p => setStatus(`Загружаю распознавание позы… ${Math.round(p * 100)} %`));
             if (done) return;
             await startCamera();
             if (done) return;

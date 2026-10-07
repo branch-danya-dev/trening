@@ -581,6 +581,20 @@ table.compare tr.group th {
     border-radius: 6px;
     background: var(--card-2);
 }
+button.session-thumbs { padding: 0; border: none; background: none; cursor: pointer; border-radius: 6px; }
+button.session-thumbs:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.session.on button.session-thumbs img { outline: 2px solid var(--accent); }
+.badge { padding: 1px 7px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); font-size: 11.5px; }
+
+.overlay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.photo-overlay { margin: 0; min-width: 0; }
+.photo-overlay svg { display: block; width: 100%; height: auto; border-radius: 8px; background: #000; }
+.photo-overlay figcaption { margin-top: 4px; color: var(--muted); font-size: 12px; text-align: center; }
+.photo-overlay .edge { fill: none; stroke: var(--accent); stroke-width: 2; }
+.photo-overlay .level { stroke: #fff; stroke-width: 2; }
+.photo-overlay .scale { stroke: rgba(255, 255, 255, 0.45); stroke-width: 1; stroke-dasharray: 4 4; }
+.photo-overlay .arm { fill: var(--warn); }
+
 .session-info { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; font-size: 13px; }
 .session-info span { color: var(--muted); }
 .session-info .confirm { margin-top: 0; gap: 10px; flex-wrap: wrap; }
