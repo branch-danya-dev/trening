@@ -53,14 +53,17 @@ public sealed class MakeHumanFit
 /// </summary>
 public sealed class MakeHumanModel
 {
-    /// <summary>Таргеты замеров — ползунки MakeHuman от −1 до 1; допускаем экстраполяцию до ±2.</summary>
-    public const double MaxTargetWeight = 2.0;
+    /// <summary>
+    /// Таргеты замеров — ползунки MakeHuman от −1 до 1; допускаем экстраполяцию до ±3: на людях ANSUR II
+    /// при ±2 у 8 % мужчин не подгонялась талия, а форма до ±3 остаётся гладкой (проверено на скриншотах).
+    /// </summary>
+    public const double MaxTargetWeight = 3.0;
 
     /// <summary>Точность подгонки обхвата, м: при окончательной сборке и при движении ползунка.</summary>
     public const double GirthTolerance = 0.0005, FastGirthTolerance = 0.001;
 
-    /// <summary>Пределы слоя мягких тканей в самой толстой зоне, м: тоньше формы MakeHuman на 8 мм … толще на 35 мм.</summary>
-    public const double MinLayer = -0.008, MaxLayer = 0.035;
+    /// <summary>Пределы слоя мягких тканей в самой толстой зоне, м: тоньше формы MakeHuman на 15 мм … толще на 45 мм.</summary>
+    public const double MinLayer = -0.015, MaxLayer = 0.045;
 
     /// <summary>Бедро меряется на 1,5 % роста ниже промежности — сразу под ягодичной складкой.</summary>
     public const double ThighBelowCrotch = 0.015;
@@ -263,8 +266,7 @@ public sealed class MakeHumanModel
         foreach (var (level, _) in Fitted)
         {
             if (GirthOf(level) is not Girth g) continue;
-            var (o, n) = Plane(level, pos, height, p.Sex);
-            if (GirthTape.Measure(pos, Data.Triangles, _candidates[level], o, n, tape) is null || tape.Count < 3) continue;
+            if (MeasureLevel(level, pos, height, p.Sex, tape) is null || tape.Count < 3) continue;
             var points = new float[tape.Count * 3];
             for (int i = 0; i < tape.Count; i++)
             {
@@ -293,6 +295,14 @@ public sealed class MakeHumanModel
                 double k = SoftTissue.Factor(zone, sex) / 255;
                 for (int v = 0; v < f.Length; v++) f[v] += k * weights[v];
             }
+            // Веса скелета плавные, и слой верха спины затекает на шею, где таргет обхвата шеи
+            // не успевает его снять: на шее слой гасим по доле её зоны
+            if (Data.Zones.TryGetValue(SoftTissue.NeckZone, out var neck))
+                for (int v = 0; v < f.Length; v++)
+                {
+                    double keep = 1 - neck[v] / 255.0;
+                    f[v] *= keep * keep;
+                }
         }
         _layerFactors[sex] = f;
         return f;
@@ -326,6 +336,23 @@ public sealed class MakeHumanModel
             pos[i + 2] *= scale;
         }
         return pos;
+    }
+
+    /// <summary>Шаг и предел, на которые лента груди опускается, если плоскость прошла выше подмышек.</summary>
+    private const double ChestStepDown = 0.005, ChestMaxDown = 0.03;
+
+    /// <summary>
+    /// Обхват на уровне, м (null — контура вокруг оси нет). Если у полных или мускулистых руки срастаются
+    /// с туловищем выше подмышек MakeHuman, сечение на уровне груди захватывает руки и контур в области
+    /// поиска рвётся. Тогда лента груди опускается, пока не пройдёт под мышками, — как при живом замере.
+    /// </summary>
+    internal double? MeasureLevel(FitLevel level, double[] pos, double height, Sex sex, List<Vec3>? tape)
+    {
+        var (o, n) = Plane(level, pos, height, sex);
+        double? girth = GirthTape.Measure(pos, Data.Triangles, _candidates[level], o, n, tape);
+        for (double down = ChestStepDown; girth is null && level == FitLevel.Chest && down <= ChestMaxDown + 1e-9; down += ChestStepDown)
+            girth = GirthTape.Measure(pos, Data.Triangles, _candidates[level], o - n * (down * height), n, tape);
+        return girth;
     }
 
     /// <summary>Плоскость замера для рук, ног и шеи — по суставам; для туловища — горизонталь на доле роста.</summary>
@@ -498,8 +525,7 @@ public sealed class MakeHumanModel
         {
             if (_measured.TryGetValue(level, out var m) && m.Version == _version) return m.Girth;
             Measurements++;
-            var (o, n) = model.Plane(level, pos, _height, p.Sex);
-            double? girth = GirthTape.Measure(pos, model.Data.Triangles, model._candidates[level], o, n);
+            double? girth = model.MeasureLevel(level, pos, _height, p.Sex, null);
             _measured[level] = (girth, _version);
             return girth;
         }
@@ -649,7 +675,10 @@ public sealed class MakeHumanBody : IBodyShape
     /// </summary>
     public bool LayerAtMax => Fit.LayerM >= MakeHumanModel.MaxLayer - 1e-6;
 
-    /// <summary>Слой упёрся в нижний предел: модель больше, чем следует из веса, — замеры и вес, скорее всего, не согласуются.</summary>
+    /// <summary>
+    /// Слой упёрся в нижний предел: даже с самыми тонкими тканями модель объёмнее, чем следует из веса.
+    /// У худых это свойство формы MakeHuman, а не ошибка в замерах (их проверяет манекен).
+    /// </summary>
     public bool LayerAtMin => Fit.LayerM <= MakeHumanModel.MinLayer + 1e-6;
 
     /// <summary>Насколько объём модели отличается от объёма по весу и % жира (−0,05 — на 5 % меньше).</summary>

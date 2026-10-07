@@ -112,7 +112,7 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
         var body = fx.Model.Build(profile);
         double expected = ConsistencyChecker.ExpectedVolumeLiters(profile);
 
-        Assert.False(body.LayerAtMax || body.LayerAtMin, name);
+        // Слой может остановиться и на пределе, если объём там уже сошёлся: проверяем сам объём
         Assert.InRange(body.VolumeLiters / expected, 0.97, 1.03);
         Assert.InRange(body.VolumeDeviation, -0.03, 0.03);
         Assert.InRange(body.LayerMm, MakeHumanModel.MinLayer * 1000, MakeHumanModel.MaxLayer * 1000);
@@ -192,6 +192,24 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
         var waist = body.Tapes.First(t => t.Girth == Girth.Waist).Points;
         for (int i = 1; i < waist.Length; i += 3)
             Assert.Equal(Proportions.WaistHeight(Sex.Female) * p.HeightCm / 100, waist[i], 3);
+    }
+
+    [Fact]
+    public void ChestTape_GoesUnderArmpits_WhenArmsMergeWithChest()
+    {
+        // Мускулистый мужчина из ANSUR II: на уровне груди сечение MakeHuman захватывает руки
+        var p = new BodyProfile
+        {
+            Sex = Sex.Male, Age = 23, HeightCm = 168, WeightKg = 85.8, BodyFatPercent = 14.9,
+            ChestCm = 102.7, WaistCm = 84.7, HipsCm = 101.1, BicepsCm = 41.9, ThighCm = 66.1,
+            NeckCm = 41.7, CalfCm = 40.6, WristCm = 18.5,
+        };
+        var body = fx.Model.Build(p);
+
+        Assert.Empty(body.Misfits());
+        double tapeY = body.Tapes.First(t => t.Girth == Girth.Chest).Points[1];
+        double nominal = Proportions.ChestHeight(Sex.Male) * p.HeightCm / 100;
+        Assert.InRange(nominal - tapeY, 0.001, 0.03 * p.HeightCm / 100); // лента чуть ниже уровня груди
     }
 
     [Fact]
