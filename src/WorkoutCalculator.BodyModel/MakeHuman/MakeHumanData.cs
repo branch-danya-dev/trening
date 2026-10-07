@@ -38,8 +38,8 @@ public sealed class SparseTarget
 }
 
 /// <summary>
-/// Данные MakeHuman, нужные приложению: базовая сетка hm08 (только тело), точки суставов, таргеты
-/// и зоны тела. Источник — makehumancommunity/makehuman, ассеты под лицензией CC0 1.0. Файл собирает
+/// Данные MakeHuman, нужные приложению: базовая сетка hm08 (только тело), точки суставов, таргеты,
+/// зоны тела и скелет. Источник — makehumancommunity/makehuman, ассеты под лицензией CC0 1.0. Файл собирает
 /// tools/WorkoutCalculator.MakeHumanImport; формат описан в <see cref="Read"/>.
 /// Координаты — как в MakeHuman (ось Y вверх, лицом к +Z), но в метрах, без масштабирования под рост.
 /// </summary>
@@ -48,12 +48,12 @@ public sealed class MakeHumanData
     public const string FileName = "makehuman-hm08.bin";
     private const string Magic = "MHB1";
 
-    /// <summary>Версия формата: 2 — с зонами тела. Файлы версии 1 читаются без зон.</summary>
-    public const int Version = 2;
+    /// <summary>Версия формата: 2 — с зонами тела, 3 — со скелетом. Старые файлы читаются без них.</summary>
+    public const int Version = 3;
 
     public MakeHumanData(string source, int bodyVertexCount, float[] positions, int[] quads,
         IReadOnlyDictionary<string, int[]> landmarks, IReadOnlyDictionary<string, SparseTarget> targets,
-        IReadOnlyDictionary<string, byte[]>? zones = null)
+        IReadOnlyDictionary<string, byte[]>? zones = null, MakeHumanSkeleton? skeleton = null)
     {
         Source = source;
         BodyVertexCount = bodyVertexCount;
@@ -65,6 +65,9 @@ public sealed class MakeHumanData
         foreach (var (name, w) in Zones)
             if (w.Length != bodyVertexCount)
                 throw new ArgumentException($"Зона {name}: нужен вес для каждой вершины тела.");
+        if (skeleton is not null && skeleton.SkinBones.Length != VertexCount * MakeHumanSkeleton.Influences)
+            throw new ArgumentException("Скелет: нужны веса для каждой вершины.");
+        Skeleton = skeleton;
 
         // Четырёхугольники → треугольники (0,1,2) и (0,2,3); обход сохраняет нормали наружу
         Triangles = new int[quads.Length / 4 * 6];
@@ -81,7 +84,7 @@ public sealed class MakeHumanData
 
     /// <summary>Откуда данные (репозиторий, коммит, лицензия).</summary>
     public string Source { get; }
-    /// <summary>Вершины тела идут первыми; за ними — вспомогательные вершины суставов.</summary>
+    /// <summary>Вершины тела идут первыми; за ними — центры суставов (по одной вершине на сустав).</summary>
     public int BodyVertexCount { get; }
     public int VertexCount => Positions.Length / 3;
     /// <summary>x, y, z подряд, метры.</summary>
@@ -100,6 +103,9 @@ public sealed class MakeHumanData
     /// </summary>
     public IReadOnlyDictionary<string, byte[]> Zones { get; }
 
+    /// <summary>Скелет и привязка вершин к костям; null — файл версии 1–2.</summary>
+    public MakeHumanSkeleton? Skeleton { get; }
+
     public SparseTarget? Target(string name) => Targets.TryGetValue(name, out var t) ? t : null;
 
     /// <summary>
@@ -108,6 +114,9 @@ public sealed class MakeHumanData
     /// int32 число ориентиров, для каждого — строка-имя, int32 n, uint16[n]; int32 число таргетов,
     /// для каждого — строка-имя, float32 шаг квантования, int32 n, uint16[n] вершины, int16[3·n] смещения
     /// (смещение = int16 · шаг). С версии 2 — int32 число зон, для каждой — строка-имя и uint8[число вершин тела].
+    /// С версии 3 — скелет: int32 число суставов, для каждого — int32 n, uint16[n] вершины; int32 число костей,
+    /// для каждой — строка-имя, int32 родитель (−1 — корень), int32 начало, int32 конец, int32[3] плоскость;
+    /// затем uint8[всего·4] кости и uint8[всего·4] веса вершин (без скелета — 0 суставов и 0 костей).
     /// Строки — как в BinaryWriter (длина 7-битным кодом + UTF-8).
     /// </summary>
     public static MakeHumanData Read(Stream stream)
@@ -167,7 +176,22 @@ public sealed class MakeHumanData
             }
         }
 
-        return new MakeHumanData(source, body, positions, quads, landmarks, targets, zones);
+        MakeHumanSkeleton? skeleton = null;
+        if (version >= 3)
+        {
+            var joints = new int[r.Int32()][];
+            for (int j = 0; j < joints.Length; j++) joints[j] = r.UInt16s(r.Int32());
+            var bones = new SkeletonBone[r.Int32()];
+            for (int b = 0; b < bones.Length; b++)
+                bones[b] = new SkeletonBone(r.String(), r.Int32(), r.Int32(), r.Int32(), [r.Int32(), r.Int32(), r.Int32()]);
+            if (bones.Length > 0)
+            {
+                int n = total * MakeHumanSkeleton.Influences;
+                skeleton = new MakeHumanSkeleton(joints, bones, r.Bytes(n).ToArray(), r.Bytes(n).ToArray());
+            }
+        }
+
+        return new MakeHumanData(source, body, positions, quads, landmarks, targets, zones, skeleton);
     }
 
     private sealed class Reader(byte[] data)
@@ -249,6 +273,29 @@ public sealed class MakeHumanData
         {
             w.Write(name);
             w.Write(weights);
+        }
+
+        var joints = Skeleton?.Joints ?? [];
+        var bones = Skeleton?.Bones ?? [];
+        w.Write(joints.Count);
+        foreach (var ids in joints)
+        {
+            w.Write(ids.Length);
+            foreach (int i in ids) w.Write(checked((ushort)i));
+        }
+        w.Write(bones.Count);
+        foreach (var b in bones)
+        {
+            w.Write(b.Name);
+            w.Write(b.Parent);
+            w.Write(b.Head);
+            w.Write(b.Tail);
+            foreach (int j in b.Plane) w.Write(j);
+        }
+        if (Skeleton is not null)
+        {
+            w.Write(Skeleton.SkinBones);
+            w.Write(Skeleton.SkinWeights);
         }
     }
 }
