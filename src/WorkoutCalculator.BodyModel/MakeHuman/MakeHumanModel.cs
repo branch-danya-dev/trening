@@ -273,7 +273,8 @@ public sealed class MakeHumanModel
             Rings = [],
         };
 
-        return new MakeHumanBody(p, mesh, results, macros, fit, state.Measurements, () => Tapes(posed, p));
+        return new MakeHumanBody(p, mesh, results, macros, fit, state.Measurements, () => Tapes(posed, p),
+            name => Joint(posed, name));
     }
 
     /// <summary>Ленты по готовой сетке: выпуклые оболочки сечений на уровнях обхватов профиля.</summary>
@@ -692,9 +693,13 @@ public sealed class MakeHumanBody : IBodyShape
     private readonly Func<IReadOnlyList<TapeLoop>> _computeTapes;
     private IReadOnlyList<TapeLoop>? _tapes;
 
+    private readonly Func<string, Vec3> _landmark;
+
     internal MakeHumanBody(BodyProfile profile, BodyMesh mesh, IReadOnlyList<FitResult> results,
-        MakeHumanMapping.Macros macros, MakeHumanFit fit, int measurements, Func<IReadOnlyList<TapeLoop>> tapes)
+        MakeHumanMapping.Macros macros, MakeHumanFit fit, int measurements, Func<IReadOnlyList<TapeLoop>> tapes,
+        Func<string, Vec3> landmark)
     {
+        _landmark = landmark;
         Profile = profile;
         Mesh = mesh;
         Results = results;
@@ -706,6 +711,12 @@ public sealed class MakeHumanBody : IBodyShape
 
     /// <summary>Ленты замеров — считаются, только когда их показывают.</summary>
     public IReadOnlyList<TapeLoop> Tapes => _tapes ??= _computeTapes();
+
+    /// <summary>
+    /// Ориентир в позе, м: суставы (joint-neck, joint-head, joint-l-shoulder, …; левая сторона, правая —
+    /// зеркально по X) и промежность (crotch).
+    /// </summary>
+    public Vec3 Landmark(string name) => _landmark(name);
 
     public BodyProfile Profile { get; }
     public BodyMesh Mesh { get; }

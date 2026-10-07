@@ -1,4 +1,4 @@
-// Подбирает коэффициенты AnsurGirths и сверяет уровни Proportions по открытым данным ANSUR II.
+// Подбирает коэффициенты AnsurGirths и PhotoGirths и сверяет уровни Proportions по открытым данным ANSUR II.
 //
 //   dotnet run --project tools/WorkoutCalculator.AnsurFit -- "<ANSUR II MALE Public.csv>" "<ANSUR II FEMALE Public.csv>"
 //       [--validate [<makehuman-hm08.bin>]]
@@ -11,8 +11,10 @@
 // В файлах длины в миллиметрах, weightkg — в десятых долях килограмма.
 using System.Globalization;
 using WorkoutCalculator;
+using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Anthropometry;
 using WorkoutCalculator.BodyModel.MakeHuman;
+using WorkoutCalculator.BodyModel.Photos;
 
 if (args.Length < 2)
 {
@@ -66,6 +68,31 @@ foreach (var (sex, path) in new[] { (Sex.Male, args[0]), (Sex.Female, args[1]) }
         string row = string.Create(CultureInfo.InvariantCulture,
             $"  (AnsurGirth.{girth}, Sex.{sex}) => new({fitted.Intercept:0.000}, {fitted.Thigh:0.0000}, {fitted.Height:0.0000}, {fitted.Weight:0.0000}, {rmse:0.00}),");
         Console.WriteLine($"{row}  // в коде: ошибка {rmseCode:0.00} см{(same ? "" : " — НЕ СОВПАДАЕТ")}");
+    }
+
+    // Обхваты по фото: ширина спереди и глубина сбоку на уровне талии (пупка) и ягодиц. Грудь не берём:
+    // chestbreadth мерили циркулем под мышками, без широчайших мышц, — с шириной силуэта она не сравнима
+    Console.WriteLine("Обхват по ширине и глубине (Intercept, Breadth, Depth, RmseCm) для PhotoGirths.Model:");
+    foreach (var (girth, breadthColumn, depthColumn, girthColumn) in new[]
+             {
+                 (Girth.Waist, "waistbreadth", "waistdepth", "waistcircumference"),
+                 (Girth.Hips, "hipbreadth", "buttockdepth", "buttockcircumference"),
+             })
+    {
+        double[] breadth = data.Cm(breadthColumn), depth = data.Cm(depthColumn), y = data.Cm(girthColumn);
+        double[] b = LeastSquares([breadth, depth], y);
+        var fitted = new BreadthDepthModel(b[0], b[1], b[2], 0);
+        double Error(BreadthDepthModel m) =>
+            Math.Sqrt(y.Select((v, i) => Math.Pow(m.Estimate(breadth[i], depth[i]) - v, 2)).Average());
+        fitted = fitted with { RmseCm = Error(fitted) };
+        var code = PhotoGirths.Model(girth, sex);
+        bool same = Math.Abs(code.Intercept - fitted.Intercept) < 0.001 + 0.002 * Math.Abs(fitted.Intercept)
+                    && Math.Abs(code.Breadth - fitted.Breadth) < 0.0005 && Math.Abs(code.Depth - fitted.Depth) < 0.0005
+                    && Math.Abs(code.RmseCm - fitted.RmseCm) < 0.006;
+        mismatch |= !same;
+        string row = string.Create(CultureInfo.InvariantCulture,
+            $"  (Girth.{girth}, Sex.{sex}) => new({fitted.Intercept:0.000}, {fitted.Breadth:0.0000}, {fitted.Depth:0.0000}, {fitted.RmseCm:0.00}),");
+        Console.WriteLine($"{row}  // в коде: ошибка {Error(code):0.00} см{(same ? "" : " — НЕ СОВПАДАЕТ")}");
     }
 
     Console.WriteLine("Уровни в долях роста: ANSUR II (среднее ± ст. откл.) и Proportions:");
