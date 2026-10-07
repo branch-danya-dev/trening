@@ -113,7 +113,8 @@ public class MakeHumanTests(MakeHumanFixture fx) : IClassFixture<MakeHumanFixtur
         double expected = ConsistencyChecker.ExpectedVolumeLiters(profile);
 
         // Слой может остановиться и на пределе, если объём там уже сошёлся: проверяем сам объём
-        Assert.InRange(body.VolumeLiters / expected, 0.97, 1.03);
+        Assert.True(Math.Abs(body.VolumeLiters / expected - 1) <= 0.03,
+            $"{name}: объём {body.VolumeLiters:0.0} л вместо {expected:0.0} л, слой {body.LayerMm:0} мм");
         Assert.InRange(body.VolumeDeviation, -0.03, 0.03);
         Assert.InRange(body.LayerMm, MakeHumanModel.MinLayer * 1000, MakeHumanModel.MaxLayer * 1000);
     }
