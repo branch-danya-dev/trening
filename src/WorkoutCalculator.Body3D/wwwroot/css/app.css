@@ -585,6 +585,81 @@ table.compare tr.group th {
 .session-info span { color: var(--muted); }
 .session-info .confirm { margin-top: 0; gap: 10px; flex-wrap: wrap; }
 
+/* ---------- Съёмка (js/capture.js) ---------- */
+
+.capture {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    background: #000;
+}
+
+.capture-stage { position: relative; min-height: 0; }
+.capture-video, .capture-overlay { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* Кадр целиком, без обрезки: что видно на экране, то и попадёт в снимок */
+.capture-video { object-fit: contain; }
+/* Фронтальная камера — как зеркало; сам снимок не зеркальный */
+.capture-stage.mirror .capture-video, .capture-stage.mirror .capture-overlay { transform: scaleX(-1); }
+
+.capture-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 16px 28px;
+    background: linear-gradient(rgba(0, 0, 0, 0.75), transparent);
+    text-align: center;
+    pointer-events: none;
+}
+
+.capture-steps { display: flex; justify-content: center; gap: 14px; color: var(--muted); font-size: 13px; }
+.capture-steps .on { color: var(--accent); font-weight: 600; }
+.capture-status { margin-top: 6px; color: #fff; font-size: 20px; font-weight: 600; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); }
+
+.capture-count {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 30vmin;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.capture-bottom {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--panel);
+}
+
+/* Кнопки по шагу: наведение — сменить камеру и снять вручную, просмотр — переснять и сохранить */
+.capture .capture-flip, .capture .capture-shoot, .capture .capture-retake, .capture .capture-save { display: none; }
+.capture[data-mode="aim"] .capture-flip, .capture[data-mode="aim"] .capture-shoot,
+.capture[data-mode="review"] .capture-retake, .capture[data-mode="review"] .capture-save { display: inline-block; }
+
+.capture-review { display: none; }
+.capture[data-mode="review"] .capture-stage { visibility: hidden; }
+.capture[data-mode="review"] .capture-review {
+    position: absolute;
+    top: 96px;
+    bottom: 76px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 12px;
+}
+.capture-review figure { flex: 1; max-width: 45%; min-width: 0; margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.capture-review img { min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; background: #111; }
+.capture-review figcaption { color: var(--muted); font-size: 13px; }
+
 /* ---------- График ---------- */
 
 .chart .grid { stroke: var(--border); stroke-width: 1; }

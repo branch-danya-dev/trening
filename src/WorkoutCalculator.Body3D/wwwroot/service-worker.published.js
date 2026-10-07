@@ -13,7 +13,12 @@ const cacheNamePrefix = 'offline-cache-';
 const cacheName = `${cacheNamePrefix}${self.assetsManifest.version}`;
 const offlineAssetsInclude = [/\.dll$/, /\.pdb$/, /\.wasm/, /\.html/, /\.js$/, /\.json$/, /\.css$/, /\.woff2?$/,
     /\.png$/, /\.jpe?g$/, /\.svg$/, /\.ico$/, /\.blat$/, /\.dat$/, /\.bin$/, /\.webmanifest$/];
-const offlineAssetsExclude = [/^service-worker\.js$/];
+const offlineAssetsExclude = [/^service-worker\.js$/, /^lib\/mediapipe-/];
+
+// Распознавание позы (~22 МБ) нужно только для съёмки: в кэш оно кладётся при первом использовании,
+// а не при установке. Папка с версией в имени — обновление MediaPipe не перепутает файлы.
+const runtimeCacheName = 'runtime-mediapipe';
+const isRuntimeAsset = url => url.startsWith(new URL('lib/mediapipe-', baseUrl).href);
 
 // Адреса — от папки, где лежит сам service worker: на GitHub Pages это /trening/, локально — корень
 const baseUrl = new URL('./', self.location.href);
@@ -33,10 +38,23 @@ async function onActivate() {
     await Promise.all(keys
         .filter(key => key.startsWith(cacheNamePrefix) && key !== cacheName)
         .map(key => caches.delete(key)));
+    // Файлы MediaPipe, которых нет в этой версии приложения (старая версия библиотеки), — удалить
+    const runtime = await caches.open(runtimeCacheName);
+    for (const request of await runtime.keys()) {
+        if (!manifestUrlList.includes(request.url)) await runtime.delete(request);
+    }
 }
 
 async function onFetch(event) {
     if (event.request.method !== 'GET') return fetch(event.request);
+    if (isRuntimeAsset(event.request.url)) {
+        const runtime = await caches.open(runtimeCacheName);
+        const hit = await runtime.match(event.request.url);
+        if (hit) return hit;
+        const response = await fetch(event.request);
+        if (response.ok) await runtime.put(event.request.url, response.clone());
+        return response;
+    }
     // Переход по адресу приложения — всегда index.html из кэша: работает и без сети
     const isNavigation = event.request.mode === 'navigate' && !manifestUrlList.includes(event.request.url);
     const request = isNavigation ? new URL('index.html', baseUrl).href : event.request;

@@ -40,8 +40,7 @@ public static partial class PhotoStore
     /// <summary>Сессия из полей выбора файлов; замеры — снимок профиля на момент съёмки.</summary>
     public static async Task<PhotoSession> SaveFromInputs(BodyProfile p, string frontInputId, string sideInputId)
     {
-        var meta = new PhotoMeta(p.Sex, p.Age, p.HeightCm, p.WeightKg, p.BodyFatPercent);
-        string json = await SaveFromInputsJson(JsonSerializer.Serialize(meta, PhotoJson.Default.PhotoMeta), frontInputId, sideInputId);
+        string json = await SaveFromInputsJson(PhotoMeta.Json(p), frontInputId, sideInputId);
         return JsonSerializer.Deserialize(json, PhotoJson.Default.PhotoSession)!;
     }
 
@@ -55,10 +54,30 @@ public static partial class PhotoStore
         JsonSerializer.Deserialize(await StorageInfoJson(), PhotoJson.Default.StorageInfo)!;
 }
 
+/// <summary>Мост к wwwroot/js/capture.js: съёмка с подсказками поверх приложения.</summary>
+public static partial class Capture
+{
+    public const string Module = "capture";
+
+    [JSImport("run", Module)]
+    private static partial Task<string> RunJson(string metaJson);
+
+    /// <summary>Съёмка спереди и сбоку; null — съёмку отменили.</summary>
+    public static async Task<PhotoSession?> Run(BodyProfile p)
+    {
+        string json = await RunJson(PhotoMeta.Json(p));
+        return json.Length == 0 ? null : JsonSerializer.Deserialize(json, PhotoJson.Default.PhotoSession);
+    }
+}
+
 /// <summary>Замеры на момент съёмки — с ними потом сравниваются снимки.</summary>
 public sealed record PhotoMeta(
     [property: JsonConverter(typeof(JsonStringEnumConverter<Sex>))] Sex Sex,
-    int Age, double HeightCm, double WeightKg, double BodyFatPercent);
+    int Age, double HeightCm, double WeightKg, double BodyFatPercent)
+{
+    public static string Json(BodyProfile p) =>
+        JsonSerializer.Serialize(new PhotoMeta(p.Sex, p.Age, p.HeightCm, p.WeightKg, p.BodyFatPercent), PhotoJson.Default.PhotoMeta);
+}
 
 public sealed class PhotoSession
 {

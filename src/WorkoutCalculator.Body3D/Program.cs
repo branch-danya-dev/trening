@@ -23,5 +23,6 @@ builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.H
 await JSHost.ImportAsync(ViewerInterop.Module, "../js/viewer.js");
 await JSHost.ImportAsync(BrowserStorage.Module, "../js/storage.js");
 await JSHost.ImportAsync(PhotoStore.Module, "../js/photos.js");
+await JSHost.ImportAsync(Capture.Module, "../js/capture.js");
 
 await builder.Build().RunAsync();

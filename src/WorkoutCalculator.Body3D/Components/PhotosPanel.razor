@@ -1,5 +1,5 @@
-@* Вкладка «Фото»: фотосессии — только на этом устройстве. Пока снимки добавляются из файлов,
-   съёмка с подсказками появится следующим шагом. *@
+@* Вкладка «Фото»: фотосессии — только на этом устройстве. Съёмка с подсказками (камера и проверка позы
+   в браузере) или готовые снимки из файлов. *@
 @using System.Runtime.InteropServices.JavaScript
 
 <div class="card">
@@ -15,6 +15,12 @@
         <li>телефон на уровне пояса в 2–3&nbsp;м, вы целиком в кадре;</li>
         <li>спереди — руки чуть в стороны, сбоку — руки вдоль тела.</li>
     </ul>
+    <button class="btn primary" disabled="@_busy" @onclick="Shoot">Снять с подсказками</button>
+    <div class="note" style="margin: 6px 0 12px">
+        Поставьте телефон вертикально на полку на уровне пояса. Приложение подскажет, как встать, и снимет само.
+        Первый раз загрузится распознавание позы — около 22&nbsp;МБ.
+    </div>
+    <div class="note" style="margin-bottom: 8px">Или выберите готовые фото:</div>
     @foreach (var (view, inputId, title) in Inputs)
     {
         <div class="file-row">
@@ -165,6 +171,17 @@
         {
             await PhotoStore.SaveFromInputs(Profile, FrontInput, SideInput);
             _picked.Clear();
+            await Reload();
+            Show("Сессия сохранена.");
+        });
+    }
+
+    private async Task Shoot()
+    {
+        await Run(async () =>
+        {
+            var session = await Capture.Run(Profile);
+            if (session is null) return;
             await Reload();
             Show("Сессия сохранена.");
         });
