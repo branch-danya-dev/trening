@@ -53,6 +53,7 @@
             </div>
             @ErrorFor(RestingHrId, Vo2MaxId)
         </div>
+        @Journal
         break;
 
     case WorkoutDraft.Step.Params:
@@ -226,10 +227,26 @@
                     </div>
                 }
             </div>
+            <div class="card">
+                <div class="file-row">
+                    <label for="workout-date">Дата</label>
+                    <input id="workout-date" class="date-input" type="date" value="@Draft.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)"
+                           max="@Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" disabled="@(Draft.SavedId is not null)" @onchange="SetDate" />
+                    @if (Draft.SavedId is null)
+                    {
+                        <button class="btn primary" @onclick="Save">Сохранить в журнал</button>
+                    }
+                    else
+                    {
+                        <span class="muted">Сохранено в журнал ✓</span>
+                    }
+                </div>
+            </div>
             <div class="wizard-buttons">
                 <button class="btn" @onclick="Edit">Изменить</button>
                 <button class="btn primary" @onclick="NewCalculation">Новый расчёт</button>
             </div>
+            @Journal
         }
         break;
 }
@@ -240,6 +257,129 @@
     [Parameter, EditorRequired] public WorkoutDraft Draft { get; set; } = default!;
     /// <summary>Изменение профиля (пульс покоя, VO2max): родитель применяет и сохраняет.</summary>
     [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
+    /// <summary>Журнал тренировок, от новых к старым.</summary>
+    [Parameter] public IReadOnlyList<LoggedWorkout> Log { get; set; } = [];
+    [Parameter] public EventCallback<LoggedWorkout> OnSave { get; set; }
+    [Parameter] public EventCallback<string> OnRemove { get; set; }
+    /// <summary>Кардио по плану выбранной гипотезы; null — в плане кардио нет.</summary>
+    [Parameter] public CardioPlan? Plan { get; set; }
+
+    private const int JournalWeeks = 4, JournalShown = 10;
+    private bool _showAll;
+    private string? _confirmRemove;
+
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+
+    private RenderFragment Journal => @<div class="card">
+        <div class="card-title">
+            Журнал
+            @if (Log.Count > 0)
+            {
+                <span class="title-note">@Log.Count</span>
+            }
+        </div>
+        @if (Log.Count == 0)
+        {
+            <div class="note">
+                Здесь будут посчитанные тренировки — кнопка «Сохранить в журнал» под итогом. По ним видно, сколько
+                кардио было на самом деле против плана гипотезы.
+            </div>
+        }
+        else
+        {
+            var weeks = WorkoutLog.Weeks(Log, Today, JournalWeeks);
+            <table class="changes">
+                <thead><tr><th>Неделя</th><th>Трен.</th><th>Время</th><th>Активные, ккал</th></tr></thead>
+                <tbody>
+                    @foreach (var week in weeks)
+                    {
+                        <tr>
+                            <td>@WeekName(week.Monday)</td>
+                            <td>@(week.Count == 0 ? "—" : week.Count)</td>
+                            <td>@(week.Count == 0 ? "—" : Display.Duration(week.Minutes))</td>
+                            <td>@(week.Count == 0 ? "—" : Fmt.N(week.ActiveKcal))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if (Plan is CardioPlan plan)
+            {
+                var now = weeks[0];
+                <div class="volume-line">
+                    План «@plan.Name»: @plan.SessionsPerWeek&nbsp;кардио в неделю, ≈&nbsp;@Fmt.N(plan.KcalPerWeek)&nbsp;ккал активных.
+                    На этой неделе — @now.Count из @plan.SessionsPerWeek, @Fmt.N(now.ActiveKcal) из @Fmt.N(plan.KcalPerWeek)&nbsp;ккал.
+                </div>
+            }
+            <ul class="journal">
+                @foreach (var w in (_showAll ? Log : Log.Take(JournalShown)))
+                {
+                    var id = w.Id;
+                    <li>
+                        <div class="journal-main">
+                            <b>@Fmt.Date(w.Date)</b> · @Display.WorkoutTitle(w.Activity, w.Setting)
+                            <span>@Display.Duration(w.DurationMin) · @Fmt.N(w.DistanceKm, 2)&nbsp;км@(w.AvgHr is int hr ? $" · пульс {hr}" : "")</span>
+                        </div>
+                        <div class="journal-kcal">
+                            <b>@Fmt.N(w.ActiveKcal)</b>&nbsp;ккал
+                            @if (w.WatchActiveKcal is double watch)
+                            {
+                                <span>часы @Fmt.N(watch)</span>
+                            }
+                        </div>
+                        @if (_confirmRemove == id)
+                        {
+                            <span class="confirm journal-confirm">
+                                <button class="btn-link" @onclick="() => Remove(id)">Удалить</button>
+                                <button class="btn-link muted" @onclick="() => _confirmRemove = null">Отмена</button>
+                            </span>
+                        }
+                        else
+                        {
+                            <button class="btn-link muted remove" title="Удалить из журнала" aria-label="Удалить тренировку @Fmt.Date(w.Date)"
+                                    @onclick="() => _confirmRemove = id">×</button>
+                        }
+                    </li>
+                }
+            </ul>
+            @if (Log.Count > JournalShown)
+            {
+                <button class="btn-link" @onclick="() => _showAll = !_showAll">@(_showAll ? "Свернуть" : $"Показать все ({Log.Count})")</button>
+            }
+            <div class="note" style="margin-top: 8px">Только кардио: силовые калькулятор не считает. Журнал хранится на этом устройстве.</div>
+        }
+    </div>;
+
+    private static string WeekName(DateOnly monday)
+    {
+        var current = WorkoutLog.WeekStart(Today);
+        if (monday == current) return "Эта";
+        if (monday == current.AddDays(-7)) return "Прошлая";
+        var sunday = monday.AddDays(6);
+        return monday.Month == sunday.Month
+            ? $"{monday.Day}–{Fmt.Date(sunday)}"
+            : $"{Fmt.Date(monday)} – {Fmt.Date(sunday)}";
+    }
+
+    private void SetDate(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+            Draft.Date = date;
+    }
+
+    private async Task Save()
+    {
+        if (Draft.Result is not CalculationResult r || Draft.Input is not WorkoutInput w || Draft.SavedId is not null) return;
+        var entry = LoggedWorkout.From(Guid.NewGuid().ToString("N")[..12], Draft.Date, w, r);
+        Draft.SavedId = entry.Id;
+        await OnSave.InvokeAsync(entry);
+    }
+
+    private async Task Remove(string id)
+    {
+        _confirmRemove = null;
+        if (Draft.SavedId == id) Draft.SavedId = null;
+        await OnRemove.InvokeAsync(id);
+    }
 
     private const string RestingHrId = "resting-hr", Vo2MaxId = "vo2max";
 
@@ -314,13 +454,19 @@
         Go(WorkoutDraft.Step.Result);
     }
 
-    private void Edit() => Go(WorkoutDraft.Step.Params);
+    private void Edit()
+    {
+        Draft.SavedId = null; // изменённая тренировка — новая запись
+        Go(WorkoutDraft.Step.Params);
+    }
 
     private void NewCalculation()
     {
         Form.Clear();
         Draft.Result = null;
         Draft.Input = null;
+        Draft.SavedId = null;
+        Draft.Date = Today;
         Go(WorkoutDraft.Step.Type);
     }
 

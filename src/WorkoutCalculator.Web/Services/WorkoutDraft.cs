@@ -15,4 +15,11 @@ public sealed class WorkoutDraft
     /// <summary>Итог последнего расчёта и ввод, по которому он посчитан; null — ещё не считали.</summary>
     public CalculationResult? Result { get; set; }
     public WorkoutInput? Input { get; set; }
+
+    /// <summary>Итог уже сохранён в журнал (id записи) — второй раз не сохраняется.</summary>
+    public string? SavedId { get; set; }
 }
+
+/// <summary>Кардио по плану выбранной гипотезы — для сравнения с журналом.</summary>
+/// <param name="KcalPerWeek">Активные ккал кардио в неделю по плану (калькулятор тренировок × раз в неделю).</param>
+public sealed record CardioPlan(string Name, int SessionsPerWeek, double KcalPerWeek);

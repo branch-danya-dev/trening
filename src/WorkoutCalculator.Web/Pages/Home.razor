@@ -116,7 +116,8 @@
                 }
                 else if (_tab == Tab.Workout)
                 {
-                    <WorkoutPanel Profile="_profile" Draft="_workout" OnChange="ChangeProfile" />
+                    <WorkoutPanel Profile="_profile" Draft="_workout" OnChange="ChangeProfile" Log="_workouts" Plan="CardioPlan()"
+                                  OnSave="SaveWorkout" OnRemove="RemoveWorkout" />
                 }
                 else if (_tab == Tab.Photos)
                 {
@@ -170,6 +171,31 @@
     private Tab _tab = Tab.Params;
     /// <summary>Расчёт тренировки в работе: переживает переключение вкладок.</summary>
     private readonly WorkoutDraft _workout = new();
+    /// <summary>Журнал тренировок, от новых к старым.</summary>
+    private List<LoggedWorkout> _workouts = ProfileStorage.LoadWorkouts();
+
+    private void SaveWorkout(LoggedWorkout entry)
+    {
+        _workouts.Add(entry);
+        _workouts = [.. _workouts.OrderByDescending(w => w.Date)];
+        ProfileStorage.SaveWorkouts(_workouts);
+    }
+
+    private void RemoveWorkout(string id)
+    {
+        _workouts.RemoveAll(w => w.Id == id);
+        ProfileStorage.SaveWorkouts(_workouts);
+    }
+
+    /// <summary>Кардио по плану выбранной гипотезы — с ним журнал сравнивает неделю.</summary>
+    private CardioPlan? CardioPlan()
+    {
+        var current = _hypotheses.Current;
+        var plan = current.Plan;
+        if (plan.CardioKind < 0 || plan.CardioPerWeek <= 0) return null;
+        double perSession = ForecastEngine.Expenditure(_profile, _profile.WeightKg, plan.ToInput()).CardioPerSession;
+        return new CardioPlan(current.Name, plan.CardioPerWeek, perSession * plan.CardioPerWeek);
+    }
     private ViewMode _mode = ViewMode.Current;
     private bool _sideBySide;
 

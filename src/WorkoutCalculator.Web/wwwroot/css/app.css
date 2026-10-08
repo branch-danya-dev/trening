@@ -901,6 +901,24 @@ table.kv td:first-child { color: var(--muted); white-space: nowrap; }
 table.kv td { text-align: left; }
 table.changes tr.dim td { opacity: 0.5; }
 
+.file-row .muted { color: var(--muted); font-size: 13px; }
+
+.journal { list-style: none; margin: 10px 0 0; padding: 0; }
+.journal li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 24px;
+    gap: 4px 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+    font-size: 13.5px;
+}
+.journal-main span { display: block; color: var(--muted); font-size: 12.5px; }
+.journal-kcal { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.journal-kcal span { display: block; color: var(--muted); font-size: 12px; }
+.journal .remove { font-size: 18px; line-height: 1; justify-self: center; }
+.journal-confirm { grid-column: 1 / -1; justify-content: flex-end; margin-top: 0; }
+
 /* ---------- Телефон и планшет ---------- */
 
 /*

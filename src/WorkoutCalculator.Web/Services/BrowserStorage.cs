@@ -53,6 +53,7 @@ public static class ProfileStorage
     private const string ModelKey = "workoutcalc.model.v1";
     private const string WeightsKey = "workoutcalc.weights.v1";
     private const string PrivacyKey = "workoutcalc.photoprivacy.v1";
+    private const string WorkoutsKey = "workoutcalc.workouts.v1";
 
     /// <summary>Какая модель показана: "makehuman" или "mannequin".</summary>
     public static string? LoadModelKind() => BrowserStorage.GetItem(ModelKey);
@@ -112,6 +113,23 @@ public static class ProfileStorage
 
     public static void SaveWeights(List<WeightEntry> weights) =>
         BrowserStorage.SetItem(WeightsKey, JsonSerializer.Serialize(weights, StorageJson.Default.ListWeightEntry));
+
+    /// <summary>Журнал тренировок, от новых к старым.</summary>
+    public static List<LoggedWorkout> LoadWorkouts()
+    {
+        try
+        {
+            string? json = BrowserStorage.GetItem(WorkoutsKey);
+            return json is null ? [] : JsonSerializer.Deserialize(json, StorageJson.Default.ListLoggedWorkout) ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    public static void SaveWorkouts(List<LoggedWorkout> workouts) =>
+        BrowserStorage.SetItem(WorkoutsKey, JsonSerializer.Serialize(workouts, StorageJson.Default.ListLoggedWorkout));
 
     public static PhotoPrivacy LoadPrivacy()
     {
@@ -267,4 +285,5 @@ public sealed class StoredHypothesis
 [JsonSerializable(typeof(StoredHypotheses))]
 [JsonSerializable(typeof(List<WeightEntry>))]
 [JsonSerializable(typeof(PhotoPrivacy))]
+[JsonSerializable(typeof(List<LoggedWorkout>))]
 internal sealed partial class StorageJson : JsonSerializerContext;
