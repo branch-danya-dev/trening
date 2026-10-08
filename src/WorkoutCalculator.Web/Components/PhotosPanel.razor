@@ -801,6 +801,17 @@ else
     private static string Size(PhotoProfile? profile, double fraction) =>
         profile?.At(fraction) is ProfileLevel l ? Fmt.N(l.SizeCm, 1) : "—";
 
+    /// <summary>
+    /// Прогноз пересчитали (сменились замеры, осанка после подгонки или гипотеза), пока на экране снимок
+    /// с прогнозом, — пересчитать и снимок, а не молча вернуться к «Сейчас».
+    /// </summary>
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_warpOn && !_warping && ForecastEnd is not null && _warpFor is not null && !ReferenceEquals(_warpFor, ForecastEnd)
+            && _sessions.FirstOrDefault(s => s.Id == _warpSessionId) is { Analysis: PhotoAnalysis a } session)
+            await ShowForecast(session, a);
+    }
+
     private bool ShowingForecast(PhotoSession s) => _warpOn && _warpSessionId == s.Id && ReferenceEquals(_warpFor, ForecastEnd);
 
     private void HideForecast() => _warpOn = false;
@@ -856,6 +867,9 @@ else
         {
             _warping = false;
         }
+        // Пока считали, прогноз обновился (например, после подгонки) — снимок посчитан по старому: ещё раз
+        if (_warpOn && _openId == s.Id && ForecastEnd is not null && !ReferenceEquals(_warpFor, ForecastEnd))
+            await ShowForecast(s, a);
     }
 
     /// <summary>Контур снимка как «прежний» — поверх снимка с прогнозом.</summary>
