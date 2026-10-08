@@ -1,0 +1,61 @@
+@* Замеры на дату: значение каждого поля и откуда оно — запись (дата), фото, перенесено или оценка. *@
+@using WorkoutCalculator.Data
+
+<div class="card">
+    <div class="card-title">
+        Замеры
+        <span class="title-note">@(Date == DateOnly.FromDateTime(DateTime.Now) ? "сегодня" : Fmt.Date(Date))</span>
+    </div>
+    <table class="changes kv summary">
+        <tbody>
+            <tr>
+                <td>Вес</td>
+                <td>@Fmt.N(Body.Body.WeightKg, 1)&nbsp;кг</td>
+                <td class="origin">@Origin(BodyField.Weight)</td>
+            </tr>
+            <tr>
+                <td>Жир</td>
+                <td>@Fmt.N(Body.Body.BodyFatPercent, 1)&nbsp;%</td>
+                <td class="origin">@FatOrigin</td>
+            </tr>
+            @foreach (var g in Enum.GetValues<Girth>())
+            {
+                <tr>
+                    <td>@BodyProfile.GirthName(g)</td>
+                    <td>@Fmt.N(Body.Body.GetGirth(g), 1)&nbsp;см</td>
+                    <td class="origin">@Origin(BodyResolver.FieldOf(g))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ResolvedBody Body { get; set; } = default!;
+    [Parameter, EditorRequired] public DateOnly Date { get; set; }
+
+    private string Origin(BodyField f) => Describe(Body.Origin(f));
+
+    private string FatOrigin => Body.Origin(BodyField.BodyFat).IsEstimate
+        ? Body.FatSource == FatSource.Navy ? "оценка ВМС" : "оценка по ИМТ"
+        : Describe(Body.Origin(BodyField.BodyFat)) + Body.FatSource switch
+        {
+            FatSource.Scale => ", весы",
+            FatSource.Navy => ", формула ВМС",
+            FatSource.Estimate => ", оценка",
+            _ => "",
+        };
+
+    /// <summary>«оценка», «по фото, 3 окт.», «перенесено», «12 окт.» или «сегодня».</summary>
+    public static string Describe(FieldOrigin o)
+    {
+        if (o.IsEstimate) return "оценка";
+        string date = o.Date == DateOnly.FromDateTime(DateTime.Now) ? "сегодня" : Fmt.Date(o.Date!.Value);
+        return o.Source switch
+        {
+            EntrySource.Photo => $"по фото, {date}",
+            EntrySource.Migrated => $"перенесено, {date}",
+            _ => date,
+        };
+    }
+}

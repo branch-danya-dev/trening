@@ -1,0 +1,35 @@
+@* Раздел «Профиль»: данные профиля, номер сборки; при ?debug=1 — ссылка на прежний экран со скрытыми функциями. *@
+@using WorkoutCalculator.Data
+@inject AppData Data
+@inject NavigationManager Nav
+
+@if (Data.Profile is Profile p)
+{
+    <div class="card">
+        <div class="card-title">Профиль</div>
+        <table class="changes kv">
+            <tbody>
+                @if (!string.IsNullOrWhiteSpace(p.Name))
+                {
+                    <tr><td>Имя</td><td>@p.Name</td></tr>
+                }
+                <tr><td>Пол</td><td>@(p.Sex == Sex.Female ? "женский" : "мужской")</td></tr>
+                <tr><td>Дата рождения</td><td>@p.BirthDate.ToString("dd.MM.yyyy")@(p.BirthDateApproximate ? " (приблизительно)" : "")</td></tr>
+                <tr><td>Рост</td><td>@Fmt.N(p.HeightCm, 0)&nbsp;см</td></tr>
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="note about">
+    Профиль, замеры, тренировки и фото хранятся только на этом устройстве. Модель MakeHuman — makehumancommunity.org
+    (CC0); распознавание позы — MediaPipe (Apache-2.0); антропометрия — открытые данные ANSUR II.
+    <em>feat. Claude</em>@(AppInfo.Build.Length > 0 ? $" · сборка {AppInfo.Build}" : "")
+</div>
+
+@if (Features.Debug)
+{
+    <button class="btn-link" @onclick='() => Nav.NavigateTo("?classic=1", forceLoad: true)'>
+        Прежний экран (гипотезы, прогноз, видео) — со старыми данными
+    </button>
+}

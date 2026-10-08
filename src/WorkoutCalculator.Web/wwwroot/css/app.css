@@ -919,6 +919,49 @@ table.changes tr.dim td { opacity: 0.5; }
 .journal .remove { font-size: 18px; line-height: 1; justify-self: center; }
 .journal-confirm { grid-column: 1 / -1; justify-content: flex-end; margin-top: 0; }
 
+/* ---------- Новая структура: Модель · Активность · Профиль ---------- */
+
+.sections { display: flex; gap: 2px; margin-left: 24px; }
+.sections button {
+    border: none;
+    background: none;
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+}
+.sections button.on { color: var(--text); background: var(--card-2); }
+.sections button:focus-visible, .bottom-nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.bottom-nav { display: none; }
+
+.main-app:not(.on-model) .viewport,
+.main-app:not(.on-model) .model-panel { display: none; }
+.main-app:not(.on-model) .main { display: block; overflow-y: auto; }
+.main-app .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.main-app .view-cycle.always { display: inline-block; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+.view-status {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 80%;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    pointer-events: none;
+}
+table.summary td.origin { color: var(--faint); font-size: 12px; text-align: right; white-space: nowrap; }
+table.summary td:nth-child(2) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.note.about { padding: 0 4px; }
+
 /* ---------- Телефон и планшет ---------- */
 
 /*
@@ -954,6 +997,29 @@ table.changes tr.dim td { opacity: 0.5; }
     .app.panel-only .viewport { display: none; }
     .app.panel-only .panel { border-top: none; }
     .tabs { padding: 8px 8px 0; gap: 0; overflow-x: auto; }
+
+    /* Новая структура: навигация снизу, в шапке только название */
+    .main-app { grid-template-rows: auto minmax(0, 1fr) auto; }
+    .main-app .sections { display: none; }
+    .bottom-nav {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 1px solid var(--border);
+        background: var(--panel);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .bottom-nav button {
+        border: none;
+        background: none;
+        color: var(--muted);
+        padding: 12px 4px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        border-top: 2px solid transparent;
+    }
+    .bottom-nav button.on { color: var(--text); border-top-color: var(--accent); }
+    .main-app .page { padding: 14px 12px 24px; }
     .tabs button { padding: 8px 10px 10px; white-space: nowrap; }
     /* 16px: при меньшем шрифте iOS увеличивает страницу, когда поле получает фокус */
     input, select, textarea, .pin-input, .weight-input, .date-input, .report { font-size: 16px; }

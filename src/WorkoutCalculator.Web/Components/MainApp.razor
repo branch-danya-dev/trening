@@ -1,0 +1,185 @@
+@* Приложение: три раздела — «Модель», «Активность», «Профиль». На телефоне навигация снизу, на компьютере —
+   в шапке. 3D-вид живёт всё время (холст инициализируется один раз) и прячется, когда открыт другой раздел. *@
+@using WorkoutCalculator.Data
+@using WorkoutCalculator.BodyModel.MakeHuman
+@inject HttpClient Http
+@inject AppData Data
+@implements IDisposable
+
+<div class="app main-app on-@(_section.ToString().ToLowerInvariant())">
+    <header class="topbar">
+        <span class="brand-dot"></span>
+        <span class="brand">Тренировки и тело</span>
+        <nav class="sections" aria-label="Разделы">
+            @foreach (var (section, title) in Sections)
+            {
+                <button class="@Css.On(_section == section)" aria-current="@(_section == section ? "page" : null)"
+                        @onclick="() => Go(section)">@title</button>
+            }
+        </nav>
+    </header>
+
+    <div class="main">
+        <section class="viewport" aria-label="3D-модель">
+            <canvas id="body-canvas" tabindex="0"></canvas>
+            <div class="mode-bar">
+                <button class="btn view-cycle always" aria-label="Сменить ракурс" @onclick="CycleView">⟳ @ViewName(NextView)</button>
+            </div>
+            <label class="check view-tapes" title="Где меряется каждый обхват">
+                <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
+            </label>
+            @if (ViewMessage is string message)
+            {
+                <div class="view-status">@message</div>
+            }
+            @if (Features.Debug && _scene.Body(BodyScene.Primary) is IBodyShape current)
+            {
+                <div class="view-stats">
+                    @(current is MakeHumanBody mhb ? $"MakeHuman, сечений {mhb.Measurements}" : $"Манекен, {Mannequin.Segments} точек на сечение") ·
+                    @Fmt.N(current.Mesh.VertexCount) вершин · сетка @Fmt.N(_scene.BuildMs) мс + передача @Fmt.N(_scene.UploadMs) мс ·
+                    проверка @Fmt.N(_scene.CheckMs) мс
+                </div>
+            }
+        </section>
+
+        <aside class="panel model-panel">
+            <div class="panel-body">
+                @if (!Data.Loaded)
+                {
+                    <div class="note">Загружаю данные…</div>
+                }
+                else if (Data.LoadError is string error)
+                {
+                    <div class="hint">@error</div>
+                }
+                else if (Data.Profile is null)
+                {
+                    <div class="card">
+                        <div class="card-title">Профиль не создан</div>
+                        <div class="note">Создайте профиль — по нему строится модель тела и считаются тренировки.</div>
+                    </div>
+                }
+                else if (_body is ResolvedBody body)
+                {
+                    <BodySummary Body="body" Date="Today" />
+                }
+                else
+                {
+                    <div class="card">
+                        <div class="card-title">Нет замеров</div>
+                        <div class="note">Добавьте вес — без него модель не построить.</div>
+                    </div>
+                }
+            </div>
+        </aside>
+
+        @if (_section == Section.Activity)
+        {
+            <div class="page">
+                <div class="card">
+                    <div class="card-title">Активность</div>
+                    <div class="note">Тренировки по дням — скоро здесь.</div>
+                </div>
+            </div>
+        }
+        else if (_section == Section.Profile)
+        {
+            <div class="page">
+                <ProfileSection />
+            </div>
+        }
+    </div>
+
+    <nav class="bottom-nav" aria-label="Разделы">
+        @foreach (var (section, title) in Sections)
+        {
+            <button class="@Css.On(_section == section)" aria-current="@(_section == section ? "page" : null)"
+                    @onclick="() => Go(section)">@title</button>
+        }
+    </nav>
+</div>
+
+@code {
+    private enum Section { Model, Activity, Profile }
+
+    private static readonly (Section Section, string Title)[] Sections =
+    [
+        (Section.Model, "Модель"),
+        (Section.Activity, "Активность"),
+        (Section.Profile, "Профиль"),
+    ];
+
+    private Section _section = Section.Model;
+    private BodyScene _scene = default!;
+    private bool _viewerReady, _showTapes;
+    private ResolvedBody? _body;
+
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+
+    /// <summary>Подпись поверх 3D-вида, пока модели нет.</summary>
+    private string? ViewMessage =>
+        !Data.Loaded ? "Загружаю данные…"
+        : Data.Profile is null ? null
+        : _body is null ? null
+        : _scene.Status;
+
+    protected override void OnInitialized()
+    {
+        _scene = new BodyScene(() => InvokeAsync(StateHasChanged));
+        Data.Changed += OnDataChanged;
+        _ = _scene.LoadAsync(Http);
+        _ = Data.LoadAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender) return;
+        ViewerInterop.Init("body-canvas");
+        _viewerReady = true;
+        _scene.ViewerReady();
+        UpdateModel();
+    }
+
+    public void Dispose() => Data.Changed -= OnDataChanged;
+
+    private void OnDataChanged()
+    {
+        UpdateModel();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>Модель на сегодня из истории замеров.</summary>
+    private void UpdateModel()
+    {
+        _body = Data.Profile is Profile p ? BodyResolver.At(p, Data.Entries, Today) : null;
+        if (_viewerReady) _scene.Set(BodyScene.Primary, _body?.Body);
+    }
+
+    private void Go(Section section) => _section = section;
+
+    /// <summary>Последний выбранный ракурс камеры: front, side или back.</summary>
+    private string _view = "front";
+
+    private static readonly string[] Views = ["front", "side", "back"];
+
+    private string NextView => Views[(Array.IndexOf(Views, _view) + 1) % Views.Length];
+
+    private static string ViewName(string view) => view switch
+    {
+        "side" => "Сбоку",
+        "back" => "Сзади",
+        _ => "Спереди",
+    };
+
+    private void CycleView()
+    {
+        _view = NextView;
+        ViewerInterop.SetView(_view);
+    }
+
+    private void ToggleTapes(ChangeEventArgs e)
+    {
+        _showTapes = e.Value is true;
+        _scene.ShowTapes(_showTapes);
+    }
+}
