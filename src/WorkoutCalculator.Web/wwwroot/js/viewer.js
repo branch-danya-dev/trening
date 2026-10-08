@@ -17,6 +17,13 @@ let sideBySide = false;
 let platform;
 
 const meshes = { current: null, forecast: null };
+const raycaster = new THREE.Raycaster();
+let pickListener = null;
+
+/** Кого известить о нажатии на тело: callback(x, y, z) в координатах сетки; null — никого. */
+export function onPick(callback) {
+    pickListener = callback ?? null;
+}
 
 const materials = {
     current: new THREE.MeshStandardMaterial({ color: 0xc9cfd8, roughness: 0.6, metalness: 0.0 }),
@@ -118,6 +125,25 @@ export function init(canvasId) {
     controls.maxDistance = 9;
     controls.addEventListener('change', requestRender);
     controls.addEventListener('start', () => { tween = null; });
+
+    // Нажатие на тело (а не поворот): точка попадания в координатах сетки «current» — в C# (onPick)
+    let down = null;
+    canvas.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+    canvas.addEventListener('pointerup', e => {
+        const start = down;
+        down = null;
+        if (!start || !pickListener || mode !== 'current') return;
+        if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > 8 || performance.now() - start.t > 500) return;
+        const mesh = meshes.current;
+        if (!mesh || !mesh.visible) return;
+        const rect = canvas.getBoundingClientRect();
+        const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+        raycaster.setFromCamera(ndc, camera);
+        const hit = raycaster.intersectObject(mesh, false)[0];
+        if (!hit) return;
+        const local = mesh.worldToLocal(hit.point.clone());
+        pickListener(local.x, local.y, local.z);
+    });
 
     // Кадр зависит и от размера вида, и от высоты кнопок над моделью (на телефоне они переносятся)
     const observer = new ResizeObserver(resize);

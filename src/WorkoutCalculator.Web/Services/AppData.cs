@@ -129,15 +129,27 @@ public sealed class AppData
         Changed?.Invoke();
     }
 
-    /// <summary>Записать запись замеров (новую или изменённую).</summary>
-    public async Task SaveEntry(BodyEntry e)
+    /// <summary>
+    /// Записать запись замеров (новую или изменённую). deferWrite — для ползунков: модель обновляется сразу,
+    /// а в базу запись уходит после паузы (последнее значение).
+    /// </summary>
+    public async Task SaveEntry(BodyEntry e, bool deferWrite = false)
     {
-        await DataInterop.Put("entries", JsonSerializer.Serialize(e, DataJson.Default.BodyEntry));
         Entries.RemoveAll(x => x.Id == e.Id);
         Entries.Add(e);
         Entries = [.. BodyHistory.Ordered(Entries)];
         Changed?.Invoke();
+        int version = _writeVersions[e.Id] = _writeVersions.GetValueOrDefault(e.Id) + 1;
+        if (deferWrite)
+        {
+            await Task.Delay(500);
+            if (version != _writeVersions[e.Id]) return; // запись уже изменили снова — запишется последняя
+        }
+        await DataInterop.Put("entries", JsonSerializer.Serialize(e, DataJson.Default.BodyEntry));
     }
+
+    /// <summary>Номер последнего изменения каждой записи — отложенная запись пишет только последнее.</summary>
+    private readonly Dictionary<string, int> _writeVersions = [];
 
     public async Task DeleteEntry(string id)
     {

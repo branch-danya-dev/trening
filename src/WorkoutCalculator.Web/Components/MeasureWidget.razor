@@ -1,0 +1,281 @@
+@* Параметры тела на дату — открывается нажатием на тело (на телефоне — шторка снизу, на компьютере — панель).
+   «Основное» (вес, % жира), «Обхваты», под «Подробнее» — осанка и форма, фото, проверка замеров. Изменение пишется
+   в запись замеров этой даты (своя ручная запись дня; нет — создаётся). Поле без своего значения показывает
+   значение из прежней записи или оценку — серым, с датой; очистить своё значение — вернуться к нему. *@
+@using WorkoutCalculator.Data
+@using WorkoutCalculator.BodyModel.Anthropometry
+@inject AppData Data
+
+<div class="card widget">
+    <div class="card-title">
+        <span>Замеры</span>
+        <span class="widget-head">
+            <input class="date-input" type="date" aria-label="Дата записи" value="@Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)"
+                   max="@Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" @onchange="SetDate" />
+            @if (OnClose.HasDelegate)
+            {
+                <button class="btn-link muted close" aria-label="Закрыть" @onclick="() => OnClose.InvokeAsync()">✕</button>
+            }
+        </span>
+    </div>
+    <div class="note" style="margin: -4px 0 10px">
+        @(Date == Today ? "Изменения — в запись на сегодня." : $"Изменения — в запись на {Fmt.Date(Date).TrimEnd('.')}.")
+        Серым — значение из прежней записи или оценка.
+    </div>
+
+    @if (Resolved is not ResolvedBody body)
+    {
+        <div class="hint">На эту дату нет веса — введите его, без веса модель не построить.</div>
+    }
+
+    <div class="measure-group">Основное</div>
+    @Row("w-weight", "Вес", "кг", Own?.WeightKg, Resolved?.Body.WeightKg, Origin(BodyField.Weight), v => Save(e => e.WeightKg = v), 30, 300, null)
+    @Row("w-fat", "Жир", "%", Own?.BodyFatPercent, Resolved?.Body.BodyFatPercent, FatOrigin, v => Save(e => { e.BodyFatPercent = v; e.FatSource = v is null ? null : FatSource.Scale; }), 3, 60, null)
+    @if (NavyEstimate is double navy)
+    {
+        <button class="btn-link small" @onclick="() => Save(e => { e.BodyFatPercent = Math.Round(navy, 1); e.FatSource = FatSource.Navy; })">
+            Поставить оценку по формуле ВМС: @Fmt.N(navy, 1)&nbsp;%
+        </button>
+    }
+
+    <div class="measure-group">Обхваты</div>
+    @foreach (var g in Enum.GetValues<Girth>())
+    {
+        var girth = g;
+        @Row(FieldId(g), BodyProfile.GirthName(g), "см", Own?.GetGirth(g), Resolved?.Body.GetGirth(g), Origin(BodyResolver.FieldOf(g)),
+             v => Save(e => e.SetGirth(girth, v)), 10, 250, girth)
+    }
+
+    @if (_error is not null)
+    {
+        <div class="hint" role="alert" style="margin-top: 8px">@_error</div>
+    }
+
+    <details class="more">
+        <summary>Подробнее: осанка и форма, фото, проверка</summary>
+
+        @if (Resolved is ResolvedBody rb)
+        {
+            <div class="measure-group">
+                Осанка и форма
+                <span class="title-note">@Describe(rb.Origin(BodyField.Posture))</span>
+            </div>
+            <ParamSlider Label="Наклон таза" Unit="°" Min="Posture.MinPelvicTilt" Max="Posture.MaxPelvicTilt" Step="1"
+                         Hint="Плюс — таз наклонён вперёд, прогиб в пояснице глубже"
+                         Value="rb.Body.Posture.PelvicTilt" ValueChanged="v => SetPosture(rb.Body.Posture with { PelvicTilt = v })" />
+            <ParamSlider Label="Прогиб в пояснице" Unit="°" Min="Posture.MinLordosis" Max="Posture.MaxLordosis" Step="1"
+                         Value="rb.Body.Posture.Lordosis" ValueChanged="v => SetPosture(rb.Body.Posture with { Lordosis = v })" />
+            <ParamSlider Label="Сутулость" Unit="°" Min="Posture.MinKyphosis" Max="Posture.MaxKyphosis" Step="1"
+                         Value="rb.Body.Posture.Kyphosis" ValueChanged="v => SetPosture(rb.Body.Posture with { Kyphosis = v })" />
+            <ParamSlider Label="Плечи вперёд" Unit="°" Min="Posture.MinShouldersForward" Max="Posture.MaxShouldersForward" Step="1"
+                         Value="rb.Body.Posture.ShouldersForward" ValueChanged="v => SetPosture(rb.Body.Posture with { ShouldersForward = v })" />
+            <ParamSlider Label="Живот" Min="-100" Max="100" Step="5" Hint="При той же талии: плюс — живот вперёд, бока уже"
+                         Value="rb.Body.Form.Stomach * 100" ValueChanged="v => SetForm(rb.Body.Form with { Stomach = v / 100 })" />
+            <ParamSlider Label="Ягодицы" Min="-100" Max="100" Step="5"
+                         Value="rb.Body.Form.Buttocks * 100" ValueChanged="v => SetForm(rb.Body.Form with { Buttocks = v / 100 })" />
+            <ParamSlider Label="Глубина корпуса" Min="-100" Max="100" Step="5"
+                         Value="rb.Body.Form.TorsoDepth * 100" ValueChanged="v => SetForm(rb.Body.Form with { TorsoDepth = v / 100 })" />
+            <ParamSlider Label="V-силуэт" Min="-100" Max="100" Step="5"
+                         Value="rb.Body.Form.VShape * 100" ValueChanged="v => SetForm(rb.Body.Form with { VShape = v / 100 })" />
+            @if (Own?.Posture is not null || Own?.Form is not null)
+            {
+                <button class="btn-link small" @onclick="() => Save(e => { e.Posture = null; e.Form = null; })">Вернуть как в прежней записи</button>
+            }
+
+            <div class="measure-group">Фото</div>
+            @if (PhotoEntries.Count > 0)
+            {
+                <div class="note" style="margin-bottom: 8px">
+                    На эту дату есть фото (@PhotoEntries.Count): по ним подобраны осанка и форма@(PhotoEntries.Any(e => e.WaistCm is not null || e.HipsCm is not null) ? ", оценены талия и бёдра" : "").
+                </div>
+            }
+            @if (_photos)
+            {
+                <PhotoCapture Body="rb.Body" Model="Scene.MakeHuman" OnResult="SavePhotos" />
+            }
+            else
+            {
+                <button class="btn" @onclick="() => _photos = true">@(PhotoEntries.Count > 0 ? "Переснять" : "Добавить фото")</button>
+                <div class="note" style="margin-top: 6px">Фото сохраняются на сегодня и подгоняют осанку и форму модели.</div>
+            }
+
+            <div class="measure-group">Проверка замеров</div>
+            @if (Scene.Report is { Hints.Count: > 0 } report)
+            {
+                <div class="hints">
+                    @foreach (var hint in report.Hints)
+                    {
+                        <div class="hint">@hint.Text</div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="ok">Замеры и вес согласуются между собой.</div>
+            }
+        }
+
+        @if (EntriesOnDate.Count > 0)
+        {
+            <div class="measure-group">Запись</div>
+            @if (_confirmDelete)
+            {
+                <div class="confirm">
+                    <span>Удалить все записи на @Fmt.Date(Date) (@EntriesOnDate.Count)? Снимки останутся в хранилище фото.</span>
+                    <button class="btn-link" @onclick="DeleteDate">Удалить</button>
+                    <button class="btn-link muted" @onclick="() => _confirmDelete = false">Отмена</button>
+                </div>
+            }
+            else
+            {
+                <button class="btn-link muted" @onclick="() => _confirmDelete = true">Удалить записи этой даты</button>
+            }
+        }
+    </details>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public DateOnly Date { get; set; }
+    [Parameter] public EventCallback<DateOnly> DateChanged { get; set; }
+    [Parameter, EditorRequired] public BodyScene Scene { get; set; } = default!;
+    /// <summary>Замер, на который нажали на теле: поле получает фокус, лента подсвечивается.</summary>
+    [Parameter] public Girth? Focus { get; set; }
+    /// <summary>Номер нажатия — повторное нажатие на тот же замер снова ставит фокус.</summary>
+    [Parameter] public int FocusToken { get; set; }
+    /// <summary>Закрыть шторку (телефон); нет обработчика — кнопки нет.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+
+    private string? _error;
+    private bool _photos, _confirmDelete;
+    private int _focusedToken;
+
+    private ResolvedBody? Resolved => Data.Profile is Profile p ? BodyResolver.At(p, Data.Entries, Date) : null;
+
+    /// <summary>Своя запись этой даты — последняя ручная; в ней правятся значения.</summary>
+    private BodyEntry? Own => Data.Entries.LastOrDefault(e => e.Date == Date && e.Source == EntrySource.Manual);
+
+    private List<BodyEntry> EntriesOnDate => Data.Entries.Where(e => e.Date == Date).ToList();
+
+    private List<BodyEntry> PhotoEntries => EntriesOnDate.Where(e => e.Source == EntrySource.Photo).ToList();
+
+    private static string FieldId(Girth g) => $"w-{g.ToString().ToLowerInvariant()}";
+
+    private string Origin(BodyField f) => Resolved?.Origin(f) is FieldOrigin o ? Describe(o) : "";
+
+    private string FatOrigin => Resolved is ResolvedBody r && r.Origin(BodyField.BodyFat).IsEstimate
+        ? r.FatSource == FatSource.Navy ? "оценка ВМС" : "оценка по ИМТ"
+        : Origin(BodyField.BodyFat) + Resolved?.FatSource switch
+        {
+            FatSource.Scale => ", весы",
+            FatSource.Navy => ", ВМС",
+            FatSource.Estimate => ", оценка",
+            _ => "",
+        };
+
+    private static string Describe(FieldOrigin o) => BodySummary.Describe(o);
+
+    /// <summary>Оценка по формуле ВМС, если шея и талия (у женщин и бёдра) — из записей, а не оценки.</summary>
+    private double? NavyEstimate => Resolved is ResolvedBody r && !r.Origin(BodyField.Neck).IsEstimate && !r.Origin(BodyField.Waist).IsEstimate
+                                    && (r.Body.Sex == Sex.Male || !r.Origin(BodyField.Hips).IsEstimate)
+                                    && r.FatSource != FatSource.Navy
+        ? NavyBodyFat.Estimate(r.Body)
+        : null;
+
+    protected override void OnParametersSet()
+    {
+        if (FocusToken != _focusedToken && Focus is Girth g)
+        {
+            _focusedToken = FocusToken;
+            Scene.Highlight(g);
+            _pendingFocus = FieldId(g);
+        }
+    }
+
+    private string? _pendingFocus;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_pendingFocus is null) return;
+        BrowserStorage.FocusById(_pendingFocus);
+        _pendingFocus = null;
+    }
+
+    /// <summary>Строка поля: подпись, своё значение (или серым — унаследованное), единицы, откуда значение.</summary>
+    private RenderFragment Row(string id, string label, string unit, double? own, double? shown, string origin,
+        Func<double?, Task> save, double min, double max, Girth? girth) => __builder =>
+    {
+        <div class="measure-row">
+            <label for="@id">@label</label>
+            <input id="@id" class="text-input" type="text" inputmode="decimal" autocomplete="off"
+                   value="@(own is double v ? Fmt.N(v, 1) : null)" placeholder="@(shown is double s ? Fmt.N(s, 1) : "")"
+                   @onchange="e => Commit(e, label, min, max, save)"
+                   @onfocus="() => { if (girth is Girth g) Scene.Highlight(g); }" @onblur="() => Scene.Highlight(null)" />
+            <span class="unit">@unit</span>
+            <span class="origin">@(own is not null ? (Date == Today ? "сегодня" : Fmt.Date(Date)) : origin)</span>
+        </div>
+    };
+
+    private async Task Commit(ChangeEventArgs e, string label, double min, double max, Func<double?, Task> save)
+    {
+        _error = null;
+        string text = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            await save(null);
+            return;
+        }
+        if (!InputParser.TryParseNumber(text, out double v) || v < min || v > max)
+        {
+            _error = $"{label}: введите число от {Fmt.N(min)} до {Fmt.N(max)} или очистите поле.";
+            return;
+        }
+        await save(Math.Round(v, 1));
+    }
+
+    /// <summary>Изменить свою запись этой даты (нет — создать); пустая запись удаляется.</summary>
+    private async Task Save(Action<BodyEntry> change, bool deferWrite = false)
+    {
+        if (Data.Profile is not Profile p) return;
+        var entry = Own?.Clone() ?? new BodyEntry { Id = AppData.NewId(), ProfileId = p.Id, Date = Date, Source = EntrySource.Manual };
+        change(entry);
+        entry.RecordedAt = DateTimeOffset.Now;
+        if (entry.IsEmpty)
+        {
+            if (Own is not null) await Data.DeleteEntry(entry.Id);
+            return;
+        }
+        await Data.SaveEntry(entry, deferWrite);
+    }
+
+    private Task SetPosture(Posture posture) => Save(e => e.Posture = posture.Clamped(), deferWrite: true);
+
+    private Task SetForm(BodyForm form) => Save(e => e.Form = form.Clamped(), deferWrite: true);
+
+    private async Task SetDate(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+            && date <= Today)
+        {
+            _error = null;
+            _confirmDelete = false;
+            await DateChanged.InvokeAsync(date);
+        }
+    }
+
+    private async Task SavePhotos(PhotoOutcome outcome)
+    {
+        if (Data.Profile is not Profile p) return;
+        var entry = BodyEntries.FromPhotos(AppData.NewId(), p.Id, Today, DateTimeOffset.Now, outcome.SessionId,
+            outcome.WaistCm, outcome.HipsCm, outcome.Posture, outcome.Form, Data.Entries);
+        await Data.SaveEntry(entry);
+        if (Date != Today) await DateChanged.InvokeAsync(Today);
+    }
+
+    private async Task DeleteDate()
+    {
+        _confirmDelete = false;
+        foreach (var e in EntriesOnDate) await Data.DeleteEntry(e.Id);
+    }
+}

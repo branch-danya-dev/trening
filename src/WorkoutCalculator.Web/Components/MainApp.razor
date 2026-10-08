@@ -2,11 +2,12 @@
    в шапке. 3D-вид живёт всё время (холст инициализируется один раз) и прячется, когда открыт другой раздел. *@
 @using WorkoutCalculator.Data
 @using WorkoutCalculator.BodyModel.MakeHuman
+@using WorkoutCalculator.BodyModel.Geometry
 @inject HttpClient Http
 @inject AppData Data
 @implements IDisposable
 
-<div class="app main-app on-@(_section.ToString().ToLowerInvariant()) @(_onboarding ? "onboarding" : null) @(_onboarding && _onboardingFull ? "ob-full" : null)">
+<div class="app main-app on-@(_section.ToString().ToLowerInvariant()) @(_onboarding ? "onboarding" : null) @(_onboarding && _onboardingFull ? "ob-full" : null) @(_sheetOpen ? "sheet-open" : null)">
     <header class="topbar">
         <span class="brand-dot"></span>
         <span class="brand">Тренировки и тело</span>
@@ -28,6 +29,13 @@
             <label class="check view-tapes" title="Где меряется каждый обхват">
                 <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
             </label>
+            @if (!_onboarding && _body is ResolvedBody peek)
+            {
+                <button class="sheet-peek" @onclick="() => _sheetOpen = true">
+                    @Fmt.N(peek.Body.WeightKg, 1)&nbsp;кг · @Fmt.N(peek.Body.BodyFatPercent, 0)&nbsp;% жира · @(_date == Today ? "сегодня" : Fmt.Date(_date))
+                    <b>Параметры</b>
+                </button>
+            }
             @if (ViewMessage is string message)
             {
                 <div class="view-status">@message</div>
@@ -56,16 +64,10 @@
                 {
                     <Onboarding Scene="_scene" OnFullScreen="full => _onboardingFull = full" OnFinished="() => _onboarding = false" />
                 }
-                else if (_body is ResolvedBody body)
-                {
-                    <BodySummary Body="body" Date="Today" />
-                }
                 else
                 {
-                    <div class="card">
-                        <div class="card-title">Нет замеров</div>
-                        <div class="note">Добавьте вес — без него модель не построить.</div>
-                    </div>
+                    <MeasureWidget Date="_date" DateChanged="SetDate" Scene="_scene" Focus="_focusGirth" FocusToken="_focusToken"
+                                   OnClose="() => _sheetOpen = false" />
                 }
             </div>
         </aside>
@@ -132,12 +134,41 @@
     {
         if (!firstRender) return;
         ViewerInterop.Init("body-canvas");
+        ViewerInterop.OnPick(OnPick);
         _viewerReady = true;
         _scene.ViewerReady();
         UpdateModel();
     }
 
-    public void Dispose() => Data.Changed -= OnDataChanged;
+    public void Dispose()
+    {
+        Data.Changed -= OnDataChanged;
+        ViewerInterop.OnPick(null);
+    }
+
+    /// <summary>Дата, на которую показана модель и правятся замеры.</summary>
+    private DateOnly _date = DateOnly.FromDateTime(DateTime.Now);
+
+    /// <summary>Телефон: шторка с параметрами открыта.</summary>
+    private bool _sheetOpen;
+    private Girth? _focusGirth;
+    private int _focusToken;
+
+    private void SetDate(DateOnly date)
+    {
+        _date = date;
+        UpdateModel();
+    }
+
+    /// <summary>Нажатие на тело: параметры на ближайшем замере (лента подсвечивается), не замер — просто параметры.</summary>
+    private void OnPick(double x, double y, double z) => _ = InvokeAsync(() =>
+    {
+        if (_onboarding || _scene.Body(BodyScene.Primary) is not IBodyShape body) return;
+        _focusGirth = TapePicker.Nearest(body.Tapes, x, y, z);
+        _focusToken++;
+        _sheetOpen = true;
+        StateHasChanged();
+    });
 
     /// <summary>Мастер создания профиля: профиля нет или мастер не закончен.</summary>
     private bool _onboarding, _onboardingFull, _onboardingChecked;
@@ -154,10 +185,10 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    /// <summary>Модель на сегодня из истории замеров.</summary>
+    /// <summary>Модель на выбранную дату из истории замеров.</summary>
     private void UpdateModel()
     {
-        _body = Data.Profile is Profile p ? BodyResolver.At(p, Data.Entries, Today) : null;
+        _body = Data.Profile is Profile p ? BodyResolver.At(p, Data.Entries, _date) : null;
         if (_viewerReady) _scene.Set(BodyScene.Primary, _body?.Body);
     }
 

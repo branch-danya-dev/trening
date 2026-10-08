@@ -987,6 +987,38 @@ table.changes tr.dim td { opacity: 0.5; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+/* Виджет замеров */
+.widget .card-title { gap: 8px; }
+.widget-head { display: inline-flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.widget-head .close { display: none; font-size: 16px; padding: 2px 4px; }
+.measure-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 14px 0 4px;
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.measure-group .title-note { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.measure-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 84px 22px 92px;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 13.5px;
+}
+.measure-row label { color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.measure-row .text-input { padding: 5px 8px; text-align: right; }
+.measure-row .unit { color: var(--muted); font-size: 12.5px; }
+.measure-row .origin { color: var(--faint); font-size: 11.5px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-link.small { font-size: 12.5px; margin: 4px 0 2px; text-align: left; }
+details.more { margin-top: 14px; }
+details.more > summary { color: var(--accent); font-size: 13px; }
+.sheet-peek { display: none; }
 table.summary td.origin { color: var(--faint); font-size: 12px; text-align: right; white-space: nowrap; }
 table.summary td:nth-child(2) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .note.about { padding: 0 4px; }
@@ -1050,6 +1082,43 @@ table.summary td:nth-child(2) { text-align: right; white-space: nowrap; font-var
     .bottom-nav button.on { color: var(--text); border-top-color: var(--accent); }
     .main-app .page { padding: 14px 12px 24px; }
     .main-app.onboarding { grid-template-rows: auto minmax(0, 1fr); }
+
+    /* Модель на весь экран; параметры — шторкой снизу (по нажатию на тело или на строку внизу) */
+    .main-app.on-model:not(.onboarding) .main { grid-template-rows: minmax(0, 1fr); }
+    .main-app:not(.onboarding) .model-panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 60;
+        max-height: 72dvh;
+        border-top: 1px solid var(--border-strong);
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
+        transform: translateY(105%);
+        transition: transform 0.22s ease;
+        grid-template-rows: minmax(0, 1fr);
+    }
+    .main-app.sheet-open:not(.onboarding) .model-panel { transform: none; }
+    .main-app:not(.onboarding) .model-panel .panel-body { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+    .widget-head .close { display: inline-block; }
+    .sheet-peek {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: absolute;
+        right: 10px;
+        bottom: 8px;
+        padding: 7px 12px;
+        border: 1px solid var(--border-strong);
+        border-radius: 999px;
+        background: rgba(20, 28, 37, 0.9);
+        color: var(--muted);
+        font-size: 13px;
+        cursor: pointer;
+    }
+    .sheet-peek b { color: var(--accent); font-weight: 600; }
+    .measure-row { grid-template-columns: minmax(0, 1fr) 84px 22px 78px; }
     .main-app.ob-full .main { grid-template-rows: minmax(0, 1fr); }
     .tabs button { padding: 8px 10px 10px; white-space: nowrap; }
     /* 16px: при меньшем шрифте iOS увеличивает страницу, когда поле получает фокус */

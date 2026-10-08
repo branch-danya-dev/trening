@@ -69,4 +69,8 @@ public static partial class ViewerInterop
     /// <param name="view">"front", "side", "back" или "reset".</param>
     [JSImport("setView", Module)]
     public static partial void SetView(string view);
+
+    /// <summary>Нажатие на тело (не поворот): точка на поверхности, координаты сетки, метры; null — не слушать.</summary>
+    [JSImport("onPick", Module)]
+    public static partial void OnPick([JSMarshalAs<JSType.Function<JSType.Number, JSType.Number, JSType.Number>>] Action<double, double, double>? callback);
 }
