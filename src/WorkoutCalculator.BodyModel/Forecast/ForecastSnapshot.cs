@@ -2,10 +2,14 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using WorkoutCalculator.BodyModel.History;
+using WorkoutCalculator.Strength;
 
 namespace WorkoutCalculator.BodyModel.Forecast;
 
-public sealed record ForecastPoint(ForecastWeek Body, ImmutableDictionary<Girth, double> Girths, ForecastRange WeightRange);
+public sealed record ForecastPoint(ForecastWeek Body, ImmutableDictionary<Girth, double> Girths, ForecastRange WeightRange)
+{
+    public ImmutableDictionary<Girth, ForecastRange> GirthRanges { get; init; } = ImmutableDictionary<Girth, ForecastRange>.Empty;
+}
 
 /// <summary>Deeply immutable archive. JSON inputs thaw into fresh objects; history is replayed from saved points, never Run().</summary>
 public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateOnly StartDate, string ModelVersion,
@@ -13,6 +17,7 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
     ImmutableArray<ForecastPoint> Baseline, ImmutableArray<ForecastPoint> Expected,
     ImmutableArray<string> Warnings, double MaintenanceKcalPerDay, double CardioKcalPerSession, double StrengthKcalPerSession)
 {
+    public TrainingAwareForecast? Muscle { get; init; }
     public BodySnapshot? StartFact { get; init; }
     public string? HypothesisId { get; init; }
     public string? HypothesisName { get; init; }
@@ -37,7 +42,8 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
 
     public static ForecastSnapshot Create(BodyProfile profile, ForecastInput input, DateOnly startDate, DateTimeOffset now,
         CalibrationRevision? revision = null, BodySnapshot? startFact = null, string? hypothesisId = null, string? hypothesisName = null,
-        bool reconstructed = false)
+        bool reconstructed = false, IEnumerable<TrainingSession>? strengthHistory = null,
+        IEnumerable<BodySnapshot>? bodyHistory = null, IEnumerable<ForecastSnapshot>? previousForecasts = null)
     {
         if (revision is not null && revision.CreatedAt > now) throw new ArgumentException("Калибровка ещё не была доступна.");
         var start = profile.Clone();
@@ -63,6 +69,18 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
             revision?.Id, calibration, Freeze(baseline, null), Freeze(expected, calibration), expected.Warnings.ToImmutableArray(),
             expected.MaintenanceKcalPerDay, expected.CardioKcalPerSession, expected.StrengthKcalPerSession)
         { StartFact = startFact, HypothesisId = hypothesisId, HypothesisName = hypothesisName, Reconstructed = reconstructed, ModelParameters = ForecastModelParameters.Capture() };
+        if (input.StrengthTraining && input.StrengthProgram is { Sessions.Length: > 0 } program)
+        {
+            var issuedDate = DateOnly.FromDateTime(now.Date);
+            var cutoff = startDate <= issuedDate ? startDate : issuedDate.AddDays(1);
+            var history = (strengthHistory ?? []).Where(s => s.Date < cutoff).ToArray();
+            var stimulus = TrainingStimulusEngine.Build(program, history, startDate) with { ThroughDate = cutoff.AddDays(-1) };
+            var response = MuscleResponseCalibrationService.Build((previousForecasts ?? []).Where(f => f.CreatedAt <= now), (bodyHistory ?? []).Where(f => f.Date < cutoff), history, cutoff);
+            var muscle = new TrainingAwareForecast(MuscleAdaptationForecast.Version, stimulus, response,
+                MuscleAdaptationForecast.Run(start, input, expected.Weeks, stimulus, response.Factors), snapshot.Expected);
+            snapshot = snapshot with { Muscle = muscle, ModelParameters = snapshot.ModelParameters.SetItems(MuscleAdaptationForecast.Parameters()), Expected = BodyShapeForecast.Apply(start, snapshot.Expected, muscle),
+                Warnings = snapshot.Warnings.Add("Мышцы прогноза — модель относительной адаптации и формы, не измерение мышечной массы и не медицинская оценка. Диапазоны эвристические.") };
+        }
         snapshot.Validate();
         return snapshot;
     }
@@ -71,7 +89,7 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
     {
         if (!Guid.TryParse(Id, out var id) || id == Guid.Empty || CreatedAt == default || StartDate == default ||
             string.IsNullOrWhiteSpace(ModelVersion) || ModelVersion.Length > 100 || UncertaintyVersion != "expected-range-1" ||
-            StartProfileJson is null || InputJson is null || StartProfileJson.Length > 16000 || InputJson.Length > 32000 ||
+            StartProfileJson is null || InputJson is null || StartProfileJson.Length > 16000 || InputJson.Length > 1000000 ||
             Calibration is null || Expected.IsDefault || Baseline.IsDefault || Warnings.IsDefault ||
             Expected.Length < 2 || Expected.Length > 53 || Baseline.Length != Expected.Length ||
             HypothesisName?.Length > 200 || HypothesisId?.Length > 200 || ModelParameters is null || ModelParameters.Count == 0 ||
@@ -98,6 +116,13 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
                     r.Expected != w.WeightKg || !ForecastCalibrationProfile.In(r.Upper, w.WeightKg, 10000))
                     throw new ArgumentException("Повреждена точка прогноза.");
             }
+        if ((input.StrengthTraining && input.StrengthProgram is { Sessions.Length: > 0 }) != (Muscle is not null))
+            throw new ArgumentException("Программа и слой формы не согласованы.");
+        Muscle?.Validate(StartDate, Expected);
+        foreach (var p in Expected.Concat(Baseline))
+            if (p.GirthRanges is null || p.GirthRanges.Any(v => !p.Girths.ContainsKey(v.Key) || v.Value is null ||
+                !ForecastCalibrationProfile.In(v.Value.Lower, .001, p.Girths[v.Key]) || v.Value.Expected != p.Girths[v.Key] ||
+                !ForecastCalibrationProfile.In(v.Value.Upper, p.Girths[v.Key], 1000))) throw new ArgumentException("Повреждён диапазон обхвата.");
         if (Math.Abs(Expected[0].Body.WeightKg - start.WeightKg) > 1e-6 || Math.Abs(Baseline[0].Body.WeightKg - start.WeightKg) > 1e-6)
             throw new ArgumentException("Исходный вес не совпадает.");
     }
@@ -113,6 +138,7 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
             input.StrengthPerWeek is < 0 or > 14 || !Enum.IsDefined(input.Experience) ||
             (input.TargetWeightKg is { } target && !ForecastCalibrationProfile.In(target, 20, 400)))
             throw new ArgumentException("Проверьте исходный профиль и план прогноза.");
+        input.StrengthProgram?.Validate();
     }
 }
 

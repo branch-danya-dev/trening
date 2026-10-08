@@ -104,6 +104,10 @@ public static partial class ViewerInterop
         _atlas = atlas;
     }
 
+    [JSImport("setForecastMuscleLoad", Module)]
+    private static partial void SetForecastMuscleLoadBytes([JSMarshalAs<JSType.MemoryView>] Span<byte> loads, bool enabled);
+    public static void SetForecastMuscleLoad(float[] loads, bool enabled) => SetForecastMuscleLoadBytes(MemoryMarshal.AsBytes(loads.AsSpan()), enabled);
+
     [JSImport("setMuscleLoad", Module)]
     private static partial void SetMuscleLoadBytes([JSMarshalAs<JSType.MemoryView>] Span<byte> loads, bool enabled, double intensity);
 

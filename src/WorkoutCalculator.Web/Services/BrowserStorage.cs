@@ -259,10 +259,11 @@ public sealed class StoredHypothesis
 
     public bool Strength { get; set; } = true;
     public int StrengthPerWeek { get; set; } = 3;
+    public StrengthProgram? StrengthProgram { get; set; }
     public TrainingExperience Experience { get; set; } = TrainingExperience.Beginner;
     public double? TargetWeightKg { get; set; }
 
-    /// <summary>Все поля — значения, поэтому поверхностной копии достаточно.</summary>
+    /// <summary>Программа неизменяема; поверхностная копия не разделяет редактируемые подходы.</summary>
     public StoredHypothesis Clone() => (StoredHypothesis)MemberwiseClone();
 
     public ForecastInput ToInput() => new()
@@ -273,6 +274,7 @@ public sealed class StoredHypothesis
         Cardio = CardioKind < 0 ? null : CardioWorkout(),
         CardioPerWeek = CardioKind < 0 ? 0 : CardioPerWeek,
         StrengthTraining = Strength,
+        StrengthProgram = Strength ? StrengthProgram : null,
         StrengthPerWeek = Strength ? StrengthPerWeek : 0,
         Experience = Experience,
         TargetWeightKg = TargetWeightKg,

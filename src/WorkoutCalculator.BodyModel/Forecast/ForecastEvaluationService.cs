@@ -81,6 +81,8 @@ public static class ForecastEvaluationService
             L(a.Body.ExpenditureKcalPerDay, b.Body.ExpenditureKcalPerDay), L(a.Body.BalanceKcalPerDay, b.Body.BalanceKcalPerDay))
         { GlycogenWaterKg = L(a.Body.GlycogenWaterKg, b.Body.GlycogenWaterKg), AdaptationKcalPerDay = L(a.Body.AdaptationKcalPerDay, b.Body.AdaptationKcalPerDay) };
         return new(body, a.Girths.ToImmutableDictionary(p => p.Key, p => L(p.Value, b.Girths[p.Key])),
-            new(L(a.WeightRange.Lower, b.WeightRange.Lower), body.WeightKg, L(a.WeightRange.Upper, b.WeightRange.Upper)));
+            new(L(a.WeightRange.Lower, b.WeightRange.Lower), body.WeightKg, L(a.WeightRange.Upper, b.WeightRange.Upper)))
+        { GirthRanges = a.GirthRanges.Where(p => b.GirthRanges.ContainsKey(p.Key)).ToImmutableDictionary(p => p.Key,
+            p => new ForecastRange(L(p.Value.Lower, b.GirthRanges[p.Key].Lower), L(p.Value.Expected, b.GirthRanges[p.Key].Expected), L(p.Value.Upper, b.GirthRanges[p.Key].Upper))) };
     }
 }

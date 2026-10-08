@@ -134,8 +134,15 @@
     @if (Hypothesis.Strength)
     {
         <div style="margin-top: 12px">
-            <ParamSlider Label="Раз в неделю" Min="1" Max="7" Step="1"
-                         Value="Hypothesis.StrengthPerWeek" ValueChanged="v => Change(h => h.StrengthPerWeek = (int)v)" />
+            @if (Hypothesis.StrengthProgram is null)
+            {
+                <ParamSlider Label="Раз в неделю" Min="1" Max="7" Step="1"
+                             Value="Hypothesis.StrengthPerWeek" ValueChanged="v => Change(h => h.StrengthPerWeek = (int)v)" />
+            }
+            else
+            {
+                <p class="note">@Hypothesis.StrengthProgram.SessionsPerWeek занятий в неделю. Частота задаётся в программе ниже.</p>
+            }
             <div class="field-row" style="margin-top: 12px">
                 <span>Стаж</span>
                 <div class="seg">
@@ -147,12 +154,17 @@
             </div>
             <div class="volume-line">
                 За тренировку ≈&nbsp;@Fmt.N(Maintenance.StrengthPerSession) ккал (3,5 MET × 1 ч).
-                Потолок прироста мышц ≈&nbsp;@Fmt.N(MonthlyCeilingKg, 2) кг в месяц.
+                Потолок прироста безжировой ткани ≈&nbsp;@Fmt.N(MonthlyCeilingKg, 2) кг в месяц.
             </div>
         </div>
     }
 </div>
 
+@if (Hypothesis.Strength)
+{
+    <StrengthProgramEditor @key="Hypotheses.Selected" Program="Hypothesis.StrengthProgram" OnChange="p => Change(h => { h.StrengthProgram = p; if (p is not null) h.StrengthPerWeek = p.SessionsPerWeek; })" />
+}
+<MuscleForecastPanel Snapshot="Personalized.Display" />
 @if (Forecast is not null)
 {
     var f = Forecast;

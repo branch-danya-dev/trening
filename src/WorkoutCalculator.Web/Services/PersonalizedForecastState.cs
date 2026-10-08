@@ -3,6 +3,7 @@ using System.Text.Json;
 using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Forecast;
 using WorkoutCalculator.BodyModel.History;
+using WorkoutCalculator.Strength;
 
 namespace WorkoutCalculator.Web.Services;
 
@@ -46,12 +47,12 @@ public sealed class PersonalizedForecastState(ForecastStore store)
     public void NewPreview() { SelectedId = null; Error = StorageError; }
     public void Select(string? id) => SelectedId = Archive.Forecasts.Any(f => f.Id == id) ? id : null;
     public ForecastResult Calculate(BodyProfile profile, ForecastInput input, DateTimeOffset now, string hypothesisId,
-        string hypothesisName, BodySnapshot? startFact = null)
+        string hypothesisName, BodySnapshot? startFact = null, IEnumerable<TrainingSession>? strengthHistory = null, IEnumerable<BodySnapshot>? bodyHistory = null)
     {
         var today = DateOnly.FromDateTime(now.Date);
         try
         {
-            Preview = ForecastSnapshot.Create(profile, input, today, now, CurrentRevision, startFact, hypothesisId, hypothesisName);
+            Preview = ForecastSnapshot.Create(profile, input, today, now, CurrentRevision, startFact, hypothesisId, hypothesisName, strengthHistory: strengthHistory, bodyHistory: bodyHistory, previousForecasts: Archive.Forecasts);
             _lastPreviewResult = Preview.Replay();
         }
         catch (ArgumentException e)

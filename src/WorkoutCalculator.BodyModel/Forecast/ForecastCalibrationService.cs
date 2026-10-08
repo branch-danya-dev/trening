@@ -87,6 +87,8 @@ public static class ForecastCalibrationService
                 var o = observations[i];
                 if (o.Metric != ForecastEvaluationService.GirthMetric(g) || !o.UsedForCalibration) continue;
                 var snapshot = archive[o.ForecastId];
+                if (snapshot.Muscle is not null)
+                { observations[i] = o with { ExclusionReason = "regional forecast uses separate shape calibration" }; continue; }
                 var w = ForecastEvaluationService.At(snapshot.Baseline, o.HorizonDays / 7.0).Body;
                 var start = snapshot.StartProfile();
                 var adjusted = ForecastPersonalization.AdjustWeek(start, w, profile);

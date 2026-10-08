@@ -142,11 +142,11 @@ public static class ForecastEngine
         double cardio = input.Cardio is not null && input.CardioPerWeek > 0
             ? EnergyCalculator.Calculate(user, input.Cardio).EstimateActiveKcal
             : 0;
-        double strength = input.StrengthTraining && input.StrengthPerWeek > 0
+        double strength = input.StrengthTraining && (input.StrengthProgram?.SessionsPerWeek ?? input.StrengthPerWeek) > 0
             ? (C.StrengthMet - 1) * weightKg * C.StrengthHours
             : 0;
 
-        double training = (cardio * Math.Max(0, input.CardioPerWeek) + strength * Math.Max(0, input.StrengthPerWeek)) / 7;
+        double training = (cardio * Math.Max(0, input.CardioPerWeek) + strength * Math.Max(0, input.StrengthProgram?.SessionsPerWeek ?? input.StrengthPerWeek)) / 7;
         return (bmr, bmr * input.ActivityFactor + training, cardio, strength);
     }
 

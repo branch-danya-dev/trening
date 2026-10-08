@@ -1,0 +1,90 @@
+@using System.Collections.Immutable
+@using WorkoutCalculator.Exercises
+@using WorkoutCalculator.Strength
+
+<section class="card muscle-program" aria-label="Программа прогноза">
+    <div class="card-title">Изменение мышц / программа</div>
+    <p class="note">Повторяющиеся занятия для прогноза. Порядок упражнений — как в списке. Выполненные тренировки сохраняйте в силовом журнале.</p>
+    @foreach (var session in _sessions)
+    {
+        int n = _sessions.IndexOf(session) + 1;
+        <article class="strength-exercise" @key="session">
+            <h3>Занятие @n</h3>
+            <label class="form-field">Частота занятия @n в неделю<input class="text-input" type="number" min="1" max="7" @bind="session.Frequency" /></label>
+            @foreach (var exercise in session.Exercises)
+            {
+                int e = session.Exercises.IndexOf(exercise) + 1;
+                <div class="strength-exercise" @key="exercise">
+                    <label class="form-field">Упражнение плана @n.@e
+                        <select class="select" aria-label="@($"Упражнение плана {n}.{e}")" @bind="exercise.ExerciseId">
+                            @foreach (var definition in ExerciseCatalog.All) { <option value="@definition.Id">@definition.Name</option> }
+                        </select>
+                    </label>
+                    @foreach (var set in exercise.Sets)
+                    {
+                        int k = exercise.Sets.IndexOf(set) + 1;
+                        <fieldset class="strength-set" @key="set">
+                            <legend>Подход @k</legend>
+                            <div class="strength-set-fields">
+                                <label>Повторения плана<input class="text-input" inputmode="numeric" @bind="set.Reps" /></label>
+                                <label>Вес плана, кг<input class="text-input" inputmode="decimal" placeholder="не указан" @bind="set.Weight" /></label>
+                                <label>Шкала плана<select class="select" @bind="set.EffortKind"><option value="rir">RIR</option><option value="rpe">RPE</option></select></label>
+                                <label>Усилие плана<input class="text-input" inputmode="decimal" placeholder="RIR 2" @bind="set.Effort" /></label>
+                            </div>
+                            <button class="btn-link" disabled="@(exercise.Sets.Count == 1)" @onclick="() => exercise.Sets.Remove(set)">Удалить подход плана</button>
+                        </fieldset>
+                    }
+                    <div class="strength-set-actions">
+                        <button class="btn" disabled="@(exercise.Sets.Count >= 20)" @onclick="() => exercise.Sets.Add(new())">+ Подход плана</button>
+                        <button class="btn-link" @onclick="() => session.Exercises.Remove(exercise)">Удалить упражнение плана</button>
+                    </div>
+                </div>
+            }
+            <div class="strength-set-actions">
+                <button class="btn" disabled="@(session.Exercises.Count >= 20)" @onclick="() => session.Exercises.Add(NewExercise())">+ Упражнение плана</button>
+                <button class="btn-link" @onclick="() => _sessions.Remove(session)">Удалить занятие</button>
+            </div>
+        </article>
+    }
+    <div class="strength-set-actions">
+        <button class="btn" disabled="@(_sessions.Count >= 14)" @onclick="() => _sessions.Add(new())">+ Занятие программы</button>
+        <button class="btn primary" @onclick="Apply">Применить программу</button>
+        <button class="btn-link" @onclick="Clear">Без подробной программы</button>
+    </div>
+    @if (_error is not null) { <p role="alert">@_error</p> }
+    <p class="note">Килограммы сохраняются как план. Без личного опорного веса нагрузка рассчитывается по подходам, повторениям, RIR/RPE и роли упражнения. Дни внутри недели в v1 не моделируются.</p>
+</section>
+
+@code {
+    [Parameter] public StrengthProgram? Program { get; set; }
+    [Parameter] public EventCallback<StrengthProgram?> OnChange { get; set; }
+    private StrengthProgram? _loaded;
+    private List<SessionDraft> _sessions = [];
+    private string? _error;
+    private sealed class SessionDraft
+    {
+        public int Frequency { get; set; } = 3;
+        public List<StrengthExerciseDraft> Exercises { get; set; } = [];
+    }
+    private static StrengthExerciseDraft NewExercise() => new() { Sets = [new(), new(), new()] };
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_loaded, Program)) return;
+        _loaded = Program;
+        _sessions = Program?.Sessions.Select(s => new SessionDraft { Frequency = s.FrequencyPerWeek,
+            Exercises = StrengthDraft.From(new TrainingSession(Guid.NewGuid().ToString(), DateOnly.FromDateTime(DateTime.Today),
+                s.Exercises.Select(e => new PerformedExercise(e.ExerciseId, e.Sets)).ToArray())).Exercises }).ToList() ?? [];
+    }
+    private async Task Apply()
+    {
+        try
+        {
+            var program = new StrengthProgram(_sessions.Select(s => new PlannedStrengthSession(s.Exercises.Select(e =>
+                new PlannedExercise(e.ExerciseId, e.Sets.Select(set => set.Build() with { Completed = false }).ToImmutableArray())).ToImmutableArray(), s.Frequency)).ToImmutableArray());
+            program.Validate(); _error = null;
+            await OnChange.InvokeAsync(program.Sessions.IsEmpty ? null : program);
+        }
+        catch (ArgumentException e) { _error = e.Message; }
+    }
+    private async Task Clear() { _sessions = []; _error = null; await OnChange.InvokeAsync(null); }
+}

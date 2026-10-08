@@ -25,6 +25,8 @@ const definitions = { current: null, forecast: null };
 let animationTime = null;
 let muscleAtlas = null;
 let muscleLoads = null;
+let forecastMuscleLoads = null;
+let forecastHeatmapEnabled = false;
 let heatmapEnabled = false;
 let heatmapIntensity = 1;
 const heatmapMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.65 });
@@ -273,6 +275,16 @@ export function setMuscleAtlas(version, regionCount, indexBytes, weightBytes) {
     applyMode();
 }
 
+export function setForecastMuscleLoad(loadBytes, enabled) {
+    if (!muscleAtlas) throw new Error('Set muscle atlas before forecast loads');
+    const loads = copyMemory(loadBytes, Float32Array);
+    mapMuscleLoads(muscleAtlas, loads);
+    forecastMuscleLoads = loads;
+    forecastHeatmapEnabled = enabled;
+    if (rigs.forecast && meshes.forecast) applyMuscleColors(meshes.forecast.geometry, muscleAtlas, loads, 1);
+    applyMode();
+}
+
 export function setMuscleLoad(loadBytes, enabled, intensity) {
     if (!muscleAtlas) throw new Error('Set muscle atlas before loads');
     const loads = copyMemory(loadBytes, Float32Array);
@@ -489,7 +501,8 @@ function applyMode(refit = false) {
     }
     if (forecast) {
         forecast.visible = show.forecast;
-        forecast.material = materials.forecast;
+        forecast.material = (mode === 'forecast' || mode === 'compare') && forecastHeatmapEnabled && rigs.forecast && forecastMuscleLoads && muscleAtlas
+            ? heatmapMaterial : materials.forecast;
     }
 
     const apart = comparing && haveForecast && sideBySide ? 0.42 * modelHeight : 0;

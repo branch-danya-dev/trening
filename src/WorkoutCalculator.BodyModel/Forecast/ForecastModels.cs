@@ -17,6 +17,7 @@ public sealed class ForecastInput
 
     public bool StrengthTraining { get; set; }
     public int StrengthPerWeek { get; set; }
+    public StrengthProgram? StrengthProgram { get; set; }
     public TrainingExperience Experience { get; set; } = TrainingExperience.Beginner;
 
     /// <summary>Целевой вес, кг. Необязательно: нужен только для предупреждения «цель недостижима».</summary>

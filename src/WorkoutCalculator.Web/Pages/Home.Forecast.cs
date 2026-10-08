@@ -7,6 +7,24 @@ namespace WorkoutCalculator.Web.Pages;
 public partial class Home
 {
     private readonly PersonalizedForecastState _personalized = new(new ForecastStore(new BrowserJournalStorage()));
+    private int? _shapeWeek;
+    private int ShapeWeek => Math.Clamp(_shapeWeek ?? _personalized.Display?.HorizonWeeks ?? 0, 0, _personalized.Display?.HorizonWeeks ?? 0);
+    private void ChangeShapeWeek(Microsoft.AspNetCore.Components.ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var week)) return;
+        _shapeWeek = week;
+        _ = ForecastLaterAsync(++_forecastVersion, 0);
+    }
+    private bool _forecastHeatmap;
+    private void SetForecastHeatmap(bool enabled) { _forecastHeatmap = enabled; ApplyForecastHeatmap(); }
+    private void ApplyForecastHeatmap()
+    {
+        if (!_viewerReady || _exercise.Atlas is null || IsHistory) return;
+        ViewerInterop.SetMuscleAtlas(_exercise.Atlas);
+        var stimulus = _personalized.Display?.Muscle?.Stimulus.Planned.Stimulus;
+        var loads = WorkoutCalculator.Exercises.MuscleDefinitions.Regions.Select(r => (float)(stimulus?.GetValueOrDefault(r.GroupId) ?? 0)).ToArray();
+        ViewerInterop.SetForecastMuscleLoad(loads, _forecastHeatmap && stimulus is not null);
+    }
     private void RefreshCalibration()
     {
         if (_history.StorageError is not null) return; // A broken fact store must not look like deletion of all facts.
