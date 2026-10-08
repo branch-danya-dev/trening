@@ -23,3 +23,21 @@ jobs:
         run: dotnet test WorkoutCalculator.sln -c Release --no-build
       - name: JS-тесты (проверка позы, архив)
         run: node --test tests/js/*.test.mjs
+      - name: Установка браузера для 3D smoke
+        run: |
+          npm install --prefix "$RUNNER_TEMP/muscle-smoke" playwright@1.62.1
+          "$RUNNER_TEMP/muscle-smoke/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Browser smoke (анимация + мышечная нагрузка, режимы, ленты, видео)
+        env:
+          APP_URL: http://127.0.0.1:5256
+        run: |
+          dotnet run --project src/WorkoutCalculator.Web -c Release --no-build --urls "$APP_URL" > "$RUNNER_TEMP/viewer.log" 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl -fsS "$APP_URL" > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat "$RUNNER_TEMP/viewer.log"; exit 1; fi
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/skeletal-smoke.cjs

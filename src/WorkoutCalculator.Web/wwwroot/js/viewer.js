@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { copyMemory, readRigDefinition, SkeletalBody, surfaceSkinner } from './skeletal.js';
 import { animationCatalog, getExerciseAnimation } from './exercise-animations.js';
+import { readMuscleAtlas, applyMuscleColors, mapMuscleLoads } from './muscle-heatmap.js';
 
 const FOV = 30;
 const TWEEN_MS = 380;
@@ -22,6 +23,11 @@ const meshes = { current: null, forecast: null };
 const rigs = { current: null, forecast: null };
 const definitions = { current: null, forecast: null };
 let animationTime = null;
+let muscleAtlas = null;
+let muscleLoads = null;
+let heatmapEnabled = false;
+let heatmapIntensity = 1;
+const heatmapMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.65 });
 
 function checkSlot(slot) {
     if (slot !== 'current' && slot !== 'forecast') throw new Error(`Unknown body slot: ${slot}`);
@@ -189,6 +195,7 @@ function replaceMesh(slot, mesh, rig) {
     }
     meshes[slot] = mesh;
     rigs[slot] = rig;
+    if (slot === 'current') updateMuscleColors();
     scene.add(mesh);
     if (slot === 'current') rebuildGhost();
 
@@ -253,6 +260,34 @@ export function resetPose(slot) {
 
 export function listAnimationsJson() {
     return JSON.stringify(animationCatalog());
+}
+
+/** Compact atlas shared by all fitted versions of this topology; copy borrowed .NET memory once. */
+export function setMuscleAtlas(version, regionCount, indexBytes, weightBytes) {
+    const atlas = readMuscleAtlas(version, regionCount, indexBytes, weightBytes);
+    if (rigs.current && meshes.current.geometry.attributes.position.count !== atlas.vertexCount)
+        throw new Error('Muscle atlas topology mismatch');
+    muscleAtlas = atlas;
+    muscleLoads = null;
+    heatmapEnabled = false;
+    applyMode();
+}
+
+export function setMuscleLoad(loadBytes, enabled, intensity) {
+    if (!muscleAtlas) throw new Error('Set muscle atlas before loads');
+    const loads = copyMemory(loadBytes, Float32Array);
+    mapMuscleLoads(muscleAtlas, loads); // validate the complete payload before committing state
+    if (!Number.isFinite(intensity) || intensity < 0 || intensity > 1) throw new Error('Invalid heatmap intensity');
+    muscleLoads = loads;
+    heatmapEnabled = enabled;
+    heatmapIntensity = intensity;
+    updateMuscleColors();
+    applyMode();
+}
+
+function updateMuscleColors() {
+    if (!rigs.current || !muscleAtlas || !muscleLoads) return; // Mannequin gracefully uses its normal material.
+    applyMuscleColors(meshes.current.geometry, muscleAtlas, muscleLoads, heatmapIntensity);
 }
 
 export function playAnimation(slot, animationId) {
@@ -447,7 +482,9 @@ function applyMode(refit = false) {
     ghostActive = mode === 'compare' && haveForecast && !sideBySide && !!current;
     if (current) {
         current.visible = show.current && !ghostActive;
-        current.material = materials.current;
+        // Relative exercise load belongs to the current body only. Comparison/forecast keep their materials.
+        current.material = mode === 'current' && heatmapEnabled && rigs.current && muscleLoads && muscleAtlas
+            ? heatmapMaterial : materials.current;
     }
     if (forecast) {
         forecast.visible = show.forecast;

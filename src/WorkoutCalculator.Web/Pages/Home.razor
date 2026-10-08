@@ -1,6 +1,7 @@
 @using System.Diagnostics
 @using System.Runtime.InteropServices.JavaScript
 @using WorkoutCalculator.BodyModel.MakeHuman
+@using WorkoutCalculator.BodyModel.Muscles
 @using WorkoutCalculator.BodyModel.Photos
 @inject HttpClient Http
 
@@ -66,15 +67,9 @@
                 }
                 <button class="btn" disabled="@(_recording || _current is null)" title="Видео поворота модели — сохранится на устройство"
                         @onclick="RecordVideo">@(_recording ? "Запись…" : "● Видео")</button>
-                @if (UseMakeHuman && _mode == ViewMode.Current)
+                @if (_mode == ViewMode.Current)
                 {
-                    <select class="select" aria-label="Анимация упражнения" value="@_animationId" @onchange="OnAnimationChanged">
-                        @foreach (var animation in ExerciseAnimations)
-                        {
-                            <option value="@animation.Id">@animation.Name</option>
-                        }
-                    </select>
-                    <button class="btn" @onclick="ToggleAnimation">@(_animationPlaying ? "■ Стоп" : "▶ Упражнение")</button>
+                    <ExercisePreview State="_exercise" />
                 }
                 @if (_mode != ViewMode.Current && ManyHypotheses)
                 {
@@ -232,40 +227,7 @@
     private bool _recording;
     private string? _videoError;
 
-    private sealed record AnimationOption(string Id, string Name);
-    private static readonly AnimationOption[] ExerciseAnimations =
-    [
-        new("squat", "Присед"),
-        new("bench-press", "Жим лёжа"),
-        new("biceps-curl", "Сгибание рук"),
-        new("lat-pulldown", "Тяга верхнего блока"),
-        new("romanian-deadlift", "Румынская тяга"),
-    ];
-    private string _animationId = "squat";
-    private bool _animationPlaying;
-
-    private void OnAnimationChanged(ChangeEventArgs e)
-    {
-        _animationId = e.Value?.ToString() ?? "squat";
-        if (_animationPlaying)
-        {
-            ViewerInterop.PlayAnimation("current", _animationId);
-        }
-    }
-
-    private void ToggleAnimation()
-    {
-        if (_animationPlaying)
-        {
-            ViewerInterop.StopAnimation("current");
-            _animationPlaying = false;
-        }
-        else
-        {
-            ViewerInterop.PlayAnimation("current", _animationId);
-            _animationPlaying = true;
-        }
-    }
+    private readonly ExercisePreviewState _exercise = new();
 
     /// <summary>Длительность видео поворота, с.</summary>
     private const double VideoSeconds = 6;
@@ -362,6 +324,7 @@
             // Версия в адресе — чтобы браузер не взял из кэша файл старого формата
             var bytes = await Http.GetByteArrayAsync($"data/{MakeHumanData.FileName}?v={MakeHumanData.Version}");
             _mh = new MakeHumanModel(MakeHumanData.Read(bytes));
+            _exercise.Atlas = MakeHumanMuscleAtlas.Generate(_mh.Data);
             _mhStatus = null;
         }
         catch (Exception e) when (e is HttpRequestException or InvalidDataException)
@@ -390,7 +353,7 @@
     private void SetKind(BodyKind kind)
     {
         if (_kind == kind) return;
-        _animationPlaying = false;
+        _exercise.Stop();
         _kind = kind;
         ProfileStorage.SaveModelKind(kind == BodyKind.Mannequin ? "mannequin" : "makehuman");
         Refresh();
@@ -460,6 +423,7 @@
 
     private void SetMode(ViewMode mode)
     {
+        if (mode != ViewMode.Current) _exercise.Stop();
         _mode = mode;
         ApplyMode();
     }
@@ -490,8 +454,8 @@
     /// <summary>Сетка в 3D-вид и, если ленты сейчас показываются, её ленты.</summary>
     private void Show(string slot, IBodyShape body)
     {
-        if (slot == "current") _animationPlaying = false;
         ViewerInterop.SetGeometry(slot, body.Geometry);
+        if (slot == "current") _exercise.GeometryChanged(body.Geometry.Skeleton is not null);
         if (TapesNeeded) ViewerInterop.SetTapes(slot, body.Tapes);
     }
 

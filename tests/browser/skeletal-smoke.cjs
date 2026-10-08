@@ -15,7 +15,7 @@ const assert = require('node:assert/strict');
         await page.route('**/js/viewer.js', async route => {
             const response = await route.fetch();
             await route.fulfill({ response, body: await response.text() +
-                '\nexport function smokeState() { return {meshes, rigs, ghostDepth, ghostRim, tapes, renderer, camera}; }' });
+                '\nexport function smokeState() { return {meshes, rigs, ghostDepth, ghostRim, tapes, renderer, camera, muscleAtlas, muscleLoads, heatmapEnabled}; }' });
         });
         await page.goto(process.env.APP_URL || 'http://127.0.0.1:5256');
         await page.waitForFunction(() => document.querySelector('.view-stats')?.textContent.includes('MakeHuman'), null, { timeout: 60000 });
@@ -38,6 +38,47 @@ const assert = require('node:assert/strict');
         assert.equal(restCheck.vertices, 13380);
         assert.ok(restCheck.maxError < 2e-6);
 
+        // Exercise selection drives the real C# engine, binary transfer, colours and clip together.
+        await page.evaluate(() => { window.normalMaterial = viewer.smokeState().meshes.current.material; });
+        await page.getByLabel('Нагрузка мышц', { exact: true }).check();
+        await page.getByRole('button', { name: '▶ Упражнение', exact: true }).click();
+        const heatmapChecks = [];
+        for (const id of ['squat', 'bench-press', 'lat-pulldown', 'biceps-curl', 'romanian-deadlift']) {
+            await page.getByRole('combobox', { name: 'Упражнение', exact: true }).selectOption(id);
+            await page.waitForFunction(id => {
+                const s = viewer.smokeState();
+                return s.rigs.current.playing && s.rigs.current.action?.getClip().name === id &&
+                    s.meshes.current.material.vertexColors && s.rigs.current.action.time > 0.05;
+            }, id);
+            const check = await page.evaluate(() => {
+                const s = viewer.smokeState(), colors = s.meshes.current.geometry.attributes.color;
+                const result = { colors: colors.count, finite: Array.from(colors.array).every(Number.isFinite),
+                    atlasBytes: s.muscleAtlas.indices.byteLength + s.muscleAtlas.weights.byteLength,
+                    loadPeak: Math.max(...s.muscleLoads), changes: !window.previousColors ||
+                        colors.array.some((x, i) => Math.abs(x - previousColors[i]) > 0.01) };
+                window.previousColors = colors.array.slice();
+                return result;
+            });
+            assert.equal(check.colors, 13380); assert.equal(check.atlasBytes, 107040);
+            assert.equal(check.loadPeak, 0.5); assert.ok(check.finite && check.changes);
+            heatmapChecks.push({ id, ...check });
+            if (process.env.HEATMAP_SCREENSHOT_PREFIX && ['squat', 'bench-press'].includes(id))
+                await page.screenshot({ path: `${process.env.HEATMAP_SCREENSHOT_PREFIX}-${id}.png` });
+        }
+        await page.getByRole('button', { name: '■ Стоп', exact: true }).click();
+        assert.equal(await page.evaluate(() => viewer.smokeState().rigs.current.action), null);
+        assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material.vertexColors), true);
+        await page.getByLabel('Яркость подсветки', { exact: true }).fill('0');
+        assert.equal(await page.evaluate(() => {
+            const c = viewer.smokeState().meshes.current.geometry.attributes.color.array;
+            return c.every((x, i) => x === c[i % 3]);
+        }), true);
+        await page.getByRole('button', { name: 'Сброс упражнения', exact: true }).click();
+        assert.equal(await page.getByRole('combobox', { name: 'Упражнение', exact: true }).inputValue(), 'squat');
+        assert.equal(await page.getByLabel('Нагрузка мышц', { exact: true }).isChecked(), false);
+        assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material === normalMaterial), true);
+        await page.getByLabel('Нагрузка мышц', { exact: true }).check();
+
         // A profile rebuild must discard the old animation and bind to the newly fitted posture.
         await page.evaluate(() => viewer.playAnimation('current', 'biceps-curl'));
         await page.getByRole('textbox', { name: 'Сутулость', exact: true }).fill('20');
@@ -51,6 +92,16 @@ const assert = require('node:assert/strict');
                     meshes.current.getVertexPosition(i, new three.Vector3()).distanceTo(
                         new three.Vector3().fromBufferAttribute(meshes.current.geometry.attributes.position, i)) < 2e-6);
         }), true);
+        assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material.vertexColors), true);
+
+        // Mode switches restore exact original materials; returning to current restores the heatmap preference.
+        await page.getByRole('button', { name: 'Прогноз', exact: true }).click();
+        assert.equal(await page.evaluate(() => {
+            const s = viewer.smokeState();
+            return s.meshes.current.material === normalMaterial && !s.meshes.forecast.material.vertexColors;
+        }), true);
+        await page.getByRole('button', { name: 'Сейчас', exact: true }).click();
+        assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material.vertexColors), true);
 
         await page.getByRole('tab', { name: 'Гипотеза', exact: true }).click();
         await page.getByRole('button', { name: 'Сравнение', exact: true }).click();
@@ -63,6 +114,11 @@ const assert = require('node:assert/strict');
                 tapes: tapes.forecast.children.every(m => m.isSkinnedMesh && m.skeleton === meshes.forecast.skeleton) };
         });
         assert.ok(Object.values(comparison).every(Boolean));
+        assert.equal(await page.evaluate(() => {
+            const s = viewer.smokeState();
+            return s.meshes.current.material === normalMaterial && !s.meshes.forecast.material.vertexColors &&
+                s.ghostRim.material.isShaderMaterial;
+        }), true);
         await page.evaluate(() => {
             const state = viewer.smokeState();
             window.forecastBefore = state.meshes.forecast.skeleton.bones.map(b => b.quaternion.clone());
@@ -126,14 +182,16 @@ const assert = require('node:assert/strict');
         await page.getByRole('button', { name: 'Манекен', exact: true }).click();
         await page.waitForFunction(() => !viewer.smokeState().meshes.current.isSkinnedMesh);
         assert.equal(await page.evaluate(() => viewer.smokeState().rigs.current), null);
+        assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material.vertexColors), false);
         await page.getByRole('button', { name: 'MakeHuman', exact: true }).click();
         await page.waitForFunction(() => viewer.smokeState().meshes.current.isSkinnedMesh === true);
         assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current !== originalCurrent), true);
         await page.evaluate(() => { viewer.clearMesh('forecast'); viewer.setMode('current', false); viewer.playAnimation('current', 'romanian-deadlift'); });
+        assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material.vertexColors), true);
         await page.waitForTimeout(150);
         await page.evaluate(() => viewer.stopAnimation('current'));
         assert.deepEqual(errors, []);
-        console.log(JSON.stringify({ restCheck, comparison, video, browserErrors: errors.length }, null, 2));
+        console.log(JSON.stringify({ restCheck, heatmapChecks, comparison, video, browserErrors: errors.length }, null, 2));
     } finally {
         await browser.close();
     }
