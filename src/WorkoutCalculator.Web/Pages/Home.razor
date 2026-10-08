@@ -144,7 +144,8 @@
                 else
                 {
                     <HypothesisPanel Profile="_profile" Hypotheses="_hypotheses" Forecasts="_forecasts" OnChange="ChangeHypothesis"
-                                     OnHypotheses="ChangeHypotheses" Facts="Facts" OnLogWeight="LogWeight" OnRemoveWeight="RemoveWeight" />
+                                     OnHypotheses="ChangeHypotheses"
+                                     Personalized="_personalized" OnSaveForecast="SaveForecast" OnNewForecast="NewForecast" OnSelectForecast="SelectForecast" OnImportLegacy="ImportLegacyForecasts" />
                 }
             </div>
         </aside>
@@ -169,12 +170,6 @@
     /// <summary>Прогнозы всех гипотез; <see cref="_forecast"/> — выбранной, она же в 3D.</summary>
     private IReadOnlyList<HypothesisForecast> _forecasts = [];
 
-    /// <summary>Факты для слежения за планом: взвешивания и фотосессии (вес и обхваты по фото).</summary>
-    private List<WeightEntry> _weights = [];
-    private List<FactPoint> _photoFacts = [];
-
-    private IReadOnlyList<FactPoint> Facts =>
-        _weights.Select(w => new FactPoint(w.Date, w.WeightKg)).Concat(_photoFacts).OrderBy(f => f.Date).ToList();
     private ForecastResult? _forecast;
 
     private BodyKind _kind = BodyKind.MakeHuman;
@@ -281,55 +276,20 @@
     /// <summary>Подпись прогноза выбранной гипотезы: название и срок.</summary>
     private string ForecastLabel => _forecast is null
         ? ""
-        : $"«{_hypotheses.Current.Name}», {_forecast.Weeks[^1].Week} нед.";
+        : $"«{_personalized.Display?.HypothesisName ?? _hypotheses.Current.Name}», {_forecast.Weeks[^1].Week} нед.";
 
     protected override void OnInitialized()
     {
         _profile = ProfileStorage.LoadProfile() ?? BodyDefaults.Default();
         _hypotheses = ProfileStorage.LoadHypotheses() ?? StoredHypotheses.Of(DefaultHypothesis(_profile));
         _kind = ProfileStorage.LoadModelKind() == "mannequin" ? BodyKind.Mannequin : BodyKind.MakeHuman;
-        _weights = ProfileStorage.LoadWeights();
         _strength.Load();
         _history.Load();
+        _personalized.Load();
+        RefreshCalibration();
         _exercise.Journal = _strength;
         _exercise.RefreshJournal();
         _ = LoadMakeHumanAsync();
-        _ = LoadPhotoFactsAsync();
-    }
-
-    /// <summary>Фотосессии как факты: дата, вес на момент съёмки, обхваты талии и бёдер по фото.</summary>
-    private async Task LoadPhotoFactsAsync()
-    {
-        try
-        {
-            var sessions = await PhotoStore.ListMeta();
-            _photoFacts = sessions.Select(s =>
-            {
-                double? ByPhoto(Girth g) => s.Analysis is { Front: PhotoProfile f, Side: PhotoProfile side }
-                                            && PhotoGirths.Estimate(g, s.Sex, f, side) is PhotoGirthEstimate e ? e.GirthCm : null;
-                return new FactPoint(DateOnly.FromDateTime(s.CreatedAt.ToLocalTime().DateTime), s.WeightKg,
-                    ByPhoto(Girth.Waist), ByPhoto(Girth.Hips), FromPhotos: true);
-            }).ToList();
-            StateHasChanged();
-        }
-        catch (JSException)
-        {
-            // Хранилище фото недоступно (например, приватный режим) — слежение только по взвешиваниям
-        }
-    }
-
-    private void LogWeight(WeightEntry entry)
-    {
-        _weights.RemoveAll(w => w.Date == entry.Date);
-        _weights.Add(entry);
-        _weights.Sort((a, b) => a.Date.CompareTo(b.Date));
-        ProfileStorage.SaveWeights(_weights);
-    }
-
-    private void RemoveWeight(DateOnly date)
-    {
-        _weights.RemoveAll(w => w.Date == date);
-        ProfileStorage.SaveWeights(_weights);
     }
 
     /// <summary>По умолчанию — умеренный дефицит 400 ккал от текущего расхода.</summary>
@@ -388,6 +348,7 @@
 
     private void ChangeProfile(Action<BodyProfile> change)
     {
+        _personalized.NewPreview();
         change(_profile);
         ProfileStorage.SaveProfile(_profile);
         RequestRebuild();
@@ -396,6 +357,7 @@
 
     private void ChangeHypothesis(Action<StoredHypothesis> change)
     {
+        _personalized.NewPreview();
         change(_hypotheses.Current.Plan);
         ProfileStorage.SaveHypotheses(_hypotheses);
         _ = ForecastLaterAsync(++_forecastVersion, ForecastDelayMs);
@@ -408,6 +370,7 @@
         change(_hypotheses);
         ProfileStorage.SaveHypotheses(_hypotheses);
         if (_hypotheses.Selected == selected && _hypotheses.Items.Count == count) return; // только название
+        _personalized.NewPreview();
         RunForecasts();
         _ = ForecastLaterAsync(++_forecastVersion, 1);
     }
@@ -421,7 +384,8 @@
     private void OpenHypothesis()
     {
         _tab = Tab.Hypothesis;
-        _ = LoadPhotoFactsAsync(); // фотосессии могли добавиться
+        RefreshCalibration();
+        Refresh();
         if (_mode == ViewMode.Current && _forecast is not null)
             SetMode(ViewMode.Compare); // на вкладке гипотез сразу видно разницу
     }
@@ -624,15 +588,29 @@
     }
 
     /// <summary>
-    /// Прогнозы всех гипотез: это недельный цикл без сетки, он дешёвый. Начатый план считается от профиля
-    /// в день начала, остальные — от текущего. Возвращает прогноз выбранной гипотезы.
+    /// Новые прогнозы — от текущего профиля и актуальной калибровки; выбранная архивная версия
+    /// воспроизводится из сохранённых точек. Расчёт не изменяет историю или фактический профиль.
     /// </summary>
     private ForecastResult RunForecasts()
     {
+        var now = DateTimeOffset.Now;
+        var today = DateOnly.FromDateTime(now.Date);
+        var startFact = _history.Timeline.Selected is { } selected && selected.Date == today ? selected :
+            _history.Timeline.Items.LastOrDefault(s => s.Date == today && s.WeightKg.HasValue) ?? _history.Timeline.Items.LastOrDefault(s => s.Date == today);
+        var commonStart = _profile.Clone();
+        if (startFact is not null)
+        {
+            if (startFact.WeightKg is { } kg) commonStart.WeightKg = kg;
+            if (startFact.BodyFatPercent is { } bf) commonStart.BodyFatPercent = bf;
+            foreach (var (g, value) in startFact.Measurements) commonStart.SetGirth(g, value.Cm);
+        }
         _forecasts = _hypotheses.Items
             .Select(h => new HypothesisForecast(h,
-                ForecastEngine.Run(h.Plan.StartProfile?.ToProfile() ?? _profile.Clone(), h.Plan.ToInput())))
+                h.Slot == _hypotheses.Selected
+                    ? _personalized.Calculate(_profile, h.Plan.ToInput(), now, $"slot:{h.Slot}", h.Name, startFact)
+                    : ForecastEngine.Run(commonStart, h.Plan.ToInput(), _personalized.CurrentRevision?.Profile)))
             .ToList();
+        _personalized.Evaluate(_history.Timeline.Items, today);
         return _forecast = (_forecasts.FirstOrDefault(f => f.Hypothesis.Slot == _hypotheses.Selected) ?? _forecasts[0]).Forecast;
     }
 }

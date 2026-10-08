@@ -1,0 +1,137 @@
+<section class="card forecast-accuracy" aria-label="Точность прогноза">
+    <div class="card-title">Точность прогноза <span class="title-note">@Calibration.Status</span></div>
+    <div class="field-row">
+        <label for="forecast-version">Версия прогноза</label>
+        <select id="forecast-version" class="select" value="@(State.SelectedId ?? "")" @onchange="e => OnSelect.InvokeAsync(e.Value?.ToString())">
+            <option value="">Новый прогноз · предпросмотр</option>
+            @foreach (var f in State.Archive.Forecasts.Reverse())
+            {
+                <option value="@f.Id">@f.StartDate.ToString("dd.MM.yyyy") · @f.HypothesisName · @f.CreatedAt.ToString("HH:mm:ss")</option>
+            }
+        </select>
+    </div>
+    <div class="forecast-actions">
+        @if (State.Selected is null)
+        {
+            <button class="btn primary" disabled="@(State.Error is not null || State.Display is null)" @onclick="OnSave">Сохранить прогноз и начать план</button>
+        }
+        else
+        {
+            <button class="btn" @onclick="OnNew">Новый прогноз от текущего профиля</button>
+            <span class="note">Сохранённая версия неизменна.</span>
+        }
+    </div>
+    @if (State.Error is { } error)
+    {
+        <p class="hint" role="alert">@error</p>
+    }
+    <p class="note">Фактических наблюдений: @State.Evaluation.Select(o => o.FactId).Distinct().Count().
+        Калибровка: @Calibration.WeightObservations недельных групп.
+        Добавляйте измерения во вкладке «История»; старый журнал и фото можно импортировать там.</p>
+    @if (WeightScore is { } score)
+    {
+        <p class="note">Ошибка веса на истории, @score.HorizonWeeks нед.: базовый @Number(score.Baseline.Mae) / персональный @Number(score.Personalized.Mae) кг; n = @score.Baseline.Count.</p>
+    }
+    @if (State.Display is { } display)
+    {
+        var range = display.Expected[^1].WeightRange;
+        <p class="forecast-range">Ожидаемый диапазон прогноза через @display.HorizonWeeks нед.:
+            <b>@Fmt.N(range.Lower, 1)–@Fmt.N(range.Upper, 1) кг</b>; ожидаемый вес @Fmt.N(range.Expected, 1) кг.</p>
+        <p class="note">Начало @display.StartDate.ToString("dd.MM.yyyy"). Это ориентировочный диапазон, не статистический доверительный интервал.
+            В 3D показан ожидаемый результат выбранной версии.</p>
+        <p class="note">Исходный вес @Fmt.N(display.Expected[0].Body.WeightKg, 1) кг.
+            @(display.StartFact is null ? "Проверьте текущий профиль перед сохранением. Для обучения жира и обхватов добавьте исходные измерения на сегодня в Историю." : "Исходный факт выбран из Истории на дату начала; незаполненные поля — параметры модели, а не измерения.")
+            @(display.Reconstructed ? "Восстановленная версия: исключена из калибровки и backtest." : "")</p>
+        @if (State.Selected is not null)
+        {
+            var input = display.Input();
+            <p class="note">Сохранённый план: @Fmt.N(input.IntakeKcalPerDay, 0) ккал/день, активность ×@Fmt.N(input.ActivityFactor, 2),
+                кардио @input.CardioPerWeek раз/нед., силовые @input.StrengthPerWeek раз/нед.
+                Редактор плана выше задаёт новый прогноз; изменения переключат его в предпросмотр.</p>
+        }
+    }
+    <details>
+        <summary>Проверка на истории: baseline / персональный</summary>
+        <p class="note">Только прогнозы, сохранённые к дате начала, с калибровкой, доступной тогда. Факт — ближайший к 2/4/8 неделям (±3 дня).
+            Ошибка — MAE, смещение — факт минус прогноз. Покрытие диапазона — для веса.</p>
+        <div class="table-scroll">
+            <table class="changes forecast-backtest">
+                <thead><tr><th>Срок / показатель</th><th>n</th><th>MAE баз. / перс.</th><th>Смещение баз. / перс.</th><th>Покрытие баз. / перс.</th></tr></thead>
+                <tbody>
+                    @foreach (var c in State.Backtest.Comparisons.Where(c => c.Metric == ForecastEvaluationService.Weight || c.Baseline.Count > 0))
+                    {
+                        <tr><td>@c.HorizonWeeks нед. · @Metric(c.Metric)</td><td>@c.Baseline.Count</td>
+                            <td>@Number(c.Baseline.Mae) / @Number(c.Personalized.Mae)</td>
+                            <td>@Number(c.Baseline.Bias) / @Number(c.Personalized.Bias)</td>
+                            <td>@Percent(c.Baseline.RangeCoverage) / @Percent(c.Personalized.RangeCoverage)</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (!State.Backtest.Comparisons.Any(c => c.Baseline.Count > 0))
+        {
+            <p class="note">Данных для сравнения пока недостаточно. Сначала сохраните прогноз, затем добавьте последующие факты.</p>
+        }
+    </details>
+    <details>
+        <summary>Факт против выбранного прогноза</summary>
+        <div class="table-scroll">
+            <table class="changes forecast-evaluation">
+                <thead><tr><th>Дата / показатель</th><th>Прогноз</th><th>Факт</th><th>Ошибка / |ошибка|</th><th>Источник / вес данных</th><th>Калибровка</th></tr></thead>
+                <tbody>
+                    @foreach (var o in State.Evaluation.Reverse())
+                    {
+                        <tr><td>@o.Date.ToString("dd.MM.yyyy") · @Metric(o.Metric) · @o.HorizonDays д.</td>
+                            <td>@Number(o.Predicted)</td><td>@Number(o.Actual)</td><td>@Number(o.SignedError) / @Number(o.AbsoluteError)</td>
+                            <td title="@o.Provenance">@Source(o.Provenance) · @Number(o.SourceQuality)</td><td>@Reason(o.ExclusionReason)</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </details>
+    <details class="forecast-diagnostics">
+        <summary>Диагностика и история калибровки</summary>
+        <p>Энергетический баланс: @Number(Calibration.EnergyBalanceFactor); реакция веса: @Number(Calibration.WeightResponseFactor);
+            поправка распределения жира / безжировой массы: @Number(Calibration.FatLeanPartitionCorrection).</p>
+        <p class="note">Расход и реакцию веса нельзя определить раздельно по весам: энергетический коэффициент v1 зафиксирован на 1.
+            Обхваты и жир обучаются только при известных исходных измерениях. Новые факты меняют только новые прогнозы.</p>
+        @foreach (var factor in Calibration.GirthResponseFactors)
+        {
+            <div>@BodyProfile.GirthName(factor.Key): @Number(factor.Value)</div>
+        }
+        @foreach (var revision in State.Archive.Revisions.Reverse())
+        {
+            <details>
+                <summary>@revision.CreatedAt.ToString("dd.MM.yyyy HH:mm") · @revision.Profile.Status · реакция веса @Number(revision.Profile.WeightResponseFactor)</summary>
+                <p class="note">Ревизия @revision.Id; факты по @revision.ThroughDate.ToString("dd.MM.yyyy"); отпечаток @revision.EvidenceFingerprint[..12].</p>
+                @foreach (var d in revision.Diagnostics) { <div class="note">@d</div> }
+                @foreach (var o in revision.Observations.Where(o => o.ExclusionReason is not null))
+                { <div class="note">@o.Date.ToString("dd.MM.yyyy") · @Metric(o.Metric): @Reason(o.ExclusionReason)</div> }
+            </details>
+        }
+        @foreach (var reason in State.Backtest.Exclusions) { <p class="note">@reason</p> }
+    </details>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public PersonalizedForecastState State { get; set; } = default!;
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnNew { get; set; }
+    [Parameter] public EventCallback<string?> OnSelect { get; set; }
+    private ForecastCalibrationProfile Calibration => State.CurrentRevision?.Profile ?? State.Display?.Calibration ?? new();
+    private BacktestComparison? WeightScore => State.Backtest.Comparisons.Where(c => c.Metric == ForecastEvaluationService.Weight)
+        .OrderByDescending(c => c.Baseline.Count > 0).ThenByDescending(c => c.HorizonWeeks).FirstOrDefault();
+    private static string Number(double? n) => n.HasValue ? Fmt.N(n.Value, 3) : "—";
+    private static string Percent(double? n) => n.HasValue ? Fmt.N(n.Value * 100, 0) + " %" : "—";
+    private static string Source(string p) => p.StartsWith("Photo", StringComparison.Ordinal) || p.Contains("PhotoDerived", StringComparison.Ordinal) ? "фото" : p.StartsWith("Imported", StringComparison.Ordinal) ? "импорт" : "вручную";
+    private static string Metric(string m) => m == ForecastEvaluationService.Weight ? "вес, кг" : m == ForecastEvaluationService.BodyFat ? "жир, п.п." : Enum.TryParse<Girth>(m.Replace("Girth:", ""), out var g) ? BodyProfile.GirthName(g) + ", см" : m;
+    private static string Reason(string? reason) => reason switch
+    {
+        null => "доступно после недельного сглаживания", "invalid snapshot" => "некорректная запись",
+        "horizon shorter than 14 days" => "прошло меньше 14 дней", "photo warning" => "предупреждение разбора фото",
+        "insufficient source quality" => "низкое качество", "unknown starting measurement" => "нет исходного измерения",
+        "weight outlier" => "выброс веса", "insufficient predicted tissue change" => "слишком малое изменение тканей",
+        "reconstructed forecast" => "восстановленный прогноз", "forecast issued after fact" => "прогноз создан после факта",
+        "partition needs known weight" => "для жира нужен измеренный вес", _ => reason
+    };
+}
