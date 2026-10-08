@@ -66,6 +66,16 @@
                 }
                 <button class="btn" disabled="@(_recording || _current is null)" title="Видео поворота модели — сохранится на устройство"
                         @onclick="RecordVideo">@(_recording ? "Запись…" : "● Видео")</button>
+                @if (UseMakeHuman && _mode == ViewMode.Current)
+                {
+                    <select class="select" aria-label="Анимация упражнения" value="@_animationId" @onchange="OnAnimationChanged">
+                        @foreach (var animation in ExerciseAnimations)
+                        {
+                            <option value="@animation.Id">@animation.Name</option>
+                        }
+                    </select>
+                    <button class="btn" @onclick="ToggleAnimation">@(_animationPlaying ? "■ Стоп" : "▶ Упражнение")</button>
+                }
                 @if (_mode != ViewMode.Current && ManyHypotheses)
                 {
                     <select class="select" aria-label="Какую гипотезу показать" value="@_hypotheses.Selected" @onchange="OnViewHypothesis">
@@ -222,6 +232,41 @@
     private bool _recording;
     private string? _videoError;
 
+    private sealed record AnimationOption(string Id, string Name);
+    private static readonly AnimationOption[] ExerciseAnimations =
+    [
+        new("squat", "Присед"),
+        new("bench-press", "Жим лёжа"),
+        new("biceps-curl", "Сгибание рук"),
+        new("lat-pulldown", "Тяга верхнего блока"),
+        new("romanian-deadlift", "Румынская тяга"),
+    ];
+    private string _animationId = "squat";
+    private bool _animationPlaying;
+
+    private void OnAnimationChanged(ChangeEventArgs e)
+    {
+        _animationId = e.Value?.ToString() ?? "squat";
+        if (_animationPlaying)
+        {
+            ViewerInterop.PlayAnimation("current", _animationId);
+        }
+    }
+
+    private void ToggleAnimation()
+    {
+        if (_animationPlaying)
+        {
+            ViewerInterop.StopAnimation("current");
+            _animationPlaying = false;
+        }
+        else
+        {
+            ViewerInterop.PlayAnimation("current", _animationId);
+            _animationPlaying = true;
+        }
+    }
+
     /// <summary>Длительность видео поворота, с.</summary>
     private const double VideoSeconds = 6;
 
@@ -345,6 +390,7 @@
     private void SetKind(BodyKind kind)
     {
         if (_kind == kind) return;
+        _animationPlaying = false;
         _kind = kind;
         ProfileStorage.SaveModelKind(kind == BodyKind.Mannequin ? "mannequin" : "makehuman");
         Refresh();
@@ -444,6 +490,7 @@
     /// <summary>Сетка в 3D-вид и, если ленты сейчас показываются, её ленты.</summary>
     private void Show(string slot, IBodyShape body)
     {
+        if (slot == "current") _animationPlaying = false;
         ViewerInterop.SetGeometry(slot, body.Geometry);
         if (TapesNeeded) ViewerInterop.SetTapes(slot, body.Tapes);
     }
