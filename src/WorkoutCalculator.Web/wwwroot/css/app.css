@@ -1122,3 +1122,36 @@ table.changes tr.dim td { opacity: 0.5; }
     color: var(--warn);
     font-size: 12px;
 }
+
+/* Historical facts remain readable in the narrow mobile panel. */
+.body-history { min-width: 0; }
+.body-history h2 { margin-top: 0; }
+.history-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.history-timeline { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.history-timeline button { flex: 0 0 auto; min-width: 108px; min-height: 70px; }
+.history-navigation { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; margin: 10px 0; }
+.history-navigation input { width: 100%; min-width: 0; }
+.history-values { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 12px; font-size: 13px; }
+.history-values dd { margin: 0; }
+.history-values small, .history-deltas small { color: var(--muted); }
+.history-reference { overflow-wrap: anywhere; }
+.history-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.history-fields label, .history-editor > label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; min-width: 0; }
+.history-fields input, .history-fields select, .history-editor textarea { width: 100%; min-width: 0; box-sizing: border-box; padding: 8px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--card); color: var(--text); }
+.history-editor .check { flex-direction: row; margin: 12px 0; }
+.history-editor summary { cursor: pointer; font-weight: 600; margin-bottom: 12px; }
+.history-editor, .history-comparison { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 16px; }
+.history-editor textarea { min-height: 60px; margin: 6px 0 12px; }
+.history-deltas { width: 100%; font-size: 12px; border-collapse: collapse; table-layout: fixed; margin-top: 14px; }
+.history-deltas th, .history-deltas td { padding: 7px 3px; text-align: left; overflow-wrap: anywhere; border-bottom: 1px solid var(--border); }
+.history-deltas th:first-child { width: 32%; }
+.history-deltas small { display: block; }
+.history-view-caption { flex-basis: 100%; grid-column: 1 / -1; font-size: 12px; pointer-events: none; }
+.history-view-caption small { color: var(--muted); }
+.body-history .hint { background: none; border: 0; padding: 0; color: var(--muted); font-size: 12px; }
+.body-history [role="alert"] { color: var(--warn); }
+.tabs { overflow-x: auto; }
+@media (max-width: 700px) {
+    .mode-bar > .seg[aria-label="Что показать"] { flex-wrap: wrap; }
+    .tabs button { flex: 0 0 auto; }
+}
