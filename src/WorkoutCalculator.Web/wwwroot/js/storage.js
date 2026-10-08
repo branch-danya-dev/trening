@@ -17,6 +17,28 @@ export function setItem(key, value) {
     }
 }
 
+// Journals must distinguish unavailable storage from an empty journal and must report write failures.
+export function getItemStrict(key) {
+    return localStorage.getItem(key);
+}
+
+export function compareExchange(key, expected, value) {
+    if (localStorage.getItem(key) !== expected) return false;
+    localStorage.setItem(key, value);
+    return true;
+}
+
+/** Copy borrowed WASM memory synchronously, then hash in native Web Crypto (no network). */
+export async function sha256Hex(bytes) {
+    const copy = bytes.slice();
+    const digest = await crypto.subtle.digest('SHA-256', copy);
+    return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// A synchronous handle keeps MemoryView lifetime separate from the asynchronous interop signature.
+export function beginSha256Hex(bytes) { return { result: sha256Hex(bytes) }; }
+export function finishSha256Hex(handle) { return handle.result; }
+
 /** Страница открыта по HTTPS или на localhost: без этого браузер не даёт ни камеру, ни шифрование. */
 export function isSecure() {
     return !!globalThis.isSecureContext;

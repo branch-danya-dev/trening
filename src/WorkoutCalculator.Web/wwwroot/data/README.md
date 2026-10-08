@@ -1,5 +1,10 @@
 # Данные MakeHuman
 
+`makehuman-muscle-atlas-v1.bin` — предрасчитанный sidecar атласа (107 156 байт); MakeHuman v3 не изменён.
+Источник, SHA-256, версии, binary layout, regenerate и замеры — [docs/STRENGTH.md](../../../../docs/STRENGTH.md).
+Полный import также пишет sidecar; его можно перегенерировать из canonical `makehuman-hm08.bin`
+через режим `--atlas` того же инструмента. Runtime не выполняет геометрическую генерацию.
+
 `makehuman-hm08.bin` — базовая сетка MakeHuman hm08 (только тело: 13 380 вершин, 13 378 четырёхугольников),
 суставы, таргеты, зоны тела и скелет, которые нужны приложению:
 

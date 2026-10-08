@@ -1,0 +1,25 @@
+<div class="seg training-mode" role="group" aria-label="Тип тренировки">
+    <button class="@Css.On(!Strength.IsStrength)" @onclick="() => Strength.IsStrength = false">Ходьба / бег</button>
+    <button class="@Css.On(Strength.IsStrength)" @onclick="() => Strength.IsStrength = true">Силовая</button>
+</div>
+@if (Strength.IsStrength)
+{
+    <StrengthJournal State="Strength" OnChanged="OnStrengthChanged" OnShowLoad="OnShowLoad" />
+}
+else
+{
+    <WorkoutPanel Profile="Profile" Draft="Draft" OnChange="OnChange" Log="Log" Plan="Plan" OnSave="OnSave" OnRemove="OnRemove" />
+}
+
+@code {
+    [Parameter, EditorRequired] public StrengthJournalState Strength { get; set; } = default!;
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    [Parameter, EditorRequired] public WorkoutDraft Draft { get; set; } = default!;
+    [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
+    [Parameter] public IReadOnlyList<LoggedWorkout> Log { get; set; } = [];
+    [Parameter] public EventCallback<LoggedWorkout> OnSave { get; set; }
+    [Parameter] public EventCallback<string> OnRemove { get; set; }
+    [Parameter] public CardioPlan? Plan { get; set; }
+    [Parameter] public EventCallback OnStrengthChanged { get; set; }
+    [Parameter] public EventCallback<string?> OnShowLoad { get; set; }
+}

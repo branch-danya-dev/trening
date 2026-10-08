@@ -19,6 +19,25 @@ public static partial class BrowserStorage
     [JSImport("setItem", Module)]
     public static partial void SetItem(string key, string value);
 
+    [JSImport("getItemStrict", Module)]
+    public static partial string? GetItemStrict(string key);
+
+    [JSImport("compareExchange", Module)]
+    public static partial bool CompareExchange(string key, string? expected, string value);
+
+    // JS copies the borrowed MemoryView before returning its Promise.
+    [JSImport("beginSha256Hex", Module)]
+    private static partial JSObject BeginSha256Hex([JSMarshalAs<JSType.MemoryView>] Span<byte> bytes);
+
+    [JSImport("finishSha256Hex", Module)]
+    private static partial Task<string> FinishSha256Hex(JSObject handle);
+
+    public static async Task<string> Sha256Hex(byte[] bytes)
+    {
+        using var handle = BeginSha256Hex(bytes);
+        return await FinishSha256Hex(handle);
+    }
+
     /// <summary>HTTPS или localhost: без этого браузер не даёт камеру и шифрование.</summary>
     [JSImport("isSecure", Module)]
     public static partial bool IsSecure();

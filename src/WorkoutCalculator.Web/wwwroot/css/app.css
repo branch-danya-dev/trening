@@ -133,6 +133,8 @@ button, input, select { font: inherit; color: inherit; }
 .exercise-preview { flex-basis: 100%; max-width: 600px; font-size: 12px; color: var(--muted); }
 .exercise-controls { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
 .exercise-controls .select { max-width: 200px; }
+.exercise-controls + .exercise-controls { margin-top: 6px; }
+.exercise-controls > label:has(select) { display: flex; align-items: center; gap: 6px; }
 .exercise-details { margin-top: 6px; max-width: 560px; }
 .exercise-details summary { cursor: pointer; }
 .exercise-details[open] { background: #111922f2; padding: 8px; border-radius: 8px; max-height: 180px; overflow-y: auto; }
@@ -141,6 +143,37 @@ button, input, select { font: inherit; color: inherit; }
 .heatmap-intensity input { width: 120px; }
 .heatmap-legend { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
 .heatmap-legend i { width: 85px; height: 7px; border-radius: 4px; background: linear-gradient(90deg, #aab3c1, #ffc857, #ed493b); }
+
+.training-mode { align-self: flex-start; }
+.strength-journal { display: grid; gap: 14px; min-width: 0; }
+.strength-editor { min-width: 0; }
+.strength-exercise { margin: 16px 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
+.strength-exercise-head, .strength-set-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.strength-exercise-head { justify-content: space-between; }
+.strength-exercise-head label { flex: 1; min-width: 150px; }
+.strength-exercise-head .select { display: block; width: 100%; margin-top: 6px; }
+.strength-set { min-width: 0; margin: 12px 0; padding: 10px; border: 1px solid var(--border); border-radius: 8px; }
+.strength-set legend { color: var(--muted); font-size: 13px; padding: 0 5px; }
+.strength-set-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.strength-set-fields label { display: grid; gap: 5px; font-size: 13px; min-width: 0; }
+.strength-set-fields input, .strength-set-fields select { width: 100%; min-width: 0; }
+.strength-set-actions { margin-top: 12px; }
+.strength-notes { margin-top: 16px; }
+.strength-notes textarea { min-height: 70px; resize: vertical; width: 100%; }
+.strength-entry { padding: 16px 0; border-top: 1px solid var(--border); overflow-wrap: anywhere; }
+.strength-entry h3 { margin: 0; font-size: 16px; }
+.strength-entry p { margin: 8px 0; }
+.strength-entry details { color: var(--muted); }
+.strength-note-text { white-space: pre-wrap; }
+.journal-backup { width: 100%; min-height: 100px; }
+.muscle-load-list { max-width: 520px; margin: 12px 0; }
+.muscle-load-item { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; margin: 7px 0; font-size: 12px; }
+.muscle-load-item meter { grid-column: 1 / -1; width: 100%; height: 10px; accent-color: var(--accent); }
+@media (max-width: 600px) {
+    .strength-set-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .strength-exercise { padding: 10px; }
+    .strength-journal .btn, .strength-journal .btn-link, .strength-journal .check { min-height: 44px; }
+}
 
 /* Галочка лент — в левом нижнем углу: сверху она заезжала бы на голову модели */
 .view-tapes {

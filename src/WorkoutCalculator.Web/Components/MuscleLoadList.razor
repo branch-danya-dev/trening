@@ -1,0 +1,22 @@
+@using WorkoutCalculator.Exercises
+@using WorkoutCalculator.Strength
+
+<div class="muscle-load-list">
+    @if (Muscles.Count == 0)
+    {
+        <p class="note">Нет выполненных подходов для расчёта нагрузки.</p>
+    }
+    @foreach (var muscle in Muscles)
+    {
+        <div class="muscle-load-item">
+            <span>@muscle.Name</span><span>@Fmt.N(muscle.Relative, 2)</span>
+            <meter min="0" max="1" value="@muscle.Relative.ToString(CultureInfo.InvariantCulture)" aria-label="@muscle.Name"></meter>
+        </div>
+    }
+    <div class="heatmap-legend"><span>0</span><i></i><span>1 · относительная шкала</span></div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public MuscleLoadResult Load { get; set; } = default!;
+    private IReadOnlyList<LoadedMuscle> Muscles => StrengthAggregation.TopMuscles(Load);
+}

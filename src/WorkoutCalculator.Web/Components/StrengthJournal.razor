@@ -1,0 +1,133 @@
+@using WorkoutCalculator.Exercises
+@using WorkoutCalculator.Strength
+
+<section class="strength-journal">
+    @if (State.StorageError is not null)
+    {
+        <div class="card" role="alert">
+            <p>@State.StorageError</p>
+            @if (State.OriginalPayload is not null)
+            {
+                <details><summary>Исходные данные для ручной копии</summary>
+                    <textarea class="text-input journal-backup" aria-label="Исходный журнал" readonly value="@State.OriginalPayload"></textarea>
+                </details>
+            }
+        </div>
+    }
+    <div id="strength-editor-top" class="card strength-editor" @oninput="State.Changed" @onchange="State.Changed">
+        <div class="card-title">Силовая тренировка</div>
+        <div class="form-grid two">
+            <label class="form-field">Дата тренировки<input class="text-input" type="date" value="@State.Draft.Date" @onchange='e => State.Draft.Date = e.Value?.ToString() ?? ""' /></label>
+            <label class="form-field">Длительность, мин<input class="text-input" inputmode="decimal" placeholder="необязательно" @bind="State.Draft.Duration" /></label>
+        </div>
+        @foreach (var exercise in State.Draft.Exercises)
+        {
+            int exerciseNumber = State.Draft.Exercises.IndexOf(exercise) + 1;
+            <article class="strength-exercise" @key="exercise">
+                <div class="strength-exercise-head">
+                    <label>Упражнение @exerciseNumber
+                        <select class="select" aria-label="Упражнение @exerciseNumber" @bind="exercise.ExerciseId">
+                            @foreach (var definition in ExerciseCatalog.All)
+                            {
+                                <option value="@definition.Id">@definition.Name</option>
+                            }
+                        </select>
+                    </label>
+                    <button class="btn" aria-label="Удалить упражнение @exerciseNumber" @onclick="() => RemoveExercise(exercise)">Удалить</button>
+                </div>
+                @foreach (var set in exercise.Sets)
+                {
+                    int setNumber = exercise.Sets.IndexOf(set) + 1;
+                    <fieldset class="strength-set" @key="set">
+                        <legend>Подход @setNumber</legend>
+                        <div class="strength-set-fields">
+                            <label>Повторения<input class="text-input" inputmode="numeric" @bind="set.Reps" /></label>
+                            <label>Вес, кг<input class="text-input" inputmode="decimal" placeholder="не указан" @bind="set.Weight" /></label>
+                            <label>Шкала усилия<select class="select" aria-label="Шкала усилия" @bind="set.EffortKind"><option value="rir">RIR</option><option value="rpe">RPE</option></select></label>
+                            <label>@set.EffortKind.ToUpperInvariant()<input class="text-input" inputmode="decimal" placeholder="не указан" @bind="set.Effort" /></label>
+                        </div>
+                        <div class="strength-set-actions">
+                            <label class="check"><input type="checkbox" @bind="set.Completed" /> Выполнен</label>
+                            <label class="check"><input type="checkbox" @bind="set.Bodyweight" /> Собственный вес</label>
+                            <button class="btn-link" aria-label="Удалить подход @setNumber" @onclick="() => RemoveSet(exercise, set)">Удалить подход</button>
+                        </div>
+                    </fieldset>
+                }
+                <button class="btn" disabled="@(exercise.Sets.Count >= 100)" @onclick="() => AddSet(exercise)">+ Подход</button>
+            </article>
+        }
+        <button class="btn" disabled="@(State.Draft.Exercises.Count >= 100)" @onclick="AddExercise">+ Упражнение</button>
+        <label class="form-field strength-notes">Заметки<textarea class="text-input" maxlength="4000" @bind="State.Draft.Notes"></textarea></label>
+        <p class="note">RIR — сколько повторений осталось в запасе (0–10); RPE — усилие (1–10). Можно оставить пустым: для нагрузки используется RIR 2. Пока нет личного опорного веса, килограммы не меняют подсветку. Тоннаж учитывает только выполненные подходы с внешним весом; подходы «собственный вес» исключены.</p>
+        @if (State.Migrating)
+        {
+            <p class="note">При сохранении старый формат будет обновлён; исходная копия останется в @StrengthJournalStore.MigrationBackupKey.</p>
+        }
+        @if (State.Error is not null) { <p role="alert">@State.Error</p> }
+        <div class="strength-set-actions">
+            <button class="btn primary" disabled="@(State.StorageError is not null)" @onclick="Save">Сохранить силовую тренировку</button>
+            <button class="btn" @onclick="State.New">Новая тренировка</button>
+            @if (State.Saved) { <span role="status">Сохранено в журнал ✓</span> }
+        </div>
+    </div>
+    <div class="card strength-week">
+        <div class="card-title">Эта неделя · @State.Week.Monday.ToString("dd.MM")–@State.Week.Monday.AddDays(6).ToString("dd.MM")</div>
+        <p>@State.Week.SessionCount силовых тренировок · @VolumeText(State.Week.Volume)</p>
+        <MuscleLoadList Load="State.Week.Load" />
+        <p class="note">Накопленная относительная нагрузка по выполненным подходам.</p>
+        <button class="btn" @onclick="() => OnShowLoad.InvokeAsync((string?)null)">Нагрузка недели в 3D</button>
+    </div>
+    <div class="card">
+        <div class="card-title">Силовой журнал · @State.Sessions.Count</div>
+        @if (State.Sessions.Count == 0) { <p class="note">Здесь появятся сохранённые силовые тренировки.</p> }
+        @foreach (var summary in State.Summaries)
+        {
+            <article class="strength-entry" @key="summary.Session.Id">
+                <h3>@summary.Session.Date.ToString("dd.MM.yyyy")</h3>
+                <p>@VolumeText(summary.Volume)@(summary.Session.DurationMinutes is { } min ? $" · {Fmt.N(min)} мин" : "")</p>
+                @foreach (var exercise in summary.Exercises)
+                {
+                    <p><strong>@ExerciseCatalog.Get(exercise.ExerciseId).Name</strong> · @VolumeText(exercise.Volume)</p>
+                }
+                <details><summary>Все подходы и заметки</summary>
+                    @foreach (var exercise in summary.Session.Exercises)
+                    {
+                        <p>@ExerciseCatalog.Get(exercise.ExerciseId).Name</p>
+                        <ul>@foreach (var set in exercise.Sets) { <li>@SetText(set)</li> }</ul>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(summary.Session.Notes)) { <p class="strength-note-text">@summary.Session.Notes</p> }
+                </details>
+                <div class="strength-set-actions">
+                    <button class="btn" @onclick="() => OnShowLoad.InvokeAsync(summary.Session.Id)">Нагрузка тренировки в 3D</button>
+                    <button class="btn" @onclick="() => Edit(summary.Session)">Изменить</button>
+                    @if (_confirmRemove == summary.Session.Id)
+                    {
+                        <button class="btn" @onclick="() => Remove(summary.Session.Id)">Подтвердить удаление</button>
+                        <button class="btn" @onclick="() => _confirmRemove = null">Отмена</button>
+                    }
+                    else { <button class="btn-link" @onclick="() => _confirmRemove = summary.Session.Id">Удалить запись</button> }
+                </div>
+            </article>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public StrengthJournalState State { get; set; } = default!;
+    [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public EventCallback<string?> OnShowLoad { get; set; }
+    private string? _confirmRemove;
+    private void AddExercise() { State.Draft.Exercises.Add(new()); State.Changed(); }
+    private void RemoveExercise(StrengthExerciseDraft exercise) { State.Draft.Exercises.Remove(exercise); State.Changed(); }
+    private void AddSet(StrengthExerciseDraft exercise) { exercise.Sets.Add(new()); State.Changed(); }
+    private void RemoveSet(StrengthExerciseDraft exercise, StrengthSetDraft set) { exercise.Sets.Remove(set); State.Changed(); }
+    private async Task Save() { if (State.Save()) await OnChanged.InvokeAsync(); }
+    private async Task Remove(string id) { if (State.Remove(id)) { _confirmRemove = null; await OnChanged.InvokeAsync(); } }
+    private void Edit(TrainingSession session) { State.Edit(session); BrowserStorage.ScrollToId("strength-editor-top"); }
+    private static string VolumeText(StrengthVolume v) => $"{v.CompletedSets} вып. подходов · {v.Reps} повторений" +
+        (v.WeightedSets > 0 ? $" · {Fmt.N(v.ExternalVolumeKg)} кг тоннажа" : " · тоннаж не указан");
+    private static string SetText(TrainingSet s) => $"{(s.Completed ? "✓" : "Не выполнен")} · {s.Reps} повторений" +
+        (s.WeightKg is { } kg ? $" × {Fmt.N(kg, 1)} кг" : "") + (s.Bodyweight ? " · собственный вес" : "") +
+        (s.Rir is { } rir ? $" · RIR {Fmt.N(rir, 1)}" : s.Rpe is { } rpe ? $" · RPE {Fmt.N(rpe, 1)}" : "") +
+        (s.DurationSeconds is { } seconds ? $" · {Fmt.N(seconds)} с" : "");
+}
