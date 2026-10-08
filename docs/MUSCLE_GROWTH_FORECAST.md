@@ -211,7 +211,8 @@ Width is zero at week zero (a model anchor, not a claim of measurement precision
 Adherence variability is the bounded coefficient of variation of completed session counts in
 the preceding 12 bins; no history gives 1. It is a logging-consistency proxy, not verified adherence
 to an old plan. Observed girth count pools distinct week/girth pairs; photo share retains their
-provenance. Longer horizon, sparse observations, unstable logs and photos widen the range.
+provenance. A photo-derived same-date anchor also widens the range (maximum of historical
+photo share and anchor photo share), without training the response. Longer horizon, sparse observations, unstable logs and photos widen the range.
 There is no separate probabilistic model for vertex displacement.
 
 ## Storage and backtest
@@ -265,7 +266,7 @@ two builds. No runtime per-frame CPU morph work or atlas regeneration was added.
 
 Validation commands: `dotnet build WorkoutCalculator.sln -c Release`,
 `dotnet test WorkoutCalculator.sln -c Release --no-build`, `node --test tests/js/*.test.mjs`.
-Release: 0 warnings/errors; .NET **363/363**; JS **36/36**. CI runs all five browser smokes:
+Release: 0 warnings/errors; .NET **364/364**; JS **36/36**. CI runs all five browser smokes:
 skeletal, strength, history, personalized forecast and muscle forecast. New smoke covers real
 squat+bench editor, equal-energy bench-vs-squat geometry, mass cap, color-only toggle, compare,
 save/reload, historical fact updates and 320/390/1400 px. Existing smoke covers photos, cardio,

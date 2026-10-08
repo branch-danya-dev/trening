@@ -202,6 +202,18 @@ public class MuscleGrowthForecastTests(Xunit.Abstractions.ITestOutputHelper outp
         Assert.Equal(0, f.Muscle.Calibration.ObservedGirths);
         Assert.True(f.Muscle.Calibration.ThroughDate <= Origin);
     }
+    [Fact] public void PhotoAnchorWidensRangeWithoutTrainingResponse()
+    {
+        var now = new DateTimeOffset(2026, 1, 5, 9, 0, 0, TimeSpan.Zero);
+        var anchor = Fact(Origin, 98);
+        var manual = ForecastSnapshot.Create(BodyDefaults.Default(), Input(), Origin, now, startFact: anchor);
+        var photo = ForecastSnapshot.Create(BodyDefaults.Default(), Input(), Origin, now,
+            startFact: anchor with { Source = SnapshotSource.Photo, PhotoSessionId = "anchor-photo" });
+        Assert.Equal(manual.Expected[^1].Girths, photo.Expected[^1].Girths);
+        Assert.True(photo.Expected[^1].GirthRanges[Girth.Chest].Upper > manual.Expected[^1].GirthRanges[Girth.Chest].Upper);
+        Assert.Empty(photo.Muscle!.Calibration.FactIds);
+        Assert.All(photo.Muscle.Calibration.Factors.Values, x => Assert.Equal(1, x));
+    }
     [Fact] public void SyntheticResultsAreReproducibleAndReported()
     {
         foreach (var exercise in new[] { "bench-press", "squat", "lat-pulldown" })

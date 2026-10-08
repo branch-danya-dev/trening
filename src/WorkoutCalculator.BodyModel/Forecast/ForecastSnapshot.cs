@@ -76,6 +76,14 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
             var history = (strengthHistory ?? []).Where(s => s.Date < cutoff).ToArray();
             var stimulus = TrainingStimulusEngine.Build(program, history, startDate) with { ThroughDate = cutoff.AddDays(-1) };
             var response = MuscleResponseCalibrationService.Build((previousForecasts ?? []).Where(f => f.CreatedAt <= now), (bodyHistory ?? []).Where(f => f.Date < cutoff), history, cutoff);
+            // The same-date anchor is known at issue time. It cannot train a response but its
+            // photo provenance must still widen the future shape range, even with no older facts.
+            if (startFact is not null)
+            {
+                double anchorPhotoShare = startFact.Source == SnapshotSource.Photo ? 1 : startFact.Measurements.Count == 0 ? 0 :
+                    startFact.Measurements.Values.Count(g => g.Method == MeasurementMethod.PhotoDerived) / (double)startFact.Measurements.Count;
+                response = response with { PhotoShare = Math.Max(response.PhotoShare, anchorPhotoShare) };
+            }
             var muscle = new TrainingAwareForecast(MuscleAdaptationForecast.Version, stimulus, response,
                 MuscleAdaptationForecast.Run(start, input, expected.Weeks, stimulus, response.Factors), snapshot.Expected);
             snapshot = snapshot with { Muscle = muscle, ModelParameters = snapshot.ModelParameters.SetItems(MuscleAdaptationForecast.Parameters()), Expected = BodyShapeForecast.Apply(start, snapshot.Expected, muscle),
