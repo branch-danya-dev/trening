@@ -35,6 +35,10 @@ public static partial class BrowserStorage
     [JSImport("selectText", Module)]
     public static partial void SelectText(string selector);
 
+    /// <summary>Прокрутить к элементу по id.</summary>
+    [JSImport("scrollToId", Module)]
+    public static partial void ScrollToId(string id);
+
     /// <summary>Фокус на поле по id (и прокрутка к нему).</summary>
     [JSImport("focusById", Module)]
     public static partial void FocusById(string id);

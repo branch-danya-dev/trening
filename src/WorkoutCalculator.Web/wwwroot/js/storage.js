@@ -42,6 +42,11 @@ export function selectText(selector) {
     document.querySelector(selector)?.select?.();
 }
 
+/** Прокрутить к элементу по id (например, к карточке разбора фото). */
+export function scrollToId(id) {
+    document.getElementById(id)?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+}
+
 /** Фокус на поле по id — например, на поле с ошибкой. */
 export function focusById(id) {
     const el = document.getElementById(id);
