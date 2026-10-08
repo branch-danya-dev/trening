@@ -38,6 +38,10 @@ public static partial class BrowserStorage
     [JSImport("selectText", Module)]
     public static partial void SelectText(string selector);
 
+    /// <summary>Прокрутить элемент к правому краю.</summary>
+    [JSImport("scrollToEnd", Module)]
+    public static partial void ScrollToEnd(string selector);
+
     /// <summary>Прокрутить к элементу по id.</summary>
     [JSImport("scrollToId", Module)]
     public static partial void ScrollToId(string id);

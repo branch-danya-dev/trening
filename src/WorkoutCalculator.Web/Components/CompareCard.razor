@@ -1,0 +1,171 @@
+@* Сравнение двух дат: прежнее тело — контуром поверх нового (или рядом), таблица «было → стало» и, если на обе
+   даты есть разобранные фото, сравнение снимков (PhotoComparer): карта изменений и прежний контур на новом снимке. *@
+@using System.Runtime.InteropServices.JavaScript
+@using WorkoutCalculator.Data
+@using WorkoutCalculator.BodyModel.Photos
+@inject AppData Data
+@implements IDisposable
+
+<div class="card">
+    <div class="card-title">
+        <span>Сравнение</span>
+        <span class="widget-head">
+            <button class="btn-link muted close" aria-label="Свернуть" @onclick="() => OnClose.InvokeAsync()">✕</button>
+        </span>
+    </div>
+    <div class="seg" role="group" aria-label="Как показать">
+        <button class="@Css.On(!SideBySide)" @onclick="() => SideBySideChanged.InvokeAsync(false)">Контуром</button>
+        <button class="@Css.On(SideBySide)" @onclick="() => SideBySideChanged.InvokeAsync(true)">Рядом</button>
+    </div>
+    <div class="note" style="margin: 8px 0 10px">
+        @(SideBySide ? $"Слева — {Label(Earlier)}, справа — {Label(Later)}." : $"Светлый контур — тело на {Label(Earlier)}, модель — на {Label(Later)}.")
+        «≈» — оценка, а не замер: разница по оценкам показывает только изменение веса.
+    </div>
+
+    @if (Before is ResolvedBody a && After is ResolvedBody b)
+    {
+        <table class="changes body-compare">
+            <thead><tr><th></th><th>@Label(Earlier)</th><th>@Label(Later)</th><th>Разница</th></tr></thead>
+            <tbody>
+                @Line("Вес, кг", a.Body.WeightKg, b.Body.WeightKg, a.Origin(BodyField.Weight), b.Origin(BodyField.Weight))
+                @Line("Жир, %", a.Body.BodyFatPercent, b.Body.BodyFatPercent, a.Origin(BodyField.BodyFat), b.Origin(BodyField.BodyFat))
+                @foreach (var g in Enum.GetValues<Girth>())
+                {
+                    var f = BodyResolver.FieldOf(g);
+                    @Line($"{BodyProfile.GirthName(g)}, см", a.Body.GetGirth(g), b.Body.GetGirth(g), a.Origin(f), b.Origin(f))
+                }
+            </tbody>
+        </table>
+        @if (Carried(a, Earlier) || Carried(b, Later))
+        {
+            <div class="note" style="margin-top: 6px">* — замера на эту дату нет, взят последний более ранний.</div>
+        }
+    }
+    else
+    {
+        <div class="hint">На одну из дат нет веса — сравнить не с чем.</div>
+    }
+
+    @if (SessionId(Earlier) is string before && SessionId(Later) is string after)
+    {
+        <div class="measure-group">Фото</div>
+        @if (_photos is null)
+        {
+            <button class="btn" disabled="@_loading" @onclick="() => ComparePhotos(before, after)">@(_loading ? "Сравниваю…" : "Сравнить фото")</button>
+        }
+        else
+        {
+            <ChangeChart Levels="_photos.Levels" Sex="Data.Profile?.Sex ?? Sex.Male" />
+            <div class="overlay-row" style="margin-top: 10px">
+                @foreach (var (view, profile) in new[] { ("front", _after?.Front), ("side", _after?.Side) })
+                {
+                    if (profile is not null && _urls.TryGetValue(view, out var url))
+                    {
+                        <PhotoOverlay Url="@url" Profile="profile" Ghost="@(view == "side" ? _photos.SideGhost : _photos.FrontGhost)"
+                                      Blur="_privacy.Blur" Watermark="@(_privacy.Watermark ? "личное фото · не пересылать" : null)"
+                                      Caption="@($"{(view == "side" ? "Сбоку" : "Спереди")}, {Label(Later)}")" />
+                    }
+                }
+            </div>
+            <div class="note" style="margin-top: 8px">
+                Снимки совмещены по макушке и росту, сбоку — ещё и по лопаткам. Белый пунктир — контур на @Label(Earlier).
+                Разница в полсантиметра и меньше — шум (поза, дыхание, свет).
+            </div>
+        }
+        @if (_error is not null)
+        {
+            <div class="hint" role="alert" style="margin-top: 8px">@_error</div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public DateOnly Earlier { get; set; }
+    [Parameter, EditorRequired] public DateOnly Later { get; set; }
+    [Parameter] public bool SideBySide { get; set; }
+    [Parameter] public EventCallback<bool> SideBySideChanged { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private PhotoComparison? _photos;
+    private PhotoAnalysis? _after;
+    private readonly Dictionary<string, string> _urls = [];
+    private readonly PhotoPrivacy _privacy = ProfileStorage.LoadPrivacy();
+    private bool _loading;
+    private string? _error;
+    private (DateOnly, DateOnly) _pair;
+
+    private ResolvedBody? Before => Data.Profile is Profile p ? BodyResolver.At(p, Data.Entries, Earlier) : null;
+    private ResolvedBody? After => Data.Profile is Profile p ? BodyResolver.At(p, Data.Entries, Later) : null;
+
+    private static string Label(DateOnly d) => d == DateOnly.FromDateTime(DateTime.Now) ? "сегодня" : Fmt.Date(d);
+
+    /// <summary>Последняя фотосессия даты.</summary>
+    private string? SessionId(DateOnly d) =>
+        Data.Entries.LastOrDefault(e => e.Date == d && e.PhotoSessionId is not null)?.PhotoSessionId;
+
+    protected override void OnParametersSet()
+    {
+        if (_pair == (Earlier, Later)) return;
+        _pair = (Earlier, Later);
+        ResetPhotos();
+    }
+
+    private RenderFragment Line(string name, double a, double b, FieldOrigin oa, FieldOrigin ob) => __builder =>
+    {
+        bool estimate = oa.IsEstimate || ob.IsEstimate;
+        <tr class="@(estimate ? "estimated" : null)">
+            <td>@name</td>
+            <td title="@BodySummary.Describe(oa)">@Value(a, oa, Earlier)</td>
+            <td title="@BodySummary.Describe(ob)">@Value(b, ob, Later)</td>
+            <td class="delta">@Fmt.Signed(b - a, 1)</td>
+        </tr>
+    };
+
+    /// <summary>«≈» — оценка, «*» — замер с более ранней даты, чем столбец.</summary>
+    private static string Value(double v, FieldOrigin o, DateOnly date) =>
+        o.IsEstimate ? $"≈{Fmt.N(v, 1)}" : o.Date != date ? $"{Fmt.N(v, 1)}*" : Fmt.N(v, 1);
+
+    private static bool Carried(ResolvedBody r, DateOnly date) =>
+        r.Origins.Values.Any(o => !o.IsEstimate && o.Date != date);
+
+    private async Task ComparePhotos(string beforeId, string afterId)
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            var sessions = await PhotoStore.ListMeta();
+            var before = sessions.FirstOrDefault(s => s.Id == beforeId)?.Analysis;
+            var after = sessions.FirstOrDefault(s => s.Id == afterId)?.Analysis;
+            if (before is null || after is null)
+            {
+                _error = "Фото одной из дат ещё не разобраны.";
+                return;
+            }
+            _photos = PhotoComparer.Compare(before.Front, before.Side, after.Front, after.Side);
+            _after = after;
+            foreach (string view in new[] { "front", "side" })
+                if ((view == "side" ? after.Side : after.Front) is not null)
+                    _urls[view] = await PhotoStore.ImageUrl(afterId, view);
+        }
+        catch (JSException e)
+        {
+            _error = e.Message.StartsWith("Error: ", StringComparison.Ordinal) ? e.Message[7..] : e.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ResetPhotos()
+    {
+        _photos = null;
+        _after = null;
+        _error = null;
+        foreach (string url in _urls.Values) PhotoStore.RevokeUrl(url);
+        _urls.Clear();
+    }
+
+    public void Dispose() => ResetPhotos();
+}

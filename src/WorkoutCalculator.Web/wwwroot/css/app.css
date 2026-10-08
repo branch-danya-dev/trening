@@ -1023,6 +1023,61 @@ table.summary td.origin { color: var(--faint); font-size: 12px; text-align: righ
 table.summary td:nth-child(2) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .note.about { padding: 0 4px; }
 
+/* История тела: шкала дат внизу 3D-вида; на телефоне над ней — строка параметров */
+.main-app .mode-bar { top: 14px; }
+.main-app .view-stats { top: 18px; bottom: auto; }
+.view-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0 14px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    pointer-events: none;
+}
+.view-bottom > * { pointer-events: auto; }
+.history { display: flex; align-items: center; gap: 8px; width: 100%; }
+.history-dates {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 2px 0;
+}
+.history-dates::-webkit-scrollbar { display: none; }
+.history-date {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: rgba(20, 28, 37, 0.88);
+    color: var(--muted);
+    font-size: 12.5px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.history-date:hover { color: var(--text); }
+.history-date.on { border-color: var(--accent); color: var(--text); background: rgba(20, 44, 47, 0.92); }
+.history-date.other { border-color: var(--forecast); border-style: dashed; color: var(--text); }
+/* Метка — формой, не только цветом: точка — вес, кольцо — обхваты, квадрат — фото */
+.mark { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.mark.girths { background: none; border: 2px solid var(--accent); }
+.mark.photo { border-radius: 2px; background: var(--accent); }
+.mark.none { background: none; border: 1px dashed var(--faint); }
+.compare-toggle { flex: none; padding: 5px 12px; font-size: 12.5px; white-space: nowrap; }
+.compare-toggle.on { border-color: var(--forecast); color: var(--forecast); }
+.history-hint { align-self: flex-start; color: var(--forecast); font-size: 12.5px; background: rgba(10, 14, 19, 0.75); padding: 3px 8px; border-radius: 6px; }
+table.body-compare tr.estimated td { color: var(--muted); }
+table.body-compare td.delta { color: var(--text); }
+
 /* ---------- Телефон и планшет ---------- */
 
 /*
@@ -1102,13 +1157,11 @@ table.summary td:nth-child(2) { text-align: right; white-space: nowrap; font-var
     .main-app.sheet-open:not(.onboarding) .model-panel { transform: none; }
     .main-app:not(.onboarding) .model-panel .panel-body { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
     .widget-head .close { display: inline-block; }
+    .view-bottom { padding: 0 10px 8px; }
     .sheet-peek {
         display: flex;
         align-items: center;
         gap: 10px;
-        position: absolute;
-        right: 10px;
-        bottom: 8px;
         padding: 7px 12px;
         border: 1px solid var(--border-strong);
         border-radius: 999px;

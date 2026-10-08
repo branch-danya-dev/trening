@@ -25,16 +25,30 @@
             <canvas id="body-canvas" tabindex="0"></canvas>
             <div class="mode-bar">
                 <button class="btn view-cycle always" aria-label="Сменить ракурс" @onclick="CycleView">⟳ @ViewName(NextView)</button>
+                <label class="check" title="Где меряется каждый обхват">
+                    <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
+                </label>
             </div>
-            <label class="check view-tapes" title="Где меряется каждый обхват">
-                <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
-            </label>
-            @if (!_onboarding && _body is ResolvedBody peek)
+            @if (!_onboarding && Data.Loaded && Data.Profile is not null)
             {
-                <button class="sheet-peek" @onclick="() => _sheetOpen = true">
-                    @Fmt.N(peek.Body.WeightKg, 1)&nbsp;кг · @Fmt.N(peek.Body.BodyFatPercent, 0)&nbsp;% жира · @(_date == Today ? "сегодня" : Fmt.Date(_date))
-                    <b>Параметры</b>
-                </button>
+                <div class="view-bottom">
+                    @if (_body is ResolvedBody peek)
+                    {
+                        <button class="sheet-peek" @onclick="() => _sheetOpen = true">
+                            @if (Comparing)
+                            {
+                                <span>Сравнение: @Label(Earlier) → @Label(Later)</span>
+                            }
+                            else
+                            {
+                                <span>@Fmt.N(peek.Body.WeightKg, 1)&nbsp;кг · @Fmt.N(peek.Body.BodyFatPercent, 0)&nbsp;% жира · @Label(_date)</span>
+                            }
+                            <b>@(Comparing ? "Разница" : "Параметры")</b>
+                        </button>
+                    }
+                    <HistoryBar Marks="HistoryBar.From(Data.Entries)" Selected="_date" CompareWith="_compareDate" Comparing="_comparing"
+                                OnSelect="SetDate" OnSelectOther="SetCompareDate" OnCompare="ToggleCompare" />
+                </div>
             }
             @if (ViewMessage is string message)
             {
@@ -63,6 +77,11 @@
                 else if (_onboarding)
                 {
                     <Onboarding Scene="_scene" OnFullScreen="full => _onboardingFull = full" OnFinished="() => _onboarding = false" />
+                }
+                else if (Comparing)
+                {
+                    <CompareCard Earlier="Earlier" Later="Later" SideBySide="_sideBySide" SideBySideChanged="SetSideBySide"
+                                 OnClose="() => _sheetOpen = false" />
                 }
                 else
                 {
@@ -157,6 +176,36 @@
     private void SetDate(DateOnly date)
     {
         _date = date;
+        if (_compareDate == date) _compareDate = null;
+        UpdateModel();
+    }
+
+    private static string Label(DateOnly d) => d == Today ? "сегодня" : Fmt.Date(d);
+
+    /// <summary>Сравнение двух дат: включено кнопкой «Сравнить», вторая дата — нажатием на шкале.</summary>
+    private bool _comparing, _sideBySide;
+    private DateOnly? _compareDate;
+
+    private bool Comparing => _comparing && _compareDate is not null;
+    private DateOnly Earlier => _compareDate is DateOnly c && c < _date ? c : _date;
+    private DateOnly Later => _compareDate is DateOnly c && c > _date ? c : _date;
+
+    private void ToggleCompare()
+    {
+        _comparing = !_comparing;
+        _compareDate = null;
+        UpdateModel();
+    }
+
+    private void SetCompareDate(DateOnly date)
+    {
+        _compareDate = date;
+        UpdateModel();
+    }
+
+    private void SetSideBySide(bool sideBySide)
+    {
+        _sideBySide = sideBySide;
         UpdateModel();
     }
 
@@ -185,11 +234,27 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    /// <summary>Модель на выбранную дату из истории замеров.</summary>
+    /// <summary>
+    /// Модель на выбранную дату из истории замеров. В сравнении основной слот — прежняя дата (контур или слева),
+    /// второй — поздняя (сплошная модель или справа).
+    /// </summary>
     private void UpdateModel()
     {
-        _body = Data.Profile is Profile p ? BodyResolver.At(p, Data.Entries, _date) : null;
-        if (_viewerReady) _scene.Set(BodyScene.Primary, _body?.Body);
+        var p = Data.Profile;
+        _body = p is not null ? BodyResolver.At(p, Data.Entries, _date) : null;
+        if (!_viewerReady) return;
+        if (Comparing && p is not null)
+        {
+            _scene.Set(BodyScene.Primary, BodyResolver.At(p, Data.Entries, Earlier)?.Body);
+            _scene.Set(BodyScene.Secondary, BodyResolver.At(p, Data.Entries, Later)?.Body);
+            _scene.SetCompare(true, _sideBySide);
+        }
+        else
+        {
+            _scene.Set(BodyScene.Primary, _body?.Body);
+            _scene.Set(BodyScene.Secondary, null);
+            _scene.SetCompare(false, false);
+        }
     }
 
     private void Go(Section section) => _section = section;

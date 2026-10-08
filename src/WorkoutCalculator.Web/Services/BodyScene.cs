@@ -31,6 +31,7 @@ public sealed class BodyScene(Action changed)
     private readonly Dictionary<string, Slot> _slots = new() { [Primary] = new(), [Secondary] = new() };
     private bool _viewerReady, _showTapes;
     private Girth? _highlight;
+    private (bool Compare, bool SideBySide) _mode;
 
     public MakeHumanModel? MakeHuman { get; private set; }
 
@@ -110,9 +111,12 @@ public sealed class BodyScene(Action changed)
     }
 
     /// <summary>Режим вида: одно тело или сравнение (основное — контуром поверх второго, или рядом).</summary>
+    /// <remarks>Смена режима подгоняет камеру, поэтому во вьюер уходит только настоящая смена.</remarks>
     public void SetCompare(bool compare, bool sideBySide)
     {
-        if (_viewerReady) ViewerInterop.SetMode(compare ? "compare" : "current", sideBySide);
+        if (!_viewerReady || _mode == (compare, sideBySide)) return;
+        _mode = (compare, sideBySide);
+        ViewerInterop.SetMode(compare ? "compare" : "current", sideBySide);
     }
 
     private void SendTapes()

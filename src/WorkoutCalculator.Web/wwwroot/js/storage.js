@@ -61,3 +61,9 @@ export function focusById(id) {
     el?.focus();
     el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
 }
+
+/** Прокрутить элемент (селектор CSS) к правому краю — например, шкалу дат к последней. */
+export function scrollToEnd(selector) {
+    const el = document.querySelector(selector);
+    if (el) el.scrollLeft = el.scrollWidth;
+}

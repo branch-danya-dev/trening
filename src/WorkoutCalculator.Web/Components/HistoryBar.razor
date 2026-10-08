@@ -1,0 +1,74 @@
+@* Шкала дат записей замеров под моделью. Метка у даты: точка — только вес, кольцо — с обхватами, квадрат —
+   с фото. Выбор даты показывает модель на эту дату; «Сравнить» — выбрать вторую дату. *@
+@using WorkoutCalculator.Data
+
+<div class="history" role="group" aria-label="История замеров">
+    <div class="history-dates">
+        @foreach (var mark in Marks)
+        {
+            var date = mark.Date;
+            bool on = date == Selected, other = date == CompareWith;
+            <button class="history-date @Css.On(on) @(other ? "other" : null)" aria-pressed="@(on || other ? "true" : "false")"
+                    title="@Title(mark)" @onclick="() => Pick(date)">
+                <i class="mark @mark.Kind.ToString().ToLowerInvariant()" aria-hidden="true"></i>
+                <span>@(date == Today ? "сегодня" : Fmt.Date(date))</span>
+            </button>
+        }
+    </div>
+    <button class="btn compare-toggle @Css.On(Comparing)" disabled="@(Marks.Count < 2)" @onclick="() => OnCompare.InvokeAsync()">
+        @(Comparing ? "Закрыть сравнение" : "Сравнить")
+    </button>
+</div>
+@if (Comparing && CompareWith is null)
+{
+    <div class="history-hint">Выберите вторую дату на шкале</div>
+}
+
+@code {
+    public enum MarkKind { Weight, Girths, Photo, None }
+
+    public sealed record DateMark(DateOnly Date, MarkKind Kind);
+
+    [Parameter, EditorRequired] public IReadOnlyList<DateMark> Marks { get; set; } = [];
+    [Parameter] public DateOnly Selected { get; set; }
+    [Parameter] public DateOnly? CompareWith { get; set; }
+    [Parameter] public bool Comparing { get; set; }
+    [Parameter] public EventCallback<DateOnly> OnSelect { get; set; }
+    [Parameter] public EventCallback<DateOnly> OnSelectOther { get; set; }
+    [Parameter] public EventCallback OnCompare { get; set; }
+
+    private int _count = -1;
+
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+
+    /// <summary>Даты записей и сегодня (даже без записи — чтобы вернуться к текущему телу).</summary>
+    public static IReadOnlyList<DateMark> From(IEnumerable<BodyEntry> entries)
+    {
+        var marks = entries.GroupBy(e => e.Date).OrderBy(g => g.Key).Select(g => new DateMark(g.Key,
+            g.Any(e => e.PhotoSessionId is not null) ? MarkKind.Photo
+            : g.Any(e => Enum.GetValues<Girth>().Any(x => e.GetGirth(x) is not null)) ? MarkKind.Girths
+            : MarkKind.Weight)).ToList();
+        if (marks.Count == 0 || marks[^1].Date < Today) marks.Add(new DateMark(Today, MarkKind.None));
+        return marks;
+    }
+
+    private static string Title(DateMark m) => m.Kind switch
+    {
+        MarkKind.Photo => "Запись с фото",
+        MarkKind.Girths => "Запись с обхватами",
+        MarkKind.Weight => "Запись веса",
+        _ => "Сегодня — записей нет",
+    };
+
+    private Task Pick(DateOnly date) =>
+        Comparing && date != Selected ? OnSelectOther.InvokeAsync(date) : OnSelect.InvokeAsync(date);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Новые даты справа — прокрутить шкалу к концу, когда их число изменилось
+        if (_count == Marks.Count) return;
+        _count = Marks.Count;
+        await Task.Yield();
+        BrowserStorage.ScrollToEnd(".history-dates");
+    }
+}
