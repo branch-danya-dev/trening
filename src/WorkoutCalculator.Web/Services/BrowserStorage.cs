@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Forecast;
 
-namespace WorkoutCalculator.Body3D.Services;
+namespace WorkoutCalculator.Web.Services;
 
 /// <summary>
 /// localStorage браузера и мелочи вокруг (wwwroot/js/storage.js). Недоступность хранилища — не ошибка.

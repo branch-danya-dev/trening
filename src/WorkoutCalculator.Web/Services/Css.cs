@@ -1,4 +1,4 @@
-namespace WorkoutCalculator.Body3D.Services;
+namespace WorkoutCalculator.Web.Services;
 
 public static class Css
 {

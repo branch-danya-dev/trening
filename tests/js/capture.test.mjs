@@ -1,7 +1,7 @@
 // Проверка позы для съёмки с подсказками (wwwroot/js/capture.js): node --test tests/js/
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assessPose } from '../../src/WorkoutCalculator.Body3D/wwwroot/js/capture.js';
+import { assessPose } from '../../src/WorkoutCalculator.Web/wwwroot/js/capture.js';
 
 const W = 1000, H = 1500; // портретный кадр
 

@@ -1,7 +1,7 @@
 <Project>
   <!-- Общие настройки для всех проектов в src/ -->
   <PropertyGroup>
-    <!-- Если установлен .NET 8 SDK, замените на net8.0 (только здесь) -->
+    <!-- .NET 10: веб-приложению нужны возможности Blazor из .NET 10 -->
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

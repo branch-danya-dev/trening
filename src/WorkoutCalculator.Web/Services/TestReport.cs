@@ -3,7 +3,7 @@ using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Anthropometry;
 using WorkoutCalculator.BodyModel.Photos;
 
-namespace WorkoutCalculator.Body3D.Services;
+namespace WorkoutCalculator.Web.Services;
 
 /// <summary>
 /// Отчёт о разборе фотосессии для проверки на реальных снимках: только цифры — профиль, ширина и глубина

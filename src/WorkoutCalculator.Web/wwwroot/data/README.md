@@ -28,6 +28,6 @@
 ```bash
 git clone --depth 1 https://github.com/makehumancommunity/makehuman /tmp/makehuman
 dotnet run --project tools/WorkoutCalculator.MakeHumanImport -- \
-  /tmp/makehuman/makehuman/data src/WorkoutCalculator.Body3D/wwwroot/data/makehuman-hm08.bin \
+  /tmp/makehuman/makehuman/data src/WorkoutCalculator.Web/wwwroot/data/makehuman-hm08.bin \
   "makehumancommunity/makehuman <коммит> (ассеты CC0 1.0)"
 ```

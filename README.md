@@ -10,53 +10,38 @@
 
 ## Запуск
 
-Окно с пошаговым мастером (Windows, macOS, Linux):
+Одно веб-приложение — расчёт тренировок, модель тела, прогноз и фото:
 
 ```bash
-dotnet run --project src/WorkoutCalculator.Desktop
-```
-
-Консольная версия:
-
-```bash
-dotnet run --project src/WorkoutCalculator.Cli
-```
-
-3D-модель тела по замерам (прототип, открывается в браузере):
-
-```bash
-dotnet run --project src/WorkoutCalculator.Body3D
+dotnet run --project src/WorkoutCalculator.Web
 ```
 
 Приложение поднимется на http://localhost:5256 и откроет браузер. Нужен только .NET 10 SDK:
 дополнительные рабочие нагрузки (`wasm-tools`) и Node.js не нужны, three.js лежит в репозитории.
 
 Опубликованная версия — https://branch-danya-dev.github.io/trening/ (обновляется при каждом пуше в main,
-см. «Публикация» ниже). Как проверять на реальных данных и что прислать — [docs/TESTING.md](docs/TESTING.md). Её можно открыть с телефона и установить как приложение: в Safari — «Поделиться →
+см. «Публикация» ниже). Её можно открыть с телефона и установить как приложение: в Safari — «Поделиться →
 На экран „Домой“», в Chrome — «Установить приложение». Установленная версия работает и без интернета.
+Как проверять на реальных данных и что прислать — [docs/TESTING.md](docs/TESTING.md).
 
 Тесты всего решения:
 
 ```bash
 dotnet build WorkoutCalculator.sln
 dotnet test WorkoutCalculator.sln
+node --test tests/js/*.test.mjs
 ```
 
 На каждый PR и пуш в main GitHub Actions собирает решение и прогоняет тесты (`.github/workflows/ci.yml`).
-
-Или откройте `WorkoutCalculator.sln` в Visual Studio / Rider.
-Проекты настроены на .NET 10. Body3D использует возможности Blazor из .NET 10, поэтому решению целиком нужен
-.NET 10 SDK; для одних Core, Cli и Desktop можно заменить `net10.0` на `net8.0` в `Directory.Build.props`.
+Решение открывается в Visual Studio и Rider; все проекты — на .NET 10.
 
 ## Структура
 
 | Проект | Что внутри |
 |---|---|
-| `WorkoutCalculator.Core` | Формулы, модели, разбор ввода, сохранение профиля. Без интерфейса. |
-| `WorkoutCalculator.Desktop` | Окно на Avalonia: профиль → тренировка → параметры → часы → результат. |
-| `WorkoutCalculator.Cli` | Та же логика в консоли. |
+| `WorkoutCalculator.Web` | Приложение в браузере: Blazor WebAssembly + three.js, без бэкенда. Вкладки «Параметры», «Гипотеза», «Фото». |
+| `WorkoutCalculator.Core` | Расход калорий на тренировке: формулы, модели, разбор ввода. Без интерфейса. |
 | `WorkoutCalculator.BodyModel` | Модель тела без интерфейса: антропометрия, тело MakeHuman (скелет, осанка, форма) и манекен по замерам, объём, проверки замеров, прогноз, разбор силуэта на фото и подгонка модели под снимки. |
-| `WorkoutCalculator.Body3D` | Прототип в браузере: Blazor WebAssembly + three.js, без бэкенда. |
 | `tools/WorkoutCalculator.MakeHumanImport` | Конвертер данных MakeHuman в `wwwroot/data/makehuman-hm08.bin`. Нужен только для пересборки данных. |
 | `tools/WorkoutCalculator.AnsurFit` | Подбор коэффициентов `AnsurGirths` и `PhotoGirths`, сверка уровней `Proportions` и проверка обеих моделей на людях из открытых данных ANSUR II. |
 | `tests/WorkoutCalculator.Tests` | xUnit: эталонные расчёты калорий, пропорции, манекен, тело MakeHuman, осанка, проверки, прогноз, разбор силуэта, подгонка под синтетические снимки. |
@@ -64,7 +49,7 @@ dotnet test WorkoutCalculator.sln
 
 ## Что вводится
 
-- **Профиль** (сохраняется между запусками, общий для окна и консоли): пол, возраст, рост, вес; необязательно — пульс покоя и VO2max.
+- **Профиль** — пол, возраст, рост, вес; необязательно — пульс покоя и VO2max.
 - **Дорожка:** длительность, скорость, уклон (если они менялись по ходу — несколько отрезков), поручни, дистанция с табло для сверки.
 - **Улица:** дистанция, время, набор высоты, покрытие.
 - **Часы:** средний пульс, активные и общие ккал, дистанция — для сравнения.
@@ -441,7 +426,7 @@ ANSUR II — антропометрическое обследование ар�
 
 ### Публикация, офлайн и приватность
 
-- **GitHub Pages.** `.github/workflows/pages.yml` при пуше в main прогоняет тесты, публикует Body3D
+- **GitHub Pages.** `.github/workflows/pages.yml` при пуше в main прогоняет тесты, публикует веб-приложение
   (`dotnet publish -c Release`) и выкладывает на GitHub Pages. Один раз нужно включить в настройках
   репозитория: Settings → Pages → Build and deployment → Source: **GitHub Actions**. Адрес в `index.html`
   относительный (`<base href="./">`), поэтому одна и та же сборка работает и в корне сайта, и в подпапке

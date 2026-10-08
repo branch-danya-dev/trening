@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace WorkoutCalculator.Body3D.Services;
+namespace WorkoutCalculator.Web.Services;
 
 /// <summary>
 /// Числа по-русски: десятичная запятая, тонкий пробел в тысячах. Свой формат, а не культура ru-RU:

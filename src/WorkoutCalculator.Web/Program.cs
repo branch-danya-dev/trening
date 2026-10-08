@@ -2,8 +2,8 @@ using System.Globalization;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using WorkoutCalculator.Body3D;
-using WorkoutCalculator.Body3D.Services;
+using WorkoutCalculator.Web;
+using WorkoutCalculator.Web.Services;
 
 // Приложение работает только в браузере (WebAssembly)
 [assembly: SupportedOSPlatform("browser")]

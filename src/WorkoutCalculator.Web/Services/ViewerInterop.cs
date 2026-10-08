@@ -3,7 +3,7 @@ using System.Runtime.InteropServices.JavaScript;
 using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Geometry;
 
-namespace WorkoutCalculator.Body3D.Services;
+namespace WorkoutCalculator.Web.Services;
 
 /// <summary>
 /// Мост к wwwroot/js/viewer.js. Сетка уходит в JS бинарно: память .NET видна из JS как MemoryView,

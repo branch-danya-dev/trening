@@ -2,7 +2,7 @@
 
   <!-- Прототип 3D-модели тела по замерам: Blazor WebAssembly без бэкенда, отрисовка через three.js -->
   <PropertyGroup>
-    <RootNamespace>WorkoutCalculator.Body3D</RootNamespace>
+    <RootNamespace>WorkoutCalculator.Web</RootNamespace>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
     <!--
       Файлы среды .NET без хеша в имени: иначе опубликованная версия находит dotnet.js через import map,

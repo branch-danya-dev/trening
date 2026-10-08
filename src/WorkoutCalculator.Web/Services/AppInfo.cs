@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace WorkoutCalculator.Body3D.Services;
+namespace WorkoutCalculator.Web.Services;
 
 /// <summary>Какая сборка открыта — чтобы при проверке на телефоне было видно, обновилось ли приложение.</summary>
 public static class AppInfo

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using WorkoutCalculator.BodyModel.Photos;
 
-namespace WorkoutCalculator.Body3D.Services;
+namespace WorkoutCalculator.Web.Services;
 
 /// <summary>
 /// Разбор снимков сессии: wwwroot/js/analysis.js даёт маску фигуры, яркость и точки позы (MediaPipe в браузере),

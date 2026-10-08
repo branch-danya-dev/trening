@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using WorkoutCalculator.BodyModel.Forecast;
 
-namespace WorkoutCalculator.Body3D.Services;
+namespace WorkoutCalculator.Web.Services;
 
 /// <param name="Slot">Цвет на графике и в таблице: закреплён за гипотезой, а не за местом в списке.</param>
 public sealed class SavedHypothesis

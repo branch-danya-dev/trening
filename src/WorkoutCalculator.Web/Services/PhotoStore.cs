@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Photos;
 
-namespace WorkoutCalculator.Body3D.Services;
+namespace WorkoutCalculator.Web.Services;
 
 /// <summary>
 /// Мост к wwwroot/js/photos.js: фотосессии в IndexedDB браузера — только на этом устройстве.

@@ -4,7 +4,7 @@
 //       [--validate [<makehuman-hm08.bin>]]
 //
 // С --validate ещё проверяет обе модели на реальных людях (см. Validation.cs). Без пути к данным MakeHuman
-// берётся src/WorkoutCalculator.Body3D/wwwroot/data/makehuman-hm08.bin от текущей папки, если он есть.
+// берётся src/WorkoutCalculator.Web/wwwroot/data/makehuman-hm08.bin от текущей папки, если он есть.
 //
 // ANSUR II — антропометрическое обследование армии США 2010–2012 гг., открытый выпуск:
 // https://ph.health.mil/topics/workplacehealth/ergo/Pages/Anthropometric-Database.aspx
@@ -23,7 +23,7 @@ if (args.Length < 2)
 }
 
 bool validate = args.Length > 2 && args[2] == "--validate";
-string makeHumanPath = args.Length > 3 ? args[3] : Path.Combine("src", "WorkoutCalculator.Body3D", "wwwroot", "data", MakeHumanData.FileName);
+string makeHumanPath = args.Length > 3 ? args[3] : Path.Combine("src", "WorkoutCalculator.Web", "wwwroot", "data", MakeHumanData.FileName);
 MakeHumanModel? makeHuman = validate && File.Exists(makeHumanPath)
     ? new MakeHumanModel(MakeHumanData.Read(File.ReadAllBytes(makeHumanPath)))
     : null;
