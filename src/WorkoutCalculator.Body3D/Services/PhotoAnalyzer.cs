@@ -82,3 +82,13 @@ public sealed class PhotoAnalysis
 public sealed record PreparedPhoto(int Width, int Height, double[][] Pose);
 
 public sealed record AnalysisPatch(PhotoAnalysis Analysis);
+
+/// <summary>«Прогноз на фото»: деформация снимка по узлам строк (wwwroot/js/warp.js).</summary>
+public static partial class PhotoWarpInterop
+{
+    public const string Module = "warp";
+
+    /// <summary>Деформированный снимок — адрес blob:; освободить — <see cref="PhotoStore.RevokeUrl"/>.</summary>
+    [JSImport("warpImage", Module)]
+    public static partial Task<string> WarpImage(string sessionId, string view, string rowsJson);
+}

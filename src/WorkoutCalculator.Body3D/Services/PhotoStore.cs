@@ -2,6 +2,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using WorkoutCalculator.BodyModel;
+using WorkoutCalculator.BodyModel.Photos;
 
 namespace WorkoutCalculator.Body3D.Services;
 
@@ -15,6 +16,9 @@ public static partial class PhotoStore
 
     [JSImport("listSessions", Module)]
     private static partial Task<string> ListJson();
+
+    [JSImport("listMeta", Module)]
+    private static partial Task<string> ListMetaJson();
 
     [JSImport("saveFromInputs", Module)]
     private static partial Task<string> SaveFromInputsJson(string metaJson, string frontInputId, string sideInputId);
@@ -45,8 +49,38 @@ public static partial class PhotoStore
     [JSImport("revokeUrl", Module)]
     public static partial void RevokeUrl(string url);
 
+    [JSImport("pinStatus", Module)]
+    private static partial Task<string> PinStatusJson();
+
+    /// <summary>Включает PIN-код: все снимки шифруются; защита сразу открыта.</summary>
+    [JSImport("enablePin", Module)]
+    public static partial Task EnablePin(string pin);
+
+    /// <summary>Открывает снимки до блокировки; неверный PIN — <see cref="JSException"/>.</summary>
+    [JSImport("unlock", Module)]
+    public static partial Task Unlock(string pin);
+
+    /// <summary>Закрывает снимки: ключ забывается, нужен PIN.</summary>
+    [JSImport("lock", Module)]
+    public static partial void Lock();
+
+    /// <summary>Снимает защиту (нужен PIN): снимки хранятся без шифрования.</summary>
+    [JSImport("disablePin", Module)]
+    public static partial Task DisablePin(string pin);
+
+    /// <summary>Кого известить о блокировке — кнопкой или через 2 минуты в фоне; null — никого.</summary>
+    [JSImport("onLock", Module)]
+    public static partial void OnLock([JSMarshalAs<JSType.Function>] Action? callback);
+
+    public static async Task<PinStatus> Pin() =>
+        JsonSerializer.Deserialize(await PinStatusJson(), PhotoJson.Default.PinStatus)!;
+
     public static async Task<List<PhotoSession>> List() =>
         JsonSerializer.Deserialize(await ListJson(), PhotoJson.Default.ListPhotoSession) ?? [];
+
+    /// <summary>Сессии без превью (не трогает адреса превью вкладки «Фото»), от старых к новым.</summary>
+    public static async Task<List<PhotoSession>> ListMeta() =>
+        JsonSerializer.Deserialize(await ListMetaJson(), PhotoJson.Default.ListPhotoSession) ?? [];
 
     /// <summary>Сессия из полей выбора файлов; замеры — снимок профиля на момент съёмки.</summary>
     public static async Task<PhotoSession> SaveFromInputs(BodyProfile p, string frontInputId, string sideInputId)
@@ -109,6 +143,13 @@ public sealed class PhotoSession
 
 public sealed record ExportResult(string Name, int Sessions);
 
+/// <param name="Enabled">Снимки зашифрованы PIN-кодом.</param>
+/// <param name="Unlocked">PIN введён: снимки можно смотреть и разбирать до блокировки.</param>
+public sealed record PinStatus(bool Enabled, bool Unlocked)
+{
+    public bool Locked => Enabled && !Unlocked;
+}
+
 public sealed record ImportResult(int Added, int Skipped);
 
 /// <param name="Usage">Занято сайтом, байт (оценка браузера); null — браузер не сообщает.</param>
@@ -117,9 +158,11 @@ public sealed record StorageInfo(long? Usage, long? Quota, bool Persisted);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, UseStringEnumConverter = true)]
 [JsonSerializable(typeof(PhotoMeta))]
+[JsonSerializable(typeof(List<WarpRow>))]
 [JsonSerializable(typeof(PhotoSession))]
 [JsonSerializable(typeof(List<PhotoSession>))]
 [JsonSerializable(typeof(ExportResult))]
+[JsonSerializable(typeof(PinStatus))]
 [JsonSerializable(typeof(ImportResult))]
 [JsonSerializable(typeof(StorageInfo))]
 [JsonSerializable(typeof(PreparedPhoto))]

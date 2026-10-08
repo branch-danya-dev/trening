@@ -29,6 +29,15 @@ public static class Fmt
         return $"{local.Day} {Months[local.Month - 1]} {local.Year}, {local.Hour:00}:{local.Minute:00}";
     }
 
+    private static readonly string[] ShortMonths =
+        ["янв.", "февр.", "марта", "апр.", "мая", "июня", "июля", "авг.", "сент.", "окт.", "нояб.", "дек."];
+
+    /// <summary>Короткая дата: «12 окт.»; год — только если не текущий.</summary>
+    public static string Date(DateOnly date) =>
+        date.Year == System.DateTime.Now.Year
+            ? $"{date.Day} {ShortMonths[date.Month - 1]}"
+            : $"{date.Day} {ShortMonths[date.Month - 1]} {date.Year}";
+
     /// <summary>Со знаком: «+1,2», «−0,8», «0».</summary>
     public static string Signed(double v, int decimals = 1)
     {

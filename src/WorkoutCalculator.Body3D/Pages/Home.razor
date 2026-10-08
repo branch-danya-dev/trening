@@ -1,5 +1,7 @@
 @using System.Diagnostics
+@using System.Runtime.InteropServices.JavaScript
 @using WorkoutCalculator.BodyModel.MakeHuman
+@using WorkoutCalculator.BodyModel.Photos
 @inject HttpClient Http
 
 <div class="app">
@@ -62,6 +64,8 @@
                         <input type="checkbox" checked="@_sideBySide" @onchange="ToggleSideBySide" /> рядом
                     </label>
                 }
+                <button class="btn" disabled="@(_recording || _current is null)" title="Видео поворота модели — сохранится на устройство"
+                        @onclick="RecordVideo">@(_recording ? "Запись…" : "● Видео")</button>
                 @if (_mode != ViewMode.Current && ManyHypotheses)
                 {
                     <select class="select" aria-label="Какую гипотезу показать" value="@_hypotheses.Selected" @onchange="OnViewHypothesis">
@@ -72,6 +76,11 @@
                     </select>
                 }
             </div>
+
+            @if (_videoError is not null)
+            {
+                <div class="view-error" role="alert">@_videoError</div>
+            }
 
             <label class="check view-tapes" title="Где меряется каждый обхват. Лента обхвата подсвечивается и при наведении на его поле">
                 <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
@@ -105,12 +114,13 @@
                 }
                 else if (_tab == Tab.Photos)
                 {
-                    <PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" />
+                    <PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End"
+                                 ForecastLabel="@ForecastLabel" />
                 }
                 else
                 {
                     <HypothesisPanel Profile="_profile" Hypotheses="_hypotheses" Forecasts="_forecasts" OnChange="ChangeHypothesis"
-                                     OnHypotheses="ChangeHypotheses" />
+                                     OnHypotheses="ChangeHypotheses" Facts="Facts" OnLogWeight="LogWeight" OnRemoveWeight="RemoveWeight" />
                 }
             </div>
         </aside>
@@ -134,6 +144,13 @@
     private ConsistencyReport? _report;
     /// <summary>Прогнозы всех гипотез; <see cref="_forecast"/> — выбранной, она же в 3D.</summary>
     private IReadOnlyList<HypothesisForecast> _forecasts = [];
+
+    /// <summary>Факты для слежения за планом: взвешивания и фотосессии (вес и обхваты по фото).</summary>
+    private List<WeightEntry> _weights = [];
+    private List<FactPoint> _photoFacts = [];
+
+    private IReadOnlyList<FactPoint> Facts =>
+        _weights.Select(w => new FactPoint(w.Date, w.WeightKg)).Concat(_photoFacts).OrderBy(f => f.Date).ToList();
     private ForecastResult? _forecast;
 
     private BodyKind _kind = BodyKind.MakeHuman;
@@ -168,12 +185,85 @@
     private bool UseMakeHuman => _kind == BodyKind.MakeHuman && _mh is not null;
     private bool ManyHypotheses => _hypotheses.Items.Count > 1;
 
+    private bool _recording;
+    private string? _videoError;
+
+    /// <summary>Длительность видео поворота, с.</summary>
+    private const double VideoSeconds = 6;
+
+    /// <summary>Поворот модели в видео: то же, что в виде сейчас (режим, ленты, контур сравнения).</summary>
+    private async Task RecordVideo()
+    {
+        _recording = true;
+        _videoError = null;
+        try
+        {
+            string json = await ViewerInterop.RecordTurn(VideoSeconds);
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            string url = doc.RootElement.GetProperty("url").GetString()!;
+            string ext = doc.RootElement.GetProperty("ext").GetString()!;
+            // Имя латиницей: часть браузеров отбрасывает кириллицу в имени скачиваемого файла
+            string what = _mode switch { ViewMode.Forecast => "forecast", ViewMode.Compare => "compare", _ => "now" };
+            ViewerInterop.SaveFile(url, $"body-turn-{what}-{DateTime.Now:yyyy-MM-dd}.{ext}");
+        }
+        catch (JSException e)
+        {
+            _videoError = e.Message.StartsWith("Error: ", StringComparison.Ordinal) ? e.Message[7..] : e.Message;
+        }
+        finally
+        {
+            _recording = false;
+        }
+    }
+
+    /// <summary>Подпись прогноза выбранной гипотезы: название и срок.</summary>
+    private string ForecastLabel => _forecast is null
+        ? ""
+        : $"«{_hypotheses.Current.Name}», {_forecast.Weeks[^1].Week} нед.";
+
     protected override void OnInitialized()
     {
         _profile = ProfileStorage.LoadProfile() ?? BodyDefaults.Default();
         _hypotheses = ProfileStorage.LoadHypotheses() ?? StoredHypotheses.Of(DefaultHypothesis(_profile));
         _kind = ProfileStorage.LoadModelKind() == "mannequin" ? BodyKind.Mannequin : BodyKind.MakeHuman;
+        _weights = ProfileStorage.LoadWeights();
         _ = LoadMakeHumanAsync();
+        _ = LoadPhotoFactsAsync();
+    }
+
+    /// <summary>Фотосессии как факты: дата, вес на момент съёмки, обхваты талии и бёдер по фото.</summary>
+    private async Task LoadPhotoFactsAsync()
+    {
+        try
+        {
+            var sessions = await PhotoStore.ListMeta();
+            _photoFacts = sessions.Select(s =>
+            {
+                double? ByPhoto(Girth g) => s.Analysis is { Front: PhotoProfile f, Side: PhotoProfile side }
+                                            && PhotoGirths.Estimate(g, s.Sex, f, side) is PhotoGirthEstimate e ? e.GirthCm : null;
+                return new FactPoint(DateOnly.FromDateTime(s.CreatedAt.ToLocalTime().DateTime), s.WeightKg,
+                    ByPhoto(Girth.Waist), ByPhoto(Girth.Hips), FromPhotos: true);
+            }).ToList();
+            StateHasChanged();
+        }
+        catch (JSException)
+        {
+            // Хранилище фото недоступно (например, приватный режим) — слежение только по взвешиваниям
+        }
+    }
+
+    private void LogWeight(WeightEntry entry)
+    {
+        _weights.RemoveAll(w => w.Date == entry.Date);
+        _weights.Add(entry);
+        _weights.Sort((a, b) => a.Date.CompareTo(b.Date));
+        ProfileStorage.SaveWeights(_weights);
+    }
+
+    private void RemoveWeight(DateOnly date)
+    {
+        _weights.RemoveAll(w => w.Date == date);
+        ProfileStorage.SaveWeights(_weights);
     }
 
     /// <summary>По умолчанию — умеренный дефицит 400 ккал от текущего расхода.</summary>
@@ -261,6 +351,7 @@
     private void OpenHypothesis()
     {
         _tab = Tab.Hypothesis;
+        _ = LoadPhotoFactsAsync(); // фотосессии могли добавиться
         if (_mode == ViewMode.Current && _forecast is not null)
             SetMode(ViewMode.Compare); // на вкладке гипотез сразу видно разницу
     }
@@ -451,13 +542,14 @@
     }
 
     /// <summary>
-    /// Прогнозы всех гипотез от текущего профиля: это недельный цикл без сетки, он дешёвый.
-    /// Возвращает прогноз выбранной гипотезы.
+    /// Прогнозы всех гипотез: это недельный цикл без сетки, он дешёвый. Начатый план считается от профиля
+    /// в день начала, остальные — от текущего. Возвращает прогноз выбранной гипотезы.
     /// </summary>
     private ForecastResult RunForecasts()
     {
         _forecasts = _hypotheses.Items
-            .Select(h => new HypothesisForecast(h, ForecastEngine.Run(_profile.Clone(), h.Plan.ToInput())))
+            .Select(h => new HypothesisForecast(h,
+                ForecastEngine.Run(h.Plan.StartProfile?.ToProfile() ?? _profile.Clone(), h.Plan.ToInput())))
             .ToList();
         return _forecast = (_forecasts.FirstOrDefault(f => f.Hypothesis.Slot == _hypotheses.Selected) ?? _forecasts[0]).Forecast;
     }

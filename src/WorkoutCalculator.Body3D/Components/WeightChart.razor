@@ -1,17 +1,29 @@
 @* График веса по неделям: линия на гипотезу, перекрестие с подсказкой (мышь и стрелки), цель — тонкая линия.
-   Цвет линии закреплён за гипотезой; выбранная толще и с подписью конца, остальные — в легенде и подсказке. *@
+   Цвет линии закреплён за гипотезой; выбранная толще и с подписью конца, остальные — в легенде и подсказке.
+   У начатого плана — факт (кольца: взвешивания и фотосессии) и линия «сегодня». *@
 @if (Series.Count > 0)
 {
-    @if (Multi)
+    @if (Multi || _facts.Count > 0)
     {
         <div class="chart-legend">
-            @foreach (var s in Series)
+            @if (Multi)
             {
-                int slot = s.Hypothesis.Slot;
-                <button class="series-@slot @Css.On(slot == _selected)" aria-pressed="@(slot == _selected ? "true" : "false")"
-                        title="Показать в редакторе и в 3D" @onclick="() => OnSelect.InvokeAsync(slot)">
-                    <i class="key"></i>@s.Hypothesis.Name
-                </button>
+                @foreach (var s in Series)
+                {
+                    int slot = s.Hypothesis.Slot;
+                    <button class="series-@slot @Css.On(slot == _selected)" aria-pressed="@(slot == _selected ? "true" : "false")"
+                            title="Показать в редакторе и в 3D" @onclick="() => OnSelect.InvokeAsync(slot)">
+                        <i class="key"></i>@s.Hypothesis.Name
+                    </button>
+                }
+            }
+            else
+            {
+                <span class="series-@_selected"><i class="key"></i>прогноз</span>
+            }
+            @if (_facts.Count > 0)
+            {
+                <span><i class="ring"></i>факт</span>
             }
         </div>
     }
@@ -38,9 +50,21 @@
                 </g>
             }
 
+            @if (TodayWeek is double today && today >= 0 && today <= _last)
+            {
+                <g>
+                    <line class="today" x1="@F(XF(today))" x2="@F(XF(today))" y1="@F(Top)" y2="@F(Top + PlotH)" />
+                    <text class="tick" x="@F(XF(today) + 3)" y="@F(Top + 9)">сегодня</text>
+                </g>
+            }
+
             @foreach (var (slot, path) in _paths)
             {
                 <path class="line series-@slot @(Multi && slot != _selected ? "other" : null)" d="@path" />
+            }
+            @foreach (var fact in _facts)
+            {
+                <circle class="fact" cx="@F(XF(fact.Week))" cy="@F(Y(fact.WeightKg))" r="4" />
             }
             @{
                 var sel = SelectedSeries.Forecast.Weeks;
@@ -65,21 +89,30 @@
                 {
                     <circle class="dot series-@s.Hypothesis.Slot" cx="@F(x)" cy="@F(Y(s.Forecast.Weeks[i].WeightKg))" r="4" />
                 }
+                var near = NearestFact(i);
                 @if (!Multi)
                 {
                     var wk = sel[i];
                     <g class="tip">
-                        <rect x="@F(bx)" y="@F(Top + 2)" width="@TipW" height="46" rx="6" />
+                        <rect x="@F(bx)" y="@F(Top + 2)" width="@TipW" height="@(near is null ? 46 : 62)" rx="6" />
                         <text class="tip-value" x="@F(bx + 8)" y="@F(Top + 19)">@Fmt.N(wk.WeightKg, 1) кг</text>
                         <text class="tip-label" x="@F(bx + 8)" y="@F(Top + 33)">неделя @wk.Week · жир @Fmt.N(wk.FatPercent, 1) %</text>
                         <text class="tip-label" x="@F(bx + 8)" y="@F(Top + 44)">баланс @Fmt.Signed(wk.BalanceKcalPerDay, 0) ккал/день</text>
+                        @if (near is ChartFact nf)
+                        {
+                            <g>
+                                <circle class="fact" cx="@F(bx + 12)" cy="@F(Top + 55)" r="3.5" />
+                                <text class="tip-value" x="@F(bx + 21)" y="@F(Top + 59)">@Fmt.N(nf.WeightKg, 1)</text>
+                                <text class="tip-label" x="@F(bx + 55)" y="@F(Top + 59)">факт, @nf.Label</text>
+                            </g>
+                        }
                     </g>
                 }
                 else
                 {
                     // Одна подсказка на все гипотезы: значение впереди, название за ним; ключ — отрезок цвета линии
                     <g class="tip">
-                        <rect x="@F(bx)" y="@F(Top + 2)" width="@MultiTipW" height="@F(20 + RowH * rows.Count)" rx="6" />
+                        <rect x="@F(bx)" y="@F(Top + 2)" width="@MultiTipW" height="@F(20 + RowH * (rows.Count + (near is null ? 0 : 1)))" rx="6" />
                         <text class="tip-label" x="@F(bx + 8)" y="@F(Top + 15)">неделя @i · вес, кг</text>
                         @for (int r = 0; r < rows.Count; r++)
                         {
@@ -88,6 +121,15 @@
                                 <line class="key series-@rows[r].Hypothesis.Slot" x1="@F(bx + 8)" x2="@F(bx + 18)" y1="@F(ry - 4)" y2="@F(ry - 4)" />
                                 <text class="tip-value" x="@F(bx + 24)" y="@F(ry)">@Fmt.N(rows[r].Forecast.Weeks[i].WeightKg, 1)</text>
                                 <text class="tip-label" x="@F(bx + 62)" y="@F(ry)">@Short(rows[r].Hypothesis.Name)</text>
+                            </g>
+                        }
+                        @if (near is ChartFact mf)
+                        {
+                            double fy = Top + 16 + RowH * (rows.Count + 1);
+                            <g>
+                                <circle class="fact" cx="@F(bx + 13)" cy="@F(fy - 4)" r="3.5" />
+                                <text class="tip-value" x="@F(bx + 24)" y="@F(fy)">@Fmt.N(mf.WeightKg, 1)</text>
+                                <text class="tip-label" x="@F(bx + 62)" y="@F(fy)">факт, @mf.Label</text>
                             </g>
                         }
                     </g>
@@ -113,6 +155,13 @@
     [Parameter] public int Selected { get; set; }
     [Parameter] public double? Target { get; set; }
     [Parameter] public EventCallback<int> OnSelect { get; set; }
+    /// <summary>Факт выбранной гипотезы (если план начат): взвешивания и фотосессии по неделям плана.</summary>
+    [Parameter] public IReadOnlyList<ChartFact> Facts { get; set; } = [];
+    /// <summary>Сегодня — неделя начатого плана (дробная); null — план не начат.</summary>
+    [Parameter] public double? TodayWeek { get; set; }
+
+    /// <summary>Факты в пределах срока — их видно на графике.</summary>
+    private List<ChartFact> _facts = [];
 
     private const double W = 360, H = 176, Left = 34, Right = 14, Top = 10, Bottom = 22, TipW = 150, MultiTipW = 164, RowH = 15;
     private const double PlotW = W - Left - Right, PlotH = H - Top - Bottom;
@@ -138,7 +187,12 @@
         : $"Вес по неделям: с {Fmt.N(Series[0].Forecast.Weeks[0].WeightKg, 1)} до {Fmt.N(Series[0].Forecast.Weeks[^1].WeightKg, 1)} кг за {_last} нед.";
 
     private static string F(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
-    private double X(int week) => Left + (_last == 0 ? 0 : PlotW * week / _last);
+    private double X(int week) => XF(week);
+    private double XF(double week) => Left + (_last == 0 ? 0 : PlotW * week / _last);
+
+    /// <summary>Факт ближе полунедели к наведённой неделе.</summary>
+    private ChartFact? NearestFact(int week) =>
+        _facts.Where(f => Math.Abs(f.Week - week) <= 0.5).MinBy(f => Math.Abs(f.Week - week));
     private double Y(double kg) => Top + PlotH * (1 - (kg - _yMin) / (_yMax - _yMin));
 
     private static string Short(string name) => name.Length <= TipNameLength ? name : name[..(TipNameLength - 1)].TrimEnd() + "…";
@@ -156,9 +210,10 @@
         _selected = SelectedSeries.Hypothesis.Slot;
         _last = Math.Max(0, Series.Max(s => s.Forecast.Weeks.Count) - 1);
         if (_hover > _last) _hover = null;
+        _facts = Facts.Where(f => f.Week >= 0 && f.Week <= _last + 1e-9).ToList();
 
         // Ось Y: «круглые» деления, не больше 4–5 штук
-        var weights = Series.SelectMany(s => s.Forecast.Weeks).Select(w => w.WeightKg).ToList();
+        var weights = Series.SelectMany(s => s.Forecast.Weeks).Select(w => w.WeightKg).Concat(_facts.Select(f => f.WeightKg)).ToList();
         double min = weights.Min(), max = weights.Max();
         if (Target is double t)
         {

@@ -248,6 +248,83 @@ export function setMode(newMode, newSideBySide) {
     applyMode(true);
 }
 
+/** Запись поворота: камера идёт по кругу, кадры рисуются подряд; см. recordTurn. */
+let turn = null;
+
+/**
+ * Видео поворота: камера делает полный оборот вокруг модели (от вида спереди) за seconds секунд, холст
+ * пишется в файл — MP4, если браузер умеет, иначе WebM. Показывается то же, что в виде: текущий режим,
+ * ленты, контур сравнения. Возвращает JSON { url, ext }: адрес blob: для saveFile и расширение файла.
+ */
+export async function recordTurn(seconds) {
+    const types = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+    const type = types.find(t => window.MediaRecorder?.isTypeSupported?.(t));
+    if (!type || !canvas.captureStream) throw new Error('Этот браузер не умеет записывать видео с 3D-вида');
+
+    const stream = canvas.captureStream(30);
+    const recorder = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 6_000_000 });
+    const chunks = [];
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    const stopped = new Promise(resolve => { recorder.onstop = resolve; });
+
+    const saved = { position: camera.position.clone(), target: controls.target.clone() };
+    tween = null;
+    controls.enabled = false;
+    // Холст прозрачный (фон вида — градиент в CSS), а видео прозрачность не хранит: на время записи
+    // рисуем тот же градиент текстурой фона
+    scene.background = backgroundTexture();
+    try {
+        recorder.start(250);
+        await new Promise(resolve => {
+            turn = { start: performance.now(), ms: seconds * 1000, distance: fitDistance(), done: resolve };
+            requestRender();
+        });
+        recorder.stop();
+        await stopped;
+    } finally {
+        turn = null;
+        scene.background = null;
+        stream.getTracks().forEach(t => t.stop());
+        camera.position.copy(saved.position);
+        controls.target.copy(saved.target);
+        controls.enabled = true;
+        controls.update();
+        requestRender();
+    }
+    const blob = new Blob(chunks, { type: type.split(';')[0] });
+    return JSON.stringify({ url: URL.createObjectURL(blob), ext: type.startsWith('video/mp4') ? 'mp4' : 'webm' });
+}
+
+let background = null;
+
+/** Радиальный градиент вида (как .view в app.css) — текстурой, для видео. */
+function backgroundTexture() {
+    if (background) return background;
+    const c = document.createElement('canvas');
+    c.width = c.height = 512;
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(256, 215, 0, 256, 215, 330);
+    grad.addColorStop(0, '#1a2532');
+    grad.addColorStop(0.55, '#111922');
+    grad.addColorStop(1, '#0a0e13');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 512, 512);
+    background = new THREE.CanvasTexture(c);
+    background.colorSpace = THREE.SRGBColorSpace;
+    return background;
+}
+
+/** Сохраняет файл по адресу blob: под именем name (на телефоне — «Загрузки» или «Поделиться»). */
+export function saveFile(url, name) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 /** view: front | side | back | reset */
 export function setView(view) {
     placeCamera(view === 'reset' ? 'front' : view, true, view === 'reset');
@@ -375,6 +452,21 @@ function frame(now) {
     frameRequested = false;
     let moving = false;
 
+    if (turn) {
+        // Полный оборот вокруг вертикали от вида спереди; камера чуть выше середины, как у «Спереди»
+        const t = Math.min(1, (now - turn.start) / turn.ms);
+        const angle = 2 * Math.PI * t;
+        const target = new THREE.Vector3(0, targetY(), 0);
+        const dir = new THREE.Vector3(Math.sin(angle), 0.08, Math.cos(angle)).normalize();
+        camera.position.copy(target).add(dir.multiplyScalar(turn.distance));
+        camera.lookAt(target);
+        controls.target.copy(target);
+        renderScene();
+        if (t >= 1) turn.done();
+        else requestRender();
+        return;
+    }
+
     if (tween) {
         const t = Math.min(1, (now - tween.start) / TWEEN_MS);
         const k = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // плавно в начале и в конце
@@ -385,6 +477,11 @@ function frame(now) {
     }
 
     if (controls.update()) moving = true;
+    renderScene();
+    if (moving) requestRender();
+}
+
+function renderScene() {
     renderer.render(scene, camera);
     if (ghostActive) {
         renderer.autoClear = false;
@@ -392,5 +489,4 @@ function frame(now) {
         renderer.render(ghostScene, camera);
         renderer.autoClear = true;
     }
-    if (moving) requestRender();
 }

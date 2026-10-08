@@ -1,26 +1,56 @@
 @* Снимок с найденным контуром туловища: края по уровням, уровни груди, талии и бёдер, рост (макушка и пол под телом).
-   Где рядом рука, край помечен точками и в измерения не идёт. После подгонки — края модели пунктиром. *@
+   Где рядом рука, край помечен точками и в измерения не идёт. После подгонки — края модели пунктиром,
+   при сравнении сессий — прежний контур (белый пунктир). Защита: снимок размыт, пока на него не нажмут
+   (контуры видны и так), и водяной знак поверх — на снимке экрана он останется. *@
 @using WorkoutCalculator.BodyModel.Photos
 
-<figure class="photo-overlay">
-    <svg viewBox="0 0 @Profile.Width @Profile.Height" role="img" aria-label="@Caption">
-        <image href="@Url" width="@Profile.Width" height="@Profile.Height" />
+<figure class="photo-overlay @(Hidden ? "blurred" : "")">
+    <svg viewBox="0 0 @Profile.Width @Profile.Height" role="img" aria-label="@Caption" tabindex="@(Blur ? "0" : null)"
+         @onclick="Toggle" @onkeydown="Key">
+        <defs>
+            <filter id="@($"{_id}-blur")" x="0" y="0" width="1" height="1">
+                <feGaussianBlur stdDeviation="@F(Profile.Width / 25.0)" edgeMode="duplicate" />
+            </filter>
+            @if (Watermark is not null)
+            {
+                double size = Profile.Width / 22.0;
+                @* Плитка 20 × 4,5 кегля, строки со сдвигом на полплитки; текст, вылезающий за плитку, дорисовывает соседняя *@
+                <pattern id="@($"{_id}-mark")" patternUnits="userSpaceOnUse" width="@F(size * 20)" height="@F(size * 4.5)"
+                         patternTransform="rotate(-30)">
+                    <text class="watermark" x="0" y="@F(size * 1.2)" font-size="@F(size)">@Watermark</text>
+                    <text class="watermark" x="@F(size * 10)" y="@F(size * 3.45)" font-size="@F(size)">@Watermark</text>
+                    <text class="watermark" x="@F(-size * 10)" y="@F(size * 3.45)" font-size="@F(size)">@Watermark</text>
+                </pattern>
+            }
+        </defs>
+        <image href="@Url" width="@Profile.Width" height="@Profile.Height" filter="@(Hidden ? $"url(#{_id}-blur)" : null)" />
+        @if (Watermark is not null)
+        {
+            <rect width="@Profile.Width" height="@Profile.Height" fill="@($"url(#{_id}-mark)")" pointer-events="none" />
+        }
         <line class="scale" x1="0" x2="@Profile.Width" y1="@F(Profile.Crown)" y2="@F(Profile.Crown)" vector-effect="non-scaling-stroke" />
         <line class="scale" x1="0" x2="@Profile.Width" y1="@F(Profile.Floor)" y2="@F(Profile.Floor)" vector-effect="non-scaling-stroke" />
-        @foreach (var points in _edges)
+        @if (ShowEdges)
         {
-            <polyline class="edge" points="@points" vector-effect="non-scaling-stroke" />
+            @foreach (var points in _edges)
+            {
+                <polyline class="edge" points="@points" vector-effect="non-scaling-stroke" />
+            }
+            @foreach (var l in Profile.Levels.Where(l => l.ArmOverlap))
+            {
+                <circle class="arm" cx="@F(l.Left)" cy="@l.Row" r="@F(_dot)" />
+                <circle class="arm" cx="@F(l.Right)" cy="@l.Row" r="@F(_dot)" />
+            }
         }
-        @foreach (var l in Profile.Levels.Where(l => l.ArmOverlap))
+        @foreach (var points in _ghost)
         {
-            <circle class="arm" cx="@F(l.Left)" cy="@l.Row" r="@F(_dot)" />
-            <circle class="arm" cx="@F(l.Right)" cy="@l.Row" r="@F(_dot)" />
+            <polyline class="ghost" points="@points" vector-effect="non-scaling-stroke" />
         }
         @foreach (var points in _model)
         {
             <polyline class="model" points="@points" vector-effect="non-scaling-stroke" />
         }
-        @foreach (var (_, fraction) in KeyLevels)
+        @foreach (var (_, fraction) in ShowEdges ? KeyLevels : [])
         {
             if (Profile.At(fraction) is ProfileLevel l)
             {
@@ -28,7 +58,7 @@
             }
         }
     </svg>
-    <figcaption>@Caption</figcaption>
+    <figcaption>@Caption@(Blur ? Hidden ? " · нажмите, чтобы показать" : " · нажмите, чтобы скрыть" : "")</figcaption>
 </figure>
 
 @code {
@@ -41,14 +71,49 @@
 
     private List<string> _model = [];
 
+    /// <summary>Показывать найденный контур и уровни; false — снимок изменён (прогноз на фото), контур к нему не подходит.</summary>
+    [Parameter] public bool ShowEdges { get; set; } = true;
+
+    /// <summary>Прежний контур при сравнении сессий (в пикселях этого снимка); null — сравнения нет.</summary>
+    [Parameter] public IReadOnlyList<GhostLevel>? Ghost { get; set; }
+
+    private List<string> _ghost = [];
+
     /// <summary>Левый и правый края, разбитые на куски там, где мешает рука: через руку линия не идёт.</summary>
     private List<string> _edges = [];
     private double _dot;
+
+    /// <summary>Размывать снимок, пока на него не нажмут.</summary>
+    [Parameter] public bool Blur { get; set; }
+
+    /// <summary>Текст водяного знака; null — без него.</summary>
+    [Parameter] public string? Watermark { get; set; }
+
+    /// <summary>Свой префикс id у фильтра и узора: на странице два снимка рядом.</summary>
+    private readonly string _id = $"ph{Interlocked.Increment(ref _count)}";
+    private static int _count;
+    private bool _revealed;
+    private bool _wasBlur;
+
+    private bool Hidden => Blur && !_revealed;
+
+    private void Toggle()
+    {
+        if (Blur) _revealed = !_revealed;
+    }
+
+    private void Key(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " ") Toggle();
+    }
 
     private static string F(double v) => v.ToString("0.#", CultureInfo.InvariantCulture);
 
     protected override void OnParametersSet()
     {
+        // Размытие снова включили — открытый снимок закрывается
+        if (Blur && !_wasBlur) _revealed = false;
+        _wasBlur = Blur;
         _dot = Profile.Width / 160.0;
         _edges = [];
         foreach (var edge in new Func<ProfileLevel, double>[] { l => l.Left, l => l.Right })
@@ -65,6 +130,11 @@
             }
             Flush(piece);
         }
+
+        _ghost = [];
+        if (Ghost is { Count: > 1 })
+            foreach (var edge in new Func<GhostLevel, double>[] { l => l.Left, l => l.Right })
+                _ghost.Add(string.Join(" ", Ghost.OrderByDescending(l => l.Row).Select(l => $"{F(edge(l))},{l.Row}")));
 
         _model = [];
         if (Model is { Count: > 1 })

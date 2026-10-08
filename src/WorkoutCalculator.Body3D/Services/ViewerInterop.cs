@@ -16,6 +16,14 @@ public static partial class ViewerInterop
     [JSImport("init", Module)]
     public static partial void Init(string canvasId);
 
+    /// <summary>Видео поворота модели: JSON { url, ext } — адрес blob: и расширение (mp4 или webm).</summary>
+    [JSImport("recordTurn", Module)]
+    public static partial Task<string> RecordTurn(double seconds);
+
+    /// <summary>Сохраняет файл по адресу blob: на устройство; адрес освобождается через минуту.</summary>
+    [JSImport("saveFile", Module)]
+    public static partial void SaveFile(string url, string name);
+
     /// <param name="slot">"current" или "forecast".</param>
     [JSImport("setMesh", Module)]
     private static partial void SetMeshBytes(string slot,

@@ -126,3 +126,6 @@ public sealed record HypothesisForecast(SavedHypothesis Hypothesis, ForecastResu
     public double AverageBalanceKcalPerDay =>
         Forecast.Weeks.Take(Forecast.Weeks.Count - 1).DefaultIfEmpty(Forecast.Weeks[0]).Average(w => w.BalanceKcalPerDay);
 }
+
+/// <summary>Точка факта на графике веса: неделя плана (дробная), вес и подпись (дата, источник).</summary>
+public sealed record ChartFact(double Week, double WeightKg, string Label);
