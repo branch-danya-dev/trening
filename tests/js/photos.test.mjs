@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deflateRawSync } from 'node:zlib';
-import { zip, unzip } from '../../src/WorkoutCalculator.Body3D/wwwroot/js/photos.js';
+import { zip, unzip } from '../../src/WorkoutCalculator.Web/wwwroot/js/photos.js';
 
 const bytes = async blob => new Uint8Array(await blob.arrayBuffer());
 

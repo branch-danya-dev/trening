@@ -61,6 +61,27 @@ public static class Display
     public static string Deviation(double? actual, double expected) =>
         actual is double a && expected > 0 ? $"{(a / expected - 1) * 100:+0;-0;0}%" : "—";
 
+    /// <summary>
+    /// Сравнение с часами: «Apple Watch: 320 активных, на 15% больше оценки; …». null — с часов ничего
+    /// не введено. Расхождение меньше 10% — «близко к оценке».
+    /// </summary>
+    public static string? WatchComparison(WorkoutInput w, CalculationResult r)
+    {
+        var parts = new List<string>();
+        if (w.WatchActiveKcal is double a) parts.Add(CompareKcal("активных", a, r.EstimateActiveKcal));
+        if (w.WatchTotalKcal is double t) parts.Add(CompareKcal("всего", t, r.EstimateTotalKcal));
+        return parts.Count == 0 ? null : "Apple Watch: " + string.Join("; ", parts) + ".";
+    }
+
+    private static string CompareKcal(string what, double watch, double estimate)
+    {
+        double pct = estimate > 0 ? (watch / estimate - 1) * 100 : 0;
+        string verdict = Math.Abs(pct) < 10 ? "близко к оценке"
+                       : pct < 0 ? $"на {-pct:0}% меньше оценки"
+                       : $"на {pct:0}% больше оценки";
+        return $"{watch:0} {what}, {verdict}";
+    }
+
     public static string WorkoutTitle(ActivityType activity, Setting setting) => (activity, setting) switch
     {
         (ActivityType.Walking, Setting.Treadmill) => "Ходьба на дорожке",

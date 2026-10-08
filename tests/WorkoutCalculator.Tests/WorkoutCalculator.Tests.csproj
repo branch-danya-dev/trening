@@ -18,7 +18,7 @@
 
   <!-- Данные MakeHuman (CC0) лежат в приложении; тестам нужна их копия рядом со сборкой -->
   <ItemGroup>
-    <None Include="..\..\src\WorkoutCalculator.Body3D\wwwroot\data\makehuman-hm08.bin" Link="data\makehuman-hm08.bin"
+    <None Include="..\..\src\WorkoutCalculator.Web\wwwroot\data\makehuman-hm08.bin" Link="data\makehuman-hm08.bin"
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

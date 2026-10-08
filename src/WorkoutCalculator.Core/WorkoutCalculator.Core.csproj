@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Формулы и модели. Без интерфейса: используется и окном, и консолью. -->
+  <!-- Формулы расхода на тренировках и модели. Без интерфейса: используется веб-приложением и прогнозом BodyModel. -->
   <PropertyGroup>
     <RootNamespace>WorkoutCalculator</RootNamespace>
   </PropertyGroup>

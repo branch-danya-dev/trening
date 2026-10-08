@@ -1,9 +1,0 @@
-<Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="WorkoutCalculator.Desktop.App"
-             RequestedThemeVariant="Default">
-  <!-- Default: светлая или тёмная тема — как в системе -->
-  <Application.Styles>
-    <FluentTheme />
-  </Application.Styles>
-</Application>

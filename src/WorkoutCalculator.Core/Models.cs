@@ -9,7 +9,7 @@ public enum Setting { Treadmill, Outdoor }
 /// <summary>Покрытие на улице. Влияет на энергозатраты (песок — почти вдвое для ходьбы).</summary>
 public enum Terrain { Asphalt, Dirt, Grass, Sand }
 
-/// <summary>Параметры человека. Сохраняются между запусками.</summary>
+/// <summary>Параметры человека для расчёта тренировки (в веб-приложении — из профиля).</summary>
 public sealed class UserProfile
 {
     public Sex Sex { get; set; }

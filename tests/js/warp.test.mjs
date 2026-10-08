@@ -1,7 +1,7 @@
 // Узлы деформации «прогноз на фото»: интерполяция между строками и обратное отображение по строке
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { knotsAt, sourceX } from '../../src/WorkoutCalculator.Body3D/wwwroot/js/warp.js';
+import { knotsAt, sourceX } from '../../src/WorkoutCalculator.Web/wwwroot/js/warp.js';
 
 const rows = [
     { y: 100, from: [300, 400, 480, 560, 660], to: [300, 410, 480, 550, 660] },

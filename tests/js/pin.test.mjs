@@ -1,7 +1,7 @@
 // Шифрование снимков PIN-кодом (wwwroot/js/photos.js): ключ PBKDF2 → AES-GCM, туда и обратно, чужой PIN
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { deriveKey, encryptBytes, decryptBytes, PIN_ITERATIONS } from '../../src/WorkoutCalculator.Body3D/wwwroot/js/photos.js';
+import { deriveKey, encryptBytes, decryptBytes, PIN_ITERATIONS } from '../../src/WorkoutCalculator.Web/wwwroot/js/photos.js';
 
 // В тестах итераций меньше: проверяется схема, а не стойкость
 const ITER = 1000;
