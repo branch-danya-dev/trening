@@ -444,7 +444,7 @@
     /// <summary>Сетка в 3D-вид и, если ленты сейчас показываются, её ленты.</summary>
     private void Show(string slot, IBodyShape body)
     {
-        ViewerInterop.SetMesh(slot, body.Mesh);
+        ViewerInterop.SetGeometry(slot, body.Geometry);
         if (TapesNeeded) ViewerInterop.SetTapes(slot, body.Tapes);
     }
 
