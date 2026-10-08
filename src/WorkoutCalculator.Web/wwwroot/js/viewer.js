@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { copyMemory, readRigDefinition, SkeletalBody, surfaceSkinner } from './skeletal.js';
+import { animationCatalog, getExerciseAnimation } from './exercise-animations.js';
 
 const FOV = 30;
 const TWEEN_MS = 380;
@@ -250,10 +251,25 @@ export function resetPose(slot) {
     requestRender();
 }
 
-/** One two-second arm flexion, for technical smoke testing only. */
-export function playDemo(slot) {
-    requireRig(slot).playDemo();
+export function listAnimationsJson() {
+    return JSON.stringify(animationCatalog());
+}
+
+export function playAnimation(slot, animationId) {
+    requireRig(slot).playAnimation(getExerciseAnimation(animationId));
     animationTime = performance.now();
+    requestRender();
+}
+
+export function stopAnimation(slot) {
+    requireRig(slot).stopAnimation();
+    if (!Object.values(rigs).some(rig => rig?.playing)) animationTime = null;
+    requestRender();
+}
+
+export function setAnimationTime(slot, animationId, seconds) {
+    requireRig(slot).setAnimationTime(getExerciseAnimation(animationId), seconds);
+    if (!Object.values(rigs).some(rig => rig?.playing)) animationTime = null;
     requestRender();
 }
 
