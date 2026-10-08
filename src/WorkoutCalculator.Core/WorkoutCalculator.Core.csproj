@@ -5,4 +5,7 @@
     <RootNamespace>WorkoutCalculator</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Exercises/catalog.json" LogicalName="Exercises.catalog.json" />
+  </ItemGroup>
 </Project>

@@ -130,6 +130,18 @@ button, input, select { font: inherit; color: inherit; }
     font-variant-numeric: tabular-nums;
 }
 
+.exercise-preview { flex-basis: 100%; max-width: 600px; font-size: 12px; color: var(--muted); }
+.exercise-controls { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.exercise-controls .select { max-width: 200px; }
+.exercise-details { margin-top: 6px; max-width: 560px; }
+.exercise-details summary { cursor: pointer; }
+.exercise-details[open] { background: #111922f2; padding: 8px; border-radius: 8px; max-height: 180px; overflow-y: auto; }
+.exercise-details p { margin: 5px 0; line-height: 1.4; }
+.heatmap-intensity { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.heatmap-intensity input { width: 120px; }
+.heatmap-legend { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.heatmap-legend i { width: 85px; height: 7px; border-radius: 4px; background: linear-gradient(90deg, #aab3c1, #ffc857, #ed493b); }
+
 /* Галочка лент — в левом нижнем углу: сверху она заезжала бы на голову модели */
 .view-tapes {
     position: absolute;
@@ -942,6 +954,12 @@ table.changes tr.dim td { opacity: 0.5; }
     .mode-bar { top: 8px; left: 8px; max-width: calc(100% - 16px); gap: 6px 8px; }
     .mode-bar .seg { order: 0; }
     .mode-bar > :not(.seg):not(.view-cycle) { order: 2; }
+    /* Share rows with the video button: keep collapsed exercise controls above the model on phones. */
+    .exercise-preview, .exercise-controls { display: contents; }
+    .exercise-controls > * { order: 2; }
+    .exercise-controls .select { max-width: 145px; }
+    .exercise-details { order: 3; flex-basis: 100%; margin-top: 0; font-size: 12px; }
+    .exercise-preview > small { order: 3; flex-basis: 100%; }
     .seg button { padding: 5px 10px; }
     /* Вверху справа легенда с названием гипотезы наезжала бы на кнопки камеры */
     .legend { top: auto; bottom: 36px; right: 10px; max-width: 60%; text-align: right; }

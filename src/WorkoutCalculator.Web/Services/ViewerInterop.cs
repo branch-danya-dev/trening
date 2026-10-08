@@ -3,6 +3,8 @@ using System.Runtime.InteropServices.JavaScript;
 using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Geometry;
 using WorkoutCalculator.BodyModel.Rigging;
+using WorkoutCalculator.BodyModel.Muscles;
+using WorkoutCalculator.Exercises;
 
 namespace WorkoutCalculator.Web.Services;
 
@@ -14,6 +16,7 @@ public static partial class ViewerInterop
 {
     public const string Module = "viewer";
     private static readonly Dictionary<string, RigDefinition> Definitions = new();
+    private static MuscleAtlas? _atlas;
 
     [JSImport("init", Module)]
     private static partial void InitCore(string canvasId);
@@ -21,6 +24,7 @@ public static partial class ViewerInterop
     public static void Init(string canvasId)
     {
         Definitions.Clear();
+        _atlas = null;
         InitCore(canvasId);
     }
 
@@ -87,6 +91,24 @@ public static partial class ViewerInterop
 
     [JSImport("listAnimationsJson", Module)]
     public static partial string ListAnimationsJson();
+
+    [JSImport("setMuscleAtlas", Module)]
+    private static partial void SetMuscleAtlasBytes(int version, int regionCount,
+        [JSMarshalAs<JSType.MemoryView>] Span<byte> indices,
+        [JSMarshalAs<JSType.MemoryView>] Span<byte> weights);
+
+    public static void SetMuscleAtlas(MuscleAtlas atlas)
+    {
+        if (ReferenceEquals(_atlas, atlas)) return;
+        SetMuscleAtlasBytes(MuscleAtlas.Version, MuscleDefinitions.Regions.Count, atlas.RegionIndices, atlas.Weights);
+        _atlas = atlas;
+    }
+
+    [JSImport("setMuscleLoad", Module)]
+    private static partial void SetMuscleLoadBytes([JSMarshalAs<JSType.MemoryView>] Span<byte> loads, bool enabled, double intensity);
+
+    public static void SetMuscleLoad(float[] loads, bool enabled, double intensity) =>
+        SetMuscleLoadBytes(MemoryMarshal.AsBytes(loads.AsSpan()), enabled, intensity);
 
     [JSImport("resetPose", Module)]
     public static partial void ResetPose(string slot);

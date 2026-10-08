@@ -1,0 +1,32 @@
+[
+  {
+    "id": "squat", "name": "Присед", "movementPattern": "squat", "equipment": ["barbell"], "animationId": "squat",
+    "primaryMuscles": ["quadriceps", "glute-max"], "secondaryMuscles": ["adductors"],
+    "stabilizers": ["erectors", "rectus-abdominis", "obliques", "glute-med", "calves"],
+    "variant": "bilateral-back-squat", "notes": "Базовый двусторонний присед. Роли мышц — first-pass heuristics; глубина и техника не моделируются."
+  },
+  {
+    "id": "bench-press", "name": "Жим лёжа", "movementPattern": "horizontal-push", "equipment": ["barbell", "bench"], "animationId": "bench-press",
+    "primaryMuscles": ["pectoralis"], "secondaryMuscles": ["triceps", "anterior-deltoid"],
+    "stabilizers": ["rhomboids", "traps", "forearms"], "variant": "flat-bilateral",
+    "notes": "Горизонтальная скамья, обычный хват. Угол скамьи, ширина хвата и leg drive не моделируются."
+  },
+  {
+    "id": "biceps-curl", "name": "Сгибание рук", "movementPattern": "elbow-flexion", "equipment": ["dumbbells"], "animationId": "biceps-curl",
+    "primaryMuscles": ["biceps"], "secondaryMuscles": ["forearms"],
+    "stabilizers": ["anterior-deltoid", "rectus-abdominis"], "variant": "standing-supinated",
+    "notes": "Двустороннее сгибание с супинированным хватом; без раскачки."
+  },
+  {
+    "id": "lat-pulldown", "name": "Тяга верхнего блока", "movementPattern": "vertical-pull", "equipment": ["cable-machine"], "animationId": "lat-pulldown",
+    "primaryMuscles": ["lats"], "secondaryMuscles": ["biceps", "rhomboids", "posterior-deltoid"],
+    "stabilizers": ["traps", "forearms", "rectus-abdominis"], "variant": "front-bilateral",
+    "notes": "Тяга перед собой. Ширина хвата и положение корпуса не учитываются."
+  },
+  {
+    "id": "romanian-deadlift", "name": "Румынская тяга", "movementPattern": "hip-hinge", "equipment": ["barbell"], "animationId": "romanian-deadlift",
+    "primaryMuscles": ["hamstrings", "glute-max"], "secondaryMuscles": ["adductors"],
+    "stabilizers": ["erectors", "lats", "forearms", "rectus-abdominis", "obliques", "glute-med"], "variant": "bilateral-soft-knees",
+    "notes": "Наклон в тазобедренных суставах с небольшим сгибанием коленей; разгибатели спины отмечены как стабилизаторы."
+  }
+]
