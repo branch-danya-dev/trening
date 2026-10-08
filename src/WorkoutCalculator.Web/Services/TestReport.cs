@@ -24,7 +24,7 @@ public static class TestReport
     {
         var a = session.Analysis;
         var sb = new StringBuilder();
-        sb.AppendLine("Модель тела — отчёт для проверки (без снимков)");
+        sb.AppendLine("Тренировки и тело — отчёт для проверки (без снимков)");
         sb.AppendLine($"Сборка {(build.Length > 0 ? build : "без git")} · {Fmt.DateTime(DateTimeOffset.Now)}");
         sb.AppendLine($"Браузер: {browser}");
         sb.AppendLine();

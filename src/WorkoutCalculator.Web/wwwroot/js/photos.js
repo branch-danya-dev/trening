@@ -442,7 +442,7 @@ export async function exportArchive() {
         meta.push({ ...s, files: paths });
     }
     if (meta.length === 0) throw new Error('Нет сохранённых сессий');
-    const manifest = { format: ARCHIVE_FORMAT, app: 'Модель тела', exportedAt: new Date().toISOString(), sessions: meta };
+    const manifest = { format: ARCHIVE_FORMAT, app: 'Тренировки и тело', exportedAt: new Date().toISOString(), sessions: meta };
     files.unshift({ name: 'sessions.json', data: new TextEncoder().encode(JSON.stringify(manifest, null, 2)) });
 
     const now = new Date();
