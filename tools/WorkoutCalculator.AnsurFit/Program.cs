@@ -70,6 +70,27 @@ foreach (var (sex, path) in new[] { (Sex.Male, args[0]), (Sex.Female, args[1]) }
         Console.WriteLine($"{row}  // в коде: ошибка {rmseCode:0.00} см{(same ? "" : " — НЕ СОВПАДАЕТ")}");
     }
 
+    // Основные обхваты для профиля без ленты: по росту, весу и возрасту
+    double[] age = data.Raw("Age");
+    Console.WriteLine("Основные обхваты (Intercept, Height, Weight, Age, RmseCm) для AnsurMainGirths.Model:");
+    foreach (var girth in AnsurMainGirths.Girths)
+    {
+        double[] y = data.Cm(AnsurMainGirths.Column(girth));
+        double[] b = LeastSquares([height, weight, age], y);
+        double Error(AnsurMainModel m) =>
+            Math.Sqrt(y.Select((v, i) => Math.Pow(m.Estimate(height[i], weight[i], age[i]) - v, 2)).Average());
+        var fitted = new AnsurMainModel(b[0], b[1], b[2], b[3], 0);
+        fitted = fitted with { RmseCm = Error(fitted) };
+        var code = AnsurMainGirths.Model(girth, sex);
+        bool same = Math.Abs(code.Intercept - fitted.Intercept) < 0.001 + 0.002 * Math.Abs(fitted.Intercept)
+                    && Math.Abs(code.Height - fitted.Height) < 0.0005 && Math.Abs(code.Weight - fitted.Weight) < 0.0005
+                    && Math.Abs(code.Age - fitted.Age) < 0.0005 && Math.Abs(code.RmseCm - fitted.RmseCm) < 0.006;
+        mismatch |= !same;
+        string row = string.Create(CultureInfo.InvariantCulture,
+            $"  (Girth.{girth}, Sex.{sex}) => new({fitted.Intercept:0.000}, {fitted.Height:0.0000}, {fitted.Weight:0.0000}, {fitted.Age:0.0000}, {fitted.RmseCm:0.00}),");
+        Console.WriteLine($"{row}  // в коде: ошибка {Error(code):0.00} см{(same ? "" : " — НЕ СОВПАДАЕТ")}");
+    }
+
     // Обхваты по фото: ширина спереди и глубина сбоку на уровне талии (пупка) и ягодиц. Грудь не берём:
     // chestbreadth мерили циркулем под мышками, без широчайших мышц, — с шириной силуэта она не сравнима
     Console.WriteLine("Обхват по ширине и глубине (Intercept, Breadth, Depth, RmseCm) для PhotoGirths.Model:");
