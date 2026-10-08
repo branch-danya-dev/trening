@@ -1,6 +1,7 @@
-// 3D-вид манекена. Сетку строит C#, сюда приходят только готовые массивы вершин и индексов.
+// C# owns personal rest geometry; skeletal.js owns runtime pose/animation per slot.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { copyMemory, readRigDefinition, SkeletalBody, surfaceSkinner } from './skeletal.js';
 
 const FOV = 30;
 const TWEEN_MS = 380;
@@ -17,6 +18,13 @@ let sideBySide = false;
 let platform;
 
 const meshes = { current: null, forecast: null };
+const rigs = { current: null, forecast: null };
+const definitions = { current: null, forecast: null };
+let animationTime = null;
+
+function checkSlot(slot) {
+    if (slot !== 'current' && slot !== 'forecast') throw new Error(`Unknown body slot: ${slot}`);
+}
 
 const materials = {
     current: new THREE.MeshStandardMaterial({ color: 0xc9cfd8, roughness: 0.6, metalness: 0.0 }),
@@ -33,11 +41,18 @@ const materials = {
             strength: { value: 0.85 },
         },
         vertexShader: `
+            #include <common>
+            #include <skinning_pars_vertex>
             varying vec3 vNormal;
             varying vec3 vView;
             void main() {
-                vec4 mv = modelViewMatrix * vec4(position, 1.0);
-                vNormal = normalize(normalMatrix * normal);
+                #include <beginnormal_vertex>
+                #include <skinbase_vertex>
+                #include <skinnormal_vertex>
+                #include <begin_vertex>
+                #include <skinning_vertex>
+                vec4 mv = modelViewMatrix * vec4(transformed, 1.0);
+                vNormal = normalize(normalMatrix * objectNormal);
                 vView = normalize(-mv.xyz);
                 gl_Position = projectionMatrix * mv;
             }`,
@@ -68,10 +83,7 @@ let activeTape = -1;
 // (у манекена части перекрываются, и без этого видны их внутренние края)
 const ghostDepthMaterial = new THREE.MeshBasicMaterial({ colorWrite: false });
 const ghostScene = new THREE.Scene();
-const ghostDepth = new THREE.Mesh(new THREE.BufferGeometry(), ghostDepthMaterial);
-const ghostRim = new THREE.Mesh(new THREE.BufferGeometry(), materials.ghost);
-ghostRim.renderOrder = 1;
-ghostScene.add(ghostDepth, ghostRim);
+let ghostDepth, ghostRim;
 let ghostActive = false;
 
 export function init(canvasId) {
@@ -129,29 +141,58 @@ export function init(canvasId) {
 
 /** Новая сетка: positions — float32 (x, y, z подряд, метры), indices — int32, обе как байты. */
 export function setMesh(slot, positionBytes, indexBytes) {
-    // MemoryView живёт только во время вызова — копируем сразу
-    const positions = new Float32Array(positionBytes.slice().buffer);
-    const indices = new Uint32Array(indexBytes.slice().buffer);
+    checkSlot(slot);
+    const geometry = readGeometry(positionBytes, indexBytes);
+    replaceMesh(slot, new THREE.Mesh(geometry, materials[slot]), null);
+}
+
+export function setRigDefinition(slot, names, parentBytes, indexBytes, weightBytes) {
+    checkSlot(slot);
+    definitions[slot] = readRigDefinition(names, parentBytes, indexBytes, weightBytes);
+}
+
+export function setSkinnedMesh(slot, positionBytes, indexBytes, restBytes) {
+    checkSlot(slot);
+    if (!definitions[slot]) throw new Error('Set rig definition before geometry');
+    const geometry = readGeometry(positionBytes, indexBytes);
+    let rig;
+    try {
+        rig = new SkeletalBody(geometry, materials[slot], definitions[slot], copyMemory(restBytes, Float32Array));
+    } catch (error) {
+        geometry.dispose();
+        throw error;
+    }
+    replaceMesh(slot, rig.mesh, rig);
+}
+
+function readGeometry(positionBytes, indexBytes) {
+    const positions = copyMemory(positionBytes, Float32Array);
+    const indices = copyMemory(indexBytes, Uint32Array);
 
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     geometry.computeVertexNormals();
     geometry.computeBoundingBox();
+    return geometry;
+}
 
-    let mesh = meshes[slot];
-    if (mesh) {
-        mesh.geometry.dispose();
-        mesh.geometry = geometry;
-    } else {
-        mesh = new THREE.Mesh(geometry, materials.current);
-        meshes[slot] = mesh;
-        scene.add(mesh);
-        if (tapes[slot]) mesh.add(tapes[slot]);
+function replaceMesh(slot, mesh, rig) {
+    // Geometry replacement starts in its own personal rest, including a new posture/forecast.
+    // Home resends requested tapes from the same body; discard old measurements and mixer together.
+    disposeTapes(slot);
+    rigs[slot]?.dispose();
+    if (meshes[slot]) {
+        scene.remove(meshes[slot]);
+        meshes[slot].geometry.dispose();
     }
+    meshes[slot] = mesh;
+    rigs[slot] = rig;
+    scene.add(mesh);
+    if (slot === 'current') rebuildGhost();
 
     if (slot === 'current') {
-        modelHeight = geometry.boundingBox.max.y;
+        modelHeight = mesh.geometry.boundingBox.max.y;
         if (!framed) {
             framed = true;
             placeCamera('front', false);
@@ -163,19 +204,66 @@ export function setMesh(slot, positionBytes, indexBytes) {
 }
 
 export function clearMesh(slot) {
+    checkSlot(slot);
+    definitions[slot] = null;
     const mesh = meshes[slot];
     if (!mesh) return;
     disposeTapes(slot);
+    rigs[slot]?.dispose();
+    rigs[slot] = null;
     scene.remove(mesh);
     mesh.geometry.dispose();
     meshes[slot] = null;
+    if (slot === 'current') rebuildGhost();
     applyMode();
+}
+
+function rebuildGhost() {
+    ghostScene.clear(); // Geometry, skeleton and materials belong to the source slot; never dispose here.
+    ghostDepth = ghostRim = null;
+    const current = meshes.current;
+    if (!current) return;
+    const create = material => rigs.current
+        ? rigs.current.follower(current.geometry, material) : new THREE.Mesh(current.geometry, material);
+    ghostDepth = create(ghostDepthMaterial);
+    ghostRim = create(materials.ghost);
+    ghostRim.renderOrder = 1;
+    ghostScene.add(ghostDepth, ghostRim);
+}
+
+function requireRig(slot) {
+    checkSlot(slot);
+    if (!rigs[slot]) throw new Error(`Slot ${slot} has no skeletal rig`);
+    return rigs[slot];
+}
+
+/** Complete sparse pose in rest-local axes: { 'lowerarm01.L': [qx, qy, qz, qw] }. */
+export function applyPose(slot, pose) {
+    requireRig(slot).applyPose(pose);
+    requestRender();
+}
+
+export function applyPoseJson(slot, json) { applyPose(slot, JSON.parse(json)); }
+
+export function resetPose(slot) {
+    requireRig(slot).resetPose();
+    requestRender();
+}
+
+/** One two-second arm flexion, for technical smoke testing only. */
+export function playDemo(slot) {
+    requireRig(slot).playDemo();
+    animationTime = performance.now();
+    requestRender();
 }
 
 /** Ленты слота: float32 подряд — код обхвата, число точек, затем x, y, z каждой точки (метры). */
 export function setTapes(slot, bytes) {
+    checkSlot(slot);
     const data = new Float32Array(bytes.slice().buffer);
     const group = new THREE.Group();
+    const rig = rigs[slot];
+    const skin = rig ? (rig.skinSurface ??= surfaceSkinner(rig.mesh.geometry)) : null;
     for (let i = 0; i < data.length;) {
         const code = data[i], count = data[i + 1];
         const points = [];
@@ -195,8 +283,9 @@ export function setTapes(slot, bytes) {
             if (len > 0) p.addScaledVector(d, TAPE_LIFT / len);
         }
         const curve = new THREE.CatmullRomCurve3(points, true, 'centripetal');
-        const tube = new THREE.Mesh(
-            new THREE.TubeGeometry(curve, Math.max(64, count * 2), TAPE_RADIUS, 6, true), tapeMaterials[slot]);
+        const geometry = new THREE.TubeGeometry(curve, Math.max(64, count * 2), TAPE_RADIUS, 6, true);
+        skin?.(geometry);
+        const tube = rig ? rig.follower(geometry, tapeMaterials[slot]) : new THREE.Mesh(geometry, tapeMaterials[slot]);
         tube.userData.code = code;
         group.add(tube);
     }
@@ -344,9 +433,6 @@ function applyMode(refit = false) {
         current.visible = show.current && !ghostActive;
         current.material = materials.current;
     }
-    if (ghostActive) {
-        ghostDepth.geometry = ghostRim.geometry = current.geometry;
-    }
     if (forecast) {
         forecast.visible = show.forecast;
         forecast.material = materials.forecast;
@@ -451,6 +537,9 @@ function requestRender() {
 function frame(now) {
     frameRequested = false;
     let moving = false;
+    const seconds = animationTime === null ? 0 : Math.max(0, (now - animationTime) / 1000);
+    for (const rig of Object.values(rigs)) if (rig?.update(seconds)) moving = true;
+    animationTime = moving ? now : null;
 
     if (turn) {
         // Полный оборот вокруг вертикали от вида спереди; камера чуть выше середины, как у «Спереди»
@@ -482,8 +571,15 @@ function frame(now) {
 }
 
 function renderScene() {
+    // Current is invisible in overlay compare; its bones still drive both ghost passes.
+    for (const rig of Object.values(rigs)) rig?.updateMatrices();
     renderer.render(scene, camera);
     if (ghostActive) {
+        for (const ghost of [ghostDepth, ghostRim]) {
+            ghost.position.copy(meshes.current.position);
+            ghost.quaternion.copy(meshes.current.quaternion);
+            ghost.scale.copy(meshes.current.scale);
+        }
         renderer.autoClear = false;
         renderer.clearDepth();
         renderer.render(ghostScene, camera);

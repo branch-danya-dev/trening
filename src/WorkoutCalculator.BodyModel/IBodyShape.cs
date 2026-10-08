@@ -11,6 +11,9 @@ public interface IBodyShape
     BodyProfile Profile { get; }
     BodyMesh Mesh { get; }
 
+    /// <summary>Rest-геометрия для viewer; манекен и старые данные не содержат rig.</summary>
+    BodyGeometry Geometry => new(Mesh);
+
     /// <summary>Внешний объём тела по замкнутой сетке, л.</summary>
     double VolumeLiters { get; }
 

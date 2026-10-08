@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.JavaScript;
 using WorkoutCalculator.BodyModel;
 using WorkoutCalculator.BodyModel.Geometry;
+using WorkoutCalculator.BodyModel.Rigging;
 
 namespace WorkoutCalculator.Web.Services;
 
@@ -12,9 +13,16 @@ namespace WorkoutCalculator.Web.Services;
 public static partial class ViewerInterop
 {
     public const string Module = "viewer";
+    private static readonly Dictionary<string, RigDefinition> Definitions = new();
 
     [JSImport("init", Module)]
-    public static partial void Init(string canvasId);
+    private static partial void InitCore(string canvasId);
+
+    public static void Init(string canvasId)
+    {
+        Definitions.Clear();
+        InitCore(canvasId);
+    }
 
     /// <summary>Видео поворота модели: JSON { url, ext } — адрес blob: и расширение (mp4 или webm).</summary>
     [JSImport("recordTurn", Module)]
@@ -33,8 +41,55 @@ public static partial class ViewerInterop
     public static void SetMesh(string slot, BodyMesh mesh) =>
         SetMeshBytes(slot, MemoryMarshal.AsBytes(mesh.Positions.AsSpan()), MemoryMarshal.AsBytes(mesh.Indices.AsSpan()));
 
+    [JSImport("setRigDefinition", Module)]
+    private static partial void SetRigDefinition(string slot,
+        [JSMarshalAs<JSType.Array<JSType.String>>] string[] names,
+        [JSMarshalAs<JSType.MemoryView>] Span<byte> parents,
+        [JSMarshalAs<JSType.MemoryView>] Span<byte> skinIndices,
+        [JSMarshalAs<JSType.MemoryView>] Span<byte> skinWeights);
+
+    [JSImport("setSkinnedMesh", Module)]
+    private static partial void SetSkinnedMesh(string slot,
+        [JSMarshalAs<JSType.MemoryView>] Span<byte> positions,
+        [JSMarshalAs<JSType.MemoryView>] Span<byte> indices,
+        [JSMarshalAs<JSType.MemoryView>] Span<byte> localRestTransforms);
+
+    public static void SetGeometry(string slot, BodyGeometry geometry)
+    {
+        if (geometry.Skeleton is not { } skeleton)
+        {
+            SetMesh(slot, geometry.Mesh);
+            return;
+        }
+        var definition = skeleton.Definition;
+        if (!Definitions.TryGetValue(slot, out var previous) || !ReferenceEquals(previous, definition))
+        {
+            SetRigDefinition(slot, definition.Names, MemoryMarshal.AsBytes(definition.Parents.AsSpan()),
+                definition.SkinIndices, definition.SkinWeights);
+            Definitions[slot] = definition;
+        }
+        SetSkinnedMesh(slot, MemoryMarshal.AsBytes(geometry.Mesh.Positions.AsSpan()),
+            MemoryMarshal.AsBytes(geometry.Mesh.Indices.AsSpan()), MemoryMarshal.AsBytes(skeleton.LocalRestTransforms.AsSpan()));
+    }
+
+    /// <summary>JSON: { "lowerarm01.L": [x,y,z,w], ... }, дельты в локальных rest-осях. Пустой объект сбрасывает позу.</summary>
+    [JSImport("applyPoseJson", Module)]
+    public static partial void ApplyPose(string slot, string poseJson);
+
+    [JSImport("playDemo", Module)]
+    public static partial void PlayDemo(string slot);
+
+    [JSImport("resetPose", Module)]
+    public static partial void ResetPose(string slot);
+
     [JSImport("clearMesh", Module)]
-    public static partial void ClearMesh(string slot);
+    private static partial void ClearMeshCore(string slot);
+
+    public static void ClearMesh(string slot)
+    {
+        ClearMeshCore(slot);
+        Definitions.Remove(slot);
+    }
 
     [JSImport("setTapes", Module)]
     private static partial void SetTapesBytes(string slot, [JSMarshalAs<JSType.MemoryView>] Span<byte> data);

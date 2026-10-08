@@ -106,6 +106,7 @@ public sealed class MakeHumanModel
     private readonly Dictionary<FitLevel, int[]> _candidates = new();
     private readonly Dictionary<FitLevel, int[]> _candidateVertices = new();
     private readonly double[] _basePositions;
+    private readonly Lazy<MakeHumanRig?> _runtimeRig;
     private readonly Dictionary<Sex, double[]> _layerFactors = new();
 
     /// <summary>
@@ -124,6 +125,7 @@ public sealed class MakeHumanModel
     public MakeHumanModel(MakeHumanData data)
     {
         Data = data;
+        _runtimeRig = new(() => data.Skeleton is { } skeleton ? new MakeHumanRig(skeleton, data.BodyVertexCount) : null);
         _basePositions = Array.ConvertAll(data.Positions, f => (double)f);
 
         // Какие треугольники резать для каждого уровня: тонкий слой вокруг плоскости замера на базовой
@@ -274,7 +276,7 @@ public sealed class MakeHumanModel
         };
 
         return new MakeHumanBody(p, mesh, results, macros, fit, state.Measurements, () => Tapes(posed, p),
-            name => Joint(posed, name));
+            name => Joint(posed, name), () => new BodyGeometry(mesh, _runtimeRig.Value?.Bind(posed)));
     }
 
     /// <summary>Ленты по готовой сетке: выпуклые оболочки сечений на уровнях обхватов профиля.</summary>
@@ -694,12 +696,14 @@ public sealed class MakeHumanBody : IBodyShape
     private IReadOnlyList<TapeLoop>? _tapes;
 
     private readonly Func<string, Vec3> _landmark;
+    private readonly Lazy<BodyGeometry> _geometry;
 
     internal MakeHumanBody(BodyProfile profile, BodyMesh mesh, IReadOnlyList<FitResult> results,
         MakeHumanMapping.Macros macros, MakeHumanFit fit, int measurements, Func<IReadOnlyList<TapeLoop>> tapes,
-        Func<string, Vec3> landmark)
+        Func<string, Vec3> landmark, Func<BodyGeometry> geometry)
     {
         _landmark = landmark;
+        _geometry = new(geometry);
         Profile = profile;
         Mesh = mesh;
         Results = results;
@@ -720,6 +724,8 @@ public sealed class MakeHumanBody : IBodyShape
 
     public BodyProfile Profile { get; }
     public BodyMesh Mesh { get; }
+    /// <summary>Rig считается один раз и только для отображения; расчёт подгонки/прогноза не дорожает.</summary>
+    public BodyGeometry Geometry => _geometry.Value;
     public double VolumeLiters => _volume ??= MeshMetrics.Volume(Mesh.Positions, Mesh.Indices) * 1000;
     public MakeHumanMapping.Macros Macros { get; }
 
