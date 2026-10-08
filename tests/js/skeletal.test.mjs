@@ -20,6 +20,16 @@ function fixture(height = 1) {
 }
 function vertex(mesh, v = 3) { return mesh.getVertexPosition(v, new THREE.Vector3()); }
 function close(a, b, tolerance = 1e-6) { assert.ok(a.distanceTo(b) < tolerance, `${a.toArray()} != ${b.toArray()}`); }
+const fixtureAnimation = (loop = false) => ({
+    id: 'fixture-animation', name: 'Fixture', movementPattern: 'test', duration: 2, loop,
+    involvedBones: ['root', 'lowerarm01.L'],
+    tracks: [
+        { bone: 'root', property: 'position', scale: 'bodyHeight', times: [0, 1, 2],
+          values: [[0, 0, 0], [0, -0.1, 0], [0, 0, 0]] },
+        { bone: 'lowerarm01.L', property: 'quaternion', times: [0, 1, 2],
+          values: [[0, 0, 0, 1], new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2).toArray(), [0, 0, 0, 1]] },
+    ],
+});
 
 test('MemoryView is copied once, offset views and expired input do not corrupt rig arrays', () => {
     const original = new Float32Array([99, 1, 2, 3, 99]);
@@ -58,7 +68,7 @@ test('bind pose is identity for all vertices, mixed UNORM8 weights and nonidenti
 test('quaternion pose is relative to rest; reset, sparse pose and invalid requests are atomic', () => {
     const rig = fixture();
     const before = vertex(rig.mesh), immutable = rig.mesh.geometry.attributes.position.array.slice();
-    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
     rig.applyPose({ 'lowerarm01.L': q.toArray().map(v => v * 2) });
     const rest = rig.restRotations[1];
     const expected = before.clone().sub(new THREE.Vector3(0, 1, 0))
@@ -74,19 +84,28 @@ test('quaternion pose is relative to rest; reset, sparse pose and invalid reques
     close(vertex(rig.mesh), before);
 });
 
-test('AnimationClip moves actual skin, stops after one cycle and can be interrupted/restarted', () => {
+test('AnimationClip supports quaternion and scaled translation tracks, stop and scrub', () => {
     const rig = fixture(), before = vertex(rig.mesh);
-    assert.ok(rig.createDemoClip() instanceof THREE.AnimationClip);
-    rig.playDemo();
+    const animation = fixtureAnimation(false);
+    const clip = rig.createAnimationClip(animation);
+    assert.ok(clip instanceof THREE.AnimationClip);
+    assert.equal(clip.tracks.some(t => t instanceof THREE.VectorKeyframeTrack), true);
+    assert.equal(clip.tracks.some(t => t instanceof THREE.QuaternionKeyframeTrack), true);
+
+    const rootRest = rig.restPositions[0].clone();
+    rig.playAnimation(animation);
     assert.equal(rig.update(1), true);
-    assert.ok(vertex(rig.mesh).distanceTo(before) > 0.5);
+    assert.ok(vertex(rig.mesh).distanceTo(before) > 0.25);
+    assert.ok(rig.mesh.skeleton.bones[0].position.y < rootRest.y);
     assert.equal(rig.update(1.1), false);
     close(vertex(rig.mesh), before);
-    rig.playDemo(); rig.update(0.5);
-    rig.applyPose({});
-    assert.equal(rig.update(1), false);
+
+    rig.playAnimation(animation); rig.update(0.5); rig.stopAnimation();
     close(vertex(rig.mesh), before);
-    rig.playDemo(); rig.update(0.5); rig.resetPose();
+    rig.setAnimationTime(animation, 1);
+    assert.ok(vertex(rig.mesh).distanceTo(before) > 0.25);
+    assert.equal(rig.update(1), false);
+    rig.resetPose();
     close(vertex(rig.mesh), before);
 });
 
@@ -95,7 +114,7 @@ test('current/forecast geometries, bind matrices and poses stay independent acro
     const forecastRest = vertex(forecast.mesh);
     current.mesh.position.x = -0.8;
     forecast.mesh.position.x = 0.8;
-    current.playDemo(); current.update(1); forecast.updateMatrices();
+    current.playAnimation(fixtureAnimation(true)); current.update(1); forecast.updateMatrices();
     close(vertex(forecast.mesh), forecastRest);
     assert.notEqual(current.mesh.skeleton, forecast.mesh.skeleton);
     assert.ok(vertex(current.mesh).distanceTo(new THREE.Vector3(0, 2, 0)) > 0.5);
@@ -112,7 +131,7 @@ test('ghost and tape followers match the animated owner including side-by-side t
     rig.mesh.add(tape);
     rig.mesh.position.x = -0.75;
     ghost.position.copy(rig.mesh.position);
-    rig.playDemo(); rig.update(1); ghost.updateMatrixWorld(true);
+    rig.playAnimation(fixtureAnimation(true)); rig.update(1); ghost.updateMatrixWorld(true);
     const world = mesh => vertex(mesh).applyMatrix4(mesh.matrixWorld);
     close(world(ghost), world(rig.mesh));
     close(world(tape), world(rig.mesh));
@@ -126,7 +145,7 @@ test('disposal releases the bone texture and stops the mixer without disposing s
     let disposed = false, geometryDisposed = false;
     rig.mesh.skeleton.boneTexture.addEventListener('dispose', () => disposed = true);
     rig.mesh.geometry.addEventListener('dispose', () => geometryDisposed = true);
-    rig.playDemo(); rig.update(0.5); rig.dispose();
+    rig.playAnimation(fixtureAnimation(true)); rig.update(0.5); rig.dispose();
     assert.equal(disposed, true);
     assert.equal(geometryDisposed, false);
     assert.equal(rig.update(1), false);

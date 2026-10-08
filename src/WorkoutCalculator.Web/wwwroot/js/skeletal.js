@@ -1,6 +1,8 @@
 // Geometry/bind data are immutable; each slot owns its bones, pose and mixer.
 // Relative import also lets node --test use the exact vendored three.js without npm or a loader.
 import * as THREE from '../lib/three/three.module.js';
+import { constrainQuaternion, validateTranslation } from './joint-constraints.js';
+import { validateAnimationDefinition } from './exercise-animations.js';
 
 export function copyMemory(bytes, Type = Uint8Array) {
     const copy = bytes.slice(); // .NET MemoryView expires when the interop call returns.
@@ -53,16 +55,26 @@ export class SkeletalBody {
         // Animation can leave rest bounds. Only two bodies: avoid incorrect culling without CPU skinning each frame.
         this.mesh.frustumCulled = false;
         this.restRotations = bones.map(b => b.quaternion.clone());
+        this.restPositions = bones.map(b => b.position.clone());
+        geometry.computeBoundingBox();
+        this.bodyHeight = Math.max(0.1, geometry.boundingBox.max.y - geometry.boundingBox.min.y);
         this.byName = new Map(names.map((name, i) => [name, i]));
         this.mixer = new THREE.AnimationMixer(this.mesh);
         this.action = null;
+        this.playing = false;
+        this.activeAnimation = null;
     }
 
     resetPose() {
         this.mixer.stopAllAction();
         this.mixer.uncacheRoot(this.mesh);
         this.action = null;
-        this.mesh.skeleton.bones.forEach((b, i) => b.quaternion.copy(this.restRotations[i]));
+        this.playing = false;
+        this.activeAnimation = null;
+        this.mesh.skeleton.bones.forEach((b, i) => {
+            b.quaternion.copy(this.restRotations[i]);
+            b.position.copy(this.restPositions[i]);
+        });
         this.updateMatrices();
     }
 
@@ -77,37 +89,80 @@ export class SkeletalBody {
                 throw new Error(`Invalid quaternion: ${name}`);
             const q = new THREE.Quaternion(...values);
             if (q.lengthSq() < 1e-12) throw new Error(`Zero quaternion: ${name}`);
-            return [i, q.normalize()];
+            return [i, constrainQuaternion(name, q)];
         });
         this.resetPose();
         for (const [i, q] of rotations) this.mesh.skeleton.bones[i].quaternion.multiply(q);
         this.updateMatrices();
     }
 
-    createDemoClip() {
-        const i = this.byName.get('lowerarm01.L');
-        if (i === undefined) throw new Error('Arm demo requires lowerarm01.L');
-        const rest = this.restRotations[i];
-        const bent = rest.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 3));
-        // UUID avoids PropertyBinding interpreting the dot in MakeHuman names as a property separator.
-        return new THREE.AnimationClip('arm-smoke', 2, [new THREE.QuaternionKeyframeTrack(
-            `${this.mesh.skeleton.bones[i].uuid}.quaternion`, [0, 1, 2], [...rest.toArray(), ...bent.toArray(), ...rest.toArray()])]);
+    createAnimationClip(animation) {
+        validateAnimationDefinition(animation);
+        const tracks = animation.tracks.map(track => {
+            const i = this.byName.get(track.bone);
+            if (i === undefined) throw new Error(`Unknown animation bone: ${track.bone}`);
+            const bone = this.mesh.skeleton.bones[i];
+            if (track.property === 'quaternion') {
+                const rest = this.restRotations[i];
+                const values = track.values.flatMap(value =>
+                    rest.clone().multiply(constrainQuaternion(track.bone, new THREE.Quaternion(...value))).normalize().toArray());
+                return new THREE.QuaternionKeyframeTrack(`${bone.uuid}.quaternion`, track.times, values);
+            }
+            const rest = this.restPositions[i];
+            const values = track.values.flatMap(value => {
+                validateTranslation(track.bone, value);
+                return [
+                    rest.x + value[0] * this.bodyHeight,
+                    rest.y + value[1] * this.bodyHeight,
+                    rest.z + value[2] * this.bodyHeight,
+                ];
+            });
+            return new THREE.VectorKeyframeTrack(`${bone.uuid}.position`, track.times, values);
+        });
+        return new THREE.AnimationClip(animation.id, animation.duration, tracks);
     }
 
-    playDemo() {
-        const clip = this.createDemoClip();
+    playAnimation(animation) {
+        const clip = this.createAnimationClip(animation);
         this.resetPose();
+        this.activeAnimation = animation;
         this.action = this.mixer.clipAction(clip);
-        this.action.setLoop(THREE.LoopOnce, 1);
+        this.action.setLoop(animation.loop ? THREE.LoopRepeat : THREE.LoopOnce, animation.loop ? Infinity : 1);
+        this.action.clampWhenFinished = false;
         this.action.play();
+        this.playing = true;
+    }
+
+    stopAnimation() {
+        this.resetPose();
+    }
+
+    setAnimationTime(animation, seconds) {
+        if (!Number.isFinite(seconds)) throw new Error('Animation time must be finite');
+        const clip = this.createAnimationClip(animation);
+        this.resetPose();
+        this.activeAnimation = animation;
+        this.action = this.mixer.clipAction(clip);
+        this.action.setLoop(animation.loop ? THREE.LoopRepeat : THREE.LoopOnce, animation.loop ? Infinity : 1);
+        this.action.play();
+        const t = animation.loop
+            ? ((seconds % animation.duration) + animation.duration) % animation.duration
+            : THREE.MathUtils.clamp(seconds, 0, animation.duration);
+        this.mixer.setTime(t);
+        this.action.paused = true;
+        this.playing = false;
+        this.updateMatrices();
     }
 
     update(seconds) {
-        if (!this.action) return false;
+        if (!this.action || !this.playing) return false;
         this.mixer.update(seconds);
-        if (!this.action.isRunning()) this.resetPose();
+        if (!this.activeAnimation?.loop && !this.action.isRunning()) {
+            this.resetPose();
+            return false;
+        }
         this.updateMatrices();
-        return !!this.action;
+        return true;
     }
 
     updateMatrices() {
