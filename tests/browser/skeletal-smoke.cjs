@@ -39,7 +39,7 @@ const assert = require('node:assert/strict');
         assert.ok(restCheck.maxError < 2e-6);
 
         // A profile rebuild must discard the old animation and bind to the newly fitted posture.
-        await page.evaluate(() => viewer.playDemo('current'));
+        await page.evaluate(() => viewer.playAnimation('current', 'biceps-curl'));
         await page.getByRole('textbox', { name: 'Сутулость', exact: true }).fill('20');
         await page.getByRole('textbox', { name: 'Сутулость', exact: true }).press('Tab');
         await page.waitForFunction(() => viewer.smokeState().meshes.current !== originalCurrent);
@@ -67,7 +67,7 @@ const assert = require('node:assert/strict');
             const state = viewer.smokeState();
             window.forecastBefore = state.meshes.forecast.skeleton.bones.map(b => b.quaternion.clone());
             viewer.applyPose('current', { 'lowerarm01.L': [-0.5, 0, 0, Math.sqrt(0.75)] });
-            viewer.playDemo('forecast');
+            viewer.playAnimation('forecast', 'biceps-curl');
         });
         assert.equal(await page.evaluate(() => {
             const { current, forecast } = viewer.smokeState().meshes;
@@ -78,9 +78,26 @@ const assert = require('node:assert/strict');
             return moved > 100 && current.geometry !== forecast.geometry;
         }), true);
         await page.waitForFunction(() => viewer.smokeState().rigs.forecast.action !== null);
-        await page.waitForFunction(() => viewer.smokeState().rigs.forecast.action === null);
+        // Looping exercise clips keep running until stopped; stop must restore the personal rest pose.
+        await page.evaluate(() => viewer.stopAnimation('forecast'));
         assert.equal(await page.evaluate(() => viewer.smokeState().meshes.forecast.skeleton.bones
             .every((b, i) => b.quaternion.angleTo(forecastBefore[i]) < 1e-6)), true);
+
+        // Two complex movements: squat uses root translation; bench uses a large root rotation.
+        const exercises = await page.evaluate(() => {
+            viewer.setAnimationTime('current', 'squat', 1.6);
+            const squat = viewer.smokeState().rigs.current;
+            const root = squat.mesh.skeleton.bones[0];
+            const squatDrop = squat.restPositions[0].y - root.position.y;
+            viewer.setAnimationTime('current', 'bench-press', 1.5);
+            const bench = viewer.smokeState().rigs.current;
+            const rootIndex = bench.byName.get('root');
+            const benchAngle = bench.mesh.skeleton.bones[rootIndex].quaternion.angleTo(bench.restRotations[rootIndex]);
+            viewer.stopAnimation('current');
+            return { squatDrop, benchAngle };
+        });
+        assert.ok(exercises.squatDrop > 0.05, JSON.stringify(exercises));
+        assert.ok(exercises.benchAngle > 1.2, JSON.stringify(exercises));
         await page.getByLabel('рядом', { exact: true }).check();
         assert.equal(await page.evaluate(() => {
             const { current, forecast } = viewer.smokeState().meshes;
@@ -94,7 +111,7 @@ const assert = require('node:assert/strict');
             const create = URL.createObjectURL;
             let recorded;
             URL.createObjectURL = blob => { recorded = blob; return create.call(URL, blob); };
-            viewer.playDemo('current');
+            viewer.playAnimation('current', 'squat');
             try {
                 const result = JSON.parse(await viewer.recordTurn(2.5));
                 URL.revokeObjectURL(result.url);
@@ -103,7 +120,7 @@ const assert = require('node:assert/strict');
         });
         assert.ok(video.size > 1000, JSON.stringify({ video, errors }));
         assert.ok(['mp4', 'webm'].includes(video.ext));
-        await page.waitForFunction(() => viewer.smokeState().rigs.current.action === null);
+        await page.evaluate(() => viewer.stopAnimation('current'));
         if (process.env.RIG_SCREENSHOT) await page.screenshot({ path: process.env.RIG_SCREENSHOT });
 
         await page.getByRole('button', { name: 'Манекен', exact: true }).click();
@@ -112,8 +129,9 @@ const assert = require('node:assert/strict');
         await page.getByRole('button', { name: 'MakeHuman', exact: true }).click();
         await page.waitForFunction(() => viewer.smokeState().meshes.current.isSkinnedMesh === true);
         assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current !== originalCurrent), true);
-        await page.evaluate(() => { viewer.clearMesh('forecast'); viewer.setMode('current', false); viewer.playDemo('current'); });
-        await page.waitForFunction(() => viewer.smokeState().rigs.current.action === null);
+        await page.evaluate(() => { viewer.clearMesh('forecast'); viewer.setMode('current', false); viewer.playAnimation('current', 'romanian-deadlift'); });
+        await page.waitForTimeout(150);
+        await page.evaluate(() => viewer.stopAnimation('current'));
         assert.deepEqual(errors, []);
         console.log(JSON.stringify({ restCheck, comparison, video, browserErrors: errors.length }, null, 2));
     } finally {
