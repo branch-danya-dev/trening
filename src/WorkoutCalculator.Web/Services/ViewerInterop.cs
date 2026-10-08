@@ -76,8 +76,17 @@ public static partial class ViewerInterop
     [JSImport("applyPoseJson", Module)]
     public static partial void ApplyPose(string slot, string poseJson);
 
-    [JSImport("playDemo", Module)]
-    public static partial void PlayDemo(string slot);
+    [JSImport("playAnimation", Module)]
+    public static partial void PlayAnimation(string slot, string animationId);
+
+    [JSImport("stopAnimation", Module)]
+    public static partial void StopAnimation(string slot);
+
+    [JSImport("setAnimationTime", Module)]
+    public static partial void SetAnimationTime(string slot, string animationId, double seconds);
+
+    [JSImport("listAnimationsJson", Module)]
+    public static partial string ListAnimationsJson();
 
     [JSImport("resetPose", Module)]
     public static partial void ResetPose(string slot);
