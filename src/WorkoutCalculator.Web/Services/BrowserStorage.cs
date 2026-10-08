@@ -62,6 +62,11 @@ public static class ProfileStorage
     /// <summary>Какая модель показана: "makehuman" или "mannequin".</summary>
     public static string? LoadModelKind() => BrowserStorage.GetItem(ModelKey);
 
+    /// <summary>Строки старой версии как есть — для однократного переноса в новую модель (AppData).</summary>
+    public static (string? Profile, string? Weights, string? Hypotheses, string? Workouts) LegacyStrings() =>
+        (BrowserStorage.GetItem(ProfileKey), BrowserStorage.GetItem(WeightsKey), BrowserStorage.GetItem(HypothesesKey),
+         BrowserStorage.GetItem(WorkoutsKey));
+
     public static void SaveModelKind(string kind) => BrowserStorage.SetItem(ModelKey, kind);
 
     public static BodyProfile? LoadProfile()

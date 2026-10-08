@@ -17,8 +17,11 @@ public sealed record FieldOrigin(DateOnly? Date, EntrySource? Source)
 }
 
 /// <summary>Тело на дату для модели: значения всех полей и откуда каждое.</summary>
-/// <param name="FatSource">Источник % жира: из записи или, если записей с ним нет, — оценка ВМС или по ИМТ.</param>
-public sealed record ResolvedBody(BodyProfile Body, IReadOnlyDictionary<BodyField, FieldOrigin> Origins, FatSource FatSource)
+/// <param name="FatSource">
+/// Источник % жира: из записи (null — источник не указан, например перенесено из старой версии) или, если
+/// записей с % жира нет, — оценка ВМС или по ИМТ.
+/// </param>
+public sealed record ResolvedBody(BodyProfile Body, IReadOnlyDictionary<BodyField, FieldOrigin> Origins, FatSource? FatSource)
 {
     public FieldOrigin Origin(BodyField f) => Origins.GetValueOrDefault(f, FieldOrigin.Estimated);
 }
@@ -78,12 +81,12 @@ public static class BodyResolver
             }
         }
 
-        FatSource fatSource;
+        FatSource? fatSource;
         if (s.BodyFat is FieldValue<double> fat)
         {
             body.BodyFatPercent = fat.Value;
             origins[BodyField.BodyFat] = FieldOrigin.From(fat);
-            fatSource = s.FatSource ?? FatSource.Scale;
+            fatSource = s.FatSource;
         }
         else
         {

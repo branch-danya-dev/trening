@@ -3,6 +3,7 @@
 @using WorkoutCalculator.BodyModel.MakeHuman
 @using WorkoutCalculator.BodyModel.Photos
 @inject HttpClient Http
+@inject AppData Data
 
 <div class="app @(_tab == Tab.Workout ? "panel-only" : null)">
     <header class="topbar">
@@ -263,6 +264,7 @@
         _weights = ProfileStorage.LoadWeights();
         _ = LoadMakeHumanAsync();
         _ = LoadPhotoFactsAsync();
+        _ = Data.LoadAsync();
     }
 
     /// <summary>Фотосессии как факты: дата, вес на момент съёмки, обхваты талии и бёдер по фото.</summary>

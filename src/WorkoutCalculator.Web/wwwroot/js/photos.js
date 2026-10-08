@@ -4,31 +4,14 @@
 // не сохраняются. Для списка хранятся превью. Экспорт и импорт — обычный zip: его можно открыть на компьютере.
 // С PIN-кодом снимки и превью хранятся зашифрованными (AES-GCM, ключ из PIN через PBKDF2) — см. «Защита».
 
-const DB_NAME = 'body3d-photos';
-const DB_VERSION = 2; // 2 — хранилище settings (PIN)
+import { openDb, req } from './db.js';
+
 const MAX_SIDE = 2048;
 const THUMB_SIDE = 320;
 const VIEWS = ['front', 'side'];
 const ARCHIVE_FORMAT = 1;
 
-let dbPromise = null;
-
-function openDb() {
-    dbPromise ??= new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        request.onupgradeneeded = () => {
-            const db = request.result;
-            if (!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions', { keyPath: 'id' });
-            if (!db.objectStoreNames.contains('images')) db.createObjectStore('images', { keyPath: 'key' });
-            if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath: 'key' });
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(new Error('Хранилище браузера недоступно (приватный режим?)'));
-    });
-    return dbPromise;
-}
-
-/** Одна транзакция: work получает хранилища и возвращает значение; промис — после фиксации транзакции. */
+/** Одна транзакция по снимкам: work(sessions, images) возвращает значение; промис — после фиксации. */
 async function transact(mode, work) {
     const db = await openDb();
     return new Promise((resolve, reject) => {
@@ -40,11 +23,6 @@ async function transact(mode, work) {
         result = work(tx.objectStore('sessions'), tx.objectStore('images'));
     });
 }
-
-const req = request => new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-});
 
 const imageKey = (id, view, thumb = false) => `${id}/${view}${thumb ? '/thumb' : ''}`;
 
