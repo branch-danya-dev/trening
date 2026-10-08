@@ -1,0 +1,217 @@
+@* Фото для модели: съёмка с подсказками или готовые снимки → разбор силуэта → подгонка осанки и формы MakeHuman.
+   Снимки — только на этом устройстве (photos.js). Итог отдаётся родителю: id сессии, талия и бёдра по фото,
+   осанка и форма. Используется в мастере создания профиля и в виджете замеров («Фото»). *@
+@using System.Runtime.InteropServices.JavaScript
+@using WorkoutCalculator.BodyModel.MakeHuman
+@using WorkoutCalculator.BodyModel.Photos
+@implements IDisposable
+
+@if (_state is State.Pick or State.Error)
+{
+    <ul class="tips">
+        <li>бельё или облегающая одежда, однотонный фон, ровный свет, без обуви;</li>
+        <li>телефон вертикально на уровне пояса в 2–3&nbsp;м, вы целиком в кадре;</li>
+        <li>спереди — руки чуть в стороны; сбоку — руки вдоль тела, ноги вместе.</li>
+    </ul>
+    <button class="btn primary" @onclick="Shoot">Снять с подсказками</button>
+    <div class="note" style="margin: 10px 0 8px">Или выберите готовые фото:</div>
+    @foreach (var (view, title) in Views)
+    {
+        <div class="file-row">
+            <label class="btn file-btn">
+                @title
+                <input id="@InputId(view)" type="file" accept="image/*" @onchange="e => Picked(view, e)" />
+            </label>
+            <span class="file-name">@(_picked.GetValueOrDefault(view) ?? "не выбрано")</span>
+        </div>
+    }
+    <button class="btn primary" style="margin-top: 12px" disabled="@(_picked.Count == 0)" @onclick="Upload">Загрузить и разобрать</button>
+    @if (_error is not null)
+    {
+        <div class="hint" role="alert" style="margin-top: 10px">@_error</div>
+    }
+}
+else if (_state is not State.Done)
+{
+    <div class="progress-line" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        @(_state switch
+        {
+            State.Saving => "Сохраняю снимки…",
+            State.Analyzing => "Ищу контур тела. В первый раз загружается распознавание позы (около 22 МБ) — до минуты.",
+            _ => $"Подгоняю осанку и форму модели… сборка {_builds}",
+        })
+    </div>
+}
+
+@if (_session?.Analysis is PhotoAnalysis a && _state is State.Fitting or State.Done)
+{
+    <div class="overlay-row" style="margin-top: 10px">
+        @foreach (var (view, profile) in new[] { ("front", a.Front), ("side", a.Side) })
+        {
+            if (profile is not null && _urls.TryGetValue(view, out var url))
+            {
+                <PhotoOverlay Url="@url" Profile="profile" KeyLevels="KeyLevels(_session.Sex)"
+                              Model="@(_fit is null ? null : view == "side" ? _fit.Side : _fit.Front)"
+                              Blur="_privacy.Blur" Watermark="@(_privacy.Watermark ? "личное фото · не пересылать" : null)"
+                              Caption="@(view == "side" ? "Сбоку" : "Спереди")" />
+            }
+        }
+    </div>
+    @if (_state is State.Done)
+    {
+        <table class="changes kv" style="margin-top: 10px">
+            <tbody>
+                @foreach (var g in PhotoGirths.Girths)
+                {
+                    <tr>
+                        <td>@(g == Girth.Waist ? "Талия" : "Бёдра") по фото</td>
+                        <td>@(GirthOf(g, a) is PhotoGirthEstimate e ? $"{Fmt.N(e.GirthCm, 0)} ± {Fmt.N(e.RmseCm, 1)} см" : "—")</td>
+                    </tr>
+                }
+                @if (_fit is PhotoFitResult f)
+                {
+                    <tr><td>Силуэт модели и фото</td><td>расходились на @Fmt.N(f.ErrorBeforeCm, 1)&nbsp;см, теперь @Fmt.N(f.ErrorAfterCm, 1)&nbsp;см</td></tr>
+                }
+            </tbody>
+        </table>
+        <div class="note" style="margin-top: 8px">
+            Оранжевый пунктир — края модели после подгонки. Обхваты по фото — оценка (± — средняя ошибка формулы);
+            насколько она точна для вас, покажет сравнение с лентой. «—» — уровень не найден на снимке.
+        </div>
+        @if (_error is not null)
+        {
+            <div class="hint" role="alert" style="margin-top: 10px">@_error</div>
+        }
+    }
+}
+
+@code {
+    /// <summary>Тело на момент съёмки: замеры для разбора (рост — масштаб) и для подгонки.</summary>
+    [Parameter, EditorRequired] public BodyProfile Body { get; set; } = default!;
+    /// <summary>Модель MakeHuman для подгонки; null — ещё загружается (подгонки не будет).</summary>
+    [Parameter] public MakeHumanModel? Model { get; set; }
+    [Parameter] public EventCallback<PhotoOutcome> OnResult { get; set; }
+
+    private enum State { Pick, Saving, Analyzing, Fitting, Done, Error }
+
+    private static readonly (string View, string Title)[] Views = [("front", "Фото спереди"), ("side", "Фото сбоку")];
+    private static int _instances;
+    private readonly int _n = Interlocked.Increment(ref _instances);
+    private readonly Dictionary<string, string> _picked = [];
+    private readonly Dictionary<string, string> _urls = [];
+    private readonly PhotoPrivacy _privacy = ProfileStorage.LoadPrivacy();
+    private State _state = State.Pick;
+    private PhotoSession? _session;
+    private PhotoFitResult? _fit;
+    private int _builds;
+    private string? _error;
+
+    private string InputId(string view) => $"pc{_n}-{view}";
+
+    private void Picked(string view, ChangeEventArgs e)
+    {
+        string? path = e.Value?.ToString();
+        if (string.IsNullOrEmpty(path)) _picked.Remove(view);
+        else _picked[view] = path[(path.LastIndexOfAny(['\\', '/']) + 1)..];
+    }
+
+    private async Task Shoot()
+    {
+        _error = null;
+        try
+        {
+            var session = await Capture.Run(Body);
+            if (session is not null) await Process(session);
+        }
+        catch (JSException e)
+        {
+            Fail(JsError(e));
+        }
+    }
+
+    private async Task Upload()
+    {
+        _error = null;
+        _state = State.Saving;
+        try
+        {
+            var session = await PhotoStore.SaveFromInputs(Body, InputId("front"), InputId("side"));
+            _picked.Clear();
+            await Process(session);
+        }
+        catch (JSException e)
+        {
+            Fail(JsError(e));
+        }
+    }
+
+    /// <summary>Разбор и подгонка; итог — родителю.</summary>
+    private async Task Process(PhotoSession session)
+    {
+        _session = session;
+        _state = State.Analyzing;
+        StateHasChanged();
+        PhotoAnalysis analysis;
+        try
+        {
+            analysis = await PhotoAnalyzer.Analyze(session);
+            foreach (string view in session.Views)
+                _urls[view] = await PhotoStore.ImageUrl(session.Id, view);
+        }
+        catch (Exception e) when (e is JSException or InvalidOperationException)
+        {
+            Fail(e is JSException js ? JsError(js) : e.Message);
+            return;
+        }
+
+        if (Model is not null && analysis.Front is not null && analysis.Side is not null)
+        {
+            _state = State.Fitting;
+            try
+            {
+                _fit = await PhotoFitter.FitAsync(Model, Body.Clone(), analysis.Front, analysis.Side, async n =>
+                {
+                    _builds = n;
+                    StateHasChanged();
+                    await Task.Delay(1);
+                });
+            }
+            catch (InvalidOperationException e)
+            {
+                _error = $"Подогнать модель не удалось: {e.Message}";
+            }
+        }
+        else if (analysis.Front is null || analysis.Side is null)
+        {
+            _error = "Для подгонки осанки и формы нужны оба снимка — спереди и сбоку.";
+        }
+        _state = State.Done;
+        await OnResult.InvokeAsync(new PhotoOutcome(session.Id,
+            GirthOf(Girth.Waist, analysis)?.GirthCm, GirthOf(Girth.Hips, analysis)?.GirthCm, _fit?.Posture, _fit?.Form));
+    }
+
+    private PhotoGirthEstimate? GirthOf(Girth g, PhotoAnalysis a) =>
+        a.Front is not null && a.Side is not null ? PhotoGirths.Estimate(g, Body.Sex, a.Front, a.Side) : null;
+
+    private void Fail(string message)
+    {
+        _error = message;
+        _state = State.Error;
+    }
+
+    private static IReadOnlyList<(string Name, double Fraction)> KeyLevels(Sex sex) =>
+    [
+        ("Грудь", WorkoutCalculator.BodyModel.Anthropometry.Proportions.ChestHeight(sex)),
+        ("Талия", WorkoutCalculator.BodyModel.Anthropometry.Proportions.WaistHeight(sex)),
+        ("Бёдра", WorkoutCalculator.BodyModel.Anthropometry.Proportions.HipsGirthHeight(sex)),
+    ];
+
+    private static string JsError(JSException e) =>
+        e.Message.StartsWith("Error: ", StringComparison.Ordinal) ? e.Message["Error: ".Length..] : e.Message;
+
+    public void Dispose()
+    {
+        foreach (string url in _urls.Values) PhotoStore.RevokeUrl(url);
+    }
+}

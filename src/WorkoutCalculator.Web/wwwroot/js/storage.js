@@ -17,6 +17,14 @@ export function setItem(key, value) {
     }
 }
 
+export function removeItem(key) {
+    try {
+        localStorage.removeItem(key);
+    } catch {
+        // запрещено — не страшно
+    }
+}
+
 /** Страница открыта по HTTPS или на localhost: без этого браузер не даёт ни камеру, ни шифрование. */
 export function isSecure() {
     return !!globalThis.isSecureContext;

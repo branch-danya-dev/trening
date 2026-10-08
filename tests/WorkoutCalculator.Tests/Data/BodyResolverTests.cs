@@ -97,3 +97,37 @@ public class BodyResolverTests
     [Fact]
     public void NoWeight_NoModel() => Assert.Null(BodyResolver.At(Man, [Entry()], Day));
 }
+
+/// <summary>Запись по фото: лента того же дня важнее, более старую ленту фото заменяет.</summary>
+public class PhotoEntryTests
+{
+    private static readonly DateOnly Day = new(2026, 10, 8);
+
+    private static BodyEntry Tape(DateOnly date, double waist) => new()
+    {
+        Id = $"t{date:dd}", ProfileId = "p", Date = date, WaistCm = waist, WeightKg = 80,
+        RecordedAt = new DateTimeOffset(date.ToDateTime(new TimeOnly(9, 0)), TimeSpan.Zero),
+    };
+
+    [Fact]
+    public void TapeSameDay_Kept_OldTape_ReplacedByPhoto()
+    {
+        var at = new DateTimeOffset(Day.ToDateTime(new TimeOnly(12, 0)), TimeSpan.Zero);
+        var sameDay = BodyEntries.FromPhotos("f", "p", Day, at, "s", 88.04, 101.26, new Posture(Lordosis: 7), null, [Tape(Day, 86)]);
+        Assert.Null(sameDay.WaistCm);                 // лентой мерили сегодня
+        Assert.Equal(101.3, sameDay.HipsCm);         // бёдра лентой не мерили
+        Assert.Equal(7, sameDay.Posture!.Lordosis);
+        Assert.Equal(EntrySource.Photo, sameDay.Source);
+        Assert.Equal("s", sameDay.PhotoSessionId);
+
+        var later = BodyEntries.FromPhotos("f", "p", Day, at, "s", 88.04, null, null, null, [Tape(Day.AddDays(-30), 86)]);
+        Assert.Equal(88.0, later.WaistCm);           // лента месяц назад — фото сегодня новее
+
+        // Вместе: талия сегодня — лентой, бёдра — по фото
+        var r = BodyResolver.At(new Profile { Id = "p", Sex = Sex.Male, BirthDate = new DateOnly(1990, 1, 1), HeightCm = 180 },
+            [Tape(Day, 86), sameDay], Day)!;
+        Assert.Equal(86, r.Body.WaistCm);
+        Assert.Equal(101.3, r.Body.HipsCm);
+        Assert.Equal(EntrySource.Photo, r.Origin(BodyField.Hips).Source);
+    }
+}

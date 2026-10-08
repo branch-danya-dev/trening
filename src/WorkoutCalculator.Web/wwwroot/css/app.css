@@ -958,6 +958,35 @@ table.changes tr.dim td { opacity: 0.5; }
     text-align: center;
     pointer-events: none;
 }
+/* Мастер создания профиля: без навигации; приветствие и «О вас» — на весь экран */
+.main-app.onboarding .sections, .main-app.onboarding .bottom-nav { display: none; }
+.main-app.ob-full .viewport { display: none; }
+.main-app.ob-full .main { grid-template-columns: minmax(0, 1fr); }
+.main-app.ob-full .model-panel { border-left: none; }
+.main-app.ob-full .model-panel .panel-body { max-width: 560px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+.welcome { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 28px 22px; }
+.welcome h1 { margin: 6px 0 0; font-size: 24px; }
+.welcome p { margin: 0; color: var(--muted); line-height: 1.5; }
+.welcome .note { color: var(--faint); }
+.welcome-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 18px var(--accent); }
+.btn.big { padding: 10px 18px; font-size: 15px; margin-top: 8px; }
+.buttons-right { display: inline-flex; align-items: center; gap: 14px; }
+.form-field .label { color: var(--muted); font-size: 12.5px; }
+.check.radio { display: flex; }
+.estimate { margin: 8px 0 0 24px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.estimate b { color: var(--text); }
+.progress-line { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; padding: 6px 0; }
+.spinner {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
 table.summary td.origin { color: var(--faint); font-size: 12px; text-align: right; white-space: nowrap; }
 table.summary td:nth-child(2) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .note.about { padding: 0 4px; }
@@ -1020,6 +1049,8 @@ table.summary td:nth-child(2) { text-align: right; white-space: nowrap; font-var
     }
     .bottom-nav button.on { color: var(--text); border-top-color: var(--accent); }
     .main-app .page { padding: 14px 12px 24px; }
+    .main-app.onboarding { grid-template-rows: auto minmax(0, 1fr); }
+    .main-app.ob-full .main { grid-template-rows: minmax(0, 1fr); }
     .tabs button { padding: 8px 10px 10px; white-space: nowrap; }
     /* 16px: при меньшем шрифте iOS увеличивает страницу, когда поле получает фокус */
     input, select, textarea, .pin-input, .weight-input, .date-input, .report { font-size: 16px; }

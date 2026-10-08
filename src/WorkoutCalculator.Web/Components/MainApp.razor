@@ -6,7 +6,7 @@
 @inject AppData Data
 @implements IDisposable
 
-<div class="app main-app on-@(_section.ToString().ToLowerInvariant())">
+<div class="app main-app on-@(_section.ToString().ToLowerInvariant()) @(_onboarding ? "onboarding" : null) @(_onboarding && _onboardingFull ? "ob-full" : null)">
     <header class="topbar">
         <span class="brand-dot"></span>
         <span class="brand">Тренировки и тело</span>
@@ -52,12 +52,9 @@
                 {
                     <div class="hint">@error</div>
                 }
-                else if (Data.Profile is null)
+                else if (_onboarding)
                 {
-                    <div class="card">
-                        <div class="card-title">Профиль не создан</div>
-                        <div class="note">Создайте профиль — по нему строится модель тела и считаются тренировки.</div>
-                    </div>
+                    <Onboarding Scene="_scene" OnFullScreen="full => _onboardingFull = full" OnFinished="() => _onboarding = false" />
                 }
                 else if (_body is ResolvedBody body)
                 {
@@ -142,8 +139,17 @@
 
     public void Dispose() => Data.Changed -= OnDataChanged;
 
+    /// <summary>Мастер создания профиля: профиля нет или мастер не закончен.</summary>
+    private bool _onboarding, _onboardingFull, _onboardingChecked;
+
     private void OnDataChanged()
     {
+        if (Data.Loaded && !_onboardingChecked)
+        {
+            _onboardingChecked = true;
+            _onboarding = Data.LoadError is null && (Data.Profile is null || Onboarding.InProgress);
+            _onboardingFull = _onboarding;
+        }
         UpdateModel();
         _ = InvokeAsync(StateHasChanged);
     }

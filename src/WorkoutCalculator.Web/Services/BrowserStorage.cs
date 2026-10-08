@@ -19,6 +19,9 @@ public static partial class BrowserStorage
     [JSImport("setItem", Module)]
     public static partial void SetItem(string key, string value);
 
+    [JSImport("removeItem", Module)]
+    public static partial void RemoveItem(string key);
+
     /// <summary>HTTPS или localhost: без этого браузер не даёт камеру и шифрование.</summary>
     [JSImport("isSecure", Module)]
     public static partial bool IsSecure();

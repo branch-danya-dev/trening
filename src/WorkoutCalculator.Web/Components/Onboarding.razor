@@ -1,0 +1,408 @@
+@* Создание профиля при первом запуске: приветствие → основное → обхваты лентой → % жира → фото → готово.
+   Введённое сохраняется на каждом шаге (профиль и первая запись замеров — сразу в базу, номер шага —
+   в localStorage), поэтому после перезагрузки мастер продолжается с того же места. Обхваты, % жира и фото
+   можно пропустить: недостающее оценивается и подписывается как оценка. *@
+@using WorkoutCalculator.Data
+@using WorkoutCalculator.BodyModel.Anthropometry
+@inject AppData Data
+
+<div class="wizard-head" aria-live="polite">
+    @if (_step is > Step.Welcome and < Step.Done)
+    {
+        <span>Шаг @((int)_step) из 4 · @StepName</span>
+        <div class="wizard-progress" aria-hidden="true">
+            @for (int i = 1; i <= 4; i++)
+            {
+                <i class="@Css.On(i <= (int)_step)"></i>
+            }
+        </div>
+    }
+</div>
+
+@switch (_step)
+{
+    case Step.Welcome:
+        <div class="card welcome">
+            <div class="welcome-dot"></div>
+            <h1>Тренировки и тело</h1>
+            <p>
+                Модель вашего тела по замерам и фото — с историей по датам — и расход калорий на тренировках.
+                Всё хранится только на этом устройстве.
+            </p>
+            <p class="note">
+                Понадобятся пол, дата рождения, рост и вес. Обхваты лентой и фото можно добавить сейчас или позже —
+                без них модель строится по средним пропорциям.
+            </p>
+            <button class="btn primary big" @onclick="() => Go(Step.Basics)">Создать профиль</button>
+        </div>
+        break;
+
+    case Step.Basics:
+        <div class="card">
+            <div class="card-title">О вас</div>
+            <div class="form-field">
+                <span class="label">Пол</span>
+                <div class="seg" role="group" aria-label="Пол">
+                    <button class="@Css.On(_sex == Sex.Male)" @onclick="() => _sex = Sex.Male">Мужской</button>
+                    <button class="@Css.On(_sex == Sex.Female)" @onclick="() => _sex = Sex.Female">Женский</button>
+                </div>
+            </div>
+            <div class="form-grid two" style="margin-top: 12px">
+                <div class="form-field">
+                    <label for="ob-birth">Дата рождения</label>
+                    <input id="ob-birth" class="text-input @Invalid("ob-birth")" type="date" value="@_birth"
+                           max="@Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" @onchange="e => _birth = e.Value?.ToString() ?? string.Empty" />
+                </div>
+                <div class="form-field">
+                    <label for="ob-height">Рост, см</label>
+                    <input id="ob-height" class="text-input @Invalid("ob-height")" type="text" inputmode="decimal" autocomplete="off"
+                           @bind="_height" @bind:event="oninput" />
+                </div>
+                <div class="form-field">
+                    <label for="ob-weight">Вес, кг</label>
+                    <input id="ob-weight" class="text-input @Invalid("ob-weight")" type="text" inputmode="decimal" autocomplete="off"
+                           @bind="_weight" @bind:event="oninput" />
+                </div>
+                <div class="form-field">
+                    <label for="ob-name">Имя</label>
+                    <input id="ob-name" class="text-input" type="text" autocomplete="off" placeholder="необязательно" maxlength="40"
+                           @bind="_name" @bind:event="oninput" />
+                </div>
+            </div>
+            @Error
+        </div>
+        <div class="wizard-buttons">
+            <button class="btn" @onclick="() => Go(Step.Welcome)">Назад</button>
+            <button class="btn primary" @onclick="SaveBasics">Далее</button>
+        </div>
+        break;
+
+    case Step.Tape:
+        <div class="card">
+            <div class="card-title">Обхваты лентой</div>
+            <div class="note" style="margin-bottom: 10px">
+                Можно пропустить — тогда обхваты оцениваются по росту, весу и возрасту (данные ANSUR II), с ошибкой
+                в несколько сантиметров. Где мерить — лента на модели подсвечивается, когда поле в фокусе.
+                Лента горизонтально, вплотную, но не сдавливая; на выдохе.
+            </div>
+            <div class="form-grid two">
+                @foreach (var g in Enum.GetValues<Girth>())
+                {
+                    var girth = g;
+                    string id = $"ob-{g.ToString().ToLowerInvariant()}";
+                    <div class="form-field">
+                        <label for="@id">@BodyProfile.GirthName(g), см</label>
+                        <input id="@id" class="text-input @Invalid(id)" type="text" inputmode="decimal" autocomplete="off"
+                               placeholder="@Placeholder(g)" value="@_girths.GetValueOrDefault(g)"
+                               @oninput="e => _girths[girth] = e.Value?.ToString() ?? string.Empty"
+                               @onfocus="() => Scene.Highlight(girth)" @onblur="() => Scene.Highlight(null)" />
+                    </div>
+                }
+            </div>
+            @Error
+        </div>
+        <div class="wizard-buttons">
+            <button class="btn" @onclick="() => Go(Step.Basics)">Назад</button>
+            <span class="buttons-right">
+                <button class="btn-link muted" @onclick="SkipTape">Пропустить</button>
+                <button class="btn primary" @onclick="SaveTape">Далее</button>
+            </span>
+        </div>
+        break;
+
+    case Step.Fat:
+        <div class="card">
+            <div class="card-title">Процент жира</div>
+            <label class="check radio">
+                <input type="radio" name="fat" checked="@_fatKnown" @onchange="() => _fatKnown = true" />
+                Знаю — с весов с анализатором или другого измерения
+            </label>
+            @if (_fatKnown)
+            {
+                <div class="form-grid two" style="margin: 8px 0 4px">
+                    <div class="form-field">
+                        <label for="ob-fat">% жира</label>
+                        <input id="ob-fat" class="text-input @Invalid("ob-fat")" type="text" inputmode="decimal" autocomplete="off"
+                               @bind="_fat" @bind:event="oninput" />
+                    </div>
+                </div>
+            }
+            <label class="check radio" style="margin-top: 8px">
+                <input type="radio" name="fat" checked="@(!_fatKnown)" @onchange="() => _fatKnown = false" />
+                Не знаю — оценить
+            </label>
+            @if (!_fatKnown && Estimate() is (double value, FatSource source))
+            {
+                <div class="estimate">
+                    <b>≈&nbsp;@Fmt.N(value, 1)&nbsp;%</b> — это оценка.
+                    @(source == FatSource.Navy
+                        ? "Формула ВМС США по шее, талии" + (_sexOfProfile == Sex.Female ? " и бёдрам" : "") + " и росту; ошибка около 3–4 %."
+                        : "По ИМТ, возрасту и полу (Deurenberg, 1991); ошибка около 4 %, мышечным людям завышает. Точнее — по шее и талии на предыдущем шаге.")
+                </div>
+            }
+            @Error
+        </div>
+        <div class="wizard-buttons">
+            <button class="btn" @onclick="() => Go(Step.Tape)">Назад</button>
+            <button class="btn primary" @onclick="SaveFat">Далее</button>
+        </div>
+        break;
+
+    case Step.Photos:
+        <div class="card">
+            <div class="card-title">Фото спереди и сбоку</div>
+            <div class="note" style="margin-bottom: 10px">
+                Можно пропустить. По фото подбираются осанка и форма модели (как распределён объём при тех же
+                обхватах), а талия и бёдра оцениваются по силуэту, если их не мерили лентой. Снимки остаются
+                на этом устройстве. Насколько подгонка похожа на вас — проверьте глазами.
+            </div>
+            @if (Current is ResolvedBody body)
+            {
+                <PhotoCapture Body="body.Body" Model="Scene.MakeHuman" OnResult="SavePhotos" />
+            }
+            @if (_photoSaved)
+            {
+                <div class="ok" style="margin-top: 10px">Фото сохранены, модель обновлена.</div>
+            }
+        </div>
+        <div class="wizard-buttons">
+            <button class="btn" @onclick="() => Go(Step.Fat)">Назад</button>
+            <span class="buttons-right">
+                @if (!_photoSaved)
+                {
+                    <button class="btn-link muted" @onclick="() => Go(Step.Done)">Пропустить</button>
+                }
+                <button class="btn primary" disabled="@(!_photoSaved)" @onclick="() => Go(Step.Done)">Далее</button>
+            </span>
+        </div>
+        break;
+
+    default:
+        <div class="card">
+            <div class="card-title">Готово</div>
+            <div class="note">
+                Это ваша модель на сегодня. Чтобы поменять замер, нажмите на тело — откроются параметры. Новые замеры
+                сохраняются по датам, и модель можно будет листать по истории.
+            </div>
+        </div>
+        @if (Current is ResolvedBody done)
+        {
+            <BodySummary Body="done" Date="Today" />
+        }
+        <div class="wizard-buttons">
+            <button class="btn" @onclick="() => Go(Step.Photos)">Назад</button>
+            <button class="btn primary" @onclick="Finish">Перейти к модели</button>
+        </div>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public BodyScene Scene { get; set; } = default!;
+    /// <summary>Шаг сменился: родителю — показать мастер на весь экран (до модели) или рядом с моделью.</summary>
+    [Parameter] public EventCallback<bool> OnFullScreen { get; set; }
+    [Parameter] public EventCallback OnFinished { get; set; }
+
+    private enum Step { Welcome, Basics, Tape, Fat, Photos, Done }
+
+    private const string StateKey = "workoutcalc.onboarding.v1";
+
+    /// <summary>Мастер не закончен (в localStorage — шаг и id первой записи).</summary>
+    public static bool InProgress => BrowserStorage.GetItem(StateKey) is not null;
+
+    private Step _step = Step.Welcome;
+    private string? _entryId;
+    private (string Field, string Message)? _error;
+
+    private string _name = "", _birth = "", _height = "", _weight = "", _fat = "";
+    private Sex _sex = Sex.Male;
+    private readonly Dictionary<Girth, string> _girths = [];
+    private bool _fatKnown;
+    private bool _photoSaved;
+
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+
+    private string StepName => _step switch
+    {
+        Step.Basics => "о вас",
+        Step.Tape => "обхваты",
+        Step.Fat => "% жира",
+        _ => "фото",
+    };
+
+    private Sex _sexOfProfile => Data.Profile?.Sex ?? _sex;
+
+    private BodyEntry? Entry => _entryId is null ? null : Data.Entries.FirstOrDefault(e => e.Id == _entryId);
+
+    private ResolvedBody? Current => Data.Profile is Profile p ? BodyResolver.At(p, Data.Entries, Today) : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Продолжить с того же места: «шаг|id записи»
+        if (BrowserStorage.GetItem(StateKey) is string saved && saved.Split('|') is [var step, var entry]
+            && int.TryParse(step, out int n) && Enum.IsDefined((Step)n))
+        {
+            _step = (Step)n;
+            _entryId = entry.Length > 0 ? entry : null;
+        }
+        if (Data.Profile is Profile p)
+        {
+            _name = p.Name ?? "";
+            _sex = p.Sex;
+            _birth = p.BirthDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            _height = Fmt.N(p.HeightCm, 0);
+        }
+        if (Entry is BodyEntry e)
+        {
+            if (e.WeightKg is double w) _weight = Fmt.N(w, 1);
+            foreach (var g in Enum.GetValues<Girth>())
+                if (e.GetGirth(g) is double cm) _girths[g] = Fmt.N(cm, 1);
+            _fatKnown = e.FatSource == FatSource.Scale;
+            if (_fatKnown && e.BodyFatPercent is double f) _fat = Fmt.N(f, 1);
+        }
+        _photoSaved = Data.Entries.Any(e => e.Source == EntrySource.Photo);
+        await Enter(_step);
+    }
+
+    private async Task Go(Step step)
+    {
+        _error = null;
+        _step = step;
+        BrowserStorage.SetItem(StateKey, $"{(int)step}|{_entryId}");
+        await Enter(step);
+    }
+
+    private async Task Enter(Step step)
+    {
+        Scene.ShowTapes(step == Step.Tape);
+        if (step != Step.Tape) Scene.Highlight(null);
+        await OnFullScreen.InvokeAsync(step is Step.Welcome or Step.Basics);
+    }
+
+    private RenderFragment Error => @<text>
+        @if (_error is { } error)
+        {
+            <div class="hint" role="alert" style="margin-top: 10px">@error.Message</div>
+        }
+    </text>;
+
+    private string? Invalid(string id) => _error?.Field == id ? "invalid" : null;
+
+    private bool Fail(string field, string message)
+    {
+        _error = (field, message);
+        BrowserStorage.FocusById(field);
+        return false;
+    }
+
+    private bool Number(string text, string field, string name, double min, double max, out double value) =>
+        InputParser.TryParseNumber(text, out value) && value >= min && value <= max
+        || Fail(field, string.IsNullOrWhiteSpace(text) ? $"{name}: заполните поле." : $"{name}: введите число от {Fmt.N(min)} до {Fmt.N(max)}.");
+
+    private async Task SaveBasics()
+    {
+        _error = null;
+        if (!DateOnly.TryParseExact(_birth, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var birth)
+            || Ages.On(birth, Today) is < 10 or > 100)
+        {
+            Fail("ob-birth", string.IsNullOrEmpty(_birth) ? "Дата рождения: выберите дату." : "Дата рождения: возраст должен быть от 10 до 100 лет.");
+            return;
+        }
+        if (!Number(_height, "ob-height", "Рост", 100, 250, out double height)) return;
+        if (!Number(_weight, "ob-weight", "Вес", 30, 300, out double weight)) return;
+
+        var profile = Data.Profile ?? new Profile { Id = AppData.NewId(), CreatedAt = DateTimeOffset.Now };
+        profile.Name = string.IsNullOrWhiteSpace(_name) ? null : _name.Trim();
+        profile.Sex = _sex;
+        profile.BirthDate = birth;
+        profile.BirthDateApproximate = false;
+        profile.HeightCm = Math.Round(height, 1);
+        await Data.SaveProfile(profile);
+
+        var entry = Entry?.Clone() ?? new BodyEntry { Id = AppData.NewId(), ProfileId = profile.Id, Date = Today, Source = EntrySource.Manual };
+        entry.WeightKg = Math.Round(weight, 1);
+        entry.RecordedAt = DateTimeOffset.Now;
+        _entryId = entry.Id;
+        await Data.SaveEntry(entry);
+        await Go(Step.Tape);
+    }
+
+    private static string Placeholder(Girth g) => g is Girth.Neck or Girth.Calf or Girth.Wrist ? "необязательно" : "";
+
+    private async Task SaveTape()
+    {
+        _error = null;
+        if (Entry?.Clone() is not BodyEntry entry) return;
+        foreach (var g in Enum.GetValues<Girth>())
+        {
+            string text = _girths.GetValueOrDefault(g) ?? "";
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                entry.SetGirth(g, null);
+                continue;
+            }
+            if (!Number(text, $"ob-{g.ToString().ToLowerInvariant()}", BodyProfile.GirthName(g), 10, 250, out double cm)) return;
+            entry.SetGirth(g, Math.Round(cm, 1));
+        }
+        entry.RecordedAt = DateTimeOffset.Now;
+        await Data.SaveEntry(entry);
+        await Go(Step.Fat);
+    }
+
+    private async Task SkipTape()
+    {
+        _girths.Clear();
+        if (Entry?.Clone() is BodyEntry entry)
+        {
+            foreach (var g in Enum.GetValues<Girth>()) entry.SetGirth(g, null);
+            await Data.SaveEntry(entry);
+        }
+        await Go(Step.Fat);
+    }
+
+    /// <summary>Оценка % жира по уже введённому: ВМС, если есть шея и талия (у женщин и бёдра), иначе по ИМТ.</summary>
+    private (double Value, FatSource Source)? Estimate()
+    {
+        if (Data.Profile is not Profile p || Entry?.Clone() is not BodyEntry entry) return null;
+        entry.BodyFatPercent = null;
+        entry.FatSource = null;
+        var others = Data.Entries.Where(e => e.Id != entry.Id).Append(entry);
+        return BodyResolver.At(p, others, Today) is ResolvedBody r && r.FatSource is FatSource s ? (r.Body.BodyFatPercent, s) : null;
+    }
+
+    private async Task SaveFat()
+    {
+        _error = null;
+        if (Entry?.Clone() is not BodyEntry entry) return;
+        if (_fatKnown)
+        {
+            if (!Number(_fat, "ob-fat", "% жира", 3, 60, out double fat)) return;
+            entry.BodyFatPercent = Math.Round(fat, 1);
+            entry.FatSource = FatSource.Scale;
+        }
+        else if (Estimate() is (double value, FatSource source))
+        {
+            entry.BodyFatPercent = Math.Round(value, 1);
+            entry.FatSource = source;
+        }
+        entry.RecordedAt = DateTimeOffset.Now;
+        await Data.SaveEntry(entry);
+        await Go(Step.Photos);
+    }
+
+    private async Task SavePhotos(PhotoOutcome outcome)
+    {
+        if (Data.Profile is not Profile p) return;
+        var photo = BodyEntries.FromPhotos(AppData.NewId(), p.Id, Today, DateTimeOffset.Now, outcome.SessionId,
+            outcome.WaistCm, outcome.HipsCm, outcome.Posture, outcome.Form, Data.Entries);
+        await Data.SaveEntry(photo);
+        _photoSaved = true;
+    }
+
+    private async Task Finish()
+    {
+        BrowserStorage.RemoveItem(StateKey);
+        Scene.ShowTapes(false);
+        await OnFullScreen.InvokeAsync(false);
+        await OnFinished.InvokeAsync();
+    }
+}
