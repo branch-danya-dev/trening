@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\WorkoutCalculator.Core\WorkoutCalculator.Core.csproj" />
     <ProjectReference Include="..\..\src\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj" />
+    <ProjectReference Include="..\..\src\WorkoutCalculator.Data\WorkoutCalculator.Data.csproj" />
   </ItemGroup>
 
 </Project>

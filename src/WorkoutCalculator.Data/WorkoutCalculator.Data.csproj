@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Данные приложения без интерфейса: профиль, записи замеров с историей по датам, тренировки, дни
+    активности, миграция старых данных и формат резервной копии. Отдельно от Web — чтобы покрыть тестами.
+  -->
+  <PropertyGroup>
+    <RootNamespace>WorkoutCalculator.Data</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorkoutCalculator.Core\WorkoutCalculator.Core.csproj" />
+    <ProjectReference Include="..\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj" />
+  </ItemGroup>
+
+</Project>
