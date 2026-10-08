@@ -838,6 +838,69 @@ details summary { cursor: pointer; }
 
 .chart svg { width: 100%; height: auto; display: block; }
 
+/* ---------- Тренировка: мастер расчёта ---------- */
+
+.wizard-head { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 12.5px; }
+.wizard-progress { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.wizard-progress i { height: 4px; border-radius: 2px; background: var(--border-strong); }
+.wizard-progress i.on { background: var(--accent); }
+.wizard-buttons { display: flex; justify-content: space-between; gap: 10px; }
+
+.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--card-2);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.choice span { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.choice.on { border-color: var(--accent); background: var(--accent-dim); }
+.choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.form-grid { display: grid; gap: 10px 12px; }
+.form-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.form-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.form-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.form-field label { color: var(--muted); font-size: 12.5px; }
+.form-field .select { width: 100%; }
+.text-input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 7px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--card-2);
+    color: var(--text);
+    font: inherit;
+}
+.text-input::placeholder { color: var(--faint); }
+.text-input:focus { outline: none; border-color: var(--accent); }
+.text-input.invalid { border-color: var(--warn); }
+
+.segments { display: flex; flex-direction: column; gap: 6px; }
+.segment-head, .segment-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 28px; gap: 8px; align-items: center; }
+.segment-head span { color: var(--muted); font-size: 12px; }
+.segments .remove { font-size: 18px; line-height: 1; justify-self: center; }
+.segments > .btn-link { align-self: flex-start; }
+
+.hero { display: flex; flex-direction: column; gap: 2px; }
+.hero-label { color: var(--muted); font-size: 12.5px; }
+.hero-value { font-size: 36px; font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.hero-value small { font-size: 16px; font-weight: 500; color: var(--muted); }
+.hero-sub { color: var(--muted); font-size: 13px; }
+.watch-line { margin-top: 10px; font-weight: 600; font-size: 13.5px; }
+table.kv td:first-child { color: var(--muted); white-space: nowrap; }
+table.kv td { text-align: left; }
+table.changes tr.dim td { opacity: 0.5; }
+
 /* ---------- Телефон и планшет ---------- */
 
 /*
@@ -868,6 +931,12 @@ details summary { cursor: pointer; }
     .view-tapes { left: 10px; bottom: 8px; }
 
     .panel-body { padding: 12px; gap: 10px; }
+    /* Тренировка: 3D-вид не нужен — панель на весь экран */
+    .app.panel-only .main { grid-template-rows: minmax(0, 1fr); }
+    .app.panel-only .viewport { display: none; }
+    .app.panel-only .panel { border-top: none; }
+    .tabs { padding: 8px 8px 0; gap: 0; overflow-x: auto; }
+    .tabs button { padding: 8px 10px 10px; white-space: nowrap; }
     /* 16px: при меньшем шрифте iOS увеличивает страницу, когда поле получает фокус */
     input, select, textarea, .pin-input, .weight-input, .date-input, .report { font-size: 16px; }
 }
@@ -880,6 +949,7 @@ details summary { cursor: pointer; }
     }
     .panel { border-top: none; border-left: 1px solid var(--border); }
     .topbar { padding: 6px 12px; }
+    .app.panel-only .main { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Пальцем: ползунки и ссылки-кнопки с запасом по высоте */

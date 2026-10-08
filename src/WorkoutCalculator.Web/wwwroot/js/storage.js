@@ -41,3 +41,10 @@ export function browserInfo() {
 export function selectText(selector) {
     document.querySelector(selector)?.select?.();
 }
+
+/** Фокус на поле по id — например, на поле с ошибкой. */
+export function focusById(id) {
+    const el = document.getElementById(id);
+    el?.focus();
+    el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+}

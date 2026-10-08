@@ -1,0 +1,408 @@
+@* Вкладка «Тренировка»: расход калорий на ходьбе и беге — мастер «тип → параметры → часы → итог».
+   Профиль общий с «Параметрами»; формулы — WorkoutCalculator.Core (ACSM, Минетти, Кейтел). Незаконченный
+   расчёт живёт на странице (WorkoutDraft) и не сбрасывается при переключении вкладок. *@
+@using System.Globalization
+
+<div class="wizard-head" aria-live="polite">
+    <span>@StepCaption</span>
+    <div class="wizard-progress" aria-hidden="true">
+        @for (int i = 0; i < 4; i++)
+        {
+            <i class="@Css.On(i <= (int)Draft.Current)"></i>
+        }
+    </div>
+</div>
+
+@switch (Draft.Current)
+{
+    case WorkoutDraft.Step.Type:
+        <div class="card">
+            <div class="card-title">Какая была тренировка?</div>
+            <div class="choice-grid">
+                @foreach (var (activity, setting, title, hint) in Kinds)
+                {
+                    bool on = Form.Activity == activity && Form.Setting == setting;
+                    <button class="choice @Css.On(on)" @onclick="() => PickKind(activity, setting)">
+                        <b>@title</b>
+                        <span>@hint</span>
+                    </button>
+                }
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">Профиль для расчёта</div>
+            <div class="volume-line" style="margin-top: 0">
+                @(Profile.Sex == Sex.Female ? "Женщина" : "Мужчина"), @Profile.Age&nbsp;@Years(Profile.Age),
+                @Fmt.N(Profile.HeightCm, 0)&nbsp;см, @Fmt.N(Profile.WeightKg, 1)&nbsp;кг — с вкладки «Параметры».
+            </div>
+            <div class="form-grid two" style="margin-top: 12px">
+                <div class="form-field">
+                    <label for="resting-hr">Пульс покоя, уд/мин</label>
+                    <input id="resting-hr" class="text-input @Invalid(RestingHrId)" type="text" inputmode="numeric" autocomplete="off"
+                           placeholder="необязательно" value="@Profile.RestingHr" @onchange="SetRestingHr" />
+                </div>
+                <div class="form-field">
+                    <label for="vo2max">VO2max, мл/кг/мин</label>
+                    <input id="vo2max" class="text-input @Invalid(Vo2MaxId)" type="text" inputmode="decimal" autocomplete="off"
+                           placeholder="необязательно" value="@(Profile.Vo2Max is double v ? Fmt.N(v, 1) : null)" @onchange="SetVo2Max" />
+                </div>
+            </div>
+            <div class="note" style="margin-top: 8px">
+                Оба значения есть в «Здоровье» → «Сердце» (VO2max там называется «Кардиофитнес»). С пульсом покоя
+                точнее нагрузка по пульсу, по VO2max калькулятор проверяет, реальна ли расчётная нагрузка.
+            </div>
+            @ErrorFor(RestingHrId, Vo2MaxId)
+        </div>
+        break;
+
+    case WorkoutDraft.Step.Params:
+        <div class="card">
+            @if (Form.Setting == Setting.Treadmill)
+            {
+                <div class="card-title">Параметры с дорожки</div>
+                @if (Form.Segments.Count == 1)
+                {
+                    <div class="form-grid three">
+                        @Field(WorkoutForm.Ids.Duration(0), "Длительность", Form.Segments[0].Duration, v => Form.Segments[0].Duration = v, "30 или 30:23", "text")
+                        @Field(WorkoutForm.Ids.Speed(0), "Скорость, км/ч", Form.Segments[0].Speed, v => Form.Segments[0].Speed = v)
+                        @Field(WorkoutForm.Ids.Incline(0), "Уклон, %", Form.Segments[0].Incline, v => Form.Segments[0].Incline = v, "0")
+                    </div>
+                }
+                else
+                {
+                    <div class="segments">
+                        <div class="segment-head"><span>Длительность</span><span>Скорость, км/ч</span><span>Уклон, %</span><span></span></div>
+                        @for (int i = 0; i < Form.Segments.Count; i++)
+                        {
+                            var s = Form.Segments[i];
+                            int n = i;
+                            <div class="segment-row">
+                                <input id="@WorkoutForm.Ids.Duration(n)" class="text-input @Invalid(WorkoutForm.Ids.Duration(n))" type="text" autocomplete="off"
+                                       aria-label="Отрезок @(n + 1): длительность" placeholder="30 или 30:23" @bind="s.Duration" @bind:event="oninput" />
+                                <input id="@WorkoutForm.Ids.Speed(n)" class="text-input @Invalid(WorkoutForm.Ids.Speed(n))" type="text" inputmode="decimal" autocomplete="off"
+                                       aria-label="Отрезок @(n + 1): скорость" @bind="s.Speed" @bind:event="oninput" />
+                                <input id="@WorkoutForm.Ids.Incline(n)" class="text-input @Invalid(WorkoutForm.Ids.Incline(n))" type="text" inputmode="decimal" autocomplete="off"
+                                       aria-label="Отрезок @(n + 1): уклон" placeholder="0" @bind="s.Incline" @bind:event="oninput" />
+                                <button class="btn-link muted remove" title="Удалить отрезок" aria-label="Удалить отрезок @(n + 1)"
+                                        @onclick="() => RemoveSegment(n)">×</button>
+                            </div>
+                        }
+                        <button class="btn-link" style="margin-top: 8px" @onclick="AddSegment">+ Отрезок</button>
+                    </div>
+                }
+                <label class="check" style="margin-top: 12px">
+                    <input type="checkbox" checked="@(Form.Segments.Count > 1)" @onchange="ToggleSegments" />
+                    Скорость или уклон менялись по ходу (например, была разминка)
+                </label>
+                @if (Form.HandrailsApply)
+                {
+                    <label class="check" style="margin-top: 8px">
+                        <input type="checkbox" checked="@Form.Handrails" @onchange="e => Form.Handrails = e.Value is true" />
+                        Держались за поручни
+                    </label>
+                }
+                <div class="form-grid two" style="margin-top: 12px">
+                    @Field(WorkoutForm.Ids.DisplayDistance, "Дистанция на табло, км", Form.DisplayDistanceKm, v => Form.DisplayDistanceKm = v, "необязательно")
+                </div>
+            }
+            else
+            {
+                <div class="card-title">Маршрут</div>
+                <div class="note" style="margin-bottom: 10px">Возьмите значения из тренировки на часах.</div>
+                <div class="form-grid two">
+                    @Field(WorkoutForm.Ids.OutdoorDistance, "Дистанция, км", Form.OutdoorDistanceKm, v => Form.OutdoorDistanceKm = v)
+                    @Field(WorkoutForm.Ids.OutdoorDuration, "Длительность", Form.OutdoorDuration, v => Form.OutdoorDuration = v, "45 или 45:30", "text")
+                    @Field(WorkoutForm.Ids.OutdoorGain, "Набор высоты, м", Form.OutdoorElevationGainM, v => Form.OutdoorElevationGainM = v, "0")
+                    <div class="form-field">
+                        <label for="terrain">Покрытие</label>
+                        <select id="terrain" class="select" value="@((int)Form.Terrain)" @onchange="e => Form.Terrain = (Terrain)int.Parse(e.Value!.ToString()!, CultureInfo.InvariantCulture)">
+                            <option value="0">Асфальт / плитка</option>
+                            <option value="1">Грунтовка</option>
+                            <option value="2">Трава</option>
+                            <option value="3">Песок</option>
+                        </select>
+                    </div>
+                </div>
+            }
+            @ErrorFor()
+        </div>
+        <div class="wizard-buttons">
+            <button class="btn" @onclick="Back">Назад</button>
+            <button class="btn primary" @onclick="Next">Далее</button>
+        </div>
+        break;
+
+    case WorkoutDraft.Step.Watch:
+        <div class="card">
+            <div class="card-title">Данные с часов</div>
+            <div class="note" style="margin-bottom: 10px">
+                Всё необязательно. Пульс добавит оценку по пульсу (Кейтел), калории — сравнение с часами.
+            </div>
+            <div class="form-grid two">
+                @Field(WorkoutForm.Ids.AvgHr, "Средний пульс, уд/мин", Form.AvgHr, v => Form.AvgHr = v, null, "numeric")
+                @Field(WorkoutForm.Ids.WatchDistance, "Дистанция по часам, км", Form.WatchDistanceKm, v => Form.WatchDistanceKm = v)
+                @Field(WorkoutForm.Ids.WatchActive, "Активные ккал", Form.WatchActiveKcal, v => Form.WatchActiveKcal = v, null, "numeric")
+                @Field(WorkoutForm.Ids.WatchTotal, "Всего ккал", Form.WatchTotalKcal, v => Form.WatchTotalKcal = v, null, "numeric")
+            </div>
+            @ErrorFor()
+        </div>
+        <div class="wizard-buttons">
+            <button class="btn" @onclick="Back">Назад</button>
+            <button class="btn primary" @onclick="Calculate">Рассчитать</button>
+        </div>
+        break;
+
+    default:
+        if (Draft.Result is CalculationResult r && Draft.Input is WorkoutInput w)
+        {
+            <div class="card">
+                <div class="card-title">@Display.WorkoutTitle(w.Activity, w.Setting)</div>
+                <div class="hero">
+                    <span class="hero-label">Активные калории, оценка</span>
+                    <span class="hero-value">@Fmt.N(r.EstimateActiveKcal)&nbsp;<small>ккал</small></span>
+                    <span class="hero-sub">
+                        Всего @Fmt.N(r.EstimateTotalKcal)&nbsp;ккал@(r.UsedMethods.Count > 1 ? $" · разброс методов {Fmt.N(r.MinActiveKcal)}–{Fmt.N(r.MaxActiveKcal)} активных" : "")
+                    </span>
+                </div>
+                @if (Display.WatchComparison(w, r) is string watch)
+                {
+                    <div class="watch-line">@watch</div>
+                }
+                <table class="changes kv" style="margin-top: 12px">
+                    <tbody>
+                        <tr><td>Длительность</td><td>@Display.Duration(r.DurationMin)</td></tr>
+                        <tr>
+                            <td>Дистанция</td>
+                            <td>
+                                @Fmt.N(r.DistanceKm, 2)&nbsp;км@(w.WatchDistanceKm is double wd ? $" (часы: {Fmt.N(wd, 2)}, {Display.Deviation(wd, r.DistanceKm)})" : "")
+                            </td>
+                        </tr>
+                        @if (r.ElevationGainM >= 1)
+                        {
+                            <tr><td>Набор высоты</td><td>@Fmt.N(r.ElevationGainM)&nbsp;м</td></tr>
+                        }
+                        <tr><td>Скорость</td><td>@Fmt.N(r.AvgSpeedKmh, 1)&nbsp;км/ч, темп @Display.Pace(r.PaceMinPerKm)&nbsp;/км</td></tr>
+                        @if (w.AvgHr is int hr)
+                        {
+                            <tr>
+                                <td>Пульс</td>
+                                <td>@hr&nbsp;уд/мин, @Fmt.N(hr / r.HrMax * 100)&nbsp;% от макс. (@Fmt.N(r.HrMax))@(r.HrReserve is double hrr ? $", {Fmt.N(hrr * 100)} % резерва" : "")</td>
+                            </tr>
+                        }
+                        <tr><td>Интенсивность</td><td>≈&nbsp;@Fmt.N(r.Mets, 1)&nbsp;МЕТ</td></tr>
+                        <tr><td>Базовый обмен</td><td>@Fmt.N(r.RestingKcal)&nbsp;ккал за это время</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <div class="card-title">Как считали</div>
+                <table class="changes">
+                    <thead><tr><th>Метод</th><th>Всего</th><th>Активные</th></tr></thead>
+                    <tbody>
+                        @foreach (var m in r.Methods)
+                        {
+                            <tr class="@(m.InEstimate ? null : "dim")">
+                                <td>@m.Name@(m.InEstimate ? "" : " *")</td>
+                                <td>@Fmt.N(m.TotalKcal)</td>
+                                <td>@Fmt.N(m.ActiveKcal)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="note" style="margin-top: 8px">
+                    @if (r.UsedMethods.Count < r.Methods.Count)
+                    {
+                        <text>* не входит в оценку — причина в примечаниях. </text>
+                    }
+                    Активные — сверх базового обмена, как у Apple Watch. Итог — среднее по методам.
+                </div>
+                @if (r.Warnings.Count > 0)
+                {
+                    <div class="hints" style="margin-top: 10px">
+                        @foreach (var warning in r.Warnings)
+                        {
+                            <div class="hint">@warning</div>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="wizard-buttons">
+                <button class="btn" @onclick="Edit">Изменить</button>
+                <button class="btn primary" @onclick="NewCalculation">Новый расчёт</button>
+            </div>
+        }
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    /// <summary>Расчёт в работе — у страницы, чтобы переживал переключение вкладок.</summary>
+    [Parameter, EditorRequired] public WorkoutDraft Draft { get; set; } = default!;
+    /// <summary>Изменение профиля (пульс покоя, VO2max): родитель применяет и сохраняет.</summary>
+    [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
+
+    private const string RestingHrId = "resting-hr", Vo2MaxId = "vo2max";
+
+    private static readonly (ActivityType Activity, Setting Setting, string Title, string Hint)[] Kinds =
+    [
+        (ActivityType.Walking, Setting.Treadmill, "Ходьба на дорожке", "Скорость и уклон с табло дорожки"),
+        (ActivityType.Running, Setting.Treadmill, "Бег на дорожке", "Скорость и уклон с табло дорожки"),
+        (ActivityType.Walking, Setting.Outdoor, "Ходьба на улице", "Дистанция и набор высоты из часов"),
+        (ActivityType.Running, Setting.Outdoor, "Бег на улице", "Дистанция и набор высоты из часов, плюс сопротивление воздуха"),
+    ];
+
+    private FormError? _error;
+
+    private WorkoutForm Form => Draft.Form;
+
+    private string StepCaption => Draft.Current switch
+    {
+        WorkoutDraft.Step.Type => "Шаг 1 из 3 · Тренировка",
+        WorkoutDraft.Step.Params => $"Шаг 2 из 3 · {Display.WorkoutTitle(Form.Activity, Form.Setting)}",
+        WorkoutDraft.Step.Watch => "Шаг 3 из 3 · Часы",
+        _ => "Итог",
+    };
+
+    private RenderFragment Field(string id, string label, string? value, Action<string?> set, string? placeholder = null, string mode = "decimal") =>
+        @<div class="form-field">
+            <label for="@id">@label</label>
+            <input id="@id" class="text-input @Invalid(id)" type="text" inputmode="@mode" autocomplete="off" placeholder="@placeholder"
+                   value="@value" aria-invalid="@(_error?.Field == id ? "true" : null)" @oninput="e => set(e.Value?.ToString())" />
+        </div>;
+
+    /// <summary>Сообщение об ошибке, если она в поле этого шага (по умолчанию — в любом).</summary>
+    private RenderFragment ErrorFor(params string[] fields) =>
+        @<text>
+            @if (_error is FormError e && (fields.Length == 0 || fields.Contains(e.Field)))
+            {
+                <div class="hint" role="alert" style="margin-top: 10px">@e.Message</div>
+            }
+        </text>;
+
+    private string? Invalid(string id) => _error?.Field == id ? "invalid" : null;
+
+    private static string Years(int n) => (n % 100) is >= 11 and <= 14 ? "лет" : (n % 10) switch { 1 => "год", 2 or 3 or 4 => "года", _ => "лет" };
+
+    private void Go(WorkoutDraft.Step step)
+    {
+        _error = null;
+        Draft.Current = step;
+    }
+
+    private void PickKind(ActivityType activity, Setting setting)
+    {
+        Form.Activity = activity;
+        Form.Setting = setting;
+        Go(WorkoutDraft.Step.Params);
+    }
+
+    private void Back() => Go(Draft.Current - 1);
+
+    private void Next()
+    {
+        if (Fail(Form.CheckParams())) return;
+        Go(WorkoutDraft.Step.Watch);
+    }
+
+    private void Calculate()
+    {
+        if (Fail(Form.CheckParams())) { Draft.Current = WorkoutDraft.Step.Params; return; }
+        if (Fail(Form.CheckWatch())) return;
+        var input = Form.ToInput();
+        Draft.Input = input;
+        Draft.Result = EnergyCalculator.Calculate(Profile.ToUserProfile(), input);
+        Go(WorkoutDraft.Step.Result);
+    }
+
+    private void Edit() => Go(WorkoutDraft.Step.Params);
+
+    private void NewCalculation()
+    {
+        Form.Clear();
+        Draft.Result = null;
+        Draft.Input = null;
+        Go(WorkoutDraft.Step.Type);
+    }
+
+    /// <summary>Ошибка — показать и перевести фокус на поле (после отрисовки).</summary>
+    private bool Fail(FormError? error)
+    {
+        _error = error;
+        if (error is not null) _focus = error.Field;
+        return error is not null;
+    }
+
+    private string? _focus;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_focus is null) return;
+        BrowserStorage.FocusById(_focus);
+        _focus = null;
+    }
+
+    private void ToggleSegments(ChangeEventArgs e)
+    {
+        _error = null;
+        if (e.Value is true)
+        {
+            // Уже введённое становится первым отрезком
+            if (Form.Segments.Count == 1) Form.Segments.Add(new SegmentFields());
+            _focus = WorkoutForm.Ids.Duration(1);
+        }
+        else
+        {
+            Form.Segments.RemoveRange(1, Form.Segments.Count - 1);
+        }
+    }
+
+    private void AddSegment()
+    {
+        Form.Segments.Add(new SegmentFields());
+        _focus = WorkoutForm.Ids.Duration(Form.Segments.Count - 1);
+    }
+
+    private void RemoveSegment(int i)
+    {
+        _error = null;
+        if (Form.Segments.Count > 1) Form.Segments.RemoveAt(i);
+    }
+
+    private async Task SetRestingHr(ChangeEventArgs e)
+    {
+        string? text = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            _error = null;
+            await OnChange.InvokeAsync(p => p.RestingHr = null);
+        }
+        else if (InputParser.TryParseNumber(text, out double v) && v is >= 30 and <= 120)
+        {
+            _error = null;
+            await OnChange.InvokeAsync(p => p.RestingHr = (int)Math.Round(v));
+        }
+        else
+        {
+            _error = new FormError(RestingHrId, "Пульс покоя: введите число от 30 до 120 или оставьте поле пустым.");
+        }
+    }
+
+    private async Task SetVo2Max(ChangeEventArgs e)
+    {
+        string? text = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            _error = null;
+            await OnChange.InvokeAsync(p => p.Vo2Max = null);
+        }
+        else if (InputParser.TryParseNumber(text, out double v) && v is >= 10 and <= 90)
+        {
+            _error = null;
+            await OnChange.InvokeAsync(p => p.Vo2Max = Math.Round(v, 1));
+        }
+        else
+        {
+            _error = new FormError(Vo2MaxId, "VO2max: введите число от 10 до 90 или оставьте поле пустым.");
+        }
+    }
+}

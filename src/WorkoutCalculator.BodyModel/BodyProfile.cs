@@ -6,8 +6,8 @@ namespace WorkoutCalculator.BodyModel;
 public enum Girth { Chest, Waist, Hips, Biceps, Thigh, Neck, Calf, Wrist }
 
 /// <summary>
-/// Замеры человека для построения манекена. Поля пола, возраста, роста и веса названы так же,
-/// как в <see cref="UserProfile"/>, поэтому сохранённый JSON читается и как профиль калькулятора.
+/// Замеры человека: для модели тела, прогноза и расчёта тренировок. Поля пола, возраста, роста, веса,
+/// пульса покоя и VO2max названы так же, как в <see cref="UserProfile"/>.
 /// </summary>
 public sealed class BodyProfile
 {
@@ -16,6 +16,12 @@ public sealed class BodyProfile
     public double HeightCm { get; set; }
     public double WeightKg { get; set; }
     public double BodyFatPercent { get; set; }
+
+    /// <summary>Пульс покоя, уд/мин — для расчёта тренировок (резерв пульса). Необязательно.</summary>
+    public int? RestingHr { get; set; }
+
+    /// <summary>VO2max, мл/кг/мин — калькулятор проверяет по нему, реальна ли нагрузка. Необязательно.</summary>
+    public double? Vo2Max { get; set; }
 
     /// <summary>Грудь: по сосковой линии, руки опущены.</summary>
     public double ChestCm { get; set; }
@@ -95,6 +101,8 @@ public sealed class BodyProfile
         Age = Age,
         HeightCm = HeightCm,
         WeightKg = WeightKg,
+        RestingHr = RestingHr,
+        Vo2Max = Vo2Max,
     };
 
     public static string GirthName(Girth g) => g switch

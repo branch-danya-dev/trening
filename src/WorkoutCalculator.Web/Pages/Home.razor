@@ -4,7 +4,7 @@
 @using WorkoutCalculator.BodyModel.Photos
 @inject HttpClient Http
 
-<div class="app">
+<div class="app @(_tab == Tab.Workout ? "panel-only" : null)">
     <header class="topbar">
         <span class="brand-dot"></span>
         <span class="brand">Модель тела</span>
@@ -100,6 +100,8 @@
             <nav class="tabs" role="tablist">
                 <button role="tab" aria-selected="@(_tab == Tab.Params ? "true" : "false")" class="@Css.On(_tab == Tab.Params)"
                         @onclick="() => _tab = Tab.Params">Параметры</button>
+                <button role="tab" aria-selected="@(_tab == Tab.Workout ? "true" : "false")" class="@Css.On(_tab == Tab.Workout)"
+                        @onclick="() => _tab = Tab.Workout">Тренировка</button>
                 <button role="tab" aria-selected="@(_tab == Tab.Hypothesis ? "true" : "false")" class="@Css.On(_tab == Tab.Hypothesis)"
                         @onclick="OpenHypothesis">Гипотеза</button>
                 <button role="tab" aria-selected="@(_tab == Tab.Photos ? "true" : "false")" class="@Css.On(_tab == Tab.Photos)"
@@ -111,6 +113,10 @@
                 {
                     <ProfilePanel Profile="_profile" Report="_report" ModelHints="ModelHints()" ModelNote="@ModelNote()" OnHighlight="SetHighlight" PostureApplies="UseMakeHuman"
                                   OnChange="ChangeProfile" />
+                }
+                else if (_tab == Tab.Workout)
+                {
+                    <WorkoutPanel Profile="_profile" Draft="_workout" OnChange="ChangeProfile" />
                 }
                 else if (_tab == Tab.Photos)
                 {
@@ -128,7 +134,7 @@
 </div>
 
 @code {
-    private enum Tab { Params, Hypothesis, Photos }
+    private enum Tab { Params, Workout, Hypothesis, Photos }
     private enum ViewMode { Current, Forecast, Compare }
     private enum BodyKind { MakeHuman, Mannequin }
 
@@ -162,6 +168,8 @@
     private MakeHumanFit? _fitForecast;
 
     private Tab _tab = Tab.Params;
+    /// <summary>Расчёт тренировки в работе: переживает переключение вкладок.</summary>
+    private readonly WorkoutDraft _workout = new();
     private ViewMode _mode = ViewMode.Current;
     private bool _sideBySide;
 

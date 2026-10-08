@@ -34,6 +34,10 @@ public static partial class BrowserStorage
     /// <summary>Выделяет весь текст поля (селектор CSS).</summary>
     [JSImport("selectText", Module)]
     public static partial void SelectText(string selector);
+
+    /// <summary>Фокус на поле по id (и прокрутка к нему).</summary>
+    [JSImport("focusById", Module)]
+    public static partial void FocusById(string id);
 }
 
 /// <summary>
@@ -156,6 +160,10 @@ public sealed class StoredProfile
     public double? CalfCm { get; set; }
     public double? WristCm { get; set; }
 
+    /// <summary>Пульс покоя и VO2max — для расчёта тренировок; необязательны (в записях до шага 7 их нет).</summary>
+    public int? RestingHr { get; set; }
+    public double? Vo2Max { get; set; }
+
     /// <summary>Осанка и форма; в записях до шага 5.5 их нет — значит, как у модели.</summary>
     public Posture? Posture { get; set; }
     public BodyForm? Form { get; set; }
@@ -165,6 +173,7 @@ public sealed class StoredProfile
         Sex = p.Sex, Age = p.Age, HeightCm = p.HeightCm, WeightKg = p.WeightKg, BodyFatPercent = p.BodyFatPercent,
         ChestCm = p.ChestCm, WaistCm = p.WaistCm, HipsCm = p.HipsCm, BicepsCm = p.BicepsCm, ThighCm = p.ThighCm,
         NeckCm = p.NeckCm, CalfCm = p.CalfCm, WristCm = p.WristCm,
+        RestingHr = p.RestingHr, Vo2Max = p.Vo2Max,
         Posture = p.Posture.IsNeutral ? null : p.Posture,
         Form = p.Form.IsNeutral ? null : p.Form,
     };
@@ -174,6 +183,7 @@ public sealed class StoredProfile
         Sex = Sex, Age = Age, HeightCm = HeightCm, WeightKg = WeightKg, BodyFatPercent = BodyFatPercent,
         ChestCm = ChestCm, WaistCm = WaistCm, HipsCm = HipsCm, BicepsCm = BicepsCm, ThighCm = ThighCm,
         NeckCm = NeckCm, CalfCm = CalfCm, WristCm = WristCm,
+        RestingHr = RestingHr, Vo2Max = Vo2Max,
         Posture = Posture?.Clamped() ?? WorkoutCalculator.BodyModel.Posture.Neutral,
         Form = Form?.Clamped() ?? BodyForm.Neutral,
     };
