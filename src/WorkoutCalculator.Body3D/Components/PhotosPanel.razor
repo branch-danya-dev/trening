@@ -324,9 +324,29 @@ else
                 1&nbsp;пиксель ≈ @Fmt.N((a.Front ?? a.Side)!.CmPerPixel * 10, 1)&nbsp;мм@(a.Front?.ScaleFromSide == true ? " (масштаб спереди — по снимку сбоку)" : "")
                 · разбор @Fmt.N(a.Milliseconds)&nbsp;мс
             </div>
-            <button class="btn-link" style="margin-top: 8px" disabled="@_busy" @onclick="() => Analyze(o)">
-                @(_busy ? "Разбираю…" : "Разобрать заново")
-            </button>
+            <div class="confirm">
+                <button class="btn-link" disabled="@_busy" @onclick="() => Analyze(o)">
+                    @(_busy ? "Разбираю…" : "Разобрать заново")
+                </button>
+                <button class="btn-link" @onclick="() => ToggleReport(o)">
+                    @(_report is not null && _reportFor == o.Id ? "Скрыть отчёт" : "Отчёт для проверки")
+                </button>
+            </div>
+            @if (_report is not null && _reportFor == o.Id)
+            {
+                <div class="note" style="margin-top: 8px">
+                    Только цифры — ни снимков, ни контуров. Скопируйте и пришлите, если что-то разошлось с лентой
+                    или подгонка выглядит странно.
+                </div>
+                <textarea class="report" readonly rows="14" aria-label="Отчёт для проверки" @onfocus="SelectReport">@_report</textarea>
+                <div class="confirm">
+                    <button class="btn" @onclick="CopyReport">Скопировать</button>
+                    @if (_reportNote is not null)
+                    {
+                        <span class="muted">@_reportNote</span>
+                    }
+                </div>
+            }
         }
         <div class="confirm">
             <button class="btn-link muted" @onclick="Close">Закрыть</button>
@@ -387,6 +407,13 @@ else
                 <button class="btn-link muted" type="button" @onclick="CancelPin">Отмена</button>
             </div>
         </form>
+    }
+    else if (!_pin.Enabled && !_secure)
+    {
+        <div class="hint">
+            PIN-код работает только на сайте по HTTPS: браузер не даёт шифрование странице, открытой по
+            обычному http (например, с компьютера по локальной сети). Откройте опубликованную версию.
+        </div>
     }
     else if (!_pin.Enabled)
     {
@@ -501,6 +528,10 @@ else
     private string? _pinMessage;
     private bool _pinError;
     private PhotoPrivacy _privacy = new();
+    /// <summary>HTTPS или localhost: иначе нет шифрования (PIN-код) и камеры.</summary>
+    private bool _secure = true;
+    /// <summary>Отчёт для проверки по открытой сессии (текст) и итог копирования.</summary>
+    private string? _report, _reportFor, _reportNote;
     private bool _loaded, _busy, _error;
     private string? _message;
     private string? _confirmDelete;
@@ -529,6 +560,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         _privacy = ProfileStorage.LoadPrivacy();
+        _secure = BrowserStorage.IsSecure();
         // Блокировка — кнопкой или через 2 минуты в фоне: снимки закрываются, список — с замками
         PhotoStore.OnLock(() => _ = InvokeAsync(async () =>
         {
@@ -606,6 +638,7 @@ else
     private void Close()
     {
         _openId = null;
+        _report = _reportFor = _reportNote = null;
         _compareId = null;
         _ghost = _change = null;
         HideForecast();
@@ -619,6 +652,28 @@ else
         PhotoStore.OnLock(null);
         Close();
     }
+
+    private void ToggleReport(PhotoSession s)
+    {
+        _reportNote = null;
+        if (_reportFor == s.Id && _report is not null)
+        {
+            _report = _reportFor = null;
+            return;
+        }
+        _report = TestReport.Build(Profile, s, _fitSessionId == s.Id ? _fit : null, BrowserStorage.BrowserInfo(), AppInfo.Build);
+        _reportFor = s.Id;
+    }
+
+    private async Task CopyReport()
+    {
+        if (_report is null) return;
+        _reportNote = await BrowserStorage.CopyText(_report)
+            ? "Скопировано."
+            : "Браузер не дал скопировать — выделите текст и скопируйте вручную.";
+    }
+
+    private void SelectReport() => BrowserStorage.SelectText(".report");
 
     private void StartPin(PinMode mode)
     {

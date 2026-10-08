@@ -636,6 +636,20 @@ button.session-thumbs:disabled { cursor: default; }
     font-weight: 600;
     vector-effect: non-scaling-stroke;
 }
+.report {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--card-2);
+    color: var(--text);
+    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    resize: vertical;
+    box-sizing: border-box;
+}
+.confirm .muted { color: var(--muted); }
 /* Вкладка в фоне: снимки размыты — в переключателе приложений их не видно */
 html.page-hidden .photo-overlay svg,
 html.page-hidden .session-thumbs img,
@@ -855,7 +869,7 @@ details summary { cursor: pointer; }
 
     .panel-body { padding: 12px; gap: 10px; }
     /* 16px: при меньшем шрифте iOS увеличивает страницу, когда поле получает фокус */
-    input, select { font-size: 16px; }
+    input, select, textarea, .pin-input, .weight-input, .date-input, .report { font-size: 16px; }
 }
 
 /* Телефон боком: вид и панель рядом */

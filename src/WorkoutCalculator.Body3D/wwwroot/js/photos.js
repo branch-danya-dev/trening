@@ -78,6 +78,7 @@ if (typeof document !== 'undefined') {
 
 /** Ключ AES-GCM 256 из PIN и соли (неизвлекаемый). */
 export async function deriveKey(pin, salt, iterations = PIN_ITERATIONS) {
+    if (!globalThis.crypto?.subtle) throw new Error('Шифрование работает только на сайте по HTTPS — откройте опубликованную версию');
     const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveKey']);
     return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, material,
         { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);

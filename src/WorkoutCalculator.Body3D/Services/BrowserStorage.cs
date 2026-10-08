@@ -6,7 +6,9 @@ using WorkoutCalculator.BodyModel.Forecast;
 
 namespace WorkoutCalculator.Body3D.Services;
 
-/// <summary>localStorage браузера (wwwroot/js/storage.js). Недоступность хранилища — не ошибка.</summary>
+/// <summary>
+/// localStorage браузера и мелочи вокруг (wwwroot/js/storage.js). Недоступность хранилища — не ошибка.
+/// </summary>
 public static partial class BrowserStorage
 {
     public const string Module = "storage";
@@ -16,6 +18,22 @@ public static partial class BrowserStorage
 
     [JSImport("setItem", Module)]
     public static partial void SetItem(string key, string value);
+
+    /// <summary>HTTPS или localhost: без этого браузер не даёт камеру и шифрование.</summary>
+    [JSImport("isSecure", Module)]
+    public static partial bool IsSecure();
+
+    /// <summary>Текст в буфер обмена; false — браузер не дал.</summary>
+    [JSImport("copyText", Module)]
+    public static partial Task<bool> CopyText(string text);
+
+    /// <summary>Браузер и экран — для отчёта о проверке.</summary>
+    [JSImport("browserInfo", Module)]
+    public static partial string BrowserInfo();
+
+    /// <summary>Выделяет весь текст поля (селектор CSS).</summary>
+    [JSImport("selectText", Module)]
+    public static partial void SelectText(string selector);
 }
 
 /// <summary>
