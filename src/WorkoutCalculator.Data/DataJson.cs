@@ -60,6 +60,14 @@ public sealed class BackupData
         if (data is null || data.App != AppName) throw new InvalidDataException("Это не резервная копия приложения");
         if (data.Format > CurrentFormat) throw new InvalidDataException("Копия сделана более новой версией приложения — сначала обновите его");
         if (data.Profiles.Count == 0) throw new InvalidDataException("В копии нет профиля");
+        // Записи без id или чужого профиля в хранилище не положить — копия собрана не этим приложением или испорчена
+        var profiles = data.Profiles.Select(p => p.Id).ToHashSet();
+        if (profiles.Contains("") || profiles.Count != data.Profiles.Count
+            || data.Entries.Any(e => e.Id.Length == 0 || !profiles.Contains(e.ProfileId))
+            || data.Workouts.Any(w => w.Id.Length == 0 || !profiles.Contains(w.ProfileId))
+            || data.Entries.DistinctBy(e => e.Id).Count() != data.Entries.Count
+            || data.Workouts.DistinctBy(w => w.Id).Count() != data.Workouts.Count)
+            throw new InvalidDataException("Файл копии повреждён: записи не сходятся с профилем");
         return data;
     }
 }

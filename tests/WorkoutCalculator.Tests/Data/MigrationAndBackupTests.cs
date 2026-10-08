@@ -203,6 +203,15 @@ public class MigrationAndBackupTests
         Assert.Throws<InvalidDataException>(() => BackupData.Parse("""{"app":"Другое","profiles":[{}]}"""));
         Assert.Throws<InvalidDataException>(() => BackupData.Parse("""{"app":"Тренировки и тело","format":99,"profiles":[{}]}"""));
         Assert.Throws<InvalidDataException>(() => BackupData.Parse("""{"app":"Тренировки и тело","format":1,"profiles":[]}"""));
+
+        // Запись чужого профиля или без id — копия испорчена, восстанавливать её нельзя
+        const string Profile = """{"id":"p","sex":"Male","birthDate":"1990-01-01","heightCm":178}""";
+        var ok = BackupData.Parse($$"""{"app":"Тренировки и тело","format":1,"profiles":[{{Profile}}],"entries":[{"id":"e","profileId":"p","date":"2026-10-01","weightKg":80}]}""");
+        Assert.Single(ok.Entries);
+        Assert.Throws<InvalidDataException>(() => BackupData.Parse(
+            $$"""{"app":"Тренировки и тело","format":1,"profiles":[{{Profile}}],"entries":[{"id":"e","profileId":"другой","date":"2026-10-01"}]}"""));
+        Assert.Throws<InvalidDataException>(() => BackupData.Parse(
+            $$"""{"app":"Тренировки и тело","format":1,"profiles":[{{Profile}}],"workouts":[{"id":"","profileId":"p"}]}"""));
     }
 
     [Fact]

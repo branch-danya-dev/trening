@@ -1,25 +1,105 @@
-@* Раздел «Профиль»: данные профиля, номер сборки; при ?debug=1 — ссылка на прежний экран со скрытыми функциями. *@
+@* Раздел «Профиль»: данные профиля (правка), защита фото, резервная копия всего и восстановление, хранилище,
+   номер сборки; при ?debug=1 — ссылка на прежний экран со скрытыми функциями. *@
+@using System.Globalization
+@using System.Runtime.InteropServices.JavaScript
 @using WorkoutCalculator.Data
 @inject AppData Data
 @inject NavigationManager Nav
+@implements IDisposable
 
 @if (Data.Profile is Profile p)
 {
     <div class="card">
-        <div class="card-title">Профиль</div>
-        <table class="changes kv">
-            <tbody>
-                @if (!string.IsNullOrWhiteSpace(p.Name))
-                {
-                    <tr><td>Имя</td><td>@p.Name</td></tr>
-                }
-                <tr><td>Пол</td><td>@(p.Sex == Sex.Female ? "женский" : "мужской")</td></tr>
-                <tr><td>Дата рождения</td><td>@p.BirthDate.ToString("dd.MM.yyyy")@(p.BirthDateApproximate ? " (приблизительно)" : "")</td></tr>
-                <tr><td>Рост</td><td>@Fmt.N(p.HeightCm, 0)&nbsp;см</td></tr>
-            </tbody>
-        </table>
+        <div class="card-title">
+            <span>Профиль</span>
+            @if (!_editing)
+            {
+                <button class="btn small" @onclick="() => Edit(p)">Изменить</button>
+            }
+        </div>
+        @if (_editing)
+        {
+            <div class="form-grid two">
+                <div class="form-field">
+                    <label for="pf-name">Имя</label>
+                    <input id="pf-name" class="text-input" type="text" autocomplete="off" maxlength="60" placeholder="необязательно"
+                           @bind="_name" />
+                </div>
+                <div class="form-field">
+                    <span class="label">Пол</span>
+                    <div class="seg" role="group" aria-label="Пол">
+                        <button class="@Css.On(_sex == Sex.Male)" @onclick="() => _sex = Sex.Male">Мужской</button>
+                        <button class="@Css.On(_sex == Sex.Female)" @onclick="() => _sex = Sex.Female">Женский</button>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="pf-birth">Дата рождения</label>
+                    <input id="pf-birth" class="text-input" type="date" max="@Iso(Today)" value="@_birth" @onchange="e => SetBirth(e.Value?.ToString())" />
+                </div>
+                <div class="form-field">
+                    <label for="pf-height">Рост, см</label>
+                    <input id="pf-height" class="text-input" type="text" inputmode="decimal" autocomplete="off" @bind="_height" />
+                </div>
+            </div>
+            @if (_approximate)
+            {
+                <div class="note" style="margin-top: 8px">
+                    Дата приблизительная — 1 января, из возраста в прежней версии. Укажите настоящую: от неё зависит
+                    возраст на дату каждой тренировки.
+                </div>
+            }
+            <div class="note" style="margin-top: 8px">Пол и рост меняют модель и оценки (обхваты, % жира) на всех датах.</div>
+            @if (_error is not null)
+            {
+                <div class="hint" role="alert" style="margin-top: 8px">@_error</div>
+            }
+            <div class="confirm">
+                <button class="btn primary" @onclick="() => Save(p)">Сохранить</button>
+                <button class="btn-link muted" @onclick="() => _editing = false">Отмена</button>
+            </div>
+        }
+        else
+        {
+            <table class="changes kv">
+                <tbody>
+                    @if (!string.IsNullOrWhiteSpace(p.Name))
+                    {
+                        <tr><td>Имя</td><td>@p.Name</td></tr>
+                    }
+                    <tr><td>Пол</td><td>@(p.Sex == Sex.Female ? "женский" : "мужской")</td></tr>
+                    <tr>
+                        <td>Дата рождения</td>
+                        <td>@p.BirthDate.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture) · @Ages.On(p.BirthDate, Today)&nbsp;@Years(Ages.On(p.BirthDate, Today))@(p.BirthDateApproximate ? " (приблизительно)" : "")</td>
+                    </tr>
+                    <tr><td>Рост</td><td>@Fmt.N(p.HeightCm, 0)&nbsp;см</td></tr>
+                </tbody>
+            </table>
+            @if (p.BirthDateApproximate)
+            {
+                <div class="hint" style="margin-top: 10px">
+                    Дата рождения перенесена из возраста в прежней версии (1 января). Уточните её — «Изменить».
+                </div>
+            }
+        }
     </div>
 }
+
+<PhotoProtection Status="_pin" Privacy="_privacy" OnChange="Reload" />
+
+<div class="card">
+    <div class="card-title">Резервная копия</div>
+    <BackupCard Pin="_pin" PhotoSessions="_sessions" OnRestored="Reload" />
+    <div class="volume-line">
+        @if (_storage?.Usage is long usage)
+        {
+            <text>Сайт занимает ≈&nbsp;@Megabytes(usage)&nbsp;МБ@(_storage.Quota is long quota ? $" из {Megabytes(quota)} МБ" : "").</text>
+        }
+        @(_storage?.Persisted == true
+            ? " Браузер обещал не стирать данные при нехватке места."
+            : " Браузер может стереть данные при нехватке места или долгом перерыве (Safari — через неделю без захода). " +
+              "Надёжнее установить приложение на главный экран и время от времени сохранять копию.")
+    </div>
+</div>
 
 <div class="note about">
     Профиль, замеры, тренировки и фото хранятся только на этом устройстве. Модель MakeHuman — makehumancommunity.org
@@ -32,4 +112,104 @@
     <button class="btn-link" @onclick='() => Nav.NavigateTo("?classic=1", forceLoad: true)'>
         Прежний экран (гипотезы, прогноз, видео) — со старыми данными
     </button>
+}
+
+@code {
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+
+    private PinStatus _pin = new(false, false);
+    private readonly PhotoPrivacy _privacy = ProfileStorage.LoadPrivacy();
+    private int _sessions;
+    private StorageInfo? _storage;
+
+    // Правка профиля
+    private bool _editing, _approximate;
+    private string? _name, _birth, _height, _error;
+    private Sex _sex;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Data.Changed += OnDataChanged;
+        // Снимки закрылись (кнопкой или через 2 минуты в фоне) — перечитать состояние PIN-кода
+        PhotoStore.OnLock(() => _ = InvokeAsync(async () =>
+        {
+            await Reload();
+            StateHasChanged();
+        }));
+        await Reload();
+    }
+
+    public void Dispose()
+    {
+        Data.Changed -= OnDataChanged;
+        PhotoStore.OnLock(null);
+    }
+
+    private void OnDataChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private async Task Reload()
+    {
+        try
+        {
+            _pin = await PhotoStore.Pin();
+            _sessions = (await PhotoStore.ListMeta()).Count;
+            _storage = await PhotoStore.Storage();
+        }
+        catch (JSException)
+        {
+            // Хранилище недоступно — карточки покажут то, что известно
+        }
+    }
+
+    private static string Megabytes(long bytes) => Fmt.N(bytes / 1048576.0, bytes < 10 * 1048576 ? 1 : 0);
+
+    private static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static string Years(int n) => (n % 100) is >= 11 and <= 14 ? "лет" : (n % 10) switch { 1 => "год", 2 or 3 or 4 => "года", _ => "лет" };
+
+    private void Edit(Profile p)
+    {
+        _name = p.Name;
+        _sex = p.Sex;
+        _birth = Iso(p.BirthDate);
+        _approximate = p.BirthDateApproximate;
+        _height = Fmt.N(p.HeightCm, p.HeightCm % 1 == 0 ? 0 : 1);
+        _error = null;
+        _editing = true;
+    }
+
+    /// <summary>Своя дата рождения — уже не приблизительная.</summary>
+    private void SetBirth(string? value)
+    {
+        if (value == _birth) return;
+        _birth = value;
+        _approximate = false;
+    }
+
+    private async Task Save(Profile p)
+    {
+        if (!DateOnly.TryParseExact(_birth, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var birth)
+            || Ages.On(birth, Today) is < 10 or > 100)
+        {
+            _error = "Дата рождения: возраст должен быть от 10 до 100 лет.";
+            return;
+        }
+        if (!InputParser.TryParseNumber(_height, out double height) || height is < 100 or > 250)
+        {
+            _error = "Рост: введите число от 100 до 250 см.";
+            return;
+        }
+        await Data.SaveProfile(new Profile
+        {
+            Id = p.Id,
+            Name = string.IsNullOrWhiteSpace(_name) ? null : _name.Trim(),
+            Sex = _sex,
+            BirthDate = birth,
+            BirthDateApproximate = _approximate,
+            HeightCm = Math.Round(height, 1),
+            DailyActiveKcalGoal = p.DailyActiveKcalGoal,
+            CreatedAt = p.CreatedAt,
+        });
+        _editing = false;
+    }
 }

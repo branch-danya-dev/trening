@@ -34,6 +34,10 @@
                 без них модель строится по средним пропорциям.
             </p>
             <button class="btn primary big" @onclick="() => Go(Step.Basics)">Создать профиль</button>
+            <div class="welcome-restore">
+                <div class="note">Уже пользовались приложением на другом устройстве? Перенесите всё резервной копией:</div>
+                <BackupCard RestoreOnly="true" OnRestored="Finish" />
+            </div>
         </div>
         break;
 

@@ -1148,6 +1148,18 @@ table.body-compare td.delta { color: var(--text); }
 .week-total { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
 .note.basis { margin-top: 10px; }
 
+/* «Профиль»: восстановление копии — что в файле и подтверждение */
+.restore-box {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--card-2);
+    font-size: 13.5px;
+}
+.welcome-restore { align-self: stretch; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); text-align: left; }
+.welcome-restore .note { margin-bottom: 8px; }
+
 /* ---------- Телефон и планшет ---------- */
 
 /*

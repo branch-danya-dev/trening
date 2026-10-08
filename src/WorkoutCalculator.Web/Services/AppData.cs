@@ -183,11 +183,22 @@ public sealed class AppData
         Workouts = [.. Workouts],
     };
 
-    /// <summary>Заменить все данные копией (снимки восстанавливает photos.js) и перечитать.</summary>
-    public async Task ReplaceAll(BackupData data)
+    /// <summary>
+    /// Заменить всё на устройстве выбранной копией (BackupInterop.Open): данные и снимки — одной транзакцией,
+    /// вместе с отметкой о переносе (иначе старые данные из localStorage перенеслись бы поверх). Возвращает
+    /// число восстановленных фотосессий.
+    /// </summary>
+    public async Task<int> RestoreAsync(BackupData data)
     {
-        await DataInterop.WriteAll(data.ToJson(), replace: true, "");
+        // Отложенные записи (ползунки) старых записей не должны лечь поверх восстановленных
+        foreach (string id in _writeVersions.Keys.ToList()) _writeVersions[id]++;
+        var now = DateTimeOffset.Now;
+        string marker = string.Create(CultureInfo.InvariantCulture,
+            $$"""{"key":"{{MigrationKey}}","version":1,"at":"{{now:O}}","restored":true}""");
+        var result = await BackupInterop.Restore(data.ToJson(), marker);
         Loaded = false;
+        MigratedNow = false;
         await LoadAsync();
+        return result.Sessions;
     }
 }

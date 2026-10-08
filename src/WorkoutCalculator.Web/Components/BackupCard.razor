@@ -1,0 +1,182 @@
+@* Резервная копия всего — профиль, записи замеров, тренировки и фото — одним zip (backup.js) и восстановление
+   из него: файл проверяется (BackupData.Parse), показывается, что в нём, и только после подтверждения всё на
+   устройстве заменяется копией одной транзакцией. В «Профиле» — целиком; на приветствии мастера (RestoreOnly) —
+   только восстановление, чтобы на новом телефоне не создавать профиль заново. *@
+@using System.Runtime.InteropServices.JavaScript
+@using WorkoutCalculator.Data
+@inject AppData Data
+@implements IDisposable
+
+@if (!RestoreOnly)
+{
+    <div class="note" style="margin-bottom: 10px">
+        Всё в одном файле: профиль, @Fmt.Count(Data.Entries.Count, "запись", "записи", "записей") замеров,
+        @Fmt.Count(Data.Workouts.Count, "тренировка", "тренировки", "тренировок") и
+        @Fmt.Count(PhotoSessions, "фотосессия", "фотосессии", "фотосессий"). Файл скачивается на это устройство и
+        больше никуда не уходит — сохраните его, например, в «Файлы» или на компьютер.
+        @if (PhotoSessions > 0)
+        {
+            <text>Снимки в копии — обычные JPEG, без шифрования: храните файл в надёжном месте.</text>
+        }
+    </div>
+}
+<div class="file-row">
+    @if (!RestoreOnly)
+    {
+        <button class="btn primary" disabled="@(_busy || Data.Profile is null || (Pin.Locked && PhotoSessions > 0))" @onclick="Save">
+            @(_busy && _opened is null ? "Собираю копию…" : "Сохранить копию")
+        </button>
+    }
+    <label class="btn file-btn @(_busy ? "disabled" : null)">
+        @(RestoreOnly ? "Восстановить из резервной копии" : "Восстановить из копии")
+        <input id="@InputId" type="file" accept=".zip,application/zip" disabled="@_busy" @onchange="Open" />
+    </label>
+</div>
+@if (!RestoreOnly && Pin.Locked && PhotoSessions > 0)
+{
+    <div class="note" style="margin-top: 8px">Снимки под PIN-кодом — откройте их в «Защите фото», чтобы включить в копию.</div>
+}
+
+@if (_opened is { } o && _backup is { } b)
+{
+    <div class="restore-box" role="group" aria-label="Восстановление">
+        <div>
+            <b>@o.Name</b> — копия от @Fmt.DateTime(b.ExportedAt):
+            профиль, @Fmt.Count(b.Entries.Count, "запись", "записи", "записей") замеров,
+            @Fmt.Count(b.Workouts.Count, "тренировка", "тренировки", "тренировок"),
+            @Fmt.Count(o.Sessions, "фотосессия", "фотосессии", "фотосессий").
+        </div>
+        <div class="hint" style="margin-top: 8px">
+            @(Data.Profile is null
+                ? "Копия станет данными этого устройства."
+                : "Всё, что сейчас на этом устройстве — профиль, замеры, тренировки и фото, — заменится содержимым копии. Отменить это нельзя.")
+        </div>
+        @if (o.Sessions > 0 && Pin.Locked)
+        {
+            <div class="note" style="margin-top: 8px">Снимки под PIN-кодом — откройте их в «Защите фото»: снимки из копии зашифруются тем же PIN-кодом.</div>
+        }
+        <div class="confirm">
+            <button class="btn primary" disabled="@(_busy || (o.Sessions > 0 && Pin.Locked))" @onclick="Restore">
+                @(_busy ? "Восстанавливаю…" : Data.Profile is null ? "Восстановить" : "Заменить всё")
+            </button>
+            <button class="btn-link muted" disabled="@_busy" @onclick="Cancel">Отмена</button>
+        </div>
+    </div>
+}
+@if (_message is not null)
+{
+    <div class="@(_error ? "hint" : "ok")" role="@(_error ? "alert" : "status")" style="margin-top: 10px">@_message</div>
+}
+
+@code {
+    /// <summary>Только восстановление (приветствие мастера): без сохранения и пояснений.</summary>
+    [Parameter] public bool RestoreOnly { get; set; }
+    /// <summary>Состояние PIN-кода: снимки под закрытым PIN-кодом не прочитать и не зашифровать.</summary>
+    [Parameter] public PinStatus Pin { get; set; } = new(false, false);
+    /// <summary>Фотосессий на устройстве — для пояснения и проверки PIN-кода.</summary>
+    [Parameter] public int PhotoSessions { get; set; }
+    /// <summary>Копия восстановлена (данные уже перечитаны) — родитель обновляет своё (фото, мастер).</summary>
+    [Parameter] public EventCallback OnRestored { get; set; }
+
+    private string InputId => RestoreOnly ? "backup-restore-welcome" : "backup-restore";
+
+    private BackupOpened? _opened;
+    private BackupData? _backup;
+    private bool _busy, _error;
+    private string? _message;
+
+    private void Show(string message, bool error = false)
+    {
+        _message = message;
+        _error = error;
+    }
+
+    private static string JsError(JSException e) =>
+        e.Message.StartsWith("Error: ", StringComparison.Ordinal) ? e.Message[7..] : e.Message;
+
+    private async Task Save()
+    {
+        _busy = true;
+        _message = null;
+        try
+        {
+            var saved = await BackupInterop.Export(Data.Snapshot().ToJson());
+            string size = saved.Bytes < 1048576 ? $"{Fmt.N(Math.Max(1, saved.Bytes / 1024.0))} КБ" : $"{Fmt.N(saved.Bytes / 1048576.0, 1)} МБ";
+            Show($"Копия сохранена: {saved.Name} ({size}" +
+                 (saved.Sessions > 0 ? $", фото — {Fmt.Count(saved.Sessions, "сессия", "сессии", "сессий")})." : ")."));
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    /// <summary>Файл выбран: прочитать и проверить, но ничего не менять до подтверждения.</summary>
+    private async Task Open()
+    {
+        _busy = true;
+        _message = null;
+        _opened = null;
+        _backup = null;
+        try
+        {
+            var opened = await BackupInterop.Open(InputId);
+            _backup = BackupData.Parse(opened.Data);
+            _opened = opened;
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        catch (InvalidDataException e)
+        {
+            BackupInterop.Cancel();
+            Show(e.Message, error: true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        BackupInterop.Cancel();
+        _opened = null;
+        _backup = null;
+    }
+
+    private async Task Restore()
+    {
+        if (_backup is not { } backup) return;
+        _busy = true;
+        _message = null;
+        try
+        {
+            int sessions = await Data.RestoreAsync(backup);
+            _opened = null;
+            _backup = null;
+            Show($"Копия восстановлена: {Fmt.Count(Data.Entries.Count, "запись", "записи", "записей")} замеров, " +
+                 $"{Fmt.Count(Data.Workouts.Count, "тренировка", "тренировки", "тренировок")}, " +
+                 $"{Fmt.Count(sessions, "фотосессия", "фотосессии", "фотосессий")}.");
+            await OnRestored.InvokeAsync();
+        }
+        catch (JSException e)
+        {
+            Show(JsError(e), error: true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_opened is not null) BackupInterop.Cancel();
+    }
+}

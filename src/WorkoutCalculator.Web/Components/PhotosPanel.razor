@@ -176,7 +176,7 @@ else
                     {
                         bool forecast = ShowingForecast(o) && _warpUrls.ContainsKey(view);
                         <PhotoOverlay Url="@(forecast ? _warpUrls[view] : url)" Profile="profile" KeyLevels="keys"
-                                      Blur="_privacy.Blur" Watermark="@(_privacy.Watermark ? WatermarkText : null)"
+                                      Blur="_privacy.Blur" Watermark="@(_privacy.Watermark ? PhotoProtection.WatermarkText : null)"
                                       Model="@(forecast ? null : ModelEdges(o, view))" ShowEdges="!forecast"
                                       Ghost="@(forecast ? Contour(profile) : view == "side" ? _ghost?.SideGhost : _ghost?.FrontGhost)"
                                       Caption="@(forecast ? (view == "side" ? "Прогноз сбоку" : "Прогноз спереди") : view == "side" ? "Сбоку: глубина" : "Спереди: ширина")" />
@@ -371,98 +371,7 @@ else
     </div>
 }
 
-<div class="card">
-    <div class="card-title">
-        Защита
-        @if (_pin.Enabled)
-        {
-            <span class="badge">PIN</span>
-        }
-    </div>
-    @if (!_pin.Enabled)
-    {
-        <div class="note" style="margin-bottom: 10px">
-            PIN-код шифрует снимки и превью на этом устройстве (AES-256, ключ — из PIN-кода). Без него их не
-            открыть ни в приложении, ни в данных браузера. Снимки закрываются после перезагрузки, кнопкой и через
-            2&nbsp;минуты в фоне. Забудете PIN-код — снимки не восстановить, только из архива.
-        </div>
-    }
-    else
-    {
-        <div class="note" style="margin-bottom: 10px">
-            Снимки и превью зашифрованы. @(_pin.Unlocked
-                ? "Сейчас открыты: закроются после перезагрузки, кнопкой или через 2 минуты в фоне."
-                : "Сейчас закрыты — PIN-код вводится вверху вкладки.")
-            Даты, вес и итоги разбора не шифруются — по ним строятся графики.
-        </div>
-    }
-    @if (_pinMode == PinMode.Enable)
-    {
-        <form @onsubmit="EnablePin">
-            <div class="file-row">
-                <input class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"
-                       aria-label="Новый PIN-код" placeholder="PIN-код" @bind="_pinA" @bind:event="oninput" />
-                <input class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"
-                       aria-label="PIN-код ещё раз" placeholder="ещё раз" @bind="_pinB" @bind:event="oninput" />
-            </div>
-            <div class="confirm">
-                <button class="btn primary" type="submit" disabled="@(_busy || _pinA.Length < 4 || _pinB.Length < 4)">
-                    @(_busy ? "Шифрую снимки…" : "Включить")
-                </button>
-                <button class="btn-link muted" type="button" @onclick="CancelPin">Отмена</button>
-            </div>
-            <div class="note" style="margin-top: 6px">От 4 до 8 цифр.</div>
-        </form>
-    }
-    else if (_pinMode == PinMode.Disable)
-    {
-        <form @onsubmit="DisablePin">
-            <div class="file-row">
-                <input class="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="8"
-                       aria-label="PIN-код" placeholder="PIN-код" @bind="_pinA" @bind:event="oninput" />
-                <button class="btn" type="submit" disabled="@(_busy || _pinA.Length < 4)">@(_busy ? "Расшифровываю…" : "Снять защиту")</button>
-                <button class="btn-link muted" type="button" @onclick="CancelPin">Отмена</button>
-            </div>
-        </form>
-    }
-    else if (!_pin.Enabled && !_secure)
-    {
-        <div class="hint">
-            PIN-код работает только на сайте по HTTPS: браузер не даёт шифрование странице, открытой по
-            обычному http (например, с компьютера по локальной сети). Откройте опубликованную версию.
-        </div>
-    }
-    else if (!_pin.Enabled)
-    {
-        <button class="btn" disabled="@_busy" @onclick="() => StartPin(PinMode.Enable)">Установить PIN-код</button>
-    }
-    else if (_pin.Unlocked)
-    {
-        <div class="file-row">
-            <button class="btn" @onclick="Lock">Закрыть снимки</button>
-            <button class="btn-link muted" @onclick="() => StartPin(PinMode.Disable)">Снять защиту</button>
-        </div>
-    }
-    @if (_pinMessage is not null && !_pin.Locked)
-    {
-        <div class="@(_pinError ? "hint" : "note")" style="margin-top: 10px">@_pinMessage</div>
-    }
-    <div class="privacy-options">
-        <label class="check">
-            <input type="checkbox" checked="@_privacy.Blur" @onchange="e => SetPrivacy(p => p.Blur = e.Value is true)" />
-            Размывать снимки, пока не нажмёте на них
-        </label>
-        <label class="check">
-            <input type="checkbox" checked="@_privacy.Watermark" @onchange="e => SetPrivacy(p => p.Watermark = e.Value is true)" />
-            Водяной знак «@WatermarkText» поверх снимков
-        </label>
-    </div>
-    <div class="note" style="margin-top: 8px">
-        Запретить снимок экрана веб-страница не может — водяной знак останется на нём и напомнит, чьё это фото.
-        Пока приложение свёрнуто, снимки размыты и в переключателе приложений не видны. PIN-код защищает от
-        случайного взгляда и чужих рук, но не от взлома устройства — поэтому лучше ещё и блокировка самого телефона.
-    </div>
-</div>
+<PhotoProtection Status="_pin" Privacy="_privacy" UnlockHere="false" OnChange="ProtectionChanged" />
 
 <div class="card">
     <div class="card-title">Хранилище</div>
@@ -532,21 +441,16 @@ else
         ("side", SideInput, "Фото сбоку"),
     ];
 
-    private const string WatermarkText = "личное фото · не пересылать";
 
-    private enum PinMode { None, Enable, Disable }
 
     private List<PhotoSession> _sessions = [];
     private StorageInfo? _storage;
-    /// <summary>Защита: PIN-код, ввод (дважды при установке), сообщение карточки; размытие и водяной знак.</summary>
+    /// <summary>Защита: PIN-код и его ввод вверху вкладки (остальное — PhotoProtection); размытие и водяной знак.</summary>
     private PinStatus _pin = new(false, false);
-    private PinMode _pinMode;
-    private string _pinA = "", _pinB = "";
+    private string _pinA = "";
     private string? _pinMessage;
     private bool _pinError;
     private PhotoPrivacy _privacy = new();
-    /// <summary>HTTPS или localhost: иначе нет шифрования (PIN-код) и камеры.</summary>
-    private bool _secure = true;
     /// <summary>Отчёт для проверки по открытой сессии (текст) и итог копирования.</summary>
     private string? _report, _reportFor, _reportNote;
     private bool _loaded, _busy, _error;
@@ -577,7 +481,6 @@ else
     protected override async Task OnInitializedAsync()
     {
         _privacy = ProfileStorage.LoadPrivacy();
-        _secure = BrowserStorage.IsSecure();
         // Блокировка — кнопкой или через 2 минуты в фоне: снимки закрываются, список — с замками
         PhotoStore.OnLock(() => _ = InvokeAsync(async () =>
         {
@@ -717,71 +620,23 @@ else
 
     private void SelectReport() => BrowserStorage.SelectText(".report");
 
-    private void StartPin(PinMode mode)
-    {
-        _pinMode = mode;
-        _pinA = _pinB = "";
-        _pinMessage = null;
-    }
-
-    private void CancelPin() => StartPin(PinMode.None);
-
     private void ShowPin(string message, bool error = false)
     {
         _pinMessage = message;
         _pinError = error;
     }
 
-    private static bool ValidPin(string pin) => pin.Length is >= 4 and <= 8 && pin.All(char.IsAsciiDigit);
-
-    private async Task EnablePin()
-    {
-        if (!ValidPin(_pinA))
-        {
-            ShowPin("PIN-код — от 4 до 8 цифр.", error: true);
-            return;
-        }
-        if (_pinA != _pinB)
-        {
-            ShowPin("PIN-коды не совпадают.", error: true);
-            return;
-        }
-        await RunPin(async () =>
-        {
-            await PhotoStore.EnablePin(_pinA);
-            StartPin(PinMode.None);
-            await Reload();
-            ShowPin("PIN-код установлен: снимки зашифрованы. Запомните его — без PIN-кода снимки не восстановить.");
-        });
-    }
-
-    private async Task DisablePin()
-    {
-        await RunPin(async () =>
-        {
-            Close();
-            await PhotoStore.DisablePin(_pinA);
-            StartPin(PinMode.None);
-            await Reload();
-            ShowPin("Защита снята: снимки хранятся без шифрования.");
-        });
-    }
+    /// <summary>Защита изменилась (PhotoProtection): состояние PIN-кода и список — заново; открытые снимки остаются.</summary>
+    private Task ProtectionChanged() => Reload();
 
     private async Task Unlock()
     {
         await RunPin(async () =>
         {
             await PhotoStore.Unlock(_pinA);
-            StartPin(PinMode.None);
+            _pinA = "";
             await Reload();
         });
-    }
-
-    /// <summary>Закрыть снимки: дальше — через обработчик <see cref="PhotoStore.OnLock"/>.</summary>
-    private void Lock()
-    {
-        _pinMessage = null;
-        PhotoStore.Lock();
     }
 
     private async Task RunPin(Func<Task> action)
@@ -794,19 +649,13 @@ else
         }
         catch (JSException e)
         {
-            _pinA = _pinB = "";
+            _pinA = "";
             ShowPin(JsError(e), error: true);
         }
         finally
         {
             _busy = false;
         }
-    }
-
-    private void SetPrivacy(Action<PhotoPrivacy> change)
-    {
-        change(_privacy);
-        ProfileStorage.SavePrivacy(_privacy);
     }
 
     /// <summary>Разбор идёт; ошибка разбора — в карточке разбора, а не вверху вкладки, где её не видно.</summary>

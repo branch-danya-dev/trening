@@ -403,8 +403,11 @@ function folderName(s) {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}_${s.id}`;
 }
 
-/** Все сессии одним zip-файлом: sessions.json и папка со снимками на каждую сессию. Скачивается браузером. */
-export async function exportArchive() {
+/**
+ * Снимки всех сессий для архива: files — [{ name, data }] (JPEG по папкам сессий), sessions — метаданные
+ * с путями к снимкам (files). Снимки под PIN-кодом без разблокировки не прочитать — исключение.
+ */
+export async function photoFiles() {
     // Сначала всё из базы одной транзакцией: ожидание чего-то кроме запросов к базе её закрывает
     const db = await openDb();
     const tx = db.transaction(['sessions', 'images'], 'readonly');
@@ -422,15 +425,19 @@ export async function exportArchive() {
             paths[v] = `${folder}/${v}.jpg`;
             files.push({ name: paths[v], data: new Uint8Array(await blob.arrayBuffer()) });
         }
-        meta.push({ ...s, files: paths });
+        const { thumbs, ...session } = s;
+        meta.push({ ...session, files: paths });
     }
-    if (meta.length === 0) throw new Error('Нет сохранённых сессий');
-    const manifest = { format: ARCHIVE_FORMAT, app: 'Тренировки и тело', exportedAt: new Date().toISOString(), sessions: meta };
-    files.unshift({ name: 'sessions.json', data: new TextEncoder().encode(JSON.stringify(manifest, null, 2)) });
+    return { files, sessions: meta };
+}
 
-    const now = new Date();
-    const name = `body3d-photos-${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.zip`;
-    const url = URL.createObjectURL(new Blob([zip(files)], { type: 'application/zip' }));
+/** Оглавление сессий снимков в архиве (sessions.json). */
+export const photoManifest = sessions =>
+    ({ format: ARCHIVE_FORMAT, app: 'Тренировки и тело', exportedAt: new Date().toISOString(), sessions });
+
+/** Скачать файлом (Blob или байты): ссылка на blob и «нажатие» по ней. */
+export function download(data, name, type) {
+    const url = URL.createObjectURL(new Blob([data], { type }));
     const link = document.createElement('a');
     link.href = url;
     link.download = name;
@@ -438,7 +445,50 @@ export async function exportArchive() {
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    return JSON.stringify({ name, sessions: meta.length });
+}
+
+export const fileDate = (now = new Date()) => `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+/** Все сессии одним zip-файлом: sessions.json и папка со снимками на каждую сессию. Скачивается браузером. */
+export async function exportArchive() {
+    const { files, sessions } = await photoFiles();
+    if (sessions.length === 0) throw new Error('Нет сохранённых сессий');
+    files.unshift({ name: 'sessions.json', data: new TextEncoder().encode(JSON.stringify(photoManifest(sessions), null, 2)) });
+    const name = `body3d-photos-${fileDate()}.zip`;
+    download(zip(files), name, 'application/zip');
+    return JSON.stringify({ name, sessions: sessions.length });
+}
+
+/**
+ * Сессия из архива — записи для хранилищ: { session, images } (снимки и превью, зашифрованные текущим
+ * ключом, если PIN включён); null — в архиве нет её снимков. entries — оглавление zip (unzip).
+ */
+export async function prepareSession(s, entries, key) {
+    if (typeof s?.id !== 'string') return null;
+    const views = VIEWS.filter(v => s.files?.[v] && entries.has(s.files[v]));
+    if (views.length === 0) return null;
+    const images = [];
+    for (const v of views) {
+        const blob = new Blob([await entries.get(s.files[v]).read()], { type: 'image/jpeg' });
+        const { full, thumb } = await prepare(blob);
+        images.push({ key: imageKey(s.id, v), ...await seal(full.blob, key) });
+        images.push({ key: imageKey(s.id, v, true), ...await seal(thumb.blob, key) });
+    }
+    const { files, thumbs, ...session } = s;
+    session.views = views;
+    return { session, images };
+}
+
+/** Ключ для записи снимков: null — защита выключена; включена, но закрыта — исключение. */
+export const photoWriteKey = () => writeKey();
+
+/** Оглавление снимков архива: sessions.json → { format, sessions }; незнакомый формат — исключение. */
+export async function readManifest(entries) {
+    const manifestEntry = entries.get('sessions.json');
+    if (!manifestEntry) return null;
+    const manifest = JSON.parse(new TextDecoder().decode(await manifestEntry.read()));
+    if (manifest.format !== ARCHIVE_FORMAT || !Array.isArray(manifest.sessions)) throw new Error('Незнакомый формат архива');
+    return manifest;
 }
 
 /** Импорт zip из поля выбора файла. Сессии, которые уже есть (тот же id), пропускаются. JSON: { added, skipped }. */
@@ -448,33 +498,19 @@ export async function importArchive(inputId) {
     if (!file) throw new Error('Файл не выбран');
     try {
         const entries = unzip(new Uint8Array(await file.arrayBuffer()));
-        const manifestEntry = entries.get('sessions.json');
-        if (!manifestEntry) throw new Error('Это не архив фотосессий: нет sessions.json');
-        const manifest = JSON.parse(new TextDecoder().decode(await manifestEntry.read()));
-        if (manifest.format !== ARCHIVE_FORMAT || !Array.isArray(manifest.sessions)) throw new Error('Незнакомый формат архива');
+        const manifest = await readManifest(entries);
+        if (!manifest) throw new Error('Это не архив фотосессий: нет sessions.json');
 
         const key = await writeKey();
         const db = await openDb();
         const existing = new Set(await req(db.transaction('sessions', 'readonly').objectStore('sessions').getAllKeys()));
         let added = 0, skipped = 0;
         for (const s of manifest.sessions) {
-            if (typeof s?.id !== 'string' || existing.has(s.id)) { skipped++; continue; }
-            const views = VIEWS.filter(v => s.files?.[v] && entries.has(s.files[v]));
-            if (views.length === 0) { skipped++; continue; }
-            const prepared = {};
-            for (const v of views) {
-                const blob = new Blob([await entries.get(s.files[v]).read()], { type: 'image/jpeg' });
-                const { full, thumb } = await prepare(blob);
-                prepared[v] = { full: await seal(full.blob, key), thumb: await seal(thumb.blob, key) };
-            }
-            const { files, thumbs, ...session } = s;
-            session.views = views;
+            const prepared = existing.has(s?.id) ? null : await prepareSession(s, entries, key);
+            if (!prepared) { skipped++; continue; }
             await transact('readwrite', (sessions, images) => {
-                sessions.put(session);
-                for (const v of views) {
-                    images.put({ key: imageKey(session.id, v), ...prepared[v].full });
-                    images.put({ key: imageKey(session.id, v, true), ...prepared[v].thumb });
-                }
+                sessions.put(prepared.session);
+                for (const image of prepared.images) images.put(image);
             });
             added++;
         }
