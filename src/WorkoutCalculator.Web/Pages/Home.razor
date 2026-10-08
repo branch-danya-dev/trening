@@ -44,7 +44,7 @@
                 {
                     <div class="legend">
                         <span class="now">Сейчас (контур)</span>
-                        <span class="later">@(ManyHypotheses ? $"«{_hypotheses.Current.Name}», через" : "Через") @_forecast.Weeks[^1].Week нед.</span>
+                        <span class="later">@(ManyHypotheses ? $"«{_hypotheses.Current.Name}», через" : "Через") @(_personalized.Display?.Muscle is null ? _forecast.Weeks[^1].Week : ShapeWeek) нед.</span>
                     </div>
                 }
             }
@@ -60,6 +60,16 @@
                             @onclick="() => SetMode(ViewMode.Compare)">Сравнение</button>
                     <button class="@Css.On(IsHistory)" @onclick="OpenHistory">История</button>
                 </div>
+                @if (_mode is ViewMode.Forecast or ViewMode.Compare && _personalized.Display?.Muscle is not null)
+                {
+                    <div class="seg" role="group" aria-label="Слой прогноза">
+                        <button class="@Css.On(!_forecastHeatmap)" @onclick="() => SetForecastHeatmap(false)">Тело</button>
+                        <button class="@Css.On(_forecastHeatmap)" @onclick="() => SetForecastHeatmap(true)">Мышцы прогноза</button>
+                    </div>
+                    <label class="check">Неделя формы @ShapeWeek
+                        <input aria-label="Неделя формы" type="range" min="0" max="@_personalized.Display.HorizonWeeks" value="@ShapeWeek" @onchange="ChangeShapeWeek" />
+                    </label>
+                }
                 @if (_mode == ViewMode.Compare)
                 {
                     <label class="check">
@@ -87,6 +97,10 @@
                 }
             </div>
 
+            @if (_mode is ViewMode.Forecast or ViewMode.Compare && _forecastBody is MakeHumanBody { MuscleLayerLimited: true })
+            {
+                <div class="view-error" role="status">Локальная форма ограничена: заданные обхваты имеют приоритет.</div>
+            }
             @if (_videoError is not null)
             {
                 <div class="view-error" role="alert">@_videoError</div>
@@ -545,9 +559,9 @@
         }
     }
 
-    private MakeHumanBody BuildMakeHuman(BodyProfile profile, ref MakeHumanFit? fit, bool fitVolume)
+    private MakeHumanBody BuildMakeHuman(BodyProfile profile, ref MakeHumanFit? fit, bool fitVolume, MuscleMorphState? muscle = null)
     {
-        var body = _mh!.Build(profile, fit, fitVolume);
+        var body = _mh!.Build(profile, fit, fitVolume, muscle);
         fit = body.Fit;
         return body;
     }
@@ -579,11 +593,24 @@
 
         var forecast = RunForecasts();
         _fitForecast ??= _fitCurrent?.Clone();
+        var watch = Stopwatch.StartNew();
+        var muscle = _personalized.Display?.Muscle;
+        var shapeProfile = forecast.End;
+        if (muscle is not null && _personalized.Display is { } snapshot)
+        {
+            var point = snapshot.Expected[ShapeWeek];
+            shapeProfile = snapshot.StartProfile();
+            shapeProfile.WeightKg = point.Body.WeightKg; shapeProfile.BodyFatPercent = point.Body.FatPercent;
+            foreach (var (g, cm) in point.Girths) shapeProfile.SetGirth(g, cm);
+        }
         IBodyShape body = UseMakeHuman
-            ? BuildMakeHuman(forecast.End, ref _fitForecast, fitVolume: true)
-            : Mannequin.Build(forecast.End);
+            ? BuildMakeHuman(shapeProfile, ref _fitForecast, fitVolume: true,
+                muscle: _exercise.Atlas is not null ? muscle?.Weeks[ShapeWeek].Morph : null)
+            : Mannequin.Build(shapeProfile);
         Show("forecast", body);
         _forecastBody = body;
+        Console.WriteLine($"Forecast MakeHuman rebuild: {watch.Elapsed.TotalMilliseconds:F1} ms, muscle={muscle is not null}");
+        ApplyForecastHeatmap();
         StateHasChanged();
     }
 
@@ -607,8 +634,11 @@
         _forecasts = _hypotheses.Items
             .Select(h => new HypothesisForecast(h,
                 h.Slot == _hypotheses.Selected
-                    ? _personalized.Calculate(_profile, h.Plan.ToInput(), now, $"slot:{h.Slot}", h.Name, startFact)
-                    : ForecastEngine.Run(commonStart, h.Plan.ToInput(), _personalized.CurrentRevision?.Profile)))
+                    ? _personalized.Calculate(_profile, h.Plan.ToInput(), now, $"slot:{h.Slot}", h.Name, startFact, _strength.Sessions, _history.Timeline.Items)
+                    : h.Plan.Strength && h.Plan.StrengthProgram is not null
+                        ? ForecastSnapshot.Create(_profile, h.Plan.ToInput(), today, now, _personalized.CurrentRevision, startFact,
+                            strengthHistory: _strength.Sessions, bodyHistory: _history.Timeline.Items, previousForecasts: _personalized.Archive.Forecasts).Replay()
+                        : ForecastEngine.Run(commonStart, h.Plan.ToInput(), _personalized.CurrentRevision?.Profile)))
             .ToList();
         _personalized.Evaluate(_history.Timeline.Items, today);
         return _forecast = (_forecasts.FirstOrDefault(f => f.Hypothesis.Slot == _hypotheses.Selected) ?? _forecasts[0]).Forecast;

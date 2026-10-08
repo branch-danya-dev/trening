@@ -5,7 +5,10 @@ namespace WorkoutCalculator.BodyModel.Forecast;
 
 public sealed record ForecastScore(int Count, double? Mae, double? Bias, double? RangeCoverage);
 public sealed record BacktestComparison(int HorizonWeeks, string Metric, ForecastScore Baseline, ForecastScore Personalized);
-public sealed record BacktestResult(ImmutableArray<BacktestComparison> Comparisons, int Origins, ImmutableArray<string> Exclusions);
+public sealed record BacktestResult(ImmutableArray<BacktestComparison> Comparisons, int Origins, ImmutableArray<string> Exclusions)
+{
+    public ImmutableArray<BacktestComparison> TrainingComparisons { get; init; } = [];
+}
 
 public static class ForecastBacktestService
 {
@@ -15,7 +18,7 @@ public static class ForecastBacktestService
     {
         var history = revisions.ToDictionary(r => r.Id);
         var actual = facts.Where(f => f.Date <= through).ToArray();
-        var samples = new List<(int Week, ForecastObservation Observation, ForecastPoint Baseline, ForecastPoint Expected)>();
+        var samples = new List<(int Week, ForecastObservation Observation, ForecastPoint Baseline, ForecastPoint Expected, ForecastPoint? Composition)>();
         var exclusions = ImmutableArray.CreateBuilder<string>(); int origins = 0;
         // Re-saving a plan the same day does not multiply the backtest sample size.
         foreach (var f in forecasts.OrderBy(f => f.CreatedAt).ThenBy(f => f.Id, StringComparer.Ordinal).DistinctBy(f => f.StartDate))
@@ -35,7 +38,7 @@ public static class ForecastBacktestService
                     .GroupBy(o => o.Metric).Select(g => g.OrderBy(o => Math.Abs(o.HorizonDays - week * 7)).ThenByDescending(o => o.SourceQuality)
                         .ThenBy(o => o.Date).ThenBy(o => o.FactId, StringComparer.Ordinal).First());
                 foreach (var o in matched)
-                    samples.Add((week, o, ForecastEvaluationService.At(f.Baseline, o.HorizonDays / 7.0), ForecastEvaluationService.At(f.Expected, o.HorizonDays / 7.0)));
+                    samples.Add((week, o, ForecastEvaluationService.At(f.Baseline, o.HorizonDays / 7.0), ForecastEvaluationService.At(f.Expected, o.HorizonDays / 7.0), f.Muscle is null ? null : ForecastEvaluationService.At(f.Muscle.CompositionOnly, o.HorizonDays / 7.0)));
             }
         }
         var result = ImmutableArray.CreateBuilder<BacktestComparison>();
@@ -51,7 +54,17 @@ public static class ForecastBacktestService
                     }) : null);
                 result.Add(new(week, metric, Score(true), Score(false)));
             }
-        return new(result.ToImmutable(), origins, exclusions.ToImmutable());
+        var training = ImmutableArray.CreateBuilder<BacktestComparison>();
+        foreach (int week in new[] { 2, 4, 8 })
+            foreach (var g in Enum.GetValues<Girth>())
+            {
+                var rows = samples.Where(s => s.Week == week && s.Composition is not null && s.Observation.Metric == ForecastEvaluationService.GirthMetric(g)).ToArray();
+                var plain = Metrics(rows.Select(s => s.Observation.Actual - s.Composition!.Girths[g]));
+                var aware = Metrics(rows.Select(s => s.Observation.Actual - s.Expected.Girths[g]),
+                    rows.Select(s => s.Expected.GirthRanges.TryGetValue(g, out var range) && s.Observation.Actual >= range.Lower && s.Observation.Actual <= range.Upper));
+                training.Add(new(week, ForecastEvaluationService.GirthMetric(g), plain, aware));
+            }
+        return new(result.ToImmutable(), origins, exclusions.ToImmutable()) { TrainingComparisons = training.ToImmutable() };
     }
 
     public static ForecastScore Metrics(IEnumerable<double> signedErrors, IEnumerable<bool>? covered = null)

@@ -1,0 +1,30 @@
+@using WorkoutCalculator.Exercises
+@if (Snapshot?.Muscle is { } muscle)
+{
+    <section class="card muscle-forecast" aria-label="Изменение мышц">
+        <div class="card-title">Изменение мышц · @Snapshot.HorizonWeeks нед.</div>
+        <p>@muscle.Stimulus.Planned.Sessions занятий / @muscle.Stimulus.Planned.Sets подходов в неделю.</p>
+        <p class="note">Относительная адаптация и форма — модель, не измерение мышечной массы, не медицинская оценка. Стимул не равен EMG.</p>
+        <div class="table-scroll"><table class="changes">
+            <thead><tr><th>Группа</th><th>Стимул</th><th>Изменение формы</th></tr></thead>
+            <tbody>
+                @foreach (var group in muscle.Weeks[^1].Groups.OrderByDescending(p => muscle.Stimulus.Planned.Stimulus[p.Key]))
+                {
+                    <tr data-muscle="@group.Key"><td>@MuscleDefinitions.Get(group.Key).Name</td>
+                        <td>@Fmt.N(muscle.Stimulus.Planned.Stimulus[group.Key] * 100, 0) / 100</td>
+                        <td>@Fmt.Signed(group.Value.RelativeGrowth * 100, 1) % индекса</td></tr>
+                }
+            </tbody>
+        </table></div>
+        <details><summary>Ожидаемые обхваты · эвристический диапазон</summary>
+            @foreach (var g in new[] { Girth.Chest, Girth.Biceps, Girth.Hips, Girth.Thigh, Girth.Calf })
+            {
+                var range = Snapshot.Expected[^1].GirthRanges[g];
+                <p>@BodyProfile.GirthName(g): @Fmt.N(range.Expected, 1) см (@Fmt.N(range.Lower, 1)–@Fmt.N(range.Upper, 1))</p>
+            }
+            <p class="note">Диапазон растёт со сроком, пропусками журнала и долей фото. Калибровка локальной формы: @muscle.Calibration.FactIds.Length фактов. Без достаточных данных коэффициенты равны 1.</p>
+        </details>
+    </section>
+}
+
+@code { [Parameter] public ForecastSnapshot? Snapshot { get; set; } }

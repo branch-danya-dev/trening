@@ -58,5 +58,6 @@ public partial class Home
         if (_current is { } current) Show("current", current);
         if (_forecastBody is { } forecast) Show("forecast", forecast);
         _historyFromBody = _historyToBody = null;
+        ApplyForecastHeatmap();
     }
 }

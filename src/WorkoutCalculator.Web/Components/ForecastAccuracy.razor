@@ -46,7 +46,7 @@
         {
             var input = display.Input();
             <p class="note">Сохранённый план: @Fmt.N(input.IntakeKcalPerDay, 0) ккал/день, активность ×@Fmt.N(input.ActivityFactor, 2),
-                кардио @input.CardioPerWeek раз/нед., силовые @input.StrengthPerWeek раз/нед.
+                кардио @input.CardioPerWeek раз/нед., силовые @(input.StrengthProgram?.SessionsPerWeek ?? input.StrengthPerWeek) раз/нед.
                 Редактор плана выше задаёт новый прогноз; изменения переключат его в предпросмотр.</p>
         }
     }
@@ -72,6 +72,16 @@
         {
             <p class="note">Данных для сравнения пока недостаточно. Сначала сохраните прогноз, затем добавьте последующие факты.</p>
         }
+    </details>
+    <details>
+        <summary>Проверка мышц: состав тела / программа</summary>
+        <p class="note">Сохранённый персональный composition-only против сохранённого прогноза с программой. Обхваты — косвенная оценка формы; это не измерения отдельных мышц.</p>
+        <div class="table-scroll"><table class="changes muscle-backtest">
+            <thead><tr><th>Срок / показатель</th><th>n</th><th>MAE состав / программа</th><th>Покрытие</th></tr></thead>
+            <tbody>@foreach (var c in State.Backtest.TrainingComparisons.Where(c => c.Baseline.Count > 0))
+            { <tr><td>@c.HorizonWeeks нед. · @Metric(c.Metric)</td><td>@c.Baseline.Count</td><td>@Number(c.Baseline.Mae) / @Number(c.Personalized.Mae)</td><td>@Percent(c.Personalized.RangeCoverage)</td></tr> }</tbody>
+        </table></div>
+        @if (!State.Backtest.TrainingComparisons.Any(c => c.Baseline.Count > 0)) { <p class="note">Пока нет последующих фактов для заранее сохранённых программ.</p> }
     </details>
     <details>
         <summary>Факт против выбранного прогноза</summary>
@@ -127,6 +137,7 @@
     private static string Metric(string m) => m == ForecastEvaluationService.Weight ? "вес, кг" : m == ForecastEvaluationService.BodyFat ? "жир, п.п." : Enum.TryParse<Girth>(m.Replace("Girth:", ""), out var g) ? BodyProfile.GirthName(g) + ", см" : m;
     private static string Reason(string? reason) => reason switch
     {
+        "regional forecast uses separate shape calibration" => "отдельная калибровка формы",
         null => "доступно после недельного сглаживания", "invalid snapshot" => "некорректная запись",
         "horizon shorter than 14 days" => "прошло меньше 14 дней", "photo warning" => "предупреждение разбора фото",
         "insufficient source quality" => "низкое качество", "unknown starting measurement" => "нет исходного измерения",

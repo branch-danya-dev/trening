@@ -24,6 +24,7 @@ public sealed record MakeHumanAssets(MakeHumanModel Model, MuscleAtlas? Atlas, s
             var atlas = MuscleAtlasBinary.Read(atlasBytes, model.Data.BodyVertexCount, sourceHash);
             Console.WriteLine($"Muscle atlas: {atlasBytes.Length} bytes, source hash {sourceHashMs:F1} ms, " +
                 $"read/validate {read.Elapsed.TotalMilliseconds - sourceHashMs:F1} ms, assets ready {total.Elapsed.TotalMilliseconds:F1} ms.");
+            model.SetMuscleAtlas(atlas);
             return new(model, atlas, null);
         }
         catch (Exception e) when (e is InvalidDataException or JSException)

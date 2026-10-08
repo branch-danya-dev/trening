@@ -1,6 +1,8 @@
 using WorkoutCalculator.BodyModel.Anthropometry;
 using WorkoutCalculator.BodyModel.Consistency;
 using WorkoutCalculator.BodyModel.Geometry;
+using WorkoutCalculator.BodyModel.Forecast;
+using WorkoutCalculator.BodyModel.Muscles;
 
 namespace WorkoutCalculator.BodyModel.MakeHuman;
 
@@ -47,6 +49,7 @@ public sealed class MakeHumanFit
 /// 1) макро-таргеты: пол, возраст, полнота и мускулатура (<see cref="MakeHumanMapping"/>), таргеты формы
 ///    (<see cref="BodyForm"/>);
 /// 2) равномерный масштаб под рост в позе, ступни на полу;
+/// Между 2 и 3 — optional atlas-based muscle fields в rest-координатах; последующая подгонка имеет приоритет.
 /// 3) слой мягких тканей вдоль нормалей — подбирается так, чтобы объём сетки сошёлся с весом
 ///    (вес должен где-то «лежать», а не только в местах замеров); толщина слоя по зонам тела разная;
 /// 4) таргеты замеров MakeHuman подгоняют обхваты на тех же уровнях, что и у манекена: введённые
@@ -171,6 +174,8 @@ public sealed class MakeHumanModel
     }
 
     public MakeHumanData Data { get; }
+    private MuscleMorphFields? _muscleFields;
+    public void SetMuscleAtlas(MuscleAtlas atlas) => _muscleFields ??= new MuscleMorphFields(Data, atlas);
 
     /// <summary>Обхват профиля, которому соответствует уровень; null — уровня нет среди замеров.</summary>
     public static Girth? GirthOf(FitLevel level) => level switch
@@ -199,7 +204,7 @@ public sealed class MakeHumanModel
     /// Окончательная сборка: слой под вес и точная подгонка. false — быстрая сборка для движения ползунка:
     /// слой как в <paramref name="warm"/>, не больше двух проходов подгонки.
     /// </param>
-    public MakeHumanBody Build(BodyProfile profile, MakeHumanFit? warm = null, bool fitVolume = true)
+    public MakeHumanBody Build(BodyProfile profile, MakeHumanFit? warm = null, bool fitVolume = true, MuscleMorphState? muscle = null)
     {
         var p = profile.Clone();
         var fit = warm?.Clone() ?? new MakeHumanFit();
@@ -222,6 +227,12 @@ public sealed class MakeHumanModel
         }
         _shapeCache.Add(cache); // в конце — самая свежая
         var pos = (double[])cache.Positions.Clone();
+        // Muscle fields live in canonical rest coordinates. Fit/volume reconciliation below has final authority.
+        if (muscle is not null && muscle.Groups.Values.Any(v => v != 0))
+        {
+            if (_muscleFields is null) throw new InvalidOperationException("Muscle atlas not loaded.");
+            _muscleFields.Apply(pos, muscle, p.HeightCm);
+        }
         var posed = cache.Rig?.Pose(pos) ?? pos;
 
         // 3. Слой мягких тканей и таргеты замеров с прошлого решения
@@ -275,6 +286,19 @@ public sealed class MakeHumanModel
             Rings = [],
         };
 
+        // An inconsistent extreme profile can exhaust the fitting targets. Known girths win:
+        // only in that case compare with the unlayered body and drop the local layer if it worsens a constraint.
+        if (fitVolume && muscle is not null && muscle.Groups.Values.Any(v => v != 0) &&
+            results.Any(r => r.FromInput && (!double.IsFinite(r.GotCm) || Math.Abs(r.GotCm - r.WantedCm) > .1)))
+        {
+            var baseline = Build(profile, warm, fitVolume);
+            if (results.Any(r => r.FromInput && (!double.IsFinite(r.GotCm) ||
+                Math.Abs(r.GotCm - r.WantedCm) > Math.Abs(baseline.Results.Single(b => b.Level == r.Level).GotCm - r.WantedCm) + .1)))
+            {
+                baseline.MuscleLayerLimited = true;
+                return baseline;
+            }
+        }
         return new MakeHumanBody(p, mesh, results, macros, fit, state.Measurements, () => Tapes(posed, p),
             name => Joint(posed, name), () => new BodyGeometry(mesh, _runtimeRig.Value?.Bind(posed)));
     }
@@ -722,6 +746,7 @@ public sealed class MakeHumanBody : IBodyShape
     /// </summary>
     public Vec3 Landmark(string name) => _landmark(name);
 
+    public bool MuscleLayerLimited { get; internal set; }
     public BodyProfile Profile { get; }
     public BodyMesh Mesh { get; }
     /// <summary>Rig считается один раз и только для отображения; расчёт подгонки/прогноза не дорожает.</summary>
