@@ -1,11 +1,11 @@
 // Optional real Blazor/MemoryView/WebGL smoke. Start the app on :5256; requires Playwright + Chromium.
-// NODE_PATH can point at an existing Playwright installation; BROWSER_CHANNEL=chrome uses installed Chrome.
+// NODE_PATH can point at an existing Playwright installation; BROWSER_CHANNEL=chrome or BROWSER_PATH=/path/to/chromium select a local browser.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 
 (async () => {
     const browser = await chromium.launch({ headless: true, channel: process.env.BROWSER_CHANNEL || undefined,
-        args: ['--enable-unsafe-swiftshader'] });
+        executablePath: process.env.BROWSER_PATH || undefined, args: ['--enable-unsafe-swiftshader'] });
     try {
         const page = await browser.newPage({ viewport: { width: 1400, height: 950 } });
         const errors = [];
