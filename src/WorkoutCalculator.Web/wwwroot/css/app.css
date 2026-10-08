@@ -1155,3 +1155,11 @@ table.changes tr.dim td { opacity: 0.5; }
     .mode-bar > .seg[aria-label="Что показать"] { flex-wrap: wrap; }
     .tabs button { flex: 0 0 auto; }
 }
+/* Personalized forecasts: an unobtrusive range behind the existing hypothesis lines. */
+.forecast-band { fill: #4ca990; opacity: .16; stroke: none; }
+.forecast-baseline { fill: none; stroke: #8895a5; stroke-width: 1.5; stroke-dasharray: 5 4; }
+.forecast-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+.forecast-accuracy details { margin-top: 12px; }
+.forecast-accuracy summary { cursor: pointer; }
+.forecast-accuracy .select { min-width: 0; max-width: 100%; }
+.forecast-diagnostics { overflow-wrap: anywhere; }

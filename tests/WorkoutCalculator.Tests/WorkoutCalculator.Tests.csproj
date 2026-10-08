@@ -27,6 +27,8 @@
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\StrengthJournalState.cs" Link="Services\StrengthJournalState.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\BodySnapshotStore.cs" Link="Services\BodySnapshotStore.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\BodyHistoryState.cs" Link="Services\BodyHistoryState.cs" />
+    <Compile Include="..\..\src\WorkoutCalculator.Web\Services\ForecastStore.cs" Link="Services\ForecastStore.cs" />
+    <Compile Include="..\..\src\WorkoutCalculator.Web\Services\PersonalizedForecastState.cs" Link="Services\PersonalizedForecastState.cs" />
   </ItemGroup>
 
   <ItemGroup>

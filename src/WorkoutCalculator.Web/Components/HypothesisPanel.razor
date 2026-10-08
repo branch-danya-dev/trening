@@ -156,6 +156,15 @@
 @if (Forecast is not null)
 {
     var f = Forecast;
+    <ForecastAccuracy State="Personalized" OnSave="OnSaveForecast" OnNew="OnNewForecast" OnSelect="OnSelectForecast" />
+    @if (Hypotheses.Items.Any(h => h.Plan.StartDate is not null && h.Plan.StartProfile is not null))
+    {
+        <div class="card">
+            <p class="note">Есть планы из прежней версии. Их исходные данные сохранены. Можно перенести их в историю как восстановленные прогнозы;
+                они не участвуют в обучении и backtest, поскольку прежние расчётные точки не сохранялись.</p>
+            <button class="btn" @onclick="OnImportLegacy">Перенести прежние планы в историю</button>
+        </div>
+    }
     <div class="card">
         <div class="card-title">Через @f.Weeks[^1].Week нед. @SelectedNote</div>
         <div class="summary">
@@ -187,7 +196,7 @@
         </div>
     </div>
 
-    @if (Forecasts.Count > 1)
+    @if (Forecasts.Count > 1 && Personalized.Selected is null)
     {
         var now = f.Start;
         <div class="card">
@@ -258,8 +267,10 @@
 
     <div class="card">
         <div class="card-title">Вес по неделям, кг</div>
-        <WeightChart Series="Forecasts" Selected="Hypotheses.Selected" Target="Hypothesis.TargetWeightKg" OnSelect="Select"
-                     Facts="ChartFacts" TodayWeek="TodayWeek" />
+        <label class="check"><input type="checkbox" @bind="_showBaseline" />Показать базовый прогноз</label>
+        <div class="note">Сплошная линия — ожидаемый результат; полоса — ожидаемый диапазон; точки — фактические измерения.</div>
+        <WeightChart Series="ChartSeries" Selected="Hypotheses.Selected" Target="@(Personalized.Selected is { } saved ? saved.Input().TargetWeightKg : Hypothesis.TargetWeightKg)" OnSelect="Select"
+                     Facts="PersonalizedFacts" TodayWeek="PersonalizedTodayWeek" Archive="Personalized.Display" ShowBaseline="_showBaseline" />
         <details style="margin-top: 8px">
             <summary class="note">Таблица по неделям@(Forecasts.Count > 1 ? $" — «{Hypotheses.Current.Name}»" : "")</summary>
             <table class="changes" style="margin-top: 6px">
@@ -282,105 +293,20 @@
         </details>
     </div>
 
-    <div class="card">
-        <div class="card-title">Факт против прогноза @SelectedNote</div>
-        @if (Hypothesis.StartDate is not DateOnly start)
-        {
-            <div class="note" style="margin-bottom: 10px">
-                Начните план — прогноз зафиксируется от сегодняшних замеров (иначе он уезжает вслед за текущим весом),
-                а на графике появятся взвешивания и фотосессии с этого дня.
-            </div>
-            <button class="btn primary" @onclick="StartToday">Начать план сегодня</button>
-        }
-        else
-        {
-            var checks = Checks;
-            <div class="field-row">
-                <span>Начало плана</span>
-                <input class="date-input" type="date" value="@start.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)"
-                       max="@Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" @onchange="SetStart" />
-            </div>
-            <div class="volume-line">
-                @(TodayWeek is double tw && tw <= f.Weeks.Count - 1 ? $"Неделя {Math.Floor(tw) + 1} из {f.Weeks.Count - 1}" : TodayWeek > f.Weeks.Count - 1 ? "Срок плана прошёл" : "План ещё не начался")
-                · прогноз от замеров на день начала: @Fmt.N(f.Start.WeightKg, 1)&nbsp;кг, талия @Fmt.N(f.Start.WaistCm, 1)&nbsp;см
-            </div>
-            <div class="file-row" style="margin-top: 10px">
-                <span>Вес сегодня</span>
-                <input class="weight-input" type="text" inputmode="decimal" value="@_weightInput" aria-label="Вес сегодня, кг"
-                       @onchange="OnWeightInput" />
-                <span>кг</span>
-                <button class="btn" @onclick="LogToday">Записать</button>
-            </div>
-            @if (checks.Count == 0)
-            {
-                <div class="note" style="margin-top: 10px">
-                    С начала плана ещё нет ни взвешиваний, ни фотосессий. Вес фотосессии — из профиля на момент съёмки.
-                </div>
-            }
-            else
-            {
-                var last = checks[^1];
-                <div class="ok" style="margin-top: 10px">@Verdict(last)</div>
-                <div class="note" style="margin-top: 4px">
-                    Вес гуляет на 1–2&nbsp;кг за день из-за воды, соли и еды в желудке — смотрите на ход нескольких
-                    взвешиваний, а не на одно.
-                </div>
-                <table class="changes" style="margin-top: 8px">
-                    <thead>
-                        <tr><th>Дата</th><th>Нед.</th><th>Прогноз, кг</th><th>Факт, кг</th><th>Разница</th><th></th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var c in checks.AsEnumerable().Reverse().Take(10))
-                        {
-                            var date = c.Fact.Date;
-                            <tr>
-                                <td>@Fmt.Date(date)@(c.Fact.FromPhotos ? " · фото" : "")</td>
-                                <td>@Fmt.N(c.Week, 1)</td>
-                                <td>@Fmt.N(c.ForecastWeightKg, 1)</td>
-                                <td>@Fmt.N(c.Fact.WeightKg, 1)</td>
-                                <td>@Fmt.Signed(c.WeightDiffKg, 1)</td>
-                                <td>
-                                    @if (!c.Fact.FromPhotos)
-                                    {
-                                        <button class="btn-link muted" title="Удалить запись" aria-label="Удалить запись за @Fmt.Date(date)"
-                                                @onclick="() => OnRemoveWeight.InvokeAsync(date)">×</button>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-                @if (checks.Where(c => c.Fact.WaistCm is not null || c.Fact.HipsCm is not null).ToList() is { Count: > 0 } photos)
-                {
-                    <table class="changes" style="margin-top: 10px">
-                        <thead>
-                            <tr><th>Фото</th><th>Талия: прогноз / факт</th><th>Бёдра: прогноз / факт</th></tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var c in photos.AsEnumerable().Reverse().Take(6))
-                            {
-                                <tr>
-                                    <td>@Fmt.Date(c.Fact.Date)</td>
-                                    <td>@Fmt.N(c.ForecastWaistCm, 1) / @(c.Fact.WaistCm is double w ? Fmt.N(w, 1) : "—")</td>
-                                    <td>@Fmt.N(c.ForecastHipsCm, 1) / @(c.Fact.HipsCm is double h ? Fmt.N(h, 1) : "—")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                    <div class="note" style="margin-top: 6px">
-                        Обхваты по фото — оценка ±1,5–1,8&nbsp;см; у одного человека ошибка почти постоянна, поэтому
-                        важнее, как они меняются от сессии к сессии, чем их разница с прогнозом.
-                    </div>
-                }
-            }
-            <div class="confirm">
-                <button class="btn-link muted" @onclick="StopTracking">Не отслеживать</button>
-            </div>
-        }
-    </div>
+
 }
 
 @code {
+    [Parameter, EditorRequired] public PersonalizedForecastState Personalized { get; set; } = default!;
+    [Parameter] public EventCallback OnSaveForecast { get; set; }
+    [Parameter] public EventCallback OnNewForecast { get; set; }
+    [Parameter] public EventCallback<string?> OnSelectForecast { get; set; }
+    [Parameter] public EventCallback OnImportLegacy { get; set; }
+    private bool _showBaseline = true;
+    private IReadOnlyList<HypothesisForecast> ChartSeries => Personalized.Selected is not null && Selected is { } chosen ? new[] { chosen } : Forecasts;
+    private double? PersonalizedTodayWeek => Personalized.Display is { } f ? ForecastTracking.WeekOf(f.StartDate, Today) : null;
+    private IReadOnlyList<ChartFact> PersonalizedFacts => Personalized.Evaluation.Where(o => o.Metric == ForecastEvaluationService.Weight)
+        .Select(o => new ChartFact(o.HorizonDays / 7.0, o.Actual, Fmt.Date(o.Date))).ToArray();
     [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
     [Parameter, EditorRequired] public StoredHypotheses Hypotheses { get; set; } = default!;
     /// <summary>Прогнозы всех гипотез в порядке списка; пусто, пока не посчитаны.</summary>
@@ -389,59 +315,7 @@
     [Parameter] public EventCallback<Action<StoredHypothesis>> OnChange { get; set; }
     /// <summary>Выбор, копия, удаление, переименование гипотез.</summary>
     [Parameter] public EventCallback<Action<StoredHypotheses>> OnHypotheses { get; set; }
-    /// <summary>Взвешивания и фотосессии — факты для слежения за начатым планом.</summary>
-    [Parameter] public IReadOnlyList<FactPoint> Facts { get; set; } = [];
-    [Parameter] public EventCallback<WeightEntry> OnLogWeight { get; set; }
-    [Parameter] public EventCallback<DateOnly> OnRemoveWeight { get; set; }
-
-    private string _weightInput = "";
-
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
-
-    /// <summary>Факты начатого плана против прогноза выбранной гипотезы.</summary>
-    private IReadOnlyList<FactCheck> Checks =>
-        Forecast is ForecastResult f && Hypothesis.StartDate is DateOnly start ? ForecastTracking.Compare(f, start, Facts) : [];
-
-    private double? TodayWeek => Hypothesis.StartDate is DateOnly start ? ForecastTracking.WeekOf(start, Today) : null;
-
-    private IReadOnlyList<ChartFact> ChartFacts =>
-        Checks.Select(c => new ChartFact(c.Week, c.Fact.WeightKg, Fmt.Date(c.Fact.Date) + (c.Fact.FromPhotos ? ", фото" : ""))).ToList();
-
-    private Task StartToday() => Change(h =>
-    {
-        h.StartDate = Today;
-        h.StartProfile = StoredProfile.From(Profile);
-    });
-
-    private Task SetStart(ChangeEventArgs e) =>
-        DateOnly.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
-            ? Change(h => h.StartDate = date)
-            : Task.CompletedTask;
-
-    private Task StopTracking() => Change(h =>
-    {
-        h.StartDate = null;
-        h.StartProfile = null;
-    });
-
-    private void OnWeightInput(ChangeEventArgs e) => _weightInput = e.Value?.ToString() ?? "";
-
-    private async Task LogToday()
-    {
-        if (!InputParser.TryParseNumber(_weightInput, out double kg) || kg is < 30 or > 300) return;
-        await OnLogWeight.InvokeAsync(new WeightEntry { Date = Today, WeightKg = Math.Round(kg, 1) });
-        _weightInput = "";
-    }
-
-    /// <summary>Итог по последнему факту: насколько впереди или позади прогноза.</summary>
-    private static string Verdict(FactCheck c)
-    {
-        string when = $"{(c.Fact.FromPhotos ? "По фотосессии" : "По взвешиванию")} {Fmt.Date(c.Fact.Date)}";
-        double d = c.WeightDiffKg;
-        return Math.Abs(d) < 0.3
-            ? $"{when} вес идёт точно по прогнозу."
-            : $"{when} вы на {Fmt.N(Math.Abs(d), 1)} кг {(d < 0 ? "легче" : "тяжелее")} прогноза.";
-    }
 
     private StoredHypothesis Hypothesis => Hypotheses.Current.Plan;
     private HypothesisForecast? Selected => Forecasts.FirstOrDefault(f => f.Hypothesis.Slot == Hypotheses.Selected);

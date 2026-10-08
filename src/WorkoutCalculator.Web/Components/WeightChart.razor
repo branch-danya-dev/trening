@@ -58,6 +58,14 @@
                 </g>
             }
 
+            @if (_rangePath.Length > 0)
+            {
+                <path class="forecast-band" d="@_rangePath" />
+            }
+            @if (ShowBaseline && _baselinePath.Length > 0)
+            {
+                <path class="forecast-baseline" d="@_baselinePath" />
+            }
             @foreach (var (slot, path) in _paths)
             {
                 <path class="line series-@slot @(Multi && slot != _selected ? "other" : null)" d="@path" />
@@ -149,6 +157,9 @@
 }
 
 @code {
+    [Parameter] public ForecastSnapshot? Archive { get; set; }
+    [Parameter] public bool ShowBaseline { get; set; }
+    private string _rangePath = "", _baselinePath = "";
     /// <summary>Гипотезы с прогнозами; порядок — как в списке гипотез.</summary>
     [Parameter, EditorRequired] public IReadOnlyList<HypothesisForecast> Series { get; set; } = [];
     /// <summary>Слот выбранной гипотезы.</summary>
@@ -214,6 +225,11 @@
 
         // Ось Y: «круглые» деления, не больше 4–5 штук
         var weights = Series.SelectMany(s => s.Forecast.Weeks).Select(w => w.WeightKg).Concat(_facts.Select(f => f.WeightKg)).ToList();
+        if (Archive is { } archive)
+        {
+            weights.AddRange(archive.Expected.SelectMany(p => new[] { p.WeightRange.Lower, p.WeightRange.Upper }));
+            if (ShowBaseline) weights.AddRange(archive.Baseline.Select(p => p.Body.WeightKg));
+        }
         double min = weights.Min(), max = weights.Max();
         if (Target is double t)
         {
@@ -221,7 +237,7 @@
             max = Math.Max(max, t);
         }
         double span = Math.Max(max - min, 0.4);
-        double step = new[] { 0.2, 0.5, 1, 2, 5, 10, 20 }.First(s => span / s <= 4);
+        double step = new[] { 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 500, 1000 }.First(s => span / s <= 4);
         _yMin = Math.Floor((min - span * 0.05) / step) * step;
         _yMax = Math.Ceiling((max + span * 0.05) / step) * step;
         _yDecimals = step < 1 ? 1 : 0;
@@ -239,6 +255,9 @@
             .Select(s => (s.Hypothesis.Slot,
                 string.Join(" ", s.Forecast.Weeks.Select((w, i) => $"{(i == 0 ? "M" : "L")}{F(X(i))},{F(Y(w.WeightKg))}"))))
             .ToList();
+        _baselinePath = Archive is null ? "" : string.Join(" ", Archive.Baseline.Select((p, i) => $"{(i == 0 ? "M" : "L")}{F(X(i))},{F(Y(p.Body.WeightKg))}"));
+        _rangePath = Archive is null ? "" : string.Join(" ", Archive.Expected.Select((p, i) => $"{(i == 0 ? "M" : "L")}{F(X(i))},{F(Y(p.WeightRange.Lower))}")) + " " +
+            string.Join(" ", Archive.Expected.Reverse().Select(p => $"L{F(X(p.Body.Week))},{F(Y(p.WeightRange.Upper))}")) + " Z";
     }
 
     private void OnKey(KeyboardEventArgs e)

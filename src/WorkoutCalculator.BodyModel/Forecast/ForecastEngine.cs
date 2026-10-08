@@ -17,7 +17,15 @@ namespace WorkoutCalculator.BodyModel.Forecast;
 /// </summary>
 public static class ForecastEngine
 {
-    public static ForecastResult Run(BodyProfile start, ForecastInput input)
+    public const string ModelVersion = "hall-forbes-1+residual-1";
+
+    public static ForecastResult Run(BodyProfile start, ForecastInput input, ForecastCalibrationProfile? calibration = null)
+    {
+        var baseline = RunBaseline(start, input);
+        return calibration is null ? baseline : ForecastPersonalization.Apply(baseline, calibration);
+    }
+
+    private static ForecastResult RunBaseline(BodyProfile start, ForecastInput input)
     {
         int weeks = Math.Max(0, input.Weeks);
         var warnings = new List<string>();
