@@ -41,3 +41,4 @@ jobs:
           done
           if [ "$ready" != true ]; then cat "$RUNNER_TEMP/viewer.log"; exit 1; fi
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/skeletal-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/strength-smoke.cjs

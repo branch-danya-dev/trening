@@ -2,6 +2,24 @@
 
 <div class="exercise-preview">
     <div class="exercise-controls">
+        <select class="select load-source" aria-label="Источник нагрузки" title="Источник нагрузки" value="@State.Source" @onchange="SourceChanged">
+            <option value="Exercise">Упражнение</option><option value="Session">Тренировка</option><option value="Week">Эта неделя</option>
+        </select>
+        @if (State.Source == MuscleLoadSource.Session)
+        {
+            <select class="select" aria-label="Сохранённая силовая тренировка" value="@State.SessionId"
+                @onchange="e => State.SelectSession(e.Value?.ToString() ?? string.Empty)">
+                @if (State.Sessions.Count == 0) { <option value="">Нет сохранённых тренировок</option> }
+                @foreach (var session in State.Sessions)
+                {
+                    <option value="@session.Session.Id">@session.Session.Date.ToString("dd.MM.yyyy") · @session.Volume.CompletedSets подходов · @ExerciseCatalog.Get(session.Session.Exercises[0].ExerciseId).Name</option>
+                }
+            </select>
+        }
+    </div>
+    <div class="exercise-controls">
+        @if (State.Source == MuscleLoadSource.Exercise)
+        {
         <select class="select" aria-label="Упражнение" value="@State.Selected.Id" @onchange="Select">
             @foreach (var exercise in ExerciseCatalog.All)
             {
@@ -9,22 +27,34 @@
             }
         </select>
         <button class="btn" disabled="@(!State.Available)" @onclick="State.ToggleAnimation">@(State.Playing ? "■ Стоп" : "▶ Упражнение")</button>
-        <label class="check"><input type="checkbox" checked="@State.Heatmap" disabled="@(!State.Available)"
+        }
+        <label class="check"><input type="checkbox" checked="@State.Heatmap" disabled="@(!State.HeatmapAvailable)"
             @onchange="e => State.SetHeatmap(e.Value is true)" /> Нагрузка мышц</label>
-        <button class="btn" @onclick="State.Reset">Сброс упражнения</button>
+        <button class="btn" aria-label="Сброс упражнения" title="Сброс упражнения и подсветки" @onclick="State.Reset">Сброс</button>
     </div>
     @if (!State.Available)
     {
         <small>Анимация и подсветка доступны для MakeHuman после загрузки.</small>
     }
+    @if (State.AtlasError is not null) { <small role="status">@State.AtlasError</small> }
+    @if (State.Source != MuscleLoadSource.Exercise && State.JournalError is not null) { <small role="alert">@State.JournalError</small> }
     <details class="exercise-details">
         <summary>Мышцы и относительная нагрузка</summary>
+        <p>@State.Caption</p>
+        @if (State.Source == MuscleLoadSource.Exercise)
+        {
         <p><strong>Основные:</strong> @Names(State.Selected.PrimaryMuscles)</p>
         <p><strong>Вторичные:</strong> @Names(State.Selected.SecondaryMuscles)</p>
         <p><strong>Стабилизаторы:</strong> @Names(State.Selected.Stabilizers)</p>
         <p>Условный пример: 3 × 10, RIR 2. Роли и область подсветки приблизительные; это не EMG и не процент активации.</p>
         <p>@State.Selected.Notes</p>
-        @if (State.Heatmap && State.Available)
+        }
+        else
+        {
+            <p>Только выполненные подходы. Сумма относительных вкладов; это не оценка восстановления, усталости или роста мышц.</p>
+        }
+        <MuscleLoadList Load="State.Load" />
+        @if (State.Heatmap && State.HeatmapAvailable)
         {
             <label class="heatmap-intensity">Яркость подсветки
                 <input aria-label="Яркость подсветки" type="range" min="0" max="1" step="0.05"
@@ -39,6 +69,10 @@
     [Parameter, EditorRequired] public ExercisePreviewState State { get; set; } = default!;
     private static string Names(IEnumerable<string> ids) => string.Join(", ", ids.Select(id => MuscleDefinitions.Get(id).Name));
     private void Select(ChangeEventArgs e) => State.Select(e.Value?.ToString() ?? "squat");
+    private void SourceChanged(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<MuscleLoadSource>(e.Value?.ToString(), out var source)) State.SetSource(source);
+    }
     private void IntensityChanged(ChangeEventArgs e)
     {
         if (double.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) && double.IsFinite(value))

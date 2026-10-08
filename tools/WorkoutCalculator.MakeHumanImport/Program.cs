@@ -7,6 +7,16 @@
 using System.Globalization;
 using System.Text.Json;
 using WorkoutCalculator.BodyModel.MakeHuman;
+using WorkoutCalculator.BodyModel.Muscles;
+using System.Diagnostics;
+using System.Security.Cryptography;
+
+// Regenerate from the canonical imported source, without downloading upstream assets again.
+if (args.Length == 3 && args[0] == "--atlas")
+{
+    WriteAtlas(args[1], args[2]);
+    return 0;
+}
 
 if (args.Length < 2)
 {
@@ -255,6 +265,7 @@ var data = new MakeHumanData(source, bodyCount, positions, quads, landmarks, tar
 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
 using (var file = File.Create(output))
     data.Write(file);
+WriteAtlas(output, Path.Combine(Path.GetDirectoryName(Path.GetFullPath(output))!, MuscleAtlasBinary.FileName));
 
 Console.WriteLine($"Вершин тела: {bodyCount}, всего: {vertexCount}, четырёхугольников: {quads.Length / 4}");
 Console.WriteLine($"Костей: {bones.Count}, суставов: {jointSets.Count}, " +
@@ -263,6 +274,27 @@ Console.WriteLine($"Ориентиров: {landmarks.Count}, таргетов: {
                   $"записей в таргетах: {targets.Values.Sum(t => t.Indices.Length)}, зон: {string.Join(", ", zones.Keys.Order())}");
 Console.WriteLine($"Файл: {output}, {new FileInfo(output).Length / 1024.0:0} КБ");
 return 0;
+
+static void WriteAtlas(string modelPath, string atlasPath)
+{
+    var bytes = File.ReadAllBytes(modelPath);
+    var sourceHash = SHA256.HashData(bytes);
+    var model = MakeHumanData.Read(bytes);
+    var timer = Stopwatch.StartNew();
+    long before = GC.GetAllocatedBytesForCurrentThread();
+    var atlas = MakeHumanMuscleAtlas.Generate(model);
+    Console.WriteLine($"Generate: {timer.Elapsed.TotalMilliseconds:F2} ms, allocated {GC.GetAllocatedBytesForCurrentThread() - before:N0} bytes");
+    var packed = MuscleAtlasBinary.Write(atlas, sourceHash);
+    File.WriteAllBytes(atlasPath, packed);
+    // Warm up once; report average reader cost separately from source-file IO/hash.
+    _ = MuscleAtlasBinary.Read(packed, model.BodyVertexCount, sourceHash);
+    timer.Restart();
+    before = GC.GetAllocatedBytesForCurrentThread();
+    for (int i = 0; i < 100; i++) _ = MuscleAtlasBinary.Read(packed, model.BodyVertexCount, sourceHash);
+    Console.WriteLine($"Read/validate: {timer.Elapsed.TotalMilliseconds / 100:F3} ms, allocated {(GC.GetAllocatedBytesForCurrentThread() - before) / 100:N0} bytes (mean of 100)");
+    Console.WriteLine($"Atlas: {atlasPath}, {packed.Length} bytes, SHA256 {Convert.ToHexString(SHA256.HashData(packed)).ToLowerInvariant()}");
+    Console.WriteLine($"Source SHA256 {Convert.ToHexString(sourceHash).ToLowerInvariant()}; {model.Source}");
+}
 
 void Add(string name, Dictionary<int, float[]> deltas)
 {

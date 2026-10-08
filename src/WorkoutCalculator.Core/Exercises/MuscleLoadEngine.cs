@@ -1,6 +1,6 @@
 namespace WorkoutCalculator.Exercises;
 
-/// <summary>No journal. Weight only scales exposure when an explicit same-exercise reference is provided.</summary>
+/// <summary>Weight only scales exposure when an explicit same-exercise reference is provided.</summary>
 public sealed record ExerciseSetParameters(int Sets = 3, int Reps = 10, double? WeightKg = null,
     double? Rir = null, double? Rpe = null, double? ReferenceWeightKg = null);
 
@@ -56,7 +56,7 @@ public static class MuscleLoadEngine
         }
     }
 
-    /// <summary>Sum raw exposure before normalization: supports future exercise → session → week composition.</summary>
+    /// <summary>Sum raw exposure before normalization: supports exercise → session → week composition.</summary>
     public static MuscleLoadResult Aggregate(IEnumerable<MuscleLoadResult> results)
     {
         var raw = MuscleDefinitions.Groups.ToDictionary(g => g.Id, _ => 0.0);

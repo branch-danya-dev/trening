@@ -121,8 +121,9 @@
                 }
                 else if (_tab == Tab.Workout)
                 {
-                    <WorkoutPanel Profile="_profile" Draft="_workout" OnChange="ChangeProfile" Log="_workouts" Plan="CardioPlan()"
-                                  OnSave="SaveWorkout" OnRemove="RemoveWorkout" />
+                    <TrainingPanel Profile="_profile" Draft="_workout" OnChange="ChangeProfile" Log="_workouts" Plan="CardioPlan()"
+                                  OnSave="SaveWorkout" OnRemove="RemoveWorkout" Strength="_strength"
+                                  OnStrengthChanged="_exercise.RefreshJournal" OnShowLoad="ShowStrengthLoad" />
                 }
                 else if (_tab == Tab.Photos)
                 {
@@ -176,6 +177,15 @@
     private Tab _tab = Tab.Params;
     /// <summary>Расчёт тренировки в работе: переживает переключение вкладок.</summary>
     private readonly WorkoutDraft _workout = new();
+    private readonly StrengthJournalState _strength = new(new StrengthJournalStore(new BrowserJournalStorage()));
+
+    private void ShowStrengthLoad(string? sessionId)
+    {
+        _exercise.SetSource(sessionId is null ? MuscleLoadSource.Week : MuscleLoadSource.Session, sessionId);
+        _exercise.SetHeatmap(true);
+        SetMode(ViewMode.Current);
+        _tab = Tab.Params;
+    }
     /// <summary>Журнал тренировок, от новых к старым.</summary>
     private List<LoggedWorkout> _workouts = ProfileStorage.LoadWorkouts();
 
@@ -268,6 +278,9 @@
         _hypotheses = ProfileStorage.LoadHypotheses() ?? StoredHypotheses.Of(DefaultHypothesis(_profile));
         _kind = ProfileStorage.LoadModelKind() == "mannequin" ? BodyKind.Mannequin : BodyKind.MakeHuman;
         _weights = ProfileStorage.LoadWeights();
+        _strength.Load();
+        _exercise.Journal = _strength;
+        _exercise.RefreshJournal();
         _ = LoadMakeHumanAsync();
         _ = LoadPhotoFactsAsync();
     }
@@ -322,9 +335,10 @@
         try
         {
             // Версия в адресе — чтобы браузер не взял из кэша файл старого формата
-            var bytes = await Http.GetByteArrayAsync($"data/{MakeHumanData.FileName}?v={MakeHumanData.Version}");
-            _mh = new MakeHumanModel(MakeHumanData.Read(bytes));
-            _exercise.Atlas = MakeHumanMuscleAtlas.Generate(_mh.Data);
+            var assets = await MakeHumanAssets.Load(Http);
+            _mh = assets.Model;
+            _exercise.Atlas = assets.Atlas;
+            _exercise.AtlasError = assets.AtlasError;
             _mhStatus = null;
         }
         catch (Exception e) when (e is HttpRequestException or InvalidDataException)

@@ -20,6 +20,11 @@
   <ItemGroup>
     <None Include="..\..\src\WorkoutCalculator.Web\wwwroot\data\makehuman-hm08.bin" Link="data\makehuman-hm08.bin"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\WorkoutCalculator.Web\wwwroot\data\makehuman-muscle-atlas-v1.bin" Link="data\makehuman-muscle-atlas-v1.bin"
+          CopyToOutputDirectory="PreserveNewest" />
+    <!-- Test the actual portable storage/state sources without loading the browser-only Web assembly. -->
+    <Compile Include="..\..\src\WorkoutCalculator.Web\Services\StrengthJournalStore.cs" Link="Services\StrengthJournalStore.cs" />
+    <Compile Include="..\..\src\WorkoutCalculator.Web\Services\StrengthJournalState.cs" Link="Services\StrengthJournalState.cs" />
   </ItemGroup>
 
   <ItemGroup>
