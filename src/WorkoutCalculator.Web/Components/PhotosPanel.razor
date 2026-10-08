@@ -121,7 +121,13 @@ else
                 }
                 else
                 {
-                    <button class="btn-link muted" @onclick="() => _confirmDelete = s.Id">Удалить</button>
+                    <span class="confirm">
+                        @if (s.Id != _openId && !_pin.Locked)
+                        {
+                            <button class="btn-link" @onclick="() => OpenAndAnalyze(s.Id)">@(s.Analysis is null ? "Открыть и разобрать" : "Открыть")</button>
+                        }
+                        <button class="btn-link muted" @onclick="() => _confirmDelete = s.Id">Удалить</button>
+                    </span>
                 }
             </div>
         </div>
@@ -131,7 +137,7 @@ else
 @if (_sessions.FirstOrDefault(s => s.Id == _openId) is PhotoSession o)
 {
     var keys = KeyLevels(o.Sex);
-    <div class="card">
+    <div class="card" id="photo-analysis">
         <div class="card-title">
             Разбор фото
             <span class="title-note">@Fmt.DateTime(o.CreatedAt)</span>
@@ -143,6 +149,13 @@ else
                 устройстве. Масштаб — по росту на момент съёмки (@Fmt.N(o.HeightCm, 0)&nbsp;см).
             </div>
             <button class="btn primary" disabled="@_busy" @onclick="() => Analyze(o)">@(_busy ? "Разбираю…" : "Разобрать фото")</button>
+            @if (_analyzing)
+            {
+                <div class="note" style="margin-top: 8px">
+                    Ищу фигуру и контур на снимках. В первый раз загружается распознавание позы (около 22&nbsp;МБ) —
+                    это может занять до минуты, дальше — несколько секунд.
+                </div>
+            }
         }
         else
         {
@@ -347,6 +360,10 @@ else
                     }
                 </div>
             }
+        }
+        @if (_analysisError is not null)
+        {
+            <div class="hint" role="alert" style="margin-top: 10px">@_analysisError</div>
         }
         <div class="confirm">
             <button class="btn-link muted" @onclick="Close">Закрыть</button>
@@ -596,24 +613,48 @@ else
 
     private async Task Save()
     {
+        PhotoSession? saved = null;
         await Run(async () =>
         {
-            await PhotoStore.SaveFromInputs(Profile, FrontInput, SideInput);
+            saved = await PhotoStore.SaveFromInputs(Profile, FrontInput, SideInput);
             _picked.Clear();
             await Reload();
             Show("Сессия сохранена.");
         });
+        // Сразу открыть и разобрать: результат — то, ради чего фото и загружали
+        if (saved is not null) await OpenAndAnalyze(saved.Id);
     }
 
     private async Task Shoot()
     {
+        PhotoSession? saved = null;
         await Run(async () =>
         {
-            var session = await Capture.Run(Profile);
-            if (session is null) return;
+            saved = await Capture.Run(Profile);
+            if (saved is null) return;
             await Reload();
             Show("Сессия сохранена.");
         });
+        if (saved is not null) await OpenAndAnalyze(saved.Id);
+    }
+
+    /// <summary>Открыть сессию, прокрутить к разбору и, если разбора ещё нет, разобрать.</summary>
+    private async Task OpenAndAnalyze(string id)
+    {
+        if (_sessions.FirstOrDefault(s => s.Id == id) is not PhotoSession s) return;
+        await Open(s);
+        if (_openId != s.Id) return;
+        _scrollToAnalysis = true;
+        if (s.Analysis is null) await Analyze(s);
+    }
+
+    private bool _scrollToAnalysis;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!_scrollToAnalysis || _openId is null) return;
+        _scrollToAnalysis = false;
+        BrowserStorage.ScrollToId("photo-analysis");
     }
 
     private async Task Open(PhotoSession s)
@@ -638,6 +679,7 @@ else
     private void Close()
     {
         _openId = null;
+        _analysisError = null;
         _report = _reportFor = _reportNote = null;
         _compareId = null;
         _ghost = _change = null;
@@ -767,26 +809,31 @@ else
         ProfileStorage.SavePrivacy(_privacy);
     }
 
+    /// <summary>Разбор идёт; ошибка разбора — в карточке разбора, а не вверху вкладки, где её не видно.</summary>
+    private bool _analyzing;
+    private string? _analysisError;
+
     private async Task Analyze(PhotoSession s)
     {
-        _busy = true;
-        _message = null;
+        _busy = _analyzing = true;
+        _analysisError = null;
         if (_fitSessionId == s.Id) _fit = null; // разбор заново — прежняя подгонка к нему не относится
+        StateHasChanged();
         try
         {
             await PhotoAnalyzer.Analyze(s);
         }
         catch (JSException e)
         {
-            Show(JsError(e), error: true);
+            _analysisError = JsError(e);
         }
         catch (InvalidOperationException e)
         {
-            Show(e.Message, error: true);
+            _analysisError = e.Message;
         }
         finally
         {
-            _busy = false;
+            _busy = _analyzing = false;
         }
     }
 

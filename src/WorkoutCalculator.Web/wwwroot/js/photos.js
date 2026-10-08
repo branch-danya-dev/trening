@@ -221,7 +221,12 @@ async function toJpeg(source, maxSide, quality) {
         if (!blob) throw new Error('Не удалось сохранить снимок');
         return { blob, width: canvas.width, height: canvas.height };
     } catch (e) {
-        throw new Error(e?.message?.startsWith('Не удалось') ? e.message : 'Файл не похож на фото или формат не поддерживается');
+        if (e?.message?.startsWith('Не удалось')) throw e;
+        // Фото с iPhone в HEIC открывает только Safari; на компьютере с Windows и в Chrome — нет
+        const heic = /hei[cf]/i.test(source?.type ?? '') || /\.hei[cf]$/i.test(source?.name ?? '');
+        throw new Error(heic
+            ? 'Этот браузер не открывает фото HEIC (формат iPhone). Сохраните снимки как JPEG: на iPhone — «Настройки → Камера → Форматы → Наиболее совместимый» или отправьте фото себе как JPEG; либо откройте приложение в Safari.'
+            : 'Файл не похож на фото или формат не поддерживается');
     } finally {
         URL.revokeObjectURL(url);
     }
