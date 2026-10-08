@@ -24,15 +24,15 @@
         <p><strong>Стабилизаторы:</strong> @Names(State.Selected.Stabilizers)</p>
         <p>Условный пример: 3 × 10, RIR 2. Роли и область подсветки приблизительные; это не EMG и не процент активации.</p>
         <p>@State.Selected.Notes</p>
+        @if (State.Heatmap && State.Available)
+        {
+            <label class="heatmap-intensity">Яркость подсветки
+                <input aria-label="Яркость подсветки" type="range" min="0" max="1" step="0.05"
+                    value="@State.Intensity.ToString(CultureInfo.InvariantCulture)" @oninput="IntensityChanged" />
+            </label>
+            <div class="heatmap-legend"><span>0</span><i></i><span>1 · относительная нагрузка</span></div>
+        }
     </details>
-    @if (State.Heatmap && State.Available)
-    {
-        <label class="heatmap-intensity">Яркость подсветки
-            <input aria-label="Яркость подсветки" type="range" min="0" max="1" step="0.05"
-                value="@State.Intensity.ToString(CultureInfo.InvariantCulture)" @oninput="IntensityChanged" />
-        </label>
-        <div class="heatmap-legend"><span>0</span><i></i><span>1 · относительная нагрузка</span></div>
-    }
 </div>
 
 @code {

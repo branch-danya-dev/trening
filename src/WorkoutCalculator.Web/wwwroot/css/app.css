@@ -954,6 +954,12 @@ table.changes tr.dim td { opacity: 0.5; }
     .mode-bar { top: 8px; left: 8px; max-width: calc(100% - 16px); gap: 6px 8px; }
     .mode-bar .seg { order: 0; }
     .mode-bar > :not(.seg):not(.view-cycle) { order: 2; }
+    /* Share rows with the video button: keep collapsed exercise controls above the model on phones. */
+    .exercise-preview, .exercise-controls { display: contents; }
+    .exercise-controls > * { order: 2; }
+    .exercise-controls .select { max-width: 145px; }
+    .exercise-details { order: 3; flex-basis: 100%; margin-top: 0; font-size: 12px; }
+    .exercise-preview > small { order: 3; flex-basis: 100%; }
     .seg button { padding: 5px 10px; }
     /* Вверху справа легенда с названием гипотезы наезжала бы на кнопки камеры */
     .legend { top: auto; bottom: 36px; right: 10px; max-width: 60%; text-align: right; }

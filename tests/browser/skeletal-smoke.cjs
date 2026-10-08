@@ -68,11 +68,13 @@ const assert = require('node:assert/strict');
         await page.getByRole('button', { name: '■ Стоп', exact: true }).click();
         assert.equal(await page.evaluate(() => viewer.smokeState().rigs.current.action), null);
         assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material.vertexColors), true);
+        await page.locator('.exercise-details summary').click();
         await page.getByLabel('Яркость подсветки', { exact: true }).fill('0');
         assert.equal(await page.evaluate(() => {
             const c = viewer.smokeState().meshes.current.geometry.attributes.color.array;
             return c.every((x, i) => x === c[i % 3]);
         }), true);
+        await page.locator('.exercise-details summary').click();
         await page.getByRole('button', { name: 'Сброс упражнения', exact: true }).click();
         assert.equal(await page.getByRole('combobox', { name: 'Упражнение', exact: true }).inputValue(), 'squat');
         assert.equal(await page.getByLabel('Нагрузка мышц', { exact: true }).isChecked(), false);
@@ -190,8 +192,20 @@ const assert = require('node:assert/strict');
         assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material.vertexColors), true);
         await page.waitForTimeout(150);
         await page.evaluate(() => viewer.stopAnimation('current'));
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.getByRole('button', { name: 'Сейчас', exact: true }).click();
+        const mobile = await page.evaluate(() => {
+            const controls = document.querySelector('.mode-bar').getBoundingClientRect();
+            const viewport = document.querySelector('.viewport').getBoundingClientRect();
+            return { width: controls.width, height: controls.height, viewportHeight: viewport.height };
+        });
+        assert.ok(mobile.width <= 390 && mobile.height < mobile.viewportHeight * 0.4, JSON.stringify(mobile));
+        await page.locator('.exercise-details summary').click();
+        assert.ok(await page.getByText('Основные:', { exact: true }).isVisible());
+        assert.ok(await page.getByText('Вторичные:', { exact: true }).isVisible());
+        await page.locator('.exercise-details summary').click();
         assert.deepEqual(errors, []);
-        console.log(JSON.stringify({ restCheck, heatmapChecks, comparison, video, browserErrors: errors.length }, null, 2));
+        console.log(JSON.stringify({ restCheck, heatmapChecks, comparison, video, mobile, browserErrors: errors.length }, null, 2));
     } finally {
         await browser.close();
     }
