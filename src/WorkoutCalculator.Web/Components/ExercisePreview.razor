@@ -2,7 +2,7 @@
 
 <div class="exercise-preview">
     <div class="exercise-controls">
-        <select class="select" aria-label="Источник нагрузки" title="Источник нагрузки" value="@State.Source" @onchange="SourceChanged">
+        <select class="select load-source" aria-label="Источник нагрузки" title="Источник нагрузки" value="@State.Source" @onchange="SourceChanged">
             <option value="Exercise">Упражнение</option><option value="Session">Тренировка</option><option value="Week">Эта неделя</option>
         </select>
         @if (State.Source == MuscleLoadSource.Session)
