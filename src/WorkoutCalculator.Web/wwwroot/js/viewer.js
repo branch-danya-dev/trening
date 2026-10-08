@@ -381,7 +381,7 @@ function applyTapes() {
     requestRender();
 }
 
-/** mode: current | forecast | compare; sideBySide — в сравнении поставить модели рядом. */
+/** Historical modes reuse the renderer slots, but never enable exercise heatmaps. */
 export function setMode(newMode, newSideBySide) {
     mode = newMode;
     sideBySide = newSideBySide;
@@ -474,12 +474,13 @@ export function setView(view) {
 function applyMode(refit = false) {
     const { current, forecast } = meshes;
     const haveForecast = !!forecast;
+    const comparing = mode === 'compare' || mode === 'historyCompare';
     const show = {
-        current: mode === 'current' || mode === 'compare' || !haveForecast,
-        forecast: haveForecast && (mode === 'forecast' || mode === 'compare'),
+        current: mode === 'current' || mode === 'history' || comparing || !haveForecast,
+        forecast: haveForecast && (mode === 'forecast' || comparing),
     };
 
-    ghostActive = mode === 'compare' && haveForecast && !sideBySide && !!current;
+    ghostActive = comparing && haveForecast && !sideBySide && !!current;
     if (current) {
         current.visible = show.current && !ghostActive;
         // Relative exercise load belongs to the current body only. Comparison/forecast keep their materials.
@@ -491,7 +492,7 @@ function applyMode(refit = false) {
         forecast.material = materials.forecast;
     }
 
-    const apart = mode === 'compare' && haveForecast && sideBySide ? 0.42 * modelHeight : 0;
+    const apart = comparing && haveForecast && sideBySide ? 0.42 * modelHeight : 0;
     if (current) current.position.x = apart ? -apart : 0;
     if (forecast) forecast.position.x = apart;
     platform.visible = !apart; // подиум один — под двумя моделями рядом он только мешает
@@ -508,7 +509,7 @@ function targetY() {
 function fitDistance() {
     const halfFov = THREE.MathUtils.degToRad(FOV / 2);
     const vertical = (0.62 * modelHeight) / Math.tan(halfFov);
-    const width = mode === 'compare' && sideBySide && meshes.forecast ? 1.65 * modelHeight : 0.85 * modelHeight;
+    const width = (mode === 'compare' || mode === 'historyCompare') && sideBySide && meshes.forecast ? 1.65 * modelHeight : 0.85 * modelHeight;
     const horizontal = (width / 2) / (Math.tan(halfFov) * camera.aspect);
     return Math.max(vertical, horizontal);
 }

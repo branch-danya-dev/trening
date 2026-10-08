@@ -1,0 +1,165 @@
+@using WorkoutCalculator.BodyModel.History
+@using WorkoutCalculator.Strength
+
+<section class="body-history" aria-label="История тела">
+    <h2>История тела</h2>
+    <p class="hint">Факты по датам. Пустое поле означает «нет данных». Дополнения для 3D не сохраняются как замеры.</p>
+    @if (State.StorageError is { } storageError) { <p role="alert">@storageError</p> }
+    @if (State.Error is { } error) { <p role="alert">@error</p> }
+    @if (State.Status is { } status) { <p role="status">@status</p> }
+    <div class="history-actions">
+        <button class="btn" disabled="@(_importing || State.StorageError is not null)" @onclick="Import">@(_importing ? "Импорт…" : "Импортировать вес и фото")</button>
+        <button class="btn" @onclick="State.New">Новая запись</button>
+    </div>
+    <p class="hint">Импорт выполняется по нажатию: только новые факты. Сохранённые точки не меняются вслед за старым журналом. Фото остаются в локальном хранилище.</p>
+
+    @if (State.Timeline.Items.Count > 0)
+    {
+        <div class="history-timeline" role="group" aria-label="Даты истории">
+            @foreach (var item in State.Timeline.Items)
+            {
+                <button class="btn @Css.On(item.Id == State.Timeline.SelectedId)" aria-pressed="@(item.Id == State.Timeline.SelectedId ? "true" : "false")"
+                        data-snapshot-id="@item.Id" @onclick="() => Select(item.Id)"><span>●</span><br />@item.Date.ToString("dd.MM.yyyy")<br /><small>@SourceName(item.Source)</small></button>
+            }
+        </div>
+        <div class="history-navigation">
+            <button class="btn" aria-label="Предыдущее состояние" disabled="@(State.Timeline.Index <= 0)" @onclick="() => Move(-1)">←</button>
+            <input type="range" aria-label="Позиция на timeline" min="0" max="@(State.Timeline.Items.Count - 1)" step="1" value="@State.Timeline.Index" @oninput="Scrub" />
+            <button class="btn" aria-label="Следующее состояние" disabled="@(State.Timeline.Index >= State.Timeline.Items.Count - 1)" @onclick="() => Move(1)">→</button>
+        </div>
+    }
+    else { <p class="hint">История пока пуста. Добавьте замеры или импортируйте существующие факты.</p> }
+
+    @if (State.Timeline.Selected is { } selected)
+    {
+        <article class="history-fact">
+            <h3>@selected.Date.ToString("dd.MM.yyyy") · @SourceName(selected.Source)</h3>
+            <dl class="history-values">
+                <dt>Вес</dt><dd>@Value(selected.WeightKg, "кг")</dd>
+                <dt>Жир</dt><dd>@Value(selected.BodyFatPercent, "%")</dd>
+                @foreach (var g in Enum.GetValues<Girth>())
+                {
+                    var observation = selected.Measurements.GetValueOrDefault(g);
+                    <dt>@BodyProfile.GirthName(g)</dt><dd>@Value(observation?.Cm, "см")
+                        @if (observation?.Method == MeasurementMethod.PhotoDerived) { <small> · по фото (RMSE @Fmt.N(observation.ModelRmseCm ?? 0, 1) см)</small> }
+                    </dd>
+                }
+                <dt>Рост / возраст</dt><dd>@Value(selected.HeightCm, "см") / @Value(selected.Age, "лет")</dd>
+                <dt>Осанка / форма</dt><dd>@(selected.Posture is null ? "нет данных" : "сохранена") / @(selected.BodyForm is null ? "нет данных" : "сохранена")</dd>
+            </dl>
+            <p class="hint">@selected.Quality.Description</p>
+            @if (selected.PhotoSessionId is { } photoId) { <p class="hint history-reference">Локальная фотосессия: @photoId. Если фото удалено, замеры этой точки сохраняются.</p> }
+            @if (!string.IsNullOrEmpty(selected.Notes)) { <p>@selected.Notes</p> }
+            <p class="hint history-estimates">3D — приближённая реконструкция. Вспомогательно заполнены: @string.Join(", ", SnapshotVisuals.Build(selected).EstimatedFields).</p>
+            <div class="history-actions">
+                <button class="btn" @onclick="() => Select(selected.Id)">Показать дату в 3D</button>
+                @if (selected.Source == SnapshotSource.Manual) { <button class="btn" @onclick="() => State.Edit(selected)">Редактировать запись</button> }
+                <button class="btn" disabled="@(State.StorageError is not null)" @onclick="() => _deleting = selected.Id">Удалить запись</button>
+            </div>
+            @if (_deleting == selected.Id)
+            {
+                <p>Удалить эту точку истории? Исходный журнал веса и фото сохранится.</p>
+                <button class="btn" @onclick="() => Remove(selected.Id)">Подтвердить удаление</button>
+                <button class="btn" @onclick="() => _deleting = null">Отмена</button>
+            }
+        </article>
+    }
+
+    @if (State.Timeline.Items.Count >= 2)
+    {
+        <section class="history-comparison" aria-label="Сравнение дат">
+            <h3>Сравнить даты</h3>
+            <div class="history-fields">
+                <label>От<select class="select" aria-label="История от" value="@State.FromId" @onchange="ChangeFrom">
+                    @foreach (var item in State.Timeline.Items) { <option value="@item.Id">@item.Date.ToString("dd.MM.yyyy") · @SourceName(item.Source)</option> }
+                </select></label>
+                <label>До<select class="select" aria-label="История до" value="@State.ToId" @onchange="ChangeTo">
+                    @foreach (var item in State.Timeline.Items) { <option value="@item.Id">@item.Date.ToString("dd.MM.yyyy") · @SourceName(item.Source)</option> }
+                </select></label>
+            </div>
+            <div class="history-actions">
+                <button class="btn" disabled="@(!State.CanCompare)" @onclick="Compare">Сравнить даты в 3D</button>
+                <label class="check"><input type="checkbox" checked="@State.SideBySide" @onchange="ToggleSideBySide" /> рядом</label>
+            </div>
+            @if (!State.CanCompare) { <p class="hint">Выберите две разные записи: «до» не раньше «от».</p> }
+            else
+            {
+                <table class="history-deltas"><thead><tr><th>Поле</th><th>От</th><th>До</th><th>Δ</th></tr></thead><tbody>
+                    @foreach (var delta in State.Deltas)
+                    {
+                        <tr><td>@delta.Label @if (delta.PhotoDerived) { <small>по фото*</small> }</td><td>@Number(delta.From)</td><td>@Number(delta.To)</td><td>@(delta.Change.HasValue ? Value(delta.Change, delta.Unit) : "нет пары")</td></tr>
+                    }
+                </tbody></table>
+                <p class="hint">— нет данных; Δ считается только для двух известных значений. * Оценка из фото, точность и метод могут отличаться от ручного замера.</p>
+                <p class="hint">3D обеих дат содержит вспомогательные оценки для отсутствующих полей. Сравнение моделей не заменяет сравнение замеров.</p>
+                var period = WorkoutPeriodSummary.Build(State.From!.Date, State.To!.Date, Strength.Sessions, Cardio);
+                <div class="history-period">
+                    <h3>За период @period.From.ToString("dd.MM.yyyy") — @period.To.ToString("dd.MM.yyyy")</h3>
+                    <p class="hint">Обе даты включены. Сводка записей за период, без вывода о причинах изменений тела.</p>
+                    @if (Strength.StorageError is { } strengthError) { <p role="alert">Силовая сводка недоступна: @strengthError</p> }
+                    else
+                    {
+                        <p>@period.StrengthSessions силовых тренировок · @period.Strength.CompletedSets выполненных подходов · @period.Strength.Reps повторений</p>
+                        <p>Тоннаж внешнего веса: @(period.Strength.WeightedSets > 0 ? Value(period.Strength.ExternalVolumeKg, "кг") : "нет подходов с внешним весом")</p>
+                        <p>Основные группы по относительной нагрузке: @(period.TopMuscles.Count == 0 ? "нет данных" : string.Join(", ", period.TopMuscles.Select(m => m.Name)))</p>
+                    }
+                    <p>@period.CardioWorkouts кардио · @Value(period.CardioMinutes, "мин") · @Value(period.CardioActiveKcal, "ккал") (оценка активного расхода из журнала)</p>
+                </div>
+            }
+        </section>
+    }
+
+    <details class="history-editor" open>
+        <summary>Запись состояния тела</summary>
+        <button class="btn" @onclick="() => State.UseCurrent(Profile)">Заполнить из текущего профиля</button>
+        <p class="hint">Оставляйте только известные значения. Данные текущего профиля могут быть исходными настройками — подтвердите их или очистите перед сохранением.</p>
+        <div class="history-fields">
+            <label>Дата<input type="date" aria-label="Дата состояния" value="@State.Draft.Date" @onchange="e => State.Draft.Date = e.Value?.ToString() ?? string.Empty" /></label>
+            <label>Вес, кг<input inputmode="decimal" aria-label="Вес состояния" @bind="State.Draft.Weight" /></label>
+            <label>Жир, %<input inputmode="decimal" aria-label="Жир состояния" @bind="State.Draft.BodyFat" /></label>
+            <label>Рост, см<input inputmode="decimal" aria-label="Рост состояния" @bind="State.Draft.Height" /></label>
+            <label>Возраст<input inputmode="numeric" aria-label="Возраст состояния" @bind="State.Draft.Age" /></label>
+            <label>Пол<select class="select" aria-label="Пол состояния" @bind="State.Draft.Sex"><option value="">Нет данных</option><option value="Male">Мужской</option><option value="Female">Женский</option></select></label>
+            @foreach (var g in Enum.GetValues<Girth>())
+            {
+                <label>@BodyProfile.GirthName(g), см<input inputmode="decimal" aria-label="@(BodyProfile.GirthName(g) + " состояния")" @bind="State.Draft.Girths[g]" /></label>
+            }
+        </div>
+        <label class="check"><input type="checkbox" checked="@(State.Draft.Posture is not null)" @onchange="e => State.Draft.Posture = e.Value is true ? Profile.Posture : null" /> Подтвердить текущую осанку</label>
+        <label class="check"><input type="checkbox" checked="@(State.Draft.Form is not null)" @onchange="e => State.Draft.Form = e.Value is true ? Profile.Form : null" /> Подтвердить текущую форму</label>
+        <label>Заметки<textarea aria-label="Заметки состояния" maxlength="4000" @bind="State.Draft.Notes"></textarea></label>
+        <button class="btn primary" disabled="@(State.StorageError is not null)" @onclick="Save">Сохранить состояние тела</button>
+    </details>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public BodyHistoryState State { get; set; } = default!;
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    [Parameter, EditorRequired] public StrengthJournalState Strength { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<LoggedWorkout> Cardio { get; set; } = [];
+    [Parameter] public EventCallback OnView { get; set; }
+    private bool _importing;
+    private string? _deleting;
+    private static string SourceName(SnapshotSource source) => source switch { SnapshotSource.Manual => "Вручную", SnapshotSource.Photo => "По фото", _ => "Журнал веса" };
+    private static string Number(double? n) => n.HasValue ? Fmt.N(n.Value, 1) : "—";
+    private static string Value(double? n, string unit) => n.HasValue ? $"{Fmt.N(n.Value, 1)} {unit}" : "нет данных";
+    private async Task Select(string id) { State.Select(id); await OnView.InvokeAsync(); }
+    private async Task Move(int delta) { State.Move(delta); await OnView.InvokeAsync(); }
+    private async Task Scrub(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var index) && State.Timeline.Items.ElementAtOrDefault(index) is { } item) await Select(item.Id);
+    }
+    private async Task Compare() { State.Compare(); await OnView.InvokeAsync(); }
+    private async Task ChangeFrom(ChangeEventArgs e) { State.SetFrom(e.Value?.ToString()); await OnView.InvokeAsync(); }
+    private async Task ChangeTo(ChangeEventArgs e) { State.SetTo(e.Value?.ToString()); await OnView.InvokeAsync(); }
+    private async Task ToggleSideBySide(ChangeEventArgs e) { State.SideBySide = e.Value is true; await OnView.InvokeAsync(); }
+    private async Task Save() { if (State.Save()) await OnView.InvokeAsync(); }
+    private async Task Remove(string id) { if (State.Remove(id)) { _deleting = null; await OnView.InvokeAsync(); } }
+    private async Task Import()
+    {
+        _importing = true;
+        try { if (State.Import(await SnapshotSourceLoader.Load())) await OnView.InvokeAsync(); }
+        catch (Exception e) when (e is not OutOfMemoryException) { State.ImportFailed(e.Message); }
+        finally { _importing = false; }
+    }
+}

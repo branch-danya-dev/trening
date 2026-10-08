@@ -58,6 +58,7 @@
                             @onclick="() => SetMode(ViewMode.Forecast)">Прогноз</button>
                     <button class="@Css.On(_mode == ViewMode.Compare)" disabled="@(_forecast is null)"
                             @onclick="() => SetMode(ViewMode.Compare)">Сравнение</button>
+                    <button class="@Css.On(IsHistory)" @onclick="OpenHistory">История</button>
                 </div>
                 @if (_mode == ViewMode.Compare)
                 {
@@ -71,7 +72,7 @@
                 {
                     <ExercisePreview State="_exercise" />
                 }
-                @if (_mode != ViewMode.Current && ManyHypotheses)
+                @if (_mode is ViewMode.Forecast or ViewMode.Compare && ManyHypotheses)
                 {
                     <select class="select" aria-label="Какую гипотезу показать" value="@_hypotheses.Selected" @onchange="OnViewHypothesis">
                         @foreach (var h in _hypotheses.Items)
@@ -79,6 +80,10 @@
                             <option value="@h.Slot">@h.Name</option>
                         }
                     </select>
+                }
+                @if (IsHistory)
+                {
+                    <div class="history-view-caption">@HistoryCaption<br /><small>3D с оценками недостающих параметров@(_history.Comparing ? "; от — серый контур/тело, до — бирюзовый" : "")</small></div>
                 }
             </div>
 
@@ -91,7 +96,7 @@
                 <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
             </label>
 
-            @if (_current is not null)
+            @if (_current is not null && !IsHistory)
             {
                 <div class="view-stats">
                     @(_current is MakeHumanBody mhb ? $"MakeHuman, сечений {mhb.Measurements}" : $"Манекен, {Mannequin.Segments} точек на сечение") ·
@@ -111,6 +116,8 @@
                         @onclick="OpenHypothesis">Гипотеза</button>
                 <button role="tab" aria-selected="@(_tab == Tab.Photos ? "true" : "false")" class="@Css.On(_tab == Tab.Photos)"
                         @onclick="() => _tab = Tab.Photos">Фото</button>
+                <button role="tab" aria-selected="@(_tab == Tab.History ? "true" : "false")" class="@Css.On(_tab == Tab.History)"
+                        @onclick="OpenHistory">История</button>
             </nav>
 
             <div class="panel-body">
@@ -130,6 +137,10 @@
                     <PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End"
                                  ForecastLabel="@ForecastLabel" />
                 }
+                else if (_tab == Tab.History)
+                {
+                    <BodyHistory State="_history" Profile="_profile" Strength="_strength" Cardio="_workouts" OnView="ShowHistory" />
+                }
                 else
                 {
                     <HypothesisPanel Profile="_profile" Hypotheses="_hypotheses" Forecasts="_forecasts" OnChange="ChangeHypothesis"
@@ -141,8 +152,8 @@
 </div>
 
 @code {
-    private enum Tab { Params, Workout, Hypothesis, Photos }
-    private enum ViewMode { Current, Forecast, Compare }
+    private enum Tab { Params, Workout, Hypothesis, Photos, History }
+    private enum ViewMode { Current, Forecast, Compare, History }
     private enum BodyKind { MakeHuman, Mannequin }
 
     private BodyProfile _profile = BodyDefaults.Default();
@@ -279,6 +290,7 @@
         _kind = ProfileStorage.LoadModelKind() == "mannequin" ? BodyKind.Mannequin : BodyKind.MakeHuman;
         _weights = ProfileStorage.LoadWeights();
         _strength.Load();
+        _history.Load();
         _exercise.Journal = _strength;
         _exercise.RefreshJournal();
         _ = LoadMakeHumanAsync();
@@ -362,6 +374,7 @@
     {
         RequestRebuild();
         _ = ForecastLaterAsync(++_forecastVersion, 0);
+        if (IsHistory) RenderHistory();
     }
 
     private void SetKind(BodyKind kind)
@@ -438,7 +451,9 @@
     private void SetMode(ViewMode mode)
     {
         if (mode != ViewMode.Current) _exercise.Stop();
+        bool wasHistory = IsHistory;
         _mode = mode;
+        if (wasHistory && !IsHistory) RestoreLiveBodies();
         ApplyMode();
     }
 
@@ -461,6 +476,12 @@
     /// <summary>Ленты для уже показанных тел (MakeHuman считает их только по запросу).</summary>
     private void SendTapes()
     {
+        if (IsHistory)
+        {
+            if (_historyFromBody is not null) ViewerInterop.SetTapes("current", _historyFromBody.Tapes);
+            if (_historyToBody is not null) ViewerInterop.SetTapes("forecast", _historyToBody.Tapes);
+            return;
+        }
         if (_current is not null) ViewerInterop.SetTapes("current", _current.Tapes);
         if (_forecastBody is not null) ViewerInterop.SetTapes("forecast", _forecastBody.Tapes);
     }
@@ -468,6 +489,7 @@
     /// <summary>Сетка в 3D-вид и, если ленты сейчас показываются, её ленты.</summary>
     private void Show(string slot, IBodyShape body)
     {
+        if (IsHistory) return; // Delayed current/forecast builds must not overwrite the historical slots.
         ViewerInterop.SetGeometry(slot, body.Geometry);
         if (slot == "current") _exercise.GeometryChanged(body.Geometry.Skeleton is not null);
         if (TapesNeeded) ViewerInterop.SetTapes(slot, body.Tapes);
@@ -481,6 +503,7 @@
 
     private void ApplyMode()
     {
+        if (IsHistory) { RenderHistory(); return; }
         string mode = _mode switch
         {
             ViewMode.Forecast => "forecast",

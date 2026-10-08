@@ -25,6 +25,8 @@
     <!-- Test the actual portable storage/state sources without loading the browser-only Web assembly. -->
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\StrengthJournalStore.cs" Link="Services\StrengthJournalStore.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\StrengthJournalState.cs" Link="Services\StrengthJournalState.cs" />
+    <Compile Include="..\..\src\WorkoutCalculator.Web\Services\BodySnapshotStore.cs" Link="Services\BodySnapshotStore.cs" />
+    <Compile Include="..\..\src\WorkoutCalculator.Web\Services\BodyHistoryState.cs" Link="Services\BodyHistoryState.cs" />
   </ItemGroup>
 
   <ItemGroup>
