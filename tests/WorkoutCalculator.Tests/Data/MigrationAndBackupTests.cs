@@ -142,6 +142,29 @@ public class MigrationAndBackupTests
     }
 
     [Fact]
+    public void Migration_MissingOrZeroFields_AreNotMeasurements()
+    {
+        // Неполный профиль: обхватов нет (были бы нулями), рост 0 — берётся по умолчанию, пульс вне диапазона
+        var r = LegacyMigration.Migrate(new LegacyInput
+        {
+            ProfileJson = """{"Sex":0,"Age":34,"HeightCm":0,"WeightKg":81.5,"BodyFatPercent":0,"NeckCm":0,"RestingHr":0}""",
+            WeightsJson = """[{"Date":"2026-10-01","WeightKg":0}]""",
+        }, Today, Now, NewId);
+
+        Assert.Equal(BodyDefaults.For(Sex.Male).HeightCm, r.Profile!.HeightCm);
+        var entry = Assert.Single(r.Entries);
+        Assert.Equal(81.5, entry.WeightKg);
+        Assert.Null(entry.BodyFatPercent);
+        Assert.All(Enum.GetValues<Girth>(), g => Assert.Null(entry.GetGirth(g)));
+        Assert.Null(entry.RestingHr);
+
+        // Модель строится по оценкам, а не по нулям
+        var body = BodyResolver.At(r.Profile, r.Entries, Today)!;
+        Assert.True(body.Origin(BodyField.Waist).IsEstimate);
+        Assert.InRange(body.Body.WaistCm, 70, 110);
+    }
+
+    [Fact]
     public void Backup_SaveRestore_NoLoss()
     {
         var r = LegacyMigration.Migrate(Old(), Today, Now, NewId);

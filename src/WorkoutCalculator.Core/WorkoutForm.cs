@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace WorkoutCalculator;
 
 /// <summary>Ошибка в поле формы: какое поле (его id в интерфейсе) и что не так.</summary>
@@ -107,6 +109,48 @@ public sealed class WorkoutForm
             WatchTotalKcal = NumberOrNull(WatchTotalKcal),
             WatchDistanceKm = NumberOrNull(WatchDistanceKm),
         };
+    }
+
+    /// <summary>Поля из сохранённой тренировки — для правки: <see cref="ToInput"/> вернёт те же значения.</summary>
+    public static WorkoutForm From(WorkoutInput w)
+    {
+        bool treadmill = w.Setting == Setting.Treadmill;
+        return new WorkoutForm
+        {
+            Activity = w.Activity,
+            Setting = w.Setting,
+            Segments = treadmill && w.Segments.Count > 0
+                ? w.Segments.Select(s => new SegmentFields
+                {
+                    Duration = Time(s.Minutes),
+                    Speed = Text(s.SpeedKmh),
+                    Incline = s.InclinePercent == 0 ? null : Text(s.InclinePercent),
+                }).ToList()
+                : [new()],
+            Handrails = w.HoldingHandrails,
+            DisplayDistanceKm = OrNull(w.TreadmillDisplayDistanceKm),
+            OutdoorDistanceKm = treadmill ? null : Text(w.OutdoorDistanceKm),
+            OutdoorDuration = treadmill ? null : Time(w.OutdoorMinutes),
+            OutdoorElevationGainM = treadmill || w.OutdoorElevationGainM == 0 ? null : Text(w.OutdoorElevationGainM),
+            Terrain = w.Terrain,
+            AvgHr = w.AvgHr?.ToString(CultureInfo.InvariantCulture),
+            WatchActiveKcal = OrNull(w.WatchActiveKcal),
+            WatchTotalKcal = OrNull(w.WatchTotalKcal),
+            WatchDistanceKm = OrNull(w.WatchDistanceKm),
+        };
+
+        static string Text(double v) => v.ToString("0.####", CultureInfo.InvariantCulture).Replace('.', ',');
+        static string? OrNull(double? v) => v is double x ? Text(x) : null;
+
+        // Целые минуты — «30», иначе «мм:сс» (или «ч:мм:сс»), как на табло
+        static string Time(double minutes)
+        {
+            int seconds = (int)Math.Round(minutes * 60);
+            if (seconds % 60 == 0) return (seconds / 60).ToString(CultureInfo.InvariantCulture);
+            return seconds >= 3600
+                ? $"{seconds / 3600}:{seconds / 60 % 60:00}:{seconds % 60:00}"
+                : $"{seconds / 60}:{seconds % 60:00}";
+        }
     }
 
     /// <summary>Очищает поля тренировки для нового расчёта; тип тренировки остаётся.</summary>

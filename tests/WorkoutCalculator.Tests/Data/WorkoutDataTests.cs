@@ -112,6 +112,31 @@ public class WorkoutDataTests
     }
 
     [Fact]
+    public void MonthWeeks_FromMondayToSunday_WithNeighbourDays()
+    {
+        var entries = new[] { Weight(new DateOnly(2026, 9, 1), 80) };
+        var workouts = new[]
+        {
+            Walk("sep", new DateTimeOffset(2026, 9, 29, 18, 0, 0, Msk)), // в первой строке октября
+            Walk("oct", new DateTimeOffset(2026, 10, 7, 18, 0, 0, Msk)),
+            Walk("nov", new DateTimeOffset(2026, 11, 1, 10, 0, 0, Msk)), // воскресенье — последняя строка
+        };
+        var calculated = ActivityLog.Calculate(workouts, Person, entries);
+
+        // Октябрь 2026: 1-е — четверг, 31-е — суббота
+        var weeks = ActivityLog.MonthWeeks(calculated, 2026, 10);
+
+        Assert.Equal(5, weeks.Count);
+        Assert.Equal(new DateOnly(2026, 9, 28), weeks[0].Monday);
+        Assert.Equal(new DateOnly(2026, 11, 1), weeks[^1].Days[^1].Date);
+        Assert.All(weeks, w => Assert.Equal(7, w.Days.Count));
+        Assert.Equal([1, 1, 0, 0, 1], weeks.Select(w => w.Count));
+
+        // Февраль 2027: с понедельника 1-го по воскресенье 28-го — ровно четыре недели
+        Assert.Equal(4, ActivityLog.MonthWeeks([], 2027, 2).Count);
+    }
+
+    [Fact]
     public void Workout_InputRoundTrip()
     {
         var input = new WorkoutInput

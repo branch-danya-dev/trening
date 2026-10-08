@@ -91,16 +91,14 @@
             </div>
         </aside>
 
-        @if (_section == Section.Activity)
+        @* «Активность» не пересоздаётся при смене раздела: незаконченная правка тренировки остаётся *@
+        @if (Data.Loaded && !_onboarding)
         {
-            <div class="page">
-                <div class="card">
-                    <div class="card-title">Активность</div>
-                    <div class="note">Тренировки по дням — скоро здесь.</div>
-                </div>
+            <div class="page" hidden="@(_section != Section.Activity)">
+                <ActivitySection />
             </div>
         }
-        else if (_section == Section.Profile)
+        @if (_section == Section.Profile)
         {
             <div class="page">
                 <ProfileSection />

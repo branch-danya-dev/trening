@@ -52,7 +52,17 @@
     }
 
     <details class="more">
-        <summary>Подробнее: осанка и форма, фото, проверка</summary>
+        <summary>Подробнее: сердце, осанка и форма, фото, проверка</summary>
+
+        <div class="measure-group">Сердце <span class="title-note">для расчёта тренировок</span></div>
+        @Row("w-resting-hr", "Пульс покоя, уд/мин", "", Own?.RestingHr, Heart.RestingHr?.Value, HeartOrigin(Heart.RestingHr),
+             v => Save(e => e.RestingHr = v is double x ? (int)Math.Round(x) : null), 30, 120, null, decimals: 0)
+        @Row("w-vo2max", "VO2max, мл/кг/мин", "", Own?.Vo2Max, Heart.Vo2Max?.Value, HeartOrigin(Heart.Vo2Max),
+             v => Save(e => e.Vo2Max = v), 10, 90, null)
+        <div class="note" style="margin-top: 4px">
+            Оба есть в «Здоровье» → «Сердце» (VO2max там — «Кардиофитнес»). Пульс покоя уточняет нагрузку по пульсу,
+            по VO2max проверяется, реальна ли расчётная нагрузка. Тренировка считается по значениям на свою дату.
+        </div>
 
         @if (Resolved is ResolvedBody rb)
         {
@@ -176,6 +186,12 @@
 
     private static string Describe(FieldOrigin o) => BodySummary.Describe(o);
 
+    /// <summary>Пульс покоя и VO2max на дату — последние записанные (оценок для них нет).</summary>
+    private BodySnapshot Heart => BodyHistory.At(Data.Entries, Date);
+
+    private static string HeartOrigin<T>(FieldValue<T>? v) =>
+        v is null ? "" : BodySummary.Describe(FieldOrigin.From(v));
+
     /// <summary>Оценка по формуле ВМС, если шея и талия (у женщин и бёдра) — из записей, а не оценки.</summary>
     private double? NavyEstimate => Resolved is ResolvedBody r && !r.Origin(BodyField.Neck).IsEstimate && !r.Origin(BodyField.Waist).IsEstimate
                                     && (r.Body.Sex == Sex.Male || !r.Origin(BodyField.Hips).IsEstimate)
@@ -204,16 +220,17 @@
 
     /// <summary>Строка поля: подпись, своё значение (или серым — унаследованное), единицы, откуда значение.</summary>
     private RenderFragment Row(string id, string label, string unit, double? own, double? shown, string origin,
-        Func<double?, Task> save, double min, double max, Girth? girth) => __builder =>
+        Func<double?, Task> save, double min, double max, Girth? girth, int decimals = 1) => __builder =>
     {
         <div class="measure-row">
             <label for="@id">@label</label>
             <input id="@id" class="text-input" type="text" inputmode="decimal" autocomplete="off"
-                   value="@(own is double v ? Fmt.N(v, 1) : null)" placeholder="@(shown is double s ? Fmt.N(s, 1) : "")"
+                   value="@(own is double v ? Fmt.N(v, decimals) : null)" placeholder="@(shown is double s ? Fmt.N(s, decimals) : "")"
                    @onchange="e => Commit(e, label, min, max, save)"
                    @onfocus="() => { if (girth is Girth g) Scene.Highlight(g); }" @onblur="() => Scene.Highlight(null)" />
             <span class="unit">@unit</span>
-            <span class="origin">@(own is not null ? (Date == Today ? "сегодня" : Fmt.Date(Date)) : origin)</span>
+            @{ string from = own is not null ? (Date == Today ? "сегодня" : Fmt.Date(Date)) : origin; }
+            <span class="origin" title="@from">@from</span>
         </div>
     };
 

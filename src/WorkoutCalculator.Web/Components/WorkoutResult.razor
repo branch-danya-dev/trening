@@ -1,0 +1,83 @@
+@* Итог расчёта тренировки: активные калории, параметры и методы с разбросом. Общий для «Активности» и прежней
+   вкладки «Тренировка». ChildContent — под таблицей первой карточки (по каким параметрам тела посчитано). *@
+
+<div class="card">
+    <div class="card-title">@(Title ?? Display.WorkoutTitle(Input.Activity, Input.Setting))</div>
+    <div class="hero">
+        <span class="hero-label">Активные калории, оценка</span>
+        <span class="hero-value">@Fmt.N(Result.EstimateActiveKcal)&nbsp;<small>ккал</small></span>
+        <span class="hero-sub">
+            Всего @Fmt.N(Result.EstimateTotalKcal)&nbsp;ккал@(Result.UsedMethods.Count > 1 ? $" · разброс методов {Fmt.N(Result.MinActiveKcal)}–{Fmt.N(Result.MaxActiveKcal)} активных" : "")
+        </span>
+    </div>
+    @if (Display.WatchComparison(Input, Result) is string watch)
+    {
+        <div class="watch-line">@watch</div>
+    }
+    <table class="changes kv" style="margin-top: 12px">
+        <tbody>
+            <tr><td>Длительность</td><td>@Display.Duration(Result.DurationMin)</td></tr>
+            <tr>
+                <td>Дистанция</td>
+                <td>
+                    @Fmt.N(Result.DistanceKm, 2)&nbsp;км@(Input.WatchDistanceKm is double wd ? $" (часы: {Fmt.N(wd, 2)}, {Display.Deviation(wd, Result.DistanceKm)})" : "")
+                </td>
+            </tr>
+            @if (Result.ElevationGainM >= 1)
+            {
+                <tr><td>Набор высоты</td><td>@Fmt.N(Result.ElevationGainM)&nbsp;м</td></tr>
+            }
+            <tr><td>Скорость</td><td>@Fmt.N(Result.AvgSpeedKmh, 1)&nbsp;км/ч, темп @Display.Pace(Result.PaceMinPerKm)&nbsp;/км</td></tr>
+            @if (Input.AvgHr is int hr)
+            {
+                <tr>
+                    <td>Пульс</td>
+                    <td>@hr&nbsp;уд/мин, @Fmt.N(hr / Result.HrMax * 100)&nbsp;% от макс. (@Fmt.N(Result.HrMax))@(Result.HrReserve is double hrr ? $", {Fmt.N(hrr * 100)} % резерва" : "")</td>
+                </tr>
+            }
+            <tr><td>Интенсивность</td><td>≈&nbsp;@Fmt.N(Result.Mets, 1)&nbsp;МЕТ</td></tr>
+            <tr><td>Базовый обмен</td><td>@Fmt.N(Result.RestingKcal)&nbsp;ккал за это время</td></tr>
+        </tbody>
+    </table>
+    @ChildContent
+</div>
+<div class="card">
+    <div class="card-title">Как считали</div>
+    <table class="changes">
+        <thead><tr><th>Метод</th><th>Всего</th><th>Активные</th></tr></thead>
+        <tbody>
+            @foreach (var m in Result.Methods)
+            {
+                <tr class="@(m.InEstimate ? null : "dim")">
+                    <td>@m.Name@(m.InEstimate ? "" : " *")</td>
+                    <td>@Fmt.N(m.TotalKcal)</td>
+                    <td>@Fmt.N(m.ActiveKcal)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="note" style="margin-top: 8px">
+        @if (Result.UsedMethods.Count < Result.Methods.Count)
+        {
+            <text>* не входит в оценку — причина в примечаниях. </text>
+        }
+        Активные — сверх базового обмена, как у Apple Watch. Итог — среднее по методам.
+    </div>
+    @if (Result.Warnings.Count > 0)
+    {
+        <div class="hints" style="margin-top: 10px">
+            @foreach (var warning in Result.Warnings)
+            {
+                <div class="hint">@warning</div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public WorkoutInput Input { get; set; } = default!;
+    [Parameter, EditorRequired] public CalculationResult Result { get; set; } = default!;
+    /// <summary>Заголовок; по умолчанию — тип тренировки.</summary>
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

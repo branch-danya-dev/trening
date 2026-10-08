@@ -116,6 +116,59 @@ public class WorkoutFormTests
     }
 
     [Fact]
+    public void From_Treadmill_RoundTripsInput()
+    {
+        var input = new WorkoutInput
+        {
+            Activity = ActivityType.Walking,
+            Setting = Setting.Treadmill,
+            Segments = [new(5, 5, 0), new(30.5, 5.75, 12.5), new(65.25, 6, 3)],
+            HoldingHandrails = true,
+            TreadmillDisplayDistanceKm = 9.1,
+            AvgHr = 128,
+            WatchActiveKcal = 610,
+        };
+        var form = WorkoutForm.From(input);
+
+        Assert.Equal(["5", "30:30", "1:05:15"], form.Segments.Select(s => s.Duration));
+        Assert.Equal("5,75", form.Segments[1].Speed);
+        Assert.Null(form.Segments[0].Incline);
+        Assert.Null(form.CheckParams());
+        Assert.Null(form.CheckWatch());
+        var back = form.ToInput();
+        Assert.Equal(input.Segments, back.Segments);
+        Assert.True(back.HoldingHandrails);
+        Assert.Equal(9.1, back.TreadmillDisplayDistanceKm);
+        Assert.Equal(128, back.AvgHr);
+        Assert.Equal(610, back.WatchActiveKcal);
+        Assert.Null(back.WatchTotalKcal);
+    }
+
+    [Fact]
+    public void From_Outdoor_RoundTripsInput()
+    {
+        var input = new WorkoutInput
+        {
+            Activity = ActivityType.Running,
+            Setting = Setting.Outdoor,
+            OutdoorDistanceKm = 10.25,
+            OutdoorMinutes = 52 + 20 / 60.0,
+            OutdoorElevationGainM = 85,
+            Terrain = Terrain.Dirt,
+        };
+        var form = WorkoutForm.From(input);
+
+        Assert.Equal("52:20", form.OutdoorDuration);
+        Assert.Null(form.CheckParams());
+        var back = form.ToInput();
+        Assert.Equal(10.25, back.OutdoorDistanceKm);
+        Assert.Equal(input.OutdoorMinutes, back.OutdoorMinutes, 9);
+        Assert.Equal(85, back.OutdoorElevationGainM);
+        Assert.Equal(Terrain.Dirt, back.Terrain);
+        Assert.Empty(back.Segments);
+    }
+
+    [Fact]
     public void WatchComparison_CloseOrPercent()
     {
         var form = Treadmill(("30", "6", "10"));

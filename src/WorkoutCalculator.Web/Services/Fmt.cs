@@ -38,6 +38,30 @@ public static class Fmt
             ? $"{date.Day} {ShortMonths[date.Month - 1]}"
             : $"{date.Day} {ShortMonths[date.Month - 1]} {date.Year}";
 
+    private static readonly string[] MonthNames =
+        ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+    private static readonly string[] WeekDays = ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"];
+
+    /// <summary>Месяц календаря: «Октябрь 2026».</summary>
+    public static string Month(int year, int month) => $"{MonthNames[month - 1]} {year}";
+
+    /// <summary>День полностью: «среда, 7 октября»; год — только если не текущий.</summary>
+    public static string Day(DateOnly date) =>
+        $"{WeekDays[(int)date.DayOfWeek]}, {date.Day} {Months[date.Month - 1]}" +
+        (date.Year == System.DateTime.Now.Year ? "" : $" {date.Year}");
+
+    /// <summary>Итог времени: «45 мин», «1 ч 05 мин».</summary>
+    public static string Minutes(double minutes)
+    {
+        int m = (int)Math.Round(minutes);
+        return m >= 60 ? $"{m / 60} ч {m % 60:00} мин" : $"{m} мин";
+    }
+
+    /// <summary>Число со словом: Count(3, "тренировка", "тренировки", "тренировок") — «3 тренировки».</summary>
+    public static string Count(int n, string one, string few, string many) =>
+        $"{n} " + ((n % 100) is >= 11 and <= 14 ? many : (n % 10) switch { 1 => one, 2 or 3 or 4 => few, _ => many });
+
     /// <summary>Со знаком: «+1,2», «−0,8», «0».</summary>
     public static string Signed(double v, int decimals = 1)
     {

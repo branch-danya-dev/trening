@@ -1,0 +1,236 @@
+@* Шаги мастера тренировки: тип → параметры (дорожка или улица) → данные с часов. Проверка полей — WorkoutForm
+   (Core), ошибка переводит фокус на поле. Общий для «Активности» (добавление и правка) и прежней вкладки
+   «Тренировка» (?classic=1); что делать с готовым вводом, решает родитель (OnDone). *@
+@using System.Globalization
+
+@switch (Step)
+{
+    case WorkoutDraft.Step.Type:
+        <div class="card">
+            <div class="card-title">Какая была тренировка?</div>
+            <div class="choice-grid">
+                @foreach (var (activity, setting, title, hint) in Kinds)
+                {
+                    bool on = Form.Activity == activity && Form.Setting == setting;
+                    <button class="choice @Css.On(on)" @onclick="() => PickKind(activity, setting)">
+                        <b>@title</b>
+                        <span>@hint</span>
+                    </button>
+                }
+            </div>
+        </div>
+        @TypeExtra
+        break;
+
+    case WorkoutDraft.Step.Params:
+        <div class="card">
+            @if (Form.Setting == Setting.Treadmill)
+            {
+                <div class="card-title">Параметры с дорожки</div>
+                @if (Form.Segments.Count == 1)
+                {
+                    <div class="form-grid three">
+                        @Field(WorkoutForm.Ids.Duration(0), "Длительность", Form.Segments[0].Duration, v => Form.Segments[0].Duration = v, "30 или 30:23", "text")
+                        @Field(WorkoutForm.Ids.Speed(0), "Скорость, км/ч", Form.Segments[0].Speed, v => Form.Segments[0].Speed = v)
+                        @Field(WorkoutForm.Ids.Incline(0), "Уклон, %", Form.Segments[0].Incline, v => Form.Segments[0].Incline = v, "0")
+                    </div>
+                }
+                else
+                {
+                    <div class="segments">
+                        <div class="segment-head"><span>Длительность</span><span>Скорость, км/ч</span><span>Уклон, %</span><span></span></div>
+                        @for (int i = 0; i < Form.Segments.Count; i++)
+                        {
+                            var s = Form.Segments[i];
+                            int n = i;
+                            <div class="segment-row">
+                                <input id="@WorkoutForm.Ids.Duration(n)" class="text-input @Invalid(WorkoutForm.Ids.Duration(n))" type="text" autocomplete="off"
+                                       aria-label="Отрезок @(n + 1): длительность" placeholder="30 или 30:23" @bind="s.Duration" @bind:event="oninput" />
+                                <input id="@WorkoutForm.Ids.Speed(n)" class="text-input @Invalid(WorkoutForm.Ids.Speed(n))" type="text" inputmode="decimal" autocomplete="off"
+                                       aria-label="Отрезок @(n + 1): скорость" @bind="s.Speed" @bind:event="oninput" />
+                                <input id="@WorkoutForm.Ids.Incline(n)" class="text-input @Invalid(WorkoutForm.Ids.Incline(n))" type="text" inputmode="decimal" autocomplete="off"
+                                       aria-label="Отрезок @(n + 1): уклон" placeholder="0" @bind="s.Incline" @bind:event="oninput" />
+                                <button class="btn-link muted remove" title="Удалить отрезок" aria-label="Удалить отрезок @(n + 1)"
+                                        @onclick="() => RemoveSegment(n)">×</button>
+                            </div>
+                        }
+                        <button class="btn-link" style="margin-top: 8px" @onclick="AddSegment">+ Отрезок</button>
+                    </div>
+                }
+                <label class="check" style="margin-top: 12px">
+                    <input type="checkbox" checked="@(Form.Segments.Count > 1)" @onchange="ToggleSegments" />
+                    Скорость или уклон менялись по ходу (например, была разминка)
+                </label>
+                @if (Form.HandrailsApply)
+                {
+                    <label class="check" style="margin-top: 8px">
+                        <input type="checkbox" checked="@Form.Handrails" @onchange="e => Form.Handrails = e.Value is true" />
+                        Держались за поручни
+                    </label>
+                }
+                <div class="form-grid two" style="margin-top: 12px">
+                    @Field(WorkoutForm.Ids.DisplayDistance, "Дистанция на табло, км", Form.DisplayDistanceKm, v => Form.DisplayDistanceKm = v, "необязательно")
+                </div>
+            }
+            else
+            {
+                <div class="card-title">Маршрут</div>
+                <div class="note" style="margin-bottom: 10px">Возьмите значения из тренировки на часах.</div>
+                <div class="form-grid two">
+                    @Field(WorkoutForm.Ids.OutdoorDistance, "Дистанция, км", Form.OutdoorDistanceKm, v => Form.OutdoorDistanceKm = v)
+                    @Field(WorkoutForm.Ids.OutdoorDuration, "Длительность", Form.OutdoorDuration, v => Form.OutdoorDuration = v, "45 или 45:30", "text")
+                    @Field(WorkoutForm.Ids.OutdoorGain, "Набор высоты, м", Form.OutdoorElevationGainM, v => Form.OutdoorElevationGainM = v, "0")
+                    <div class="form-field">
+                        <label for="terrain">Покрытие</label>
+                        <select id="terrain" class="select" value="@((int)Form.Terrain)" @onchange="e => Form.Terrain = (Terrain)int.Parse(e.Value!.ToString()!, CultureInfo.InvariantCulture)">
+                            <option value="0">Асфальт / плитка</option>
+                            <option value="1">Грунтовка</option>
+                            <option value="2">Трава</option>
+                            <option value="3">Песок</option>
+                        </select>
+                    </div>
+                </div>
+            }
+            @Error
+        </div>
+        <div class="wizard-buttons">
+            <button class="btn" @onclick="() => Go(WorkoutDraft.Step.Type)">Назад</button>
+            <button class="btn primary" @onclick="Next">Далее</button>
+        </div>
+        break;
+
+    case WorkoutDraft.Step.Watch:
+        <div class="card">
+            <div class="card-title">Данные с часов</div>
+            <div class="note" style="margin-bottom: 10px">
+                Всё необязательно. Пульс добавит оценку по пульсу (Кейтел), калории — сравнение с часами.
+            </div>
+            <div class="form-grid two">
+                @Field(WorkoutForm.Ids.AvgHr, "Средний пульс, уд/мин", Form.AvgHr, v => Form.AvgHr = v, null, "numeric")
+                @Field(WorkoutForm.Ids.WatchDistance, "Дистанция по часам, км", Form.WatchDistanceKm, v => Form.WatchDistanceKm = v)
+                @Field(WorkoutForm.Ids.WatchActive, "Активные ккал", Form.WatchActiveKcal, v => Form.WatchActiveKcal = v, null, "numeric")
+                @Field(WorkoutForm.Ids.WatchTotal, "Всего ккал", Form.WatchTotalKcal, v => Form.WatchTotalKcal = v, null, "numeric")
+            </div>
+            @Error
+        </div>
+        @WatchExtra
+        <div class="wizard-buttons">
+            <button class="btn" @onclick="() => Go(WorkoutDraft.Step.Params)">Назад</button>
+            <button class="btn primary" @onclick="Done">@DoneLabel</button>
+        </div>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public WorkoutForm Form { get; set; } = default!;
+    [Parameter] public WorkoutDraft.Step Step { get; set; }
+    [Parameter] public EventCallback<WorkoutDraft.Step> StepChanged { get; set; }
+    /// <summary>Под выбором типа (прежняя вкладка: профиль для расчёта и журнал).</summary>
+    [Parameter] public RenderFragment? TypeExtra { get; set; }
+    /// <summary>Под данными с часов (в «Активности» — когда была тренировка).</summary>
+    [Parameter] public RenderFragment? WatchExtra { get; set; }
+    [Parameter] public string DoneLabel { get; set; } = "Рассчитать";
+    /// <summary>Поля обоих шагов верны — ввод готов (Form.ToInput()).</summary>
+    [Parameter] public EventCallback OnDone { get; set; }
+
+    public static readonly (ActivityType Activity, Setting Setting, string Title, string Hint)[] Kinds =
+    [
+        (ActivityType.Walking, Setting.Treadmill, "Ходьба на дорожке", "Скорость и уклон с табло дорожки"),
+        (ActivityType.Running, Setting.Treadmill, "Бег на дорожке", "Скорость и уклон с табло дорожки"),
+        (ActivityType.Walking, Setting.Outdoor, "Ходьба на улице", "Дистанция и набор высоты из часов"),
+        (ActivityType.Running, Setting.Outdoor, "Бег на улице", "Дистанция и набор высоты из часов, плюс сопротивление воздуха"),
+    ];
+
+    private FormError? _error;
+    private string? _focus;
+
+    private RenderFragment Field(string id, string label, string? value, Action<string?> set, string? placeholder = null, string mode = "decimal") =>
+        @<div class="form-field">
+            <label for="@id">@label</label>
+            <input id="@id" class="text-input @Invalid(id)" type="text" inputmode="@mode" autocomplete="off" placeholder="@placeholder"
+                   value="@value" aria-invalid="@(_error?.Field == id ? "true" : null)" @oninput="e => set(e.Value?.ToString())" />
+        </div>;
+
+    private RenderFragment Error =>
+        @<text>
+            @if (_error is FormError e)
+            {
+                <div class="hint" role="alert" style="margin-top: 10px">@e.Message</div>
+            }
+        </text>;
+
+    private string? Invalid(string id) => _error?.Field == id ? "invalid" : null;
+
+    private async Task Go(WorkoutDraft.Step step)
+    {
+        _error = null;
+        await StepChanged.InvokeAsync(step);
+    }
+
+    private Task PickKind(ActivityType activity, Setting setting)
+    {
+        Form.Activity = activity;
+        Form.Setting = setting;
+        return Go(WorkoutDraft.Step.Params);
+    }
+
+    private async Task Next()
+    {
+        if (Fail(Form.CheckParams())) return;
+        await Go(WorkoutDraft.Step.Watch);
+    }
+
+    private async Task Done()
+    {
+        if (Form.CheckParams() is FormError error)
+        {
+            await Go(WorkoutDraft.Step.Params);
+            Fail(error);
+            return;
+        }
+        if (Fail(Form.CheckWatch())) return;
+        await OnDone.InvokeAsync();
+    }
+
+    /// <summary>Ошибка — показать и перевести фокус на поле (после отрисовки).</summary>
+    private bool Fail(FormError? error)
+    {
+        _error = error;
+        if (error is not null) _focus = error.Field;
+        return error is not null;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_focus is null) return;
+        BrowserStorage.FocusById(_focus);
+        _focus = null;
+    }
+
+    private void ToggleSegments(ChangeEventArgs e)
+    {
+        _error = null;
+        if (e.Value is true)
+        {
+            // Уже введённое становится первым отрезком
+            if (Form.Segments.Count == 1) Form.Segments.Add(new SegmentFields());
+            _focus = WorkoutForm.Ids.Duration(1);
+        }
+        else
+        {
+            Form.Segments.RemoveRange(1, Form.Segments.Count - 1);
+        }
+    }
+
+    private void AddSegment()
+    {
+        Form.Segments.Add(new SegmentFields());
+        _focus = WorkoutForm.Ids.Duration(Form.Segments.Count - 1);
+    }
+
+    private void RemoveSegment(int i)
+    {
+        _error = null;
+        if (Form.Segments.Count > 1) Form.Segments.RemoveAt(i);
+    }
+}

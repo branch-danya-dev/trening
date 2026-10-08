@@ -103,14 +103,14 @@ public static class LegacyMigration
         // Профиля нет, а остальное есть: пол и рост — с последней фотосессии, иначе по умолчанию
         var latestSession = sessions.MaxBy(s => s.CreatedAt);
         var defaults = BodyDefaults.For(latestSession?.Sex ?? Sex.Male);
-        int age = legacy?.Age ?? defaults.Age;
+        int age = legacy?.Age is int a and >= 10 and <= 100 ? a : defaults.Age;
         var profile = new Profile
         {
             Id = newId(),
             Sex = legacy?.Sex ?? latestSession?.Sex ?? defaults.Sex,
             BirthDate = new DateOnly(today.Year - age, 1, 1),
             BirthDateApproximate = true,
-            HeightCm = legacy?.HeightCm ?? latestSession?.HeightCm ?? defaults.HeightCm,
+            HeightCm = In(legacy?.HeightCm, 100, 250) ?? In(latestSession?.HeightCm, 100, 250) ?? defaults.HeightCm,
             CreatedAt = now,
         };
 
@@ -130,18 +130,18 @@ public static class LegacyMigration
         BodyEntry FromProfile(LegacyProfile p, DateOnly date, DateTimeOffset recordedAt)
         {
             var e = Entry(date, recordedAt);
-            e.WeightKg = p.WeightKg;
-            e.BodyFatPercent = p.BodyFatPercent;
-            e.ChestCm = p.ChestCm;
-            e.WaistCm = p.WaistCm;
-            e.HipsCm = p.HipsCm;
-            e.BicepsCm = p.BicepsCm;
-            e.ThighCm = p.ThighCm;
-            e.NeckCm = p.NeckCm;
-            e.CalfCm = p.CalfCm;
-            e.WristCm = p.WristCm;
-            e.RestingHr = p.RestingHr;
-            e.Vo2Max = p.Vo2Max;
+            e.WeightKg = Weight(p.WeightKg);
+            e.BodyFatPercent = Fat(p.BodyFatPercent);
+            e.ChestCm = Girth(p.ChestCm);
+            e.WaistCm = Girth(p.WaistCm);
+            e.HipsCm = Girth(p.HipsCm);
+            e.BicepsCm = Girth(p.BicepsCm);
+            e.ThighCm = Girth(p.ThighCm);
+            e.NeckCm = Girth(p.NeckCm);
+            e.CalfCm = Girth(p.CalfCm);
+            e.WristCm = Girth(p.WristCm);
+            e.RestingHr = p.RestingHr is int hr and >= 30 and <= 120 ? hr : null;
+            e.Vo2Max = In(p.Vo2Max, 10, 90);
             e.Posture = p.Posture is { IsNeutral: false } posture ? posture : null;
             e.Form = p.Form is { IsNeutral: false } form ? form : null;
             return e;
@@ -154,8 +154,9 @@ public static class LegacyMigration
 
         foreach (var w in weights)
         {
+            if (Weight(w.WeightKg) is not double kg) continue;
             var e = Entry(w.Date, At(w.Date, 8));
-            e.WeightKg = w.WeightKg;
+            e.WeightKg = kg;
             entries.Add(e);
         }
 
@@ -163,8 +164,8 @@ public static class LegacyMigration
         foreach (var s in sessions.OrderBy(s => s.CreatedAt))
         {
             var e = Entry(s.LocalDate, s.CreatedAt);
-            e.WeightKg = s.WeightKg;
-            e.BodyFatPercent = s.BodyFatPercent;
+            e.WeightKg = Weight(s.WeightKg);
+            e.BodyFatPercent = Fat(s.BodyFatPercent);
             e.PhotoSessionId = s.Id;
             entries.Add(e);
             links[s.Id] = e.Id;
@@ -177,6 +178,12 @@ public static class LegacyMigration
         var workouts = journal.Select(w => FromJournal(w, profile.Id, offset, newId)).ToList();
         return new MigrationResult(profile, entries, workouts, links);
     }
+
+    // Старые данные могли быть неполными (поле не задано — 0) — такое значение считаем отсутствующим, а не замером
+    private static double? In(double? v, double min, double max) => v is double x && x >= min && x <= max ? x : null;
+    private static double? Weight(double v) => In(v, 30, 300);
+    private static double? Fat(double v) => In(v, 3, 60);
+    private static double? Girth(double? v) => In(v, 10, 250);
 
     /// <summary>Тренировка из старого журнала: ввода в нём не было — восстанавливаем по итогам.</summary>
     private static Workout FromJournal(LoggedWorkout w, string profileId, TimeSpan offset, Func<string> newId)
@@ -192,7 +199,6 @@ public static class LegacyMigration
             WatchActiveKcal = w.WatchActiveKcal,
             WatchTotalKcal = w.WatchTotalKcal,
             Migrated = true,
-            Note = "Перенесено из журнала тренировок",
         };
         if (w.Setting == Setting.Treadmill)
         {

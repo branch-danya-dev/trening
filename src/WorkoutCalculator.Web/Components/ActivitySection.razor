@@ -1,0 +1,369 @@
+@* «Активность» — как в Apple: календарь месяца с точкой у каждого дня (размер — активные ккал), итоги недель;
+   день → список тренировок; тренировка → полный расчёт по параметрам тела на её дату; добавление и правка —
+   мастер «тип → параметры → часы» плюс дата и время. Хранится только ввод (AppData.Workouts), калории
+   считаются при показе (ActivityLog), поэтому новый вес не меняет прошлые тренировки. *@
+@using System.Globalization
+@using WorkoutCalculator.Data
+@inject AppData Data
+@implements IDisposable
+
+@if (Data.Profile is not Profile profile)
+{
+    <div class="card"><div class="note">Сначала создайте профиль на вкладке «Модель».</div></div>
+}
+else if (_mode == Mode.Edit)
+{
+    <div class="wizard-head" aria-live="polite">
+        <span>@EditCaption</span>
+        <div class="wizard-progress" aria-hidden="true">
+            @for (int i = 0; i < 3; i++)
+            {
+                <i class="@Css.On(i <= (int)_step)"></i>
+            }
+        </div>
+    </div>
+    <WorkoutSteps Form="_form" Step="_step" StepChanged="step => _step = step" DoneLabel="Сохранить" OnDone="Save" WatchExtra="When" />
+    <button class="btn-link muted" style="align-self: flex-start" @onclick="CancelEdit">Отмена</button>
+}
+else if (_mode == Mode.Workout && Opened is CalculatedWorkout item)
+{
+    var w = item.Workout;
+    <button class="btn-link back" @onclick="() => _mode = Mode.Calendar">← @Fmt.Day(w.LocalDate)</button>
+    @if (item.Calculation is WorkoutCalculation c)
+    {
+        <WorkoutResult Input="w.ToInput()" Result="c.Result" Title="@($"{Display.WorkoutTitle(w.Activity, w.Setting)} · {w.Start:HH:mm}")">
+            <div class="note basis">
+                Расчёт по весу @Fmt.N(c.WeightKg, 1)&nbsp;кг на @Fmt.Date(c.WeightDate)@(c.WeightDate > w.LocalDate ? " (более ранних записей нет)" : ""),
+                возраст @c.Age@HeartLine(w.LocalDate).
+            </div>
+            @if (w.Migrated)
+            {
+                <div class="note" style="margin-top: 6px">
+                    Перенесена из старого журнала: там были только итоги, поэтому дорожка восстановлена одним отрезком
+                    со средними скоростью и уклоном.
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(w.Note))
+            {
+                <div class="note" style="margin-top: 6px">Заметка: @w.Note</div>
+            }
+        </WorkoutResult>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-title">@Display.WorkoutTitle(w.Activity, w.Setting) · @w.Start.ToString("HH:mm", CultureInfo.InvariantCulture)</div>
+            <div class="hint">Не по чему считать: ни в одной записи замеров нет веса. Внесите вес на вкладке «Модель».</div>
+        </div>
+    }
+    <div class="wizard-buttons">
+        @if (_confirmDelete)
+        {
+            <span class="confirm">
+                <span>Удалить тренировку?</span>
+                <button class="btn-link" @onclick="() => Delete(w.Id)">Удалить</button>
+                <button class="btn-link muted" @onclick="() => _confirmDelete = false">Отмена</button>
+            </span>
+        }
+        else
+        {
+            <button class="btn" @onclick="() => _confirmDelete = true">Удалить</button>
+            <button class="btn primary" @onclick="() => Edit(w)">Изменить</button>
+        }
+    </div>
+}
+else
+{
+    var weeks = ActivityLog.MonthWeeks(_items, _month.Year, _month.Month);
+    var inMonth = weeks.SelectMany(x => x.Days).Where(d => d.Date.Month == _month.Month).ToList();
+    double max = Math.Max(1, weeks.SelectMany(x => x.Days).Max(d => d.ActiveKcal));
+    int monthCount = inMonth.Sum(d => d.Count);
+    <div class="card">
+        <div class="month-head">
+            <button class="btn-link month-nav" aria-label="Предыдущий месяц" @onclick="() => Shift(-1)">‹</button>
+            <div class="month-title">
+                <b>@Fmt.Month(_month.Year, _month.Month)</b>
+                <span>
+                    @(monthCount == 0 ? "тренировок нет"
+                        : $"{Fmt.Count(monthCount, "тренировка", "тренировки", "тренировок")} · {Fmt.N(inMonth.Sum(d => d.ActiveKcal))} ккал · {Fmt.Minutes(inMonth.Sum(d => d.Minutes))}")
+                </span>
+            </div>
+            <button class="btn-link month-nav" aria-label="Следующий месяц" disabled="@(_month >= FirstOf(Today))" @onclick="() => Shift(1)">›</button>
+        </div>
+        <div class="cal">
+            <div class="cal-row cal-head" aria-hidden="true">
+                @foreach (string d in DayNames)
+                {
+                    <span>@d</span>
+                }
+                <span>Неделя</span>
+            </div>
+            @foreach (var week in weeks)
+            {
+                <div class="cal-row">
+                    @foreach (var day in week.Days)
+                    {
+                        var date = day.Date;
+                        bool future = date > Today;
+                        <button class="cal-day @(date.Month != _month.Month ? "other" : null) @Css.On(date == _day) @(date == Today ? "today" : null)"
+                                disabled="@future" aria-pressed="@(date == _day ? "true" : "false")" aria-label="@DayLabel(day)" @onclick="() => Select(date)">
+                            <span class="cal-num">@date.Day</span>
+                            @if (day.Count > 0)
+                            {
+                                <i class="cal-dot" style="--d: @Dot(day.ActiveKcal, max)px" aria-hidden="true"></i>
+                                <span class="cal-kcal">@Fmt.N(day.ActiveKcal)</span>
+                            }
+                        </button>
+                    }
+                    <div class="cal-week">
+                        @if (week.Count > 0)
+                        {
+                            <b>@Fmt.N(week.ActiveKcal)</b>
+                            <span>@Fmt.Count(week.Count, "трен.", "трен.", "трен.")</span>
+                        }
+                        else
+                        {
+                            <span>—</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="note" style="margin-top: 8px">Точка — день с тренировками, чем больше активных ккал, тем крупнее. Справа — итог недели.</div>
+    </div>
+
+    var dayItems = ActivityLog.Days(_items, _day, _day)[0];
+    var thisWeek = ActivityLog.Week(_items, _day);
+    <div class="card">
+        <div class="card-title">
+            <span>@Fmt.Day(_day)</span>
+            <button class="btn primary small" @onclick="New">+ Тренировка</button>
+        </div>
+        @if (dayItems.Count == 0)
+        {
+            <div class="note">В этот день тренировок нет.</div>
+        }
+        else
+        {
+            <div class="day-total">
+                <b>@Fmt.N(dayItems.ActiveKcal)&nbsp;ккал</b>
+                <span>@Fmt.Count(dayItems.Count, "тренировка", "тренировки", "тренировок") · @Fmt.Minutes(dayItems.Minutes) · @Fmt.N(dayItems.DistanceKm, 1)&nbsp;км</span>
+            </div>
+            <ul class="journal day-list">
+                @foreach (var x in dayItems.Workouts)
+                {
+                    var id = x.Workout.Id;
+                    <li>
+                        <button class="day-workout" @onclick="() => Open(id)">
+                            <span class="journal-main">
+                                <b>@x.Workout.Start.ToString("HH:mm", CultureInfo.InvariantCulture)</b> · @Display.WorkoutTitle(x.Workout.Activity, x.Workout.Setting)
+                                <span>@Fmt.Minutes(x.Workout.DurationMin) · @Fmt.N(x.Workout.DistanceKm, 2)&nbsp;км@(x.Workout.AvgHr is int hr ? $" · пульс {hr}" : "")</span>
+                            </span>
+                            <span class="journal-kcal">
+                                @if (x.Calculation is not null)
+                                {
+                                    <b>@Fmt.N(x.ActiveKcal)</b><text>&nbsp;ккал</text>
+                                }
+                                else
+                                {
+                                    <span>нет веса</span>
+                                }
+                                @if (x.Workout.WatchActiveKcal is double watch)
+                                {
+                                    <span>часы @Fmt.N(watch)</span>
+                                }
+                            </span>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+        <div class="week-total">
+            Неделя @WeekName(thisWeek.Monday):
+            @(thisWeek.Count == 0 ? "тренировок нет"
+                : $"{Fmt.Count(thisWeek.Count, "тренировка", "тренировки", "тренировок")} · {Fmt.Minutes(thisWeek.Minutes)} · {Fmt.N(thisWeek.ActiveKcal)} ккал")
+        </div>
+    </div>
+    <div class="note about">Только кардио — ходьба и бег: силовые калькулятор не считает. Тренировки хранятся на этом устройстве.</div>
+}
+
+@code {
+    private enum Mode { Calendar, Workout, Edit }
+
+    private static readonly string[] DayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+    private static DateOnly FirstOf(DateOnly d) => new(d.Year, d.Month, 1);
+
+    private Mode _mode;
+    private DateOnly _month = FirstOf(Today), _day = Today;
+    private string? _openId;
+    private bool _confirmDelete;
+    private IReadOnlyList<CalculatedWorkout> _items = [];
+
+    // Правка: форма, шаг, когда и заметка; _editId == null — новая тренировка
+    private WorkoutForm _form = new();
+    private WorkoutDraft.Step _step;
+    private string? _editId, _date, _time, _note, _whenError;
+
+    private CalculatedWorkout? Opened => _items.FirstOrDefault(x => x.Workout.Id == _openId);
+
+    protected override void OnInitialized()
+    {
+        Data.Changed += OnDataChanged;
+        Recalculate();
+    }
+
+    public void Dispose() => Data.Changed -= OnDataChanged;
+
+    private void OnDataChanged()
+    {
+        Recalculate();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>Каждая тренировка — по параметрам тела на свою дату.</summary>
+    private void Recalculate() =>
+        _items = Data.Profile is Profile p ? ActivityLog.Calculate(Data.Workouts, p, Data.Entries) : [];
+
+    private static int Dot(double kcal, double max) => (int)Math.Round(8 + 16 * Math.Sqrt(Math.Max(0, kcal) / max));
+
+    private static string DayLabel(ActivityDay d) =>
+        Fmt.Day(d.Date) + (d.Count == 0 ? ": тренировок нет"
+            : $": {Fmt.Count(d.Count, "тренировка", "тренировки", "тренировок")}, {Fmt.N(d.ActiveKcal)} ккал, {Fmt.Minutes(d.Minutes)}");
+
+    private static string WeekName(DateOnly monday)
+    {
+        var sunday = monday.AddDays(6);
+        return monday.Month == sunday.Month ? $"{monday.Day}–{Fmt.Date(sunday)}" : $"{Fmt.Date(monday)} – {Fmt.Date(sunday)}";
+    }
+
+    /// <summary>«, пульс покоя 58, VO2max 44» — если были в записях на дату.</summary>
+    private string HeartLine(DateOnly date)
+    {
+        var s = BodyHistory.AtOrEarliest(Data.Entries, date);
+        return (s.RestingHr is { } hr ? $", пульс покоя {hr.Value}" : "") + (s.Vo2Max is { } v ? $", VO2max {Fmt.N(v.Value, 1)}" : "");
+    }
+
+    private void Shift(int months) => _month = _month.AddMonths(months);
+
+    private void Select(DateOnly date)
+    {
+        _day = date;
+        if (date.Month != _month.Month || date.Year != _month.Year) _month = FirstOf(date);
+    }
+
+    private void Open(string id)
+    {
+        _openId = id;
+        _confirmDelete = false;
+        _mode = Mode.Workout;
+    }
+
+    private async Task Delete(string id)
+    {
+        _confirmDelete = false;
+        _mode = Mode.Calendar;
+        await Data.DeleteWorkout(id);
+    }
+
+    private string EditCaption => _step switch
+    {
+        WorkoutDraft.Step.Type => $"Шаг 1 из 3 · {(_editId is null ? "Новая тренировка" : "Тренировка")}",
+        WorkoutDraft.Step.Params => $"Шаг 2 из 3 · {Display.WorkoutTitle(_form.Activity, _form.Setting)}",
+        _ => "Шаг 3 из 3 · Часы и время",
+    };
+
+    /// <summary>Новая тренировка на выбранный день: сегодня — на текущее время, иначе на полдень.</summary>
+    private void New()
+    {
+        _form = new WorkoutForm { Activity = _form.Activity, Setting = _form.Setting };
+        _step = WorkoutDraft.Step.Type;
+        _editId = null;
+        _date = Iso(_day);
+        _time = _day == Today ? DateTime.Now.ToString("HH:mm", CultureInfo.InvariantCulture) : "12:00";
+        _note = null;
+        _whenError = null;
+        _mode = Mode.Edit;
+    }
+
+    private void Edit(Workout w)
+    {
+        _form = WorkoutForm.From(w.ToInput());
+        _step = WorkoutDraft.Step.Params;
+        _editId = w.Id;
+        _date = Iso(w.LocalDate);
+        _time = w.Start.ToString("HH:mm", CultureInfo.InvariantCulture);
+        _note = w.Note;
+        _whenError = null;
+        _mode = Mode.Edit;
+    }
+
+    private void CancelEdit() => _mode = _editId is null ? Mode.Calendar : Mode.Workout;
+
+    private static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    /// <summary>Под данными с часов: когда была тренировка и по каким параметрам тела она посчитается.</summary>
+    private RenderFragment When => __builder =>
+    {
+        <div class="card">
+            <div class="card-title">Когда</div>
+            <div class="form-grid two">
+                <div class="form-field">
+                    <label for="workout-date">Дата</label>
+                    <input id="workout-date" class="text-input" type="date" value="@_date" max="@Iso(Today)" @onchange="e => _date = e.Value?.ToString()" />
+                </div>
+                <div class="form-field">
+                    <label for="workout-time">Время начала</label>
+                    <input id="workout-time" class="text-input" type="time" value="@_time" @onchange="e => _time = e.Value?.ToString()" />
+                </div>
+            </div>
+            <div class="form-field" style="margin-top: 10px">
+                <label for="workout-note">Заметка</label>
+                <input id="workout-note" class="text-input" type="text" autocomplete="off" placeholder="необязательно" maxlength="200"
+                       value="@_note" @onchange="e => _note = e.Value?.ToString()" />
+            </div>
+            @if (WhenBasis() is string basis)
+            {
+                <div class="note" style="margin-top: 10px">@basis</div>
+            }
+            @if (_whenError is not null)
+            {
+                <div class="hint" role="alert" style="margin-top: 10px">@_whenError</div>
+            }
+        </div>
+    };
+
+    private string? WhenBasis()
+    {
+        if (!DateOnly.TryParseExact(_date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) return null;
+        var s = BodyHistory.AtOrEarliest(Data.Entries, date);
+        if (s.Weight is not { } weight) return "Веса нет ни в одной записи замеров — посчитать не получится, пока его не внести.";
+        return $"Посчитается по параметрам тела на эту дату: вес {Fmt.N(weight.Value, 1)} кг (запись на {Fmt.Date(weight.Date)}){HeartLine(date)}.";
+    }
+
+    private async Task Save()
+    {
+        if (Data.Profile is not Profile p) return;
+        if (!DateOnly.TryParseExact(_date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) || date > Today)
+        {
+            _whenError = "Дата: выберите день не позже сегодняшнего.";
+            return;
+        }
+        // Blazor отдаёт значение поля времени с секундами: «07:30:00»
+        if (!TimeOnly.TryParseExact(_time, ["HH:mm", "HH:mm:ss"], CultureInfo.InvariantCulture, DateTimeStyles.None, out var time))
+        {
+            _whenError = "Время начала: укажите часы и минуты.";
+            return;
+        }
+        // Местное время со смещением пояса на ту дату: день тренировки — по нему
+        var local = date.ToDateTime(time);
+        var start = new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local));
+        string id = _editId ?? AppData.NewId();
+        var workout = Workout.From(_form.ToInput(), id, p.Id, start, string.IsNullOrWhiteSpace(_note) ? null : _note.Trim());
+        await Data.SaveWorkout(workout);
+        Select(date);
+        Open(id);
+    }
+}

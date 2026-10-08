@@ -43,6 +43,19 @@ public static class ActivityLog
 
     public static DateOnly WeekStart(DateOnly date) => date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
 
+    /// <summary>
+    /// Недели календаря месяца: с понедельника, в который попадает 1-е, по воскресенье с последним днём —
+    /// строки календаря, у каждой итоги недели (с днями соседних месяцев, как в Apple «Активности»).
+    /// </summary>
+    public static IReadOnlyList<ActivityWeek> MonthWeeks(IEnumerable<CalculatedWorkout> workouts, int year, int month)
+    {
+        var first = new DateOnly(year, month, 1);
+        var monday = WeekStart(first);
+        var last = first.AddMonths(1).AddDays(-1);
+        var days = Days(workouts, monday, WeekStart(last).AddDays(6));
+        return days.Chunk(7).Select(week => new ActivityWeek(week[0].Date, week)).ToList();
+    }
+
     /// <summary>Неделя (с понедельника), в которую попадает дата.</summary>
     public static ActivityWeek Week(IEnumerable<CalculatedWorkout> workouts, DateOnly date)
     {
