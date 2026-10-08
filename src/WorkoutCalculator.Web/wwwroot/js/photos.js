@@ -36,7 +36,7 @@ const imageKey = (id, view, thumb = false) => `${id}/${view}${thumb ? '/thumb' :
 export const PIN_ITERATIONS = 600_000;
 const PIN_CHECK = 'body3d-pin-ok';
 const LOCK_AFTER_HIDDEN_MS = 120_000;
-const LOCKED = 'Снимки зашифрованы — введите PIN-код';
+const LOCKED = 'Снимки зашифрованы — откройте их PIN-кодом (карточка «Защита фото»)';
 
 let cryptoKey = null;
 let lockTimer = null;

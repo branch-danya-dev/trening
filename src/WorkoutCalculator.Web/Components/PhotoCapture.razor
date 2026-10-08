@@ -83,6 +83,22 @@ else if (_state is not State.Done)
         {
             <div class="hint" role="alert" style="margin-top: 10px">@_error</div>
         }
+        <button class="btn-link small" @onclick="ToggleReport">@(_report is null ? "Отчёт для проверки" : "Скрыть отчёт")</button>
+        @if (_report is not null)
+        {
+            <div class="note" style="margin-top: 4px">
+                Только цифры — ни снимков, ни контуров. Скопируйте и пришлите, если что-то разошлось с лентой
+                или подгонка выглядит странно.
+            </div>
+            <textarea class="report" readonly rows="14" aria-label="Отчёт для проверки" @onfocus='() => BrowserStorage.SelectText(".report")'>@_report</textarea>
+            <div class="confirm">
+                <button class="btn" @onclick="CopyReport">Скопировать</button>
+                @if (_reportNote is not null)
+                {
+                    <span class="muted">@_reportNote</span>
+                }
+            </div>
+        }
     }
 }
 
@@ -189,6 +205,25 @@ else if (_state is not State.Done)
         _state = State.Done;
         await OnResult.InvokeAsync(new PhotoOutcome(session.Id,
             GirthOf(Girth.Waist, analysis)?.GirthCm, GirthOf(Girth.Hips, analysis)?.GirthCm, _fit?.Posture, _fit?.Form));
+    }
+
+    /// <summary>«Отчёт для проверки»: профиль, ширина и глубина на уровнях, обхваты по фото против ленты, подгонка.</summary>
+    private string? _report, _reportNote;
+
+    private void ToggleReport()
+    {
+        _reportNote = null;
+        _report = _report is null && _session is not null
+            ? TestReport.Build(Body, _session, _fit, BrowserStorage.BrowserInfo(), AppInfo.Build)
+            : null;
+    }
+
+    private async Task CopyReport()
+    {
+        if (_report is null) return;
+        _reportNote = await BrowserStorage.CopyText(_report)
+            ? "Скопировано."
+            : "Браузер не дал скопировать — выделите текст и скопируйте вручную.";
     }
 
     private PhotoGirthEstimate? GirthOf(Girth g, PhotoAnalysis a) =>

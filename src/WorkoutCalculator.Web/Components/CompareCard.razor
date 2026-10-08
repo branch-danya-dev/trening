@@ -19,7 +19,7 @@
     </div>
     <div class="note" style="margin: 8px 0 10px">
         @(SideBySide ? $"Слева — {Label(Earlier)}, справа — {Label(Later)}." : $"Светлый контур — тело на {Label(Earlier)}, модель — на {Label(Later)}.")
-        «≈» — оценка, а не замер: разница по оценкам показывает только изменение веса.
+        «≈» — оценка, а не замер: разница с оценкой показывает в основном изменение веса, точнее — лента на обе даты.
     </div>
 
     @if (Before is ResolvedBody a && After is ResolvedBody b)
@@ -117,7 +117,7 @@
             <td>@name</td>
             <td title="@BodySummary.Describe(oa)">@Value(a, oa, Earlier)</td>
             <td title="@BodySummary.Describe(ob)">@Value(b, ob, Later)</td>
-            <td class="delta">@Fmt.Signed(b - a, 1)</td>
+            <td class="delta">@(estimate ? "≈" : "")@Fmt.Signed(b - a, 1)</td>
         </tr>
     };
 
