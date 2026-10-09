@@ -24,6 +24,7 @@ Draft analysis may be enriched only for the same photo/session/date/source/profi
 - Manual numeric values are factual and override lower-priority photo estimates in the same observation.
 - `PhotoDerived` waist/hips carry the existing ANSUR regression RMSE and session provenance. Unsupported body measurements are never invented.
 - `AvatarDerived` metrics describe the mesh and never enter `BodySnapshot` or hypothesis outcome rows.
+- A source-rejected photo-only envelope is retained for diagnostics with `ObservationAccepted=false`; it is never accepted as a factual observation. Valid manual facts alongside a rejected source remain accepted independently.
 - Original observation + explicit user confirmation of person/date/source are required. Known Generated/Synthetic/Unknown domain sources fail the factual-photo gate; known Generated/Synthetic session metadata cannot be overridden by the checkbox. Arbitrary user uploads cannot be forensically certified as original; this is a declared provenance boundary, not an AI-image detector.
 - Back photos are local visual-history references only. They are excluded from silhouette analysis, measurement inference, photo quality pair requirements and forecast overlays. Front and side remain the supported pair.
 - Photos stay in the existing local IndexedDB store. With PIN enabled, image blobs/previews use the existing AES-GCM policy; metadata/analysis remain local plaintext as before. No upload or backend is added. Check-in metadata contains no raw blobs, filenames, notes or encryption keys.

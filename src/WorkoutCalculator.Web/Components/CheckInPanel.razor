@@ -40,7 +40,7 @@
     @if (_result is { } result)
     {
         <div data-testid="checkin-result" data-checkin-status="@result.Status" role="status">
-            <h3>@(result.Revision is not null ? "Аватар обновлён по новым данным" : result.Snapshot is not null ? "Замеры сохранены, аватар не обновлён" : "Фото сохранено для истории")</h3>
+            <h3>@(result.Quality?.ObservationAccepted==false ? "Наблюдение отклонено" : result.Revision is not null ? "Аватар обновлён по новым данным" : result.Snapshot is not null ? "Замеры сохранены, аватар не обновлён" : "Фото сохранено для истории")</h3>
             @if(result.Snapshot is { } fact) { <p>@FactsCaption(fact)</p> }
             @foreach(var reason in result.Quality?.Reasons ?? []) { <p>@CheckInQualityPolicy.Message(reason)</p> }
             @if(result.LinkedHypothesisId is not null && result.Snapshot?.WeightKg is not null && !OutcomeAttached(result))

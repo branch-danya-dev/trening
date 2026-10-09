@@ -105,7 +105,8 @@ public static class CheckInService
                 return new CheckInGirthDiagnostic(g,old,manual,photo?.Cm,photo?.ModelRmseCm,old-manual,photo?.Cm-manual,fitted-manual,fitted-old,built is not null && fact?.Measurements.ContainsKey(g)==true);
             }).ToImmutableArray();
         var codes=reasons.Distinct().ToImmutableArray();
-        var quality=new CheckInQualityDecision(CheckInQualityPolicy.Version,true,photoAccepted,revision is not null,
+        var observationAccepted=c.Manual.HasValues || !codes.Contains(CheckInReason.SourceNotFactual);
+        var quality=new CheckInQualityDecision(CheckInQualityPolicy.Version,observationAccepted,photoAccepted,revision is not null,
             c.Photo is not null && !photoReasons.IsEmpty,codes,diagnostics,weightChange,built?.Quality);
         var status=revision is not null?CheckInStatus.ProcessedAccepted:codes.Contains(CheckInReason.TechnicalFailure)?CheckInStatus.Failed:
             fact is null && codes.All(r=>r==CheckInReason.NoSupportedMeasurements)?CheckInStatus.ObservationOnly:CheckInStatus.RejectedForAvatarUpdate;
@@ -139,7 +140,7 @@ public static class CheckInService
             recorded.Quality.Confidence!=(c.Manual.HasValues?1:.8) || recorded.Measurements.Count!=c.Manual.Girths.Keys
                 .Concat(c.Quality?.PhotoAccepted==true?c.Photo!.Estimates.Keys:[]).Distinct().Count()))
             throw new ArgumentException("Источник или полнота факта изменены.");
-        if(c.Quality is { } q && (q.Version!=CheckInQualityPolicy.Version || !q.ObservationAccepted || q.AvatarUpdated!=(c.Revision is not null) ||
+        if(c.Quality is { } q && (q.Version!=CheckInQualityPolicy.Version || q.ObservationAccepted!=(c.Manual.HasValues || !q.Reasons.Contains(CheckInReason.SourceNotFactual)) || q.AvatarUpdated!=(c.Revision is not null) ||
             q.Reasons.IsDefault || q.Girths.IsDefault || q.Girths.Any(g=>g.IndependentValidationOfNewFit) || !q.Reasons.SequenceEqual(c.Events[^1].Reasons) ||
             q.PhotoAccepted && (c.Photo?.Source!=CheckInPhotoSource.OriginalObservation || c.Photo.ConfirmedOriginal!=true || c.Photo.Confidence is not >= .8)))
             throw new ArgumentException("Повреждено решение о качестве.");

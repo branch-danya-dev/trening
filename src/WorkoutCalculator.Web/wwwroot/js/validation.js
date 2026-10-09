@@ -1,6 +1,7 @@
 import { nutritionAnalysis } from './validation-nutrition.js';
 import { hypothesisAnalysis } from './validation-hypotheses.js';
 import { checkInAnalysis } from './validation-checkins.js';
+import { assertReadable } from './data-guard.js';
 import { packageFiles, download } from './backup.js';
 import { analysisImages } from './photos.js';
 const read = key => JSON.parse(localStorage.getItem('workoutcalc.' + key) || 'null');
@@ -54,6 +55,7 @@ export function analysisData(options, stores, report={}) {
     return result;
 }
 export async function exportValidation(optionsJson, reportJson, build) {
+    assertReadable(); // Never export a partially committed cross-store observation.
     const options=JSON.parse(optionsJson);
     if(!Object.values(options).some(Boolean)) throw Error('Выберите хотя бы один раздел.');
     const env=options.forecasts||options.validation ? read('forecasts.v1') : null;

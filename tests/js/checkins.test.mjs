@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {commitCheckIn,recoverCheckIn} from '../../src/WorkoutCalculator.Web/wwwroot/js/checkin-transaction.js';
 import {CHECKIN_PENDING,EPOCH,acceptGeneration,assertWritable} from '../../src/WorkoutCalculator.Web/wwwroot/js/data-guard.js';
 import {getItemStrict,compareExchange} from '../../src/WorkoutCalculator.Web/wwwroot/js/storage.js';
-import {analysisData} from '../../src/WorkoutCalculator.Web/wwwroot/js/validation.js';
+import {analysisData,exportValidation} from '../../src/WorkoutCalculator.Web/wwwroot/js/validation.js';
 import {makeArchive,validateArchive} from '../../src/WorkoutCalculator.Web/wwwroot/js/backup.js';
 const keys=['workoutcalc.checkIns.v1','workoutcalc.bodySnapshots.v1','workoutcalc.avatarDomain.v1'];
 function setup(){const values=new Map(keys.map(k=>[k,'{"before":true}']));values.set(EPOCH,'generation');globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};Object.defineProperty(globalThis,'navigator',{value:{locks:{request:async(_,options,action)=>action()}},configurable:true});acceptGeneration();return values;}
@@ -12,6 +12,7 @@ const expected=()=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]));
 for(const boundary of ['prepared',...keys])test('crash after '+boundary+' recovers all stores exactly once',async()=>{
  const values=setup(),before=expected();await assert.rejects(commitCheckIn(JSON.stringify(before),JSON.stringify(after),b=>{if(b===boundary)throw Error('crash');}),/crash/);
  assert.ok(values.has(CHECKIN_PENDING));assert.throws(()=>assertWritable(),/замера прервано/);assert.throws(()=>getItemStrict(keys[1]),/замера прервано/);
+ await assert.rejects(exportValidation('{"checkIns":true}','{}','test'),/замера прервано/);
  assert.equal(await recoverCheckIn(),true);assert.equal(await recoverCheckIn(),false);for(const k of keys)assert.equal(values.get(k),after[k]);
  assert.equal(values.has(CHECKIN_PENDING),false);assert.equal(await commitCheckIn(JSON.stringify(before),JSON.stringify(after)),false);
 });

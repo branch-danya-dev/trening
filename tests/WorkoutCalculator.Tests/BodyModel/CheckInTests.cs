@@ -85,6 +85,9 @@ public class CheckInTests(MakeHumanFixture fx):IClassFixture<MakeHumanFixture>
     {
         var(p,a)=Active();var r=CheckInService.Process(Job(p,a,Manual(null),Photo() with{Source=source}),p,a,Builder);
         Assert.Contains(CheckInReason.SourceNotFactual,r.CheckIn.Quality!.Reasons);Assert.Null(r.CheckIn.Snapshot);Assert.Same(a,r.Avatar);
+        Assert.False(r.CheckIn.Quality.ObservationAccepted);
+        var manual=CheckInService.Process(Job(p,a,Manual(),Photo() with{Source=source}),p,a,Builder);
+        Assert.True(manual.CheckIn.Quality!.ObservationAccepted);Assert.Equal(79,manual.CheckIn.Snapshot!.WeightKg);Assert.Null(manual.CheckIn.Revision);
     }
     [Theory][InlineData("scale")][InlineData("sex")][InlineData("date")][InlineData("confidence")][InlineData("pair")]
     public void PhotoQualityDiagnosticsAreStructured(string kind)
