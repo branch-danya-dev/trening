@@ -39,6 +39,7 @@ public static class CheckInService
         if(fact.BodyFatPercent is { } bf) merged.BodyFatPercent = bf;
         foreach(var (g,v) in fact.Measurements) merged.SetGirth(g,v.Cm);
         var protectedPriors=(prior.Inputs.CorrectionProtectedPriors??[]).Concat(prior.Inputs.Fields
+            .Where(_=>prior.Corrections.CorrectionModelVersion==AvatarShapeCorrectionProfile.CurrentVersion)
             .Where(f=>f.Source is AvatarFieldSource.Factual or AvatarFieldSource.PhotoDerived)
             .Where(f=>Enum.TryParse<Girth>(f.Field,out _)).Select(f=>Enum.Parse<Girth>(f.Field)))
             .Concat(fact.Measurements.Keys).Distinct().Order().ToImmutableArray();

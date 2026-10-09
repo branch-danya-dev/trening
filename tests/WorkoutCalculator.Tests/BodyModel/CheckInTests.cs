@@ -192,14 +192,20 @@ public class CheckInTests(MakeHumanFixture fx):IClassFixture<MakeHumanFixture>
     }
     [Fact]public void PriorFactualGirthDoesNotEnablePreviouslySuppressedFullnessOnWeightOnlyUpdate()
     {
+        foreach(var version in new[]{AvatarShapeCorrectionProfile.Version,AvatarShapeCorrectionProfile.CurrentVersion})
+        {
         var(p,a)=Active();var fact=new BodySnapshot(Guid.NewGuid().ToString(),Today.AddDays(-20),SnapshotSource.Manual,new("manual")){WeightKg=78,Measurements=ImmutableDictionary<Girth,GirthObservation>.Empty.Add(Girth.Waist,new(82))};
         var draft=AvatarLifecycle.StartRecalibration(a,"prior",Now.AddDays(-20));
-        draft=AvatarLifecycle.EditDraft(draft,new(){CorrectionModelVersion=AvatarShapeCorrectionProfile.CurrentVersion,WaistFullness=.7},AvatarBuilder.Capture(p,fact));
+        draft=AvatarLifecycle.EditDraft(draft,new(){CorrectionModelVersion=version,WaistFullness=.7},AvatarBuilder.Capture(p,fact));
         a=new AvatarLifecycle(Builder).Confirm(draft,Now.AddDays(-20),Today.AddDays(-20));
         var next=CheckInService.Process(Job(p,a,Manual(78)),p,a,Builder);Assert.NotNull(next.CheckIn.Revision);
-        Assert.Contains(Girth.Waist,next.CheckIn.Revision!.Inputs.CorrectionProtectedPriors!.Value);
+        Assert.Equal(version==AvatarShapeCorrectionProfile.CurrentVersion,next.CheckIn.Revision!.Inputs.CorrectionProtectedPriors!.Value.Contains(Girth.Waist));
         Assert.Equal(Builder.Rebuild(a.ActiveRevision!).Body.Mesh.Positions,Builder.Rebuild(next.CheckIn.Revision).Body.Mesh.Positions);
         Assert.Empty(next.CheckIn.Snapshot!.Measurements);
+        var measured=CheckInService.Process(Job(p,next.Avatar,Manual(78,82),at:Now.AddMinutes(1)),p,next.Avatar,Builder);
+        Assert.NotNull(measured.CheckIn.Revision);Assert.Contains(Girth.Waist,measured.CheckIn.Revision!.Inputs.CorrectionProtectedPriors!.Value);
+        Assert.InRange(Math.Abs(measured.CheckIn.Revision.Quality.KnownGirthResidualsCm[Girth.Waist]),0,CheckInQualityPolicy.MaxManualResidualCm);
+        }
     }
     [Fact]public void NewHypothesisDescriptorFreezesProtectionMetadataWithoutChangingOldDescriptor()
     {
