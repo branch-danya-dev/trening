@@ -16,6 +16,9 @@ public static partial class BrowserStorage
     [JSImport("initialize", "backup")]
     public static partial Task InitializeRecovery();
 
+    [JSImport("commitCheckIn", "checkin-transaction")]
+    public static partial Task<bool> CommitCheckIn(string expected, string values);
+
     [JSImport("getItem", Module)]
     public static partial string? GetItem(string key);
 

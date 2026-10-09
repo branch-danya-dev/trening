@@ -141,7 +141,7 @@
                 {
                     <Dashboard Fact="CurrentFact" Facts="_history.Timeline.Items" Cardio="_workouts" Strength="_strength" Goal="@_preferences.Goal" Plan="_hypotheses.Current" Calibration="_personalized" />
                     <p class="note">@CurrentFactCaption</p>
-                    <div class="history-actions"><button class="btn primary" @onclick="NewMeasurement">Записать замеры</button><button class="btn" @onclick="() => _tab = Tab.Photos">Фото</button></div>
+                    <div class="history-actions"><button class="btn primary" @onclick="NewCheckIn">Записать замеры</button><button class="btn" @onclick="() => _tab = Tab.Photos">Фото</button></div>
                     <div class="model-adjustments">
                     <AvatarPanel State="Avatar" Representation="_avatarRepresentation" Busy="_avatarBusy" OnMeasure="NewMeasurement" OnStart="StartAvatarRecalibration" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" OnCancel="CancelAvatarRecalibration" OnUseFact="UseCurrentAvatarFact" OnNewCycle="BeginAvatarForecastCycle" />
                     </div>
@@ -162,8 +162,9 @@
                 }
                 else if (_tab == Tab.History)
                 {
-                    <ObservedHypothesisPanel HistoryOnly="true" OnMeasure="NewMeasurement" OnEndpoint="ShowObservedEndpoint" />
-                    <BodyHistory State="_history" Profile="_profile" Strength="_strength" Cardio="_workouts" OnView="ShowHistory" />
+                    <CheckInPanel @key="CheckInComponentKey" Avatar="Avatar" Profile="_avatars.Profile" Builder="AvatarBuilder" StartOpen="_checkInOpen" OnChanged="CheckInChanged" OnRecalibrate="StartAvatarRecalibration" />
+                    <ObservedHypothesisPanel @key="_checkInChanges" HistoryOnly="true" OnMeasure="NewCheckIn" OnEndpoint="ShowObservedEndpoint" />
+                    <details open="@(!_checkInOpen)"><summary>Архив фактических замеров</summary><BodyHistory State="_history" Profile="_profile" Strength="_strength" Cardio="_workouts" OnView="ShowHistory" /></details>
                     <details class="card"><summary>Фото-прогресс</summary><PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End" ForecastLabel="@ForecastLabel" RevisionManaged="@(Avatar is not null || _avatarError is not null)" /></details>
                 }
                 else if (_tab == Tab.Profile)
@@ -172,7 +173,7 @@
                     <label>Дата рождения<input type="date" value="@_preferences.BirthDate" @onchange="ChangeBirthDate" /></label>
                     <label>Цель<select class="select" @bind="_preferences.Goal" @bind:after="SavePreferences">@foreach (var goal in Onboarding.Goals) { <option>@goal</option> }</select></label>
                     @if (_productError is not null) { <p role="alert">@_productError</p> }
-                    <p>@CurrentFactCaption</p><button class="btn" @onclick="NewMeasurement">Обновить фактические параметры</button>
+                    <p>@CurrentFactCaption</p><button class="btn" @onclick="NewCheckIn">Обновить фактические параметры</button>
                     <label class="check"><input type="checkbox" @bind="_privacy.Blur" @bind:after="SavePrivacy" /> Размывать фото до нажатия</label>
                     <label class="check"><input type="checkbox" @bind="_privacy.Watermark" @bind:after="SavePrivacy" /> Водяной знак на фото</label>
                     <button class="btn" @onclick="() => _tab = Tab.Photos">Фото и защита PIN</button></section>
@@ -188,7 +189,7 @@
                 }
                 else
                 {
-                    <ObservedHypothesisPanel OnMeasure="NewMeasurement" OnEndpoint="ShowObservedEndpoint" />
+                    <ObservedHypothesisPanel OnMeasure="NewCheckIn" OnEndpoint="ShowObservedEndpoint" />
                     <h2>Ручные сценарии</h2><p class="note">Задайте предположения самостоятельно. Сценарии не являются гипотезами по закрытым наблюдениям.</p>
                     <button class="btn" @onclick="ShowScenario">Показать сценарий в 3D</button>
                     <HypothesisPanel Profile="_profile" Hypotheses="_hypotheses" Forecasts="_forecasts" OnChange="ChangeHypothesis"

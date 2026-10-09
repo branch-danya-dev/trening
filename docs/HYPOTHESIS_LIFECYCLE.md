@@ -107,3 +107,7 @@ Full backup includes the new envelope, embedded ForecastSnapshots/calibration, a
 ## Deferred
 
 Phase 6 automatic photo CheckIn, front/side/back quality/reconstruction and automatic Avatar update; Phase 7 GeometryWarpRenderer/mesh artifact storage; Phase 8 managed photorealistic rendering/API; food catalogs/barcodes/recipes; autonomous coaching; BodyParts3D; DeltaShape; sodium/ECF production UI; claims of validated individual accuracy. Regional program selection for hypotheses is explicitly limited as described above.
+
+## Phase 6 — Current Avatar check-ins (2026-10-09)
+
+The target prompt now opens the shared CheckIn form. Its factual commit finishes before the explicit «Использовать для проверки гипотезы» action; this action is also available in observation history after reload. Evaluation uses the existing outcome service and source/quality/late/calibration rules, still requires known factual weight, and never uses AvatarDerived metrics. A rejected photo does not invalidate valid manual weight. Same-cycle current updates never rewrite the frozen origin/evidence/ForecastSnapshot/endpoint/hash or evaluated outcome. [Contract](CHECKIN_LIFECYCLE.md), [integration evidence](evidence/checkin/README.md).

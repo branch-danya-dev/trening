@@ -23,6 +23,15 @@ public static partial class PhotoStore
     [JSImport("saveFromInputs", Module)]
     private static partial Task<string> SaveFromInputsJson(string metaJson, string frontInputId, string sideInputId);
 
+    [JSImport("saveCheckInInputs", Module)]
+    private static partial Task<string> SaveCheckInInputsJson(string metaJson, string frontInputId, string sideInputId, string backInputId);
+
+    public static async Task<PhotoSession> SaveCheckInInputs(WorkoutCalculator.BodyModel.Avatars.Profile p, DateOnly date, string front, string side, string back)
+    {
+        var meta = new CheckInPhotoMeta(p.Sex,p.HeightCm,date,"OriginalObservation");
+        return JsonSerializer.Deserialize(await SaveCheckInInputsJson(JsonSerializer.Serialize(meta,PhotoJson.Default.CheckInPhotoMeta),front,side,back),PhotoJson.Default.PhotoSession)!;
+    }
+
     [JSImport("deleteSession", Module)]
     public static partial Task DeleteSession(string id);
 
@@ -143,7 +152,11 @@ public sealed class PhotoSession
     public Dictionary<string, string> Thumbs { get; set; } = [];
     /// <summary>Разбор снимков — если уже делался.</summary>
     public PhotoAnalysis? Analysis { get; set; }
+    public DateOnly? ObservedDate { get; set; }
+    public string? SourceKind { get; set; }
 }
+
+public sealed record CheckInPhotoMeta(Sex Sex,double HeightCm,DateOnly ObservedDate,string SourceKind);
 
 public sealed record ExportResult(string Name, int Sessions);
 
@@ -162,6 +175,7 @@ public sealed record StorageInfo(long? Usage, long? Quota, bool Persisted);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, UseStringEnumConverter = true)]
 [JsonSerializable(typeof(PhotoMeta))]
+[JsonSerializable(typeof(CheckInPhotoMeta))]
 [JsonSerializable(typeof(List<WarpRow>))]
 [JsonSerializable(typeof(PhotoSession))]
 [JsonSerializable(typeof(List<PhotoSession>))]

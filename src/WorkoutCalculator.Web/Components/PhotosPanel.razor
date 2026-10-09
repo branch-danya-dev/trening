@@ -91,7 +91,7 @@ else
                 {
                     @foreach (string view in s.Views)
                     {
-                        <span class="thumb-locked" aria-label="@(view == "side" ? "Сбоку" : "Спереди"), под PIN-кодом">
+                        <span class="thumb-locked" aria-label="@(view == "back" ? "Сзади — только для истории" : view == "side" ? "Сбоку" : "Спереди"), под PIN-кодом">
                             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
                         </span>
                     }
@@ -100,7 +100,7 @@ else
                 {
                     @foreach (var (view, url) in s.Thumbs)
                     {
-                        <img src="@url" alt="@(view == "side" ? "Сбоку" : "Спереди")" />
+                        <img src="@url" alt="@(view == "back" ? "Сзади — только для истории" : view == "side" ? "Сбоку" : "Спереди")" />
                     }
                 }
             </button>
@@ -171,7 +171,7 @@ else
             <div class="overlay-row">
                 @foreach (string view in o.Views)
                 {
-                    var profile = view == "side" ? a.Side : a.Front;
+                    var profile = view == "back" ? null : view == "side" ? a.Side : a.Front;
                     if (profile is not null && _urls.TryGetValue(view, out var url))
                     {
                         bool forecast = ShowingForecast(o) && _warpUrls.ContainsKey(view);

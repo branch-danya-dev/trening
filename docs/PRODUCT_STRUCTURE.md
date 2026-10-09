@@ -1,5 +1,7 @@
 # Структура продукта: целевой lifecycle и текущая реализация
 
+**Текущий слой Phase 6:** `CheckInStore` / `workoutcalc.checkIns.v1` хранит наблюдения и решения о качестве. «Прогресс → Новый замер» — единая форма текущего факта, обновления Avatar и опциональной проверки гипотезы. Строгий recoverable commit объединяет CheckIn, BodySnapshot и AvatarRevision; Hypothesis получает ссылку после сохранения факта. [Контракт](CHECKIN_LIFECYCLE.md).
+
 **Текущий слой Phase 5:** `ObservedHypothesisStore` / `workoutcalc.observedHypotheses.v1` — единственный owner наблюдаемых гипотез, embedded immutable ForecastSnapshots и outcome events. «План» содержит review/save, «Прогресс» — историю/результат. Legacy `workoutcalc.hypotheses.v1` остаётся owner ручных сценариев. [Полный source-of-truth контракт](HYPOTHESIS_LIFECYCLE.md).
 
 ## Источники истины Phase 3 / 4
@@ -108,3 +110,7 @@ Nutrition v1 — ручные КБЖУ и пропорциональный пе�
 ## Phase 5 source of truth
 
 Plan hosts ObservedHypothesisPanel (review/save) above legacy manual Scenarios. Progress hosts historical hypotheses plus factual BodySnapshot editing. No sixth navigation item. WorkoutCalculator.BodyModel.Hypotheses owns lifecycle/policies; ObservedHypothesisStore owns workoutcalc.observedHypotheses.v1 with embedded immutable ForecastSnapshots, calibration and append-only events in one CAS. Existing workoutcalc.hypotheses.v1 remains the scenario store; no evidence migration. ActivityDay/Avatar/body facts retain their owners; linked outcome facts are protected. See [HYPOTHESIS_LIFECYCLE](HYPOTHESIS_LIFECYCLE.md).
+
+## Phase 6 — Current Avatar check-ins (2026-10-09)
+
+Current implementation: [CHECKIN_LIFECYCLE](CHECKIN_LIFECYCLE.md). Baseline #25 was merged with ordinary merge commit `106efdaf28cdb7fdebb91b8b8bf2c98dd254f2a7`; full [main CI](https://github.com/branch-danya-dev/trening/actions/runs/37899920321) passed before `codex/avatar-checkins` was created. Separate factual observations update the current avatar automatically after the versioned gate while preserving the cycle origin and every issued forecast. Manual recalibration remains separate. Partial/photo-only facts, prior/correction merge, source quality/conflicts, idempotency, recovery and target-hypothesis integration are specified in the contract. Phase 7/8 are deferred. Validation results and limitations: [Check-in evidence](evidence/checkin/README.md). The implementation PR is not auto-merged.

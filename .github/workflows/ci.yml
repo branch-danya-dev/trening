@@ -56,6 +56,7 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" ACTIVITY_OUTPUT="$RUNNER_TEMP/activity-evidence" node tests/browser/activity-day-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" NUTRITION_OUTPUT="$RUNNER_TEMP/nutrition-evidence" node tests/browser/nutrition-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" HYPOTHESIS_OUTPUT="$RUNNER_TEMP/hypothesis-evidence" node tests/browser/hypothesis-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" CHECKIN_OUTPUT="$RUNNER_TEMP/checkin-evidence" node tests/browser/checkin-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/errors-smoke.cjs
       - name: ActivityDay browser evidence
         if: always()
@@ -77,6 +78,13 @@ jobs:
         with:
           name: hypothesis-evidence
           path: ${{ runner.temp }}/hypothesis-evidence
+          if-no-files-found: ignore
+      - name: Check-in browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkin-evidence
+          path: ${{ runner.temp }}/checkin-evidence
           if-no-files-found: ignore
       - name: Published PWA offline smoke from /trening/
         # Includes the new local hypothesis modules in the published offline cache.

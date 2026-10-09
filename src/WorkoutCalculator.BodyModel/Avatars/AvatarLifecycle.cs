@@ -117,9 +117,11 @@ public sealed class AvatarLifecycle(AvatarBuilder builder)
                 !AvatarRules.In(r.Quality.MaximumGirthResidualCm, 0, 500) ||
                 (r.Confidence is { } c && !AvatarRules.In(c, 0, 1))) throw new ArgumentException("Нарушена история ревизий аватара.");
             if (previous is null && r.Source is not (AvatarRevisionSource.InitialCreation or AvatarRevisionSource.Migration) ||
-                previous is not null && r.Source is not (AvatarRevisionSource.PhotoCheckIn or AvatarRevisionSource.ManualRecalibration))
+                previous is not null && r.Source is not (AvatarRevisionSource.PhotoCheckIn or AvatarRevisionSource.FactualUpdate or AvatarRevisionSource.ManualRecalibration))
                 throw new ArgumentException("Неверный источник ревизии.");
             r.Inputs.Validate(); r.Corrections.Validate(); r.DerivedMetrics.Validate();
+            if (r.Source == AvatarRevisionSource.FactualUpdate) { AvatarRules.Id(r.CheckInId); if(r.Inputs.Fact is null) throw new ArgumentException("Нет факта нового замера."); }
+            else if(r.CheckInId is not null) throw new ArgumentException("Неожиданная ссылка на замер.");
             if ((r.BuilderVersion == AvatarBuilder.CurrentVersion) != (r.Corrections.CorrectionModelVersion == AvatarShapeCorrectionProfile.CurrentVersion))
                 throw new ArgumentException("Версии коррекции и реконструкции не совпадают.");
             if (r.Source == AvatarRevisionSource.PhotoCheckIn && (r.Confidence is not >= MinimumPhotoConfidence ||
@@ -148,7 +150,7 @@ public sealed class AvatarLifecycle(AvatarBuilder builder)
             d.Inputs.Validate(); d.Corrections.Validate();
         }
         string? origin = null; var eventIds = new HashSet<string>(); var cycles = new HashSet<string>();
-        var origins = state.Revisions.Where(r => r.Source != AvatarRevisionSource.PhotoCheckIn).ToArray();
+        var origins = state.Revisions.Where(r => r.Source is not (AvatarRevisionSource.PhotoCheckIn or AvatarRevisionSource.FactualUpdate)).ToArray();
         if (origins.Length != state.CycleEvents.Length) throw new ArgumentException("Отсутствует событие смены origin.");
         for (var i = 0; i < state.CycleEvents.Length; i++)
         {

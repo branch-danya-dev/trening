@@ -30,7 +30,7 @@ public sealed record Profile(string Id, DateTimeOffset CreatedAt, Sex Sex, doubl
 }
 
 public enum AvatarStatus { Draft, Active, Recalibrating, Archived }
-public enum AvatarRevisionSource { InitialCreation, PhotoCheckIn, ManualRecalibration, Migration }
+public enum AvatarRevisionSource { InitialCreation, PhotoCheckIn, ManualRecalibration, Migration, FactualUpdate }
 public enum AvatarFieldSource { Profile, Factual, PhotoDerived, VisualEstimate, LegacyVisualEstimate, Corrected }
 public sealed record AvatarFieldOrigin(string Field, AvatarFieldSource Source);
 public sealed record AvatarPhotoReference(string SessionId, string PipelineVersion, double Confidence);
@@ -67,10 +67,15 @@ public sealed record AvatarReconstructionInputs(string BaseProfileJson, BodySnap
     ImmutableArray<AvatarFieldOrigin> Fields, ImmutableArray<AvatarPhotoReference> Photos)
 {
     public ImmutableDictionary<Girth, AvatarPhotoMeasurement> PhotoEstimates { get; init; } = ImmutableDictionary<Girth, AvatarPhotoMeasurement>.Empty;
+    // Remember prior shape constraints without labeling them as newly measured facts.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ImmutableArray<Girth>? CorrectionProtectedPriors { get; init; }
     public BodyProfile BaseProfile() => JsonSerializer.Deserialize(BaseProfileJson, ForecastJson.Default.BodyProfile)
         ?? throw new ArgumentException("Нет исходной формы.");
     public void Validate()
     {
+        if(CorrectionProtectedPriors is { } protectedPriors && (protectedPriors.IsDefault || protectedPriors.Any(g=>!Enum.IsDefined(g)) || protectedPriors.Distinct().Count()!=protectedPriors.Length))
+            throw new ArgumentException("Повреждены ограничения исходной формы.");
         if (BaseProfileJson is null || BaseProfileJson.Length > 16000 || PhotoEstimates is null || Fields.IsDefaultOrEmpty || Photos.IsDefault ||
             Fields.Any(f => f is null || string.IsNullOrWhiteSpace(f.Field) || f.Field.Length > 100 || !Enum.IsDefined(f.Source)) ||
             Fields.Select(f => f.Field).Distinct().Count() != Fields.Length)
@@ -148,7 +153,11 @@ public sealed record AvatarDerivedMetrics(ImmutableDictionary<string, AvatarDeri
 public sealed record AvatarRevision(string Id, string AvatarId, DateTimeOffset CreatedAt, DateOnly EffectiveDate,
     AvatarRevisionSource Source, AvatarReconstructionInputs Inputs, AvatarShapeCorrectionProfile Corrections,
     AvatarDerivedMetrics DerivedMetrics, string BuilderVersion, string FitterVersion, string AssetVersion,
-    double? Confidence, string? PredecessorRevisionId, string? Reason, AvatarGeometryQuality Quality);
+    double? Confidence, string? PredecessorRevisionId, string? Reason, AvatarGeometryQuality Quality)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? CheckInId { get; init; }
+}
 public sealed record AvatarGeometryQuality(bool SoftTissueLimitReached, ImmutableArray<Girth> MissingGirths, double MaximumGirthResidualCm)
 {
     public ImmutableDictionary<Girth, double> KnownGirthResidualsCm { get; init; } = ImmutableDictionary<Girth, double>.Empty;

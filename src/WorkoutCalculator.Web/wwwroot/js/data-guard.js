@@ -1,8 +1,13 @@
 // One synchronous guard shared by all persistent writers. Old tabs cannot overwrite a restored archive.
 export const LOCK = 'trening:restore-in-progress', EPOCH = 'trening:data-generation';
+export const CHECKIN_PENDING = 'trening:checkin-transaction-v1';
+export function assertReadable() {
+    if(localStorage.getItem(CHECKIN_PENDING))throw Error('Сохранение замера прервано. Перезагрузите страницу для согласованного восстановления.');
+}
 let generation;
 export function acceptGeneration() { generation = localStorage.getItem(EPOCH); }
 export function assertWritable() {
+    assertReadable();
     if (localStorage.getItem(LOCK)) throw Error('Восстановление данных ещё не завершено. Перезагрузите страницу.');
     if (generation !== undefined && generation !== localStorage.getItem(EPOCH))
         throw Error('Данные восстановлены в другой вкладке. Перезагрузите страницу перед изменениями.');

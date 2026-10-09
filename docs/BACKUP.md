@@ -41,3 +41,7 @@ Avatar domain проверяется `BackupValidation` до мутаций: sch
 Для анализа используйте отдельный [validation-package.zip](VALIDATION.md): явный выбор разделов, без фото по умолчанию, без PIN/ключей, локальных идентификаторов и свободных заметок.
 
 Проверки покрывают round trip всех основных stores, точное совпадение бинарных фото и настроек шифрования, restore в чистый browser context, три точки искусственного сбоя, закрытие вкладки в середине commit, защиту от устаревшей вкладки, неверный ZIP, пропавший файл, неверный хеш, будущую схему и повреждённые фото-метаданные.
+
+## Phase 6 — Current Avatar check-ins (2026-10-09)
+
+Full backup includes `workoutcalc.checkIns.v1` unchanged, referenced BodySnapshots, Avatar revisions, decisions for rejected observations, candidate/outcome links and all retained photo blobs/settings, including back references. Old backups without CheckIns remain valid. Strict restore checks snapshot/revision/cycle links and rejects orphan factual-update revisions. The pending CheckIn journal is recovered under the archive lock before export/restore and is never exported itself. Repeated reload cannot re-ingest a session or create another revision. Validation export blocks while a cross-store transaction is pending. Details: [commit/recovery contract](CHECKIN_LIFECYCLE.md), [exact restore evidence](evidence/checkin/README.md).

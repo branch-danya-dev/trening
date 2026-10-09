@@ -32,6 +32,7 @@
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\BodyHistoryState.cs" Link="Services\BodyHistoryState.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\ForecastStore.cs" Link="Services\ForecastStore.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\ObservedHypothesisStore.cs" Link="Services\ObservedHypothesisStore.cs" />
+    <Compile Include="..\..\src\WorkoutCalculator.Web\Services\CheckInStore.cs" Link="Services\CheckInStore.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\PersonalizedForecastState.cs" Link="Services\PersonalizedForecastState.cs" />
   </ItemGroup>
 

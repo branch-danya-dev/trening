@@ -1,5 +1,7 @@
 import { nutritionAnalysis } from './validation-nutrition.js';
 import { hypothesisAnalysis } from './validation-hypotheses.js';
+import { checkInAnalysis } from './validation-checkins.js';
+import { assertReadable } from './data-guard.js';
 import { packageFiles, download } from './backup.js';
 import { analysisImages } from './photos.js';
 const read = key => JSON.parse(localStorage.getItem('workoutcalc.' + key) || 'null');
@@ -45,14 +47,19 @@ export function analysisData(options, stores, report={}) {
         schemaVersion:d.closure?.schemaVersion,modelVersion:d.closure?.modelVersion}));
     if(options.activity) result.nutrition=(stores.activity?.days || []).map(nutritionAnalysis);
     if(options.hypotheses) result.hypotheses=(stores.hypotheses?.items || []).map(hypothesisAnalysis);
+    if(options.checkIns) {
+        const revisions=new Map((stores.avatars?.avatars||[]).flatMap(a=>a.revisions||[]).map((r,i)=>[r.id,`revision-${i+1}`]));
+        result.checkIns=(stores.checkIns?.items||[]).map((c,i)=>checkInAnalysis(c,i,revisions,stores.hypotheses?.items||[]));
+    }
     if(options.validation) result.validation={body:(report.body || []).map(o=>pick(o,['girth','entered','calculated','source'])),manual:pick(report.manual,['Tape','Photo','Date','ExternalKcal','AvatarSimilarity']),evaluation:(report.evaluation || []).map(o=>({forecast:forecastRefs.get(o.ForecastId),fact:factRefs.get(o.FactId),...pick(o,['Date','HorizonDays','Metric','Actual','Predicted','BaselinePredicted','SignedError','AbsoluteError','SourceQuality','ExclusionReason'])}))};
     return result;
 }
 export async function exportValidation(optionsJson, reportJson, build) {
+    assertReadable(); // Never export a partially committed cross-store observation.
     const options=JSON.parse(optionsJson);
     if(!Object.values(options).some(Boolean)) throw Error('Выберите хотя бы один раздел.');
     const env=options.forecasts||options.validation ? read('forecasts.v1') : null;
-    const stores={ hypotheses:options.hypotheses?parseNested(read('observedHypotheses.v1')?.payload):null,activity:options.activity?parseNested(read('activityDays.v1')?.payload):null, avatars:options.avatars||options.profile?read('avatarDomain.v1'):null,profile:options.profile?read('body.v1'):null,facts:options.facts||options.profile||options.validation?read('bodySnapshots.v1'):null,
+    const stores={ checkIns:options.checkIns?parseNested(read('checkIns.v1')?.payload):null,hypotheses:options.hypotheses||options.checkIns?parseNested(read('observedHypotheses.v1')?.payload):null,activity:options.activity?parseNested(read('activityDays.v1')?.payload):null, avatars:options.avatars||options.profile||options.checkIns?read('avatarDomain.v1'):null,profile:options.profile?read('body.v1'):null,facts:options.facts||options.profile||options.validation?read('bodySnapshots.v1'):null,
         forecasts:env?parseNested(env.payload):null,cardio:options.workouts?read('workouts.v1'):null,strength:options.workouts?read('strength.v1'):null };
     const data=analysisData(options,stores,JSON.parse(reportJson)), files=[{name:'analysis.json',data:new TextEncoder().encode(JSON.stringify(data,null,2))}];
     if(options.photos) { let i=0; for(const blob of await analysisImages()) files.push({name:`photos/${++i}.jpg`,data:new Uint8Array(await blob.arrayBuffer())}); }

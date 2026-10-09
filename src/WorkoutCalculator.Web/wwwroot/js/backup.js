@@ -1,6 +1,7 @@
 import { zip, lock as lockPhotos } from './photos.js';
 import { LOCK, EPOCH, acceptGeneration } from './data-guard.js';
 import { reportStorageError } from './storage.js';
+import { recoverCheckIn } from './checkin-transaction.js';
 
 export async function initialize() {
     try { const message = await recover(); if (message) reportStorageError(message); }
@@ -63,6 +64,7 @@ export async function recover() {
         const pending = await recoveryRecord();
         if (pending) { localStorage.setItem(LOCK, 'recovery'); await replacePhotos(pending.photos); replaceLocal(pending.local); await recoveryRecord(null); }
         localStorage.removeItem(LOCK); acceptGeneration();
+        await recoverCheckIn();
         return pending ? 'Прерванное восстановление отменено: прежние данные возвращены.' : '';
     });
 }
@@ -144,8 +146,8 @@ export async function validateArchive(bytes) {
     }
     const requiredImages = new Set();
     for (const session of photos.sessions) {
-        if (!Array.isArray(session.views) || session.views.length < 1 || session.views.length > 2 ||
-            new Set(session.views).size !== session.views.length || session.views.some(v => !['front','side'].includes(v)) || !Number.isFinite(Date.parse(session.createdAt)))
+        if (!Array.isArray(session.views) || session.views.length < 1 || session.views.length > 3 ||
+            new Set(session.views).size !== session.views.length || session.views.some(v => !['front','side','back'].includes(v)) || !Number.isFinite(Date.parse(session.createdAt)))
             throw Error('Некорректные метаданные фотосессии.');
         for (const view of session.views) { requiredImages.add(`${session.id}/${view}`); requiredImages.add(`${session.id}/${view}/thumb`); }
     }
@@ -166,6 +168,7 @@ export function download(blob, name) {
 }
 export async function exportBackup(build) {
     return exclusive(async()=>{
+        await recoverCheckIn();
         if (localStorage.getItem(LOCK)) throw Error('Сначала завершите восстановление: перезагрузите приложение.');
         localStorage.setItem(LOCK,'export');
         try { const archive=await makeArchive({local:localSnapshot(),photos:await readPhotos()},build); download(archive,'trening-backup-v1.zip'); return archive.size; }
@@ -185,6 +188,7 @@ export async function restorePrepared(build) {
 }
 export async function restoreState(next, build, checkpoint=()=>{}) {
     return exclusive(async()=>{
+        await recoverCheckIn();
         if(await recoveryRecord()) throw Error('Сначала завершите восстановление после сбоя: перезагрузите страницу.');
         localStorage.setItem(LOCK,'restore');
         let before, staged=false;

@@ -20,7 +20,10 @@ public sealed record HypothesisOutcomePolicy(string Version = "target-minus1-plu
 public sealed record HypothesisEvidenceReference(string DayId, DateOnly Date, string Sha256, int ClosureSchemaVersion);
 public sealed record HypothesisUncertainty(string Version, double RangeMultiplier, ImmutableArray<string> Limitations);
 public sealed record EndpointGeometry(string Version, string BodyProfileJson, AvatarShapeCorrectionProfile Corrections,
-    string AvatarBuilderVersion, string FitterVersion, string AssetVersion, string CompositionModelVersion, MuscleMorphState Muscle, string Sha256);
+    string AvatarBuilderVersion, string FitterVersion, string AssetVersion, string CompositionModelVersion, MuscleMorphState Muscle, string Sha256)
+{
+    [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] public ImmutableArray<Girth>? CorrectionProtectedPriors { get; init; }
+}
 public sealed record HypothesisEndpoint(DateOnly TargetDate, double ElapsedWeeks, ForecastPoint Point, EndpointGeometry Geometry);
 
 /// <summary>Issued core is never replaced by a lifecycle transition. Snapshot and source copies share its atomic archive.</summary>
@@ -100,7 +103,8 @@ public static class HypothesisEndpointBuilder
         var body = forecast.StartProfile(); body.WeightKg = point.Body.WeightKg; body.BodyFatPercent = point.Body.FatPercent;
         foreach (var (g, value) in point.Girths) body.SetGirth(g,value);
         var geometry = new EndpointGeometry(Version, JsonSerializer.Serialize(body, ForecastJson.Default.BodyProfile), revision.Corrections,
-            revision.BuilderVersion, revision.FitterVersion, revision.AssetVersion, forecast.ModelVersion, MuscleMorphState.Identity, "");
+            revision.BuilderVersion, revision.FitterVersion, revision.AssetVersion, forecast.ModelVersion, MuscleMorphState.Identity, "")
+            { CorrectionProtectedPriors=revision.Inputs.CorrectionProtectedPriors };
         geometry = geometry with { Sha256 = HypothesisHash.Of(geometry, HypothesisJson.Default.EndpointGeometry) };
         return new(forecast.StartDate.AddDays(days), week, point, geometry);
     }
@@ -109,7 +113,7 @@ public static class HypothesisEndpointBuilder
         var p = JsonSerializer.Deserialize(geometry.BodyProfileJson, ForecastJson.Default.BodyProfile)!;
         var fields = new[] { "sex", "heightCm", "age", "weightKg", "bodyFatPercent", "posture", "form" }.Concat(Enum.GetNames<Girth>())
             .Select(f => new AvatarFieldOrigin(f, f is "sex" or "heightCm" or "age" ? AvatarFieldSource.Profile : AvatarFieldSource.VisualEstimate)).ToImmutableArray();
-        return new(JsonSerializer.Serialize(p, ForecastJson.Default.BodyProfile), null, fields, []);
+        return new(JsonSerializer.Serialize(p, ForecastJson.Default.BodyProfile), null, fields, []) { CorrectionProtectedPriors=geometry.CorrectionProtectedPriors };
     }
     public static bool CanBuildGeometry(EndpointGeometry geometry)
     {
