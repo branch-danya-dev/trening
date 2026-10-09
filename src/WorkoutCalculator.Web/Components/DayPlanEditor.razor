@@ -1,3 +1,4 @@
+@using WorkoutCalculator.Nutrition
 @using WorkoutCalculator.Activity
 @using System.Collections.Immutable
 <div class="day-plan-editor">
@@ -7,6 +8,15 @@
     <label class="check"><input type="checkbox" @bind="_strength" /> Силовая в плане</label>
     <label class="check"><input type="checkbox" @bind="_cardio" /> Кардио в плане</label>
     <label class="check"><input type="checkbox" @bind="_other" /> Другая активность в плане</label>
+    <h4>План приёмов пищи</h4>
+    @for (var i=0; i<_meals.Count; i++) {
+        var meal=_meals[i]; var index=i;
+        <div class="meal-plan-row"><label>Название пункта @(i+1)<input aria-label="Название пункта питания @(i+1)" maxlength="100" @bind="meal.Label" /></label>
+            <label>Время пункта @(i+1)<input aria-label="Время пункта питания @(i+1)" type="time" value="@meal.Time" @onchange="e => meal.Time = e.Value?.ToString() ?? string.Empty" /></label>
+            <button class="btn" @onclick="() => _meals.RemoveAt(index)">Убрать пункт питания @(i+1)</button></div>
+    }
+    <button class="btn" @onclick="AddMealSlot">Добавить пункт питания</button>
+    <p class="note">Время — организационная подсказка. План не создаёт фактическую еду.</p>
     <p class="note">Пустое поле убирает цель. План не добавляет выполненную активность.</p>
     <button class="btn" @onclick="Save">Сохранить план дня</button>
 </div>
@@ -15,7 +25,11 @@
     [Parameter] public EventCallback<DayPlan> OnSave { get; set; }
     private double? _km, _mobility, _routine;
     private bool _strength, _cardio, _other;
+    private List<MealDraft> _meals = [];
+    private void AddMealSlot() => _meals.Add(new() { Id=Guid.NewGuid().ToString(), Type=MealType.Custom, Label="Приём пищи" });
+    private sealed class MealDraft { public string Id = "", Label = "", Time = ""; public MealType Type; }
     protected override void OnInitialized() {
+        _meals = Plan.MealSlots.Select(m => new MealDraft { Id=m.Id, Type=m.Type, Label=m.Label, Time=m.Time?.ToString("HH:mm") ?? "" }).ToList();
         _km = Plan.Slots.FirstOrDefault(s => s.Type == ActivityEventType.Walking)?.DistanceKm;
         _mobility = Plan.Slots.FirstOrDefault(s => s.Type == ActivityEventType.Mobility)?.Minutes;
         _routine = Plan.Slots.FirstOrDefault(s => s.Type == ActivityEventType.Spontaneous)?.Minutes;
@@ -27,6 +41,6 @@
         if (_mobility is not null) slots.Add(new(ActivityEventType.Mobility, Minutes: _mobility));
         if (_routine is not null) slots.Add(new(ActivityEventType.Spontaneous, Minutes: _routine));
         if (_strength) slots.Add(new(ActivityEventType.Strength)); if (_cardio) slots.Add(new(ActivityEventType.Cardio)); if (_other) slots.Add(new(ActivityEventType.Other));
-        return OnSave.InvokeAsync(new DayPlan(slots.ToImmutable()));
+        return OnSave.InvokeAsync(new DayPlan(slots.ToImmutable()) { MealSlots = _meals.Select(m => new MealPlanSlot(m.Id, m.Type, m.Label, string.IsNullOrEmpty(m.Time) ? null : TimeOnly.Parse(m.Time))).ToImmutableArray() });
     }
 }

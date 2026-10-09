@@ -1,3 +1,4 @@
+import { nutritionAnalysis } from './validation-nutrition.js';
 import { packageFiles, download } from './backup.js';
 import { analysisImages } from './photos.js';
 const read = key => JSON.parse(localStorage.getItem('workoutcalc.' + key) || 'null');
@@ -41,6 +42,7 @@ export function analysisData(options, stores, report={}) {
             muscleRaw:Object.fromEntries(Object.entries(d.closure.summary.muscleRaw || {}).filter(([k,v])=>['pectoralis','anterior-deltoid','lateral-deltoid','posterior-deltoid','lats','traps','rhomboids','biceps','triceps','forearms','rectus-abdominis','obliques','erectors','glute-max','glute-med','quadriceps','hamstrings','adductors','hip-flexors','calves'].includes(k)&&Number.isFinite(v))),
             adherence:(d.closure.summary.adherence || []).map(a=>pick(a,['type','target','actual','unit','met']))}:undefined,
         schemaVersion:d.closure?.schemaVersion,modelVersion:d.closure?.modelVersion}));
+    if(options.activity) result.nutrition=(stores.activity?.days || []).map(nutritionAnalysis);
     if(options.validation) result.validation={body:(report.body || []).map(o=>pick(o,['girth','entered','calculated','source'])),manual:pick(report.manual,['Tape','Photo','Date','ExternalKcal','AvatarSimilarity']),evaluation:(report.evaluation || []).map(o=>({forecast:forecastRefs.get(o.ForecastId),fact:factRefs.get(o.FactId),...pick(o,['Date','HorizonDays','Metric','Actual','Predicted','BaselinePredicted','SignedError','AbsoluteError','SourceQuality','ExclusionReason'])}))};
     return result;
 }

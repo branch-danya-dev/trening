@@ -130,6 +130,10 @@ strength и history. Он сохраняет прогноз, добавляет 
 
 ## ActivityDay — Phase 3
 
+Phase 4 adds `NutritionTests`, `NutritionStorageTests`, `tests/js/nutrition.test.mjs` and `tests/browser/nutrition-smoke.cjs`. Run `dotnet test WorkoutCalculator.sln -c Release`, `node --test tests/js/*.test.mjs`, then the existing browser matrix plus `node tests/browser/nutrition-smoke.cjs`. `NUTRITION_OUTPUT` chooses the screenshot/report directory. CI uploads `nutrition-evidence`; the published offline suite also adds calories-only food, closes the day and verifies its frozen partial summary after reload. Required regression matrix now has 13 suites including offline. Exact results and environment: [Nutrition evidence](evidence/nutrition/README.md).
+
+Nutrition smoke covers serving 350→175, per100g, second entry, decimal comma, gram edits, plan/actual separation, walking coexistence, explicit completeness, immutable closure, stale tab, rest with meals, missing≠zero, exact clean restore, private validation export and unchanged geometry UUID. Unit/storage tests cover migration of actual missing Phase 3 JSON fields, same-tab stale review/plan/event guards, future schema and checksum-valid tampering, atomic moves, unknown macros and no-look-ahead aggregation. Old ForecastSnapshot replay and Hall benchmark remain required.
+
 `node tests/browser/activity-day-smoke.cjs` при работающем Web; `ACTIVITY_OUTPUT` задаёт каталог отчёта/screenshots, `APP_URL` — адрес, `BROWSER_CHANNEL=msedge` допустим локально. CI использует Chromium и сохраняет artifact `activity-day-evidence`.
 
 1. После locked Avatar откройте «Активность»: сегодня, полный календарь, отдельные «План» и «Факт». Исторические strength/cardio требуют review.

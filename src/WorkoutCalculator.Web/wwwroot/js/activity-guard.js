@@ -10,7 +10,7 @@ export function assertActivitySourceWrite(key, previous, next, activityRaw, toda
     let days = [];
     if (activityRaw !== null) {
         const env = JSON.parse(activityRaw), data = JSON.parse(env.payload);
-        if (env.schemaVersion !== 1 || typeof env.sha256 !== 'string' || data.schemaVersion !== 1 || !Array.isArray(data.days))
+        if (![1,2].includes(env.schemaVersion) || typeof env.sha256 !== 'string' || data.schemaVersion !== env.schemaVersion || !Array.isArray(data.days))
             throw Error('Дни повреждены или имеют новую версию. Запись тренировок заблокирована.');
         days = data.days;
     }

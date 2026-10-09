@@ -1,0 +1,47 @@
+{
+  "timings": {
+    "loadTodayMs": 506,
+    "addWalkingMs": 113,
+    "closeDayMs": 115,
+    "renderMuscleSummaryMs": 188,
+    "switchDayMs": 154
+  },
+  "layout": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "panel": 320,
+      "panelScroll": 320
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "panel": 390,
+      "panelScroll": 390
+    },
+    {
+      "width": 1400,
+      "scroll": 1400,
+      "panel": 999,
+      "panelScroll": 999
+    }
+  ],
+  "checks": [
+    "continuous-calendar",
+    "today-default",
+    "separate-plan-actual",
+    "idempotent-legacy-index",
+    "walking-mobility-mapped-exercise",
+    "linked-strength-cardio",
+    "review-close-immutable",
+    "cross-tab-source-and-day-guards",
+    "daily-heatmap-no-geometry-rebuild",
+    "explicit-rest-and-missing",
+    "future-rejected",
+    "reload",
+    "clean-exact-restore",
+    "restore-generation",
+    "allowlisted-validation"
+  ],
+  "browserErrors": 0
+}

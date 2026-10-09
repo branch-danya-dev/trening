@@ -2,6 +2,10 @@
 
 ## Factual integrity дня — Phase 3
 
+Phase 4 adds nutrition integrity: [NUTRITION_V1](NUTRITION_V1.md). `Complete` requires explicit full-intake confirmation; empty Complete additionally requires NoFood. Partial totals are recorded observations, excluded from whole-day averages. Old/blank nutrition stays null. RestDay can contain meals. Forecast v3 adapter never substitutes targets or partial days for intake; incompatible label macros trigger an explicit calories-only fallback, with observed values unchanged.
+
+The opt-in activity section also includes pseudonymized nutrition basis/reference grams/actual grams/scaled values, totals, coverage, frozen targets, target difference and eligibility. No names, custom labels or notes. Diagnostic floating-point scaling is compared to production decimal totals with ≤1e-6 per entry tolerance. Full backup intentionally retains complete private data. See `nutrition.test.mjs` and browser export checks; no food quality or meal timing score is claimed.
+
 Текущий реализованный gate описан в [ACTIVITY_DAY](ACTIVITY_DAY.md). `DayPlan is expectation; ClosedActivityDay is fact.` Open и MissingData не являются закрытым evidence. Прошедшая пустая дата остаётся незавершённой до явного выбора; RestDay никогда не выводится из отсутствия записей.
 
 Проверены domain state machine, uniqueness, explicit confirmation, plan/actual separation, deterministic aggregation, mapped muscle load, future rejection, idempotent source indexing, SHA/schema corruption, CAS после review, exact backup/clean restore и stale restore generation. Проверка исходных журналов защищает closed day от edit/delete/date move. Reopen/amend в этой версии запрещён; строки про superseding revisions и nutrition в перспективной матрице ниже относятся к следующим фазам.

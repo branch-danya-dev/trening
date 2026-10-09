@@ -1,0 +1,20 @@
+@using WorkoutCalculator.Nutrition
+<div class="nutrition-summary" data-testid="nutrition-summary">
+    <h4>Питание за день</h4>
+    <p>@Values(Summary.Totals)</p>
+    <p>@Summary.MealCount приёмов пищи · @Summary.NutritionEntryCount продуктов · @CoverageLabel(Summary.Coverage)</p>
+    @if (Summary.NoFoodConfirmed) { <p>Явно подтверждено: еды за день не было.</p> }
+    @if (Summary.Coverage == NutritionCoverage.Partial) { <p class="note">Записана часть рациона. Итоги не считаются полным суточным потреблением.</p> }
+    @if (Summary.Coverage == NutritionCoverage.NotRecorded) { <p class="note">Питание неизвестно. Это не 0 ккал и не голодание.</p> }
+    @if (Summary.Target is { } target) {
+        <p>Цель из сохранённого плана: @N(target.CaloriesKcalPerDay) ккал · факт @N(Summary.Totals.CaloriesKcal) ккал</p>
+        @if (target.ProteinGramsPerDay is { } protein) { <p>Белок: цель @N(protein) г · факт @N(Summary.Totals.ProteinGrams) г</p> }
+    }
+    @if (Summary.LabelMismatchCount > 0) { <p class="note">У @Summary.LabelMismatchCount продуктов калории отличаются от 4Б + 9Ж + 4У более чем на 5%. Сохранены значения этикетки.</p> }
+</div>
+@code {
+    [Parameter, EditorRequired] public ClosedNutritionSummary Summary { get; set; } = default!;
+    public static string N(decimal? value) => value?.ToString("0.##", System.Globalization.CultureInfo.GetCultureInfo("ru-RU")) ?? "неизвестно";
+    public static string Values(NutritionTotals v) => $"{N(v.CaloriesKcal)} ккал · Б {N(v.ProteinGrams)} / Ж {N(v.FatGrams)} / У {N(v.CarbsGrams)} г";
+    public static string CoverageLabel(NutritionCoverage v) => v switch { NutritionCoverage.Complete => "Всё внесено", NutritionCoverage.Partial => "Частично", _ => "Не записано" };
+}

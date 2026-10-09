@@ -1,0 +1,65 @@
+{
+  "timings": {
+    "openTodayMs": 268,
+    "addMealMs": 78,
+    "addSecondEntryMs": 49,
+    "editGramsMs": 57,
+    "closeDayMs": 2060,
+    "closeDayAfterClickMs": 59.29999998211861,
+    "restoreDayMs": 2946
+  },
+  "layout": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "panel": 320,
+      "panelScroll": 320
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "panel": 390,
+      "panelScroll": 390
+    },
+    {
+      "width": 1400,
+      "scroll": 1400,
+      "panel": 999,
+      "panelScroll": 999
+    }
+  ],
+  "example": {
+    "referenceGrams": 350,
+    "actualGrams": 175,
+    "expected": {
+      "kcal": 350,
+      "protein": 17.5,
+      "fat": 12.5,
+      "carbs": 40
+    }
+  },
+  "closedTotals": {
+    "caloriesKcal": 235,
+    "proteinGrams": 11.75,
+    "fatGrams": 9.25,
+    "carbsGrams": 25
+  },
+  "checks": [
+    "manual-serving-and-per100",
+    "decimal-comma",
+    "exact-half",
+    "second-entry",
+    "edit-grams",
+    "plan-distinct",
+    "physical-coexistence",
+    "explicit-complete",
+    "frozen-and-stale-tab",
+    "rest-with-food",
+    "missing-not-zero",
+    "reload",
+    "byte-exact-clean-restore",
+    "private-validation",
+    "no-avatar-rebuild"
+  ],
+  "browserErrors": 0
+}

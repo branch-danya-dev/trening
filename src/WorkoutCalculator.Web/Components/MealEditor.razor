@@ -1,0 +1,60 @@
+@using System.Collections.Immutable
+@using System.Globalization
+@using WorkoutCalculator.Nutrition
+@using WorkoutCalculator.Activity
+<section class="meal-editor" aria-label="Редактор приёма пищи">
+    <h4>@(Existing is null ? "Добавить приём пищи" : "Изменить приём пищи")</h4>
+    <label>Пункт плана<select aria-label="Пункт плана питания" @bind="_slot"><option value="">Вне плана</option>@foreach (var slot in Day.Plan.MealSlots) { <option value="@slot.Id">@slot.Label</option> }</select></label>
+    <label>Тип приёма пищи<select aria-label="Тип приёма пищи" @bind="_type">@foreach (var t in Enum.GetValues<MealType>()) { <option value="@t">@MealPanel.Label(t)</option> }</select></label>
+    @if (_type == MealType.Custom) { <label>Название приёма пищи<input aria-label="Название приёма пищи" maxlength="100" @bind="_label" /></label> }
+    <label>Фактическое время — необязательно<input aria-label="Время приёма пищи" type="time" value="@_time" @onchange="e => _time = e.Value?.ToString() ?? string.Empty" /></label>
+    <p class="note">Время помогает организовать день и не оценивает пользу еды.</p>
+    @for (var i = 0; i < _entries.Count; i++) {
+        var row = _entries[i]; var index = i;
+        <fieldset class="food-editor" @key="row.Id"><legend>Продукт @(i + 1)</legend>
+            <label>Блюдо или продукт<input aria-label="Блюдо или продукт @(i + 1)" maxlength="200" @bind="row.Name" @bind:event="oninput" /></label>
+            <label>КБЖУ указаны<select aria-label="База КБЖУ @(i + 1)" @bind="row.Basis"><option value="Per100Gram">На 100 г</option><option value="Serving">На порцию</option></select></label>
+            @if (row.Basis == NutritionBasis.Serving) { <label>Стандартная порция, г<input aria-label="Стандартная порция, г @(i + 1)" inputmode="decimal" @bind="row.ReferenceGrams" @bind:event="oninput" /></label> }
+            <div class="food-numbers">
+                <label>Калории, ккал<input aria-label="Калории, ккал @(i + 1)" inputmode="decimal" @bind="row.Calories" @bind:event="oninput" /></label>
+                <label>Белки, г — необязательно<input aria-label="Белки, г @(i + 1)" inputmode="decimal" @bind="row.Protein" @bind:event="oninput" /></label>
+                <label>Жиры, г — необязательно<input aria-label="Жиры, г @(i + 1)" inputmode="decimal" @bind="row.Fat" @bind:event="oninput" /></label>
+                <label>Углеводы, г — необязательно<input aria-label="Углеводы, г @(i + 1)" inputmode="decimal" @bind="row.Carbs" @bind:event="oninput" /></label>
+            </div>
+            <label>Съедено, г<input aria-label="Съедено, г @(i + 1)" inputmode="decimal" @bind="row.ActualGrams" @bind:event="oninput" /></label>
+            <p aria-live="polite" data-testid="food-preview">@Preview(row)</p>
+            <button class="btn" @onclick="() => _entries.RemoveAt(index)">Удалить продукт @(i + 1)</button>
+        </fieldset>
+    }
+    <button class="btn" @onclick="() => _entries.Add(new())">Добавить блюдо/продукт</button>
+    @if (_error is not null) { <p role="alert">@_error</p> }
+    <button class="btn primary" @onclick="Save">Сохранить приём пищи</button><button class="btn" @onclick="OnCancel">Отменить питание</button>
+</section>
+@code {
+    [Parameter, EditorRequired] public ActivityDay Day { get; set; } = default!;
+    [Parameter] public MealEvent? Existing { get; set; }
+    [Parameter] public EventCallback<MealEvent> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    private List<Draft> _entries = [];
+    private MealType _type;
+    private string _label = "", _slot = "", _time = "";
+    private string? _error;
+    protected override void OnInitialized() {
+        _type = Existing?.Type ?? MealType.Breakfast; _label = Existing?.Label ?? ""; _slot = Existing?.PlannedSlotId ?? ""; _time = Existing?.ActualTime?.ToString("HH:mm") ?? "";
+        _entries = Existing?.Entries.Select(e => new Draft { Id=e.Id, Name=e.Reference.Name, Basis=e.Reference.BasisType, ReferenceGrams=S(e.Reference.ReferenceGrams), Calories=S(e.Reference.CaloriesKcal), Protein=S(e.Reference.ProteinGrams), Fat=S(e.Reference.FatGrams), Carbs=S(e.Reference.CarbsGrams), ActualGrams=S(e.ActualGrams), Note=e.Note }).ToList() ?? [new()];
+    }
+    private static string S(decimal? n) => n?.ToString(CultureInfo.InvariantCulture) ?? "";
+    private static FoodConsumptionEntry Build(Draft d) => new(d.Id, new(d.Name.Trim(), d.Basis, d.Basis == NutritionBasis.Per100Gram ? 100 : NutritionRules.Parse(d.ReferenceGrams) ?? throw new ArgumentException("Укажите массу стандартной порции."), NutritionRules.Parse(d.Calories) ?? throw new ArgumentException("Укажите калории."), NutritionRules.Parse(d.Protein), NutritionRules.Parse(d.Fat), NutritionRules.Parse(d.Carbs)), NutritionRules.Parse(d.ActualGrams) ?? throw new ArgumentException("Укажите съеденные граммы."), d.Note);
+    private static string Preview(Draft d) { try { var e=Build(d); return "Итого: " + NutritionSummaryView.Values(e.Calculate()) + (e.Reference.LabelMismatch ? ". Калории этикетки отличаются от энергии макросов; значения сохранены." : ""); } catch (ArgumentException) { return "Заполните название, калории и граммы. Макросы можно оставить неизвестными."; } }
+    private async Task Save() {
+        try {
+            var now=DateTimeOffset.Now; var entries=_entries.Select(Build).ToImmutableArray();
+            var meal=new MealEvent(Existing?.Id ?? Guid.NewGuid().ToString(),Day.Id,_type,_type == MealType.Custom ? _label : null,entries,Existing?.CreatedAt ?? now,now, string.IsNullOrEmpty(_slot) ? null : _slot, string.IsNullOrEmpty(_time) ? null : TimeOnly.Parse(_time,CultureInfo.InvariantCulture));
+            meal.Validate(); _error=null; await OnSave.InvokeAsync(meal);
+        } catch (Exception e) when (e is ArgumentException or FormatException or OverflowException) { _error=e.Message; }
+    }
+    private sealed class Draft {
+        public string Id=Guid.NewGuid().ToString(), Name="", ReferenceGrams="", Calories="", Protein="", Fat="", Carbs="", ActualGrams="";
+        public NutritionBasis Basis; public string? Note;
+    }
+}

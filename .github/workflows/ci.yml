@@ -54,6 +54,7 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/avatar-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/avatar-creation-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" ACTIVITY_OUTPUT="$RUNNER_TEMP/activity-evidence" node tests/browser/activity-day-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" NUTRITION_OUTPUT="$RUNNER_TEMP/nutrition-evidence" node tests/browser/nutrition-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/errors-smoke.cjs
       - name: ActivityDay browser evidence
         if: always()
@@ -61,6 +62,13 @@ jobs:
         with:
           name: activity-day-evidence
           path: ${{ runner.temp }}/activity-evidence
+          if-no-files-found: ignore
+      - name: Nutrition browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nutrition-evidence
+          path: ${{ runner.temp }}/nutrition-evidence
           if-no-files-found: ignore
       - name: Published PWA offline smoke from /trening/
         run: |

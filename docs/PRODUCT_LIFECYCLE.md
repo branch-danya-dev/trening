@@ -1,6 +1,6 @@
 # Канонический lifecycle продукта
 
-**Статус реализации Phase 1 (2026-10-09):** в отдельном implementation PR добавлены Profile/Avatar, immutable revisions, corrections/AvatarDerived, lock/recalibration, automatic-photo API, additive migration и backup. Контракты и ограничения — [AVATAR_DOMAIN](AVATAR_DOMAIN.md). TrackingCycle пока представлен origin/cycle IDs и событиями, RecalibrationSession — AvatarDraft. Phase 2 также реализована: initial creation/correction/review/lock, local photo-derived inputs, explainable quality и отдельная recalibration. Полноценный Hypothesis lifecycle, post-lock photo check-in UI и Phase 3+ остаются целевой спецификацией.
+**Статус реализации Phase 1 (2026-10-09):** в отдельном implementation PR добавлены Profile/Avatar, immutable revisions, corrections/AvatarDerived, lock/recalibration, automatic-photo API, additive migration и backup. Контракты и ограничения — [AVATAR_DOMAIN](AVATAR_DOMAIN.md). TrackingCycle пока представлен origin/cycle IDs и событиями, RecalibrationSession — AvatarDraft. Phase 2 также реализована: initial creation/correction/review/lock, local photo-derived inputs, explainable quality и отдельная recalibration. Phase 3 ActivityDay и Phase 4 Nutrition v1 реализованы; полноценный Hypothesis lifecycle и post-lock photo check-in UI остаются целевой спецификацией.
 
 Статус: **целевая продуктовая спецификация**, 2026-10-09; не описание уже реализованных функций. Этот документ имеет приоритет при определении поведения продукта. [Roadmap](PRODUCT_LIFECYCLE_ROADMAP.md) задаёт порядок реализации, [технологические решения](PRODUCT_TECHNOLOGY_DECISIONS.md) — инструменты, [PRODUCT_STRUCTURE](PRODUCT_STRUCTURE.md) — карту текущего приложения и перехода, [VALIDATION](VALIDATION.md) — проверки. Формулы и исследовательские gates остаются в [Forecast v3 R&D](FORECAST_V3_RND_PLAN.md).
 
@@ -108,7 +108,7 @@ Photo-only check-in допускается как наблюдение со сс
 
 ## 5. Непрерывный ActivityDay
 
-**Phase 3 реализована:** точный контракт — [ACTIVITY_DAY](ACTIVITY_DAY.md). В этой версии единый `Open` обозначает planned/editable день. Только явные Completed/RestDay создают frozen fact. Future/empty dates не создают факт. Reopen/amend и питание ниже остаются будущими расширениями.
+**Phase 3 реализована:** точный контракт — [ACTIVITY_DAY](ACTIVITY_DAY.md). В этой версии единый `Open` обозначает planned/editable день. Только явные Completed/RestDay создают frozen fact. Future/empty dates не создают факт. Nutrition v1 добавлен в Phase 4: [NUTRITION_V1](NUTRITION_V1.md). Reopen/amend остаётся будущим расширением.
 
 После Confirm стартовый рабочий экран — **Активность / сегодня**. Day 9 означает 9-е число текущего месяца, а ключ хранит полную дату. Пропущенные даты остаются в календаре. Часовой пояс дня фиксируется при создании; смена timezone не передвигает закрытую историю. UTC timestamp и local date сохраняются вместе, включая переходы через полночь.
 
@@ -137,13 +137,15 @@ Review — состояние процесса, не пятый завершён
 
 Template копируется в DailyPlan; изменения настроек влияют на будущие дни. Сегодняшний draft можно перестроить явно; закрытый план сохраняется для сравнения. Пропущенный слот не превращается в выполненное событие, а поздняя еда не становится нарушением состава тела.
 
-ActivityEvent v1 поддерживает Walking, Cardio, Strength, Mobility, Spontaneous и Other physical note. Питание — Phase 4. Existing cardio/TrainingSession остаются владельцами workout payload; слой дня хранит ссылки. Стабильный source ID не индексируется дважды. Отдельно вручную внесённые одинаковые занятия автоматически не распознаются: форма предупреждает не дублировать кардио.
+ActivityEvent v1 поддерживает Walking, Cardio, Strength, Mobility, Spontaneous и Other physical note. Питание Phase 4 хранится отдельно в `ActivityDay.Meals`; generic physical events не изменены. Existing cardio/TrainingSession остаются владельцами workout payload; слой дня хранит ссылки. Стабильный source ID не индексируется дважды. Отдельно вручную внесённые одинаковые занятия автоматически не распознаются: форма предупреждает не дублировать кардио.
 
 Future kinds meditation/journal/sleep/mental training допустимы через schema/capability extension. Сейчас нет их UI, inference, scoring или отдельных production моделей; неизвестный future kind сохраняется при backup, но не передаётся молча в body forecast.
 
 ## 6. Nutrition v1 — ручные КБЖУ и масса
 
-Позиция: название, basis (`Per100g` или `StandardServing`), standard grams, kcal/protein/fat/carbs в выбранном basis, actual grams, optional meal time. Kcal — ккал, P/F/C — граммы. Сохранять исходные значения и нормализованный итог; округлять для отображения, суммировать без промежуточного округления.
+**Phase 4 реализована.** Meal plan is expectation; actual MealEvent is fact; ClosedActivityDay nutrition is frozen evidence. `Complete / Partial / NotRecorded`, отдельное подтверждение NoFood; старые closures остаются unknown. RestDay допускает еду. Детали decimal scaling, schema v2 и адаптера Stage A — [NUTRITION_V1](NUTRITION_V1.md). Hypothesis/CheckIn не реализованы.
+
+Позиция: название, basis (`Per100g` или `StandardServing`), standard grams, kcal/protein/fat/carbs в выбранном basis, actual grams, optional meal time. Kcal — ккал, P/F/C — граммы. Сохранять исходные значения; decimal-1 рассчитывает каждую позицию до шести знаков (midpoint-to-even), затем суммирует без округления до UI-точности. UI показывает до двух знаков.
 
 `factor = actualGrams / basisGrams`, где basisGrams = 100 либо масса стандартной порции; каждое из kcal/P/F/C умножается на factor.
 
@@ -160,7 +162,7 @@ Meal time — организационный параметр. Перенос з
 
 ## 7. Close Day и исправления
 
-**Реализованный срез Phase 3:** один frozen closure на день, без amendment, nutrition, balance, advisory или forecast mutation. Защищены также linked source journals. Summary содержит только physical actual events, partial active kcal, coverage, adherence и muscle load. Описанные далее питание и superseding revisions — целевой контракт следующих фаз; детали текущей реализации в [ACTIVITY_DAY](ACTIVITY_DAY.md).
+**Реализованный срез Phase 3:** один frozen closure на день, без amendment, balance, advisory или forecast mutation. Phase 4 добавляет frozen nutrition, сохраняя terminal policy. Защищены также linked source journals. Summary содержит только physical actual events, partial active kcal, coverage, adherence и muscle load. Питание реализовано отдельным блоком Phase 4; superseding revisions — целевой контракт следующих фаз; детали текущей реализации в [ACTIVITY_DAY](ACTIVITY_DAY.md).
 
 Процесс: **review → исправления → расчёт summary → явное подтверждение → атомарная ClosedActivityDay revision**. До последнего шага записи редактируемы. Повтор клика/перезагрузка/повтор запроса с тем же idempotency key не создают второй факт. CAS по draft revision не допускает закрытия устаревшей вкладки.
 

@@ -1,4 +1,6 @@
-# ActivityDay — Phase 3
+# ActivityDay — Phase 3 / Nutrition extension
+
+**Phase 4:** `ActivityDay.Meals` и `DayPlan.MealSlots`, frozen `ClosedActivityDay.Nutrition`, envelope schema 2 на прежнем key. Meal plan is expectation; actual MealEvent is fact; ClosedActivityDay nutrition is frozen evidence. RestDay допускает обычное питание, Completed — physical events и/или meals. Старые closures с Nutrition=null остаются неизвестными. Все три исхода терминальны. [Точный контракт, миграция, CAS и backup](NUTRITION_V1.md). Ниже сохранено описание физического слоя Phase 3; его прежние указания «питание отсутствует» относятся к историческому срезу. #23 и #19 теперь merged в `main 0f943cc`.
 
 База: `main 6926da7330792eddf0bdbf56bfdc08035e92f06c`, обычный merge #22. [CI базы](https://github.com/branch-danya-dev/trening/actions/runs/37883782975) прошёл. #19 остаётся отдельным PR (`62ad4811169d8ea8c3de22247c4ce0712b9c7763`); его формулы и benchmark в эту ветку не входят. ForecastInput/ForecastSnapshot не изменяются.
 

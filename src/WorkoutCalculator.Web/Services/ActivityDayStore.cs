@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using WorkoutCalculator.Nutrition;
 using System.Text.Json.Serialization;
 using WorkoutCalculator.Activity;
 using WorkoutCalculator.BodyModel.Avatars;
@@ -11,7 +12,7 @@ public sealed record ActivityDayData(int SchemaVersion, DayPlan DefaultPlan, Imm
 public sealed record ActivityDayEnvelope(int SchemaVersion, string Payload, string Sha256);
 public sealed record ActivityDayRead(ActivityDayData Data, string? OriginalPayload, string? Error = null);
 public sealed record ActivitySources(LoggedWorkout[] Cardio, IReadOnlyList<TrainingSession> Strength, AvatarDomainData? Avatars, Dictionary<string, string?> Guards);
-public sealed record ActivityDayReview(ActivityDay Day, DailyActivitySummary Summary, Dictionary<string, string?> Guards);
+public sealed record ActivityDayReview(ActivityDay Day, DailyActivitySummary Summary, Dictionary<string, string?> Guards, ClosedNutritionSummary? Nutrition = null);
 
 /// <summary>One atomic envelope owns plans, lightweight facts, links, states and frozen closures. Source journals remain independent.</summary>
 public sealed class ActivityDayStore(IJournalStorage storage)
@@ -25,11 +26,25 @@ public sealed class ActivityDayStore(IJournalStorage storage)
         try
         {
             raw = storage.Read(Key);
-            if (raw is null) return _read = new(new(1, DayPlan.Default, []), null);
+            if (raw is null) return _read = new(new(2, DayPlan.Default, []), null);
             var env = JsonSerializer.Deserialize(raw, ActivityDayJson.Default.ActivityDayEnvelope) ?? throw new JsonException("Пустой документ.");
-            if (env.SchemaVersion != 1 || env.Payload is null || ForecastStore.Hash(env.Payload) != env.Sha256) throw new JsonException("Версия или контрольная сумма дня не совпадает.");
+            if (env.SchemaVersion is not (1 or 2) || env.Payload is null || ForecastStore.Hash(env.Payload) != env.Sha256) throw new JsonException("Версия или контрольная сумма дня не совпадает.");
             var data = JsonSerializer.Deserialize(env.Payload, ActivityDayJson.Default.ActivityDayData) ?? throw new JsonException("Нет дней.");
-            Validate(data); return _read = new(data, raw);
+            if (data.SchemaVersion != env.SchemaVersion) throw new JsonException("Версии envelope и payload различаются.");
+            // Source-generated record readers assign default(ImmutableArray) for absent init properties.
+            // Only schema 1 is allowed to omit the fields introduced in schema 2.
+            if (data.SchemaVersion == 1 && data.DefaultPlan is not null && !data.Days.IsDefault)
+                data = data with {
+                    DefaultPlan = data.DefaultPlan with { MealSlots = data.DefaultPlan.MealSlots.IsDefault ? [] : data.DefaultPlan.MealSlots },
+                    Days = data.Days.Select(d => d is null || d.Plan is null ? d! : d with {
+                        Meals = d.Meals.IsDefault ? [] : d.Meals,
+                        Plan = d.Plan with { MealSlots = d.Plan.MealSlots.IsDefault ? [] : d.Plan.MealSlots }
+                    }).ToImmutableArray()
+                };
+            Validate(data);
+            // Read-only migration; the next CAS write persists v2. Old closures remain unknown and unchanged.
+            if (data.SchemaVersion == 1) data = data with { SchemaVersion = 2, DefaultPlan = data.DefaultPlan! with { MealSlots = MealPlanSlot.Defaults }, Days = data.Days.Select(d => d.State == ActivityDayState.Open ? d with { Plan = d.Plan with { MealSlots = MealPlanSlot.Defaults } } : d).ToImmutableArray() };
+            return _read = new(data, raw);
         }
         catch (Exception e) when (e is not OutOfMemoryException) { return _read = new(new(1, DayPlan.Default, []), raw, $"Дни недоступны; исходные данные сохранены, запись заблокирована. {e.Message}"); }
     }
@@ -103,18 +118,45 @@ public sealed class ActivityDayStore(IJournalStorage storage)
     }
     public string? SaveEvent(ActivityDay day, ActivityEvent entry, DateOnly today, DateTimeOffset now) => Try(() =>
     {
+        RequireCurrent(day);
         if (day.Date > today || entry.LinkedEntityId is not null) throw new ArgumentException("Запись в будущем запрещена; тренировки изменяются в журнале.");
         return Replace(day.Edit(day.Plan, day.ActualEvents.Where(e => e.Id != entry.Id).Append(entry).OrderBy(e => e.Id, StringComparer.Ordinal).ToImmutableArray(), now));
     });
     public string? RemoveEvent(ActivityDay day, string id, DateTimeOffset now) => Try(() =>
     {
+        RequireCurrent(day);
         if (day.ActualEvents.Single(e => e.Id == id).LinkedEntityId is not null) throw new ArgumentException("Измените исходную тренировку в журнале.");
         return Replace(day.Edit(day.Plan, day.ActualEvents.Where(e => e.Id != id).ToImmutableArray(), now));
     });
-    public string? SavePlan(DayPlan plan, ActivityDay? day, DateTimeOffset now) => Try(() => day is null ? Write(Current.Data with { DefaultPlan = plan }) : Replace(day.Edit(plan, day.ActualEvents, now)));
-    public ActivityDayReview Review(ActivityDay day)
+    public string? SavePlan(DayPlan plan, ActivityDay? day, DateTimeOffset now) => Try(() => {
+        if (day is null) return Write(Current.Data with { DefaultPlan = plan });
+        RequireCurrent(day); return Replace(day.Edit(plan, day.ActualEvents, now));
+    });
+    public string? SaveMeal(ActivityDay day, MealEvent meal, DateOnly today, DateTimeOffset now) => Try(() =>
+    {
+        RequireCurrent(day);
+        if (day.Date > today || meal.DayId != day.Id) throw new ArgumentException("Некорректная дата питания.");
+        meal.Validate();
+        return Replace(day.EditMeals(day.Meals.Where(m => m.Id != meal.Id).Append(meal).OrderBy(m => m.Id, StringComparer.Ordinal).ToImmutableArray(), now));
+    });
+    public string? RemoveMeal(ActivityDay day, string mealId, DateTimeOffset now) => Try(() => { RequireCurrent(day); return Replace(day.EditMeals(day.Meals.Where(m => m.Id != mealId).ToImmutableArray(), now)); });
+    public string? MoveMeal(ActivityDay from, ActivityDay to, string mealId, DateOnly today, DateTimeOffset now) => Try(() =>
+    {
+        RequireCurrent(from); RequireCurrent(to);
+        if (from.Id == to.Id || from.ProfileId != to.ProfileId || to.Date > today) throw new ArgumentException("Выберите другую открытую дату этого профиля.");
+        var meal = from.Meals.Single(m => m.Id == mealId) with { DayId = to.Id, UpdatedAt = now, PlannedSlotId = null };
+        var source = from.EditMeals(from.Meals.Where(m => m.Id != mealId).ToImmutableArray(), now);
+        var target = to.EditMeals(to.Meals.Add(meal), now);
+        return Write(Current.Data with { Days = Current.Data.Days.Select(d => d.Id == source.Id ? source : d.Id == target.Id ? target : d).ToImmutableArray() });
+    });
+    private void RequireCurrent(ActivityDay day)
+    {
+        if (Current.Data.Days.SingleOrDefault(d => d.Id == day.Id) != day) throw new ArgumentException("День изменён. Обновите редактор питания.");
+    }
+    public ActivityDayReview Review(ActivityDay day, NutritionTarget? target = null)
     {
         if (Current.Error is { } error) throw new ArgumentException(error);
+        RequireCurrent(day);
         var sources = Sources(); var next = Link(day, sources, DateTimeOffset.Now);
         if (next != day)
         {
@@ -122,11 +164,13 @@ public sealed class ActivityDayStore(IJournalStorage storage)
             day = next;
         }
         sources.Guards[Key] = Current.OriginalPayload;
-        return new(day, day.Closure?.Summary ?? ActivityDayAggregation.Build(day, sources.Cardio, sources.Strength), sources.Guards);
+        foreach (var key in new[] { "workoutcalc.hypotheses.v1", "workoutcalc.hypothesis.v1" }) sources.Guards[key] = storage.Read(key);
+        return new(day, day.Closure?.Summary ?? ActivityDayAggregation.Build(day, sources.Cardio, sources.Strength), sources.Guards,
+            day.Closure is { } closed ? closed.Nutrition ?? NutritionSummary.Build([]) : NutritionSummary.Build(day.Meals, target: target));
     }
-    public string? Close(ActivityDayReview review, ActivityDayState outcome, DateOnly today, DateTimeOffset now, bool confirmed) =>
-        Try(() => Replace(review.Day.Close(outcome, review.Summary, today, now, confirmed), review.Guards));
-    public string? Missing(ActivityDay day, DateOnly today, DateTimeOffset now, bool confirmed) => Try(() => Replace(day.Missing(today, now, confirmed)));
+    public string? Close(ActivityDayReview review, ActivityDayState outcome, DateOnly today, DateTimeOffset now, bool confirmed, bool nutritionComplete = false, bool noFood = false) =>
+        Try(() => Replace(review.Day.Close(outcome, review.Summary, today, now, confirmed, NutritionSummary.Build(review.Day.Meals, nutritionComplete, noFood, review.Nutrition?.Target)), review.Guards));
+    public string? Missing(ActivityDay day, DateOnly today, DateTimeOffset now, bool confirmed) => Try(() => { RequireCurrent(day); return Replace(day.Missing(today, now, confirmed)); });
     private string? Replace(ActivityDay day, IReadOnlyDictionary<string, string?>? guards = null)
     {
         var index = Current.Data.Days.FindIndex(d => d.Id == day.Id);
@@ -138,9 +182,10 @@ public sealed class ActivityDayStore(IJournalStorage storage)
     private string? Write(ActivityDayData data, IReadOnlyDictionary<string, string?>? guards = null)
     {
         if (Current.Error is { } error) return error;
+        data = data with { SchemaVersion = 2 };
         Validate(data);
         var payload = JsonSerializer.Serialize(data, ActivityDayJson.Default.ActivityDayData);
-        var raw = JsonSerializer.Serialize(new ActivityDayEnvelope(1, payload, ForecastStore.Hash(payload)), ActivityDayJson.Default.ActivityDayEnvelope);
+        var raw = JsonSerializer.Serialize(new ActivityDayEnvelope(2, payload, ForecastStore.Hash(payload)), ActivityDayJson.Default.ActivityDayEnvelope);
         if (raw == Current.OriginalPayload && storage.Read(Key) == Current.OriginalPayload) return null;
         if (!storage.CompareExchangeChecked(Key, Current.OriginalPayload, raw, guards ?? new Dictionary<string, string?>()))
             return "День или связанные данные изменены в другой вкладке. Перезагрузите страницу и повторите проверку дня.";
@@ -149,12 +194,18 @@ public sealed class ActivityDayStore(IJournalStorage storage)
     private string? Try(Func<string?> action) { try { if (Current.Error is { } error) return error; return action(); } catch (Exception e) when (e is not OutOfMemoryException) { return e.Message; } }
     public static void Validate(ActivityDayData data)
     {
-        if (data.SchemaVersion != 1 || data.IndexVersion != "journals-reference-1" || data.DefaultPlan is null || data.Days.IsDefault) throw new JsonException("Неизвестная схема дней.");
+        if (data.SchemaVersion is not (1 or 2) || data.IndexVersion != "journals-reference-1" || data.DefaultPlan is null || data.Days.IsDefault) throw new JsonException("Неизвестная схема дней.");
         data.DefaultPlan.Validate(); var keys = new HashSet<string>(); var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase); var links = new HashSet<string>();
         foreach (var day in data.Days)
         {
             if (day is null) throw new JsonException("Пустой день."); day.Validate();
             if (!ids.Add(day.Id) || !keys.Add($"{day.ProfileId}:{day.Date:yyyy-MM-dd}")) throw new JsonException("Повторяющийся день.");
+            if (data.SchemaVersion == 1 && (!day.Meals.IsEmpty || day.Closure?.Nutrition is not null || !day.Plan.MealSlots.IsEmpty)) throw new JsonException("Питание требует schema v2.");
+            foreach (var meal in day.Meals)
+            {
+                if (!ids.Add(meal.Id)) throw new JsonException("Повторяющийся приём пищи.");
+                foreach (var entry in meal.Entries) if (!ids.Add(entry.Id)) throw new JsonException("Повторяющийся продукт.");
+            }
             foreach (var e in day.ActualEvents)
                 if (!ids.Add(e.Id) || e.LinkedEntityId is not null && !links.Add($"{e.Type}:{e.LinkedEntityId}")) throw new JsonException("Повторяющаяся запись активности.");
         }
