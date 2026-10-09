@@ -8,9 +8,12 @@ public partial class Home
     private void NewCheckIn() { _tab=Tab.History;_checkInOpen=true;_checkInVisit++; }
     private void CheckInChanged()
     {
+        var previousRevision=Avatar?.ActiveRevisionId;var previousStatus=Avatar?.Status;
         LoadCheckInFactTimes();
         _avatars.Load();_history.Load();SyncCurrentFact();RefreshCalibration();
-        RebuildAvatar();Refresh();_checkInChanges++;
+        // Rejected observations and outcome attachment only change history, not current geometry.
+        if(_avatarRepresentation is null || Avatar?.ActiveRevisionId!=previousRevision || Avatar?.Status!=previousStatus)RebuildAvatar();
+        Refresh();_checkInChanges++;
         if(IsHistory)SetMode(ViewMode.Current);
     }
     private void LoadCheckInFactTimes()
