@@ -3,10 +3,10 @@
 
 <div class="card">
     <div class="card-title">
-        Планы питания и тренировок
+        Сценарии питания и тренировок
         <span class="title-note">@Hypotheses.Items.Count из @StoredHypotheses.Max</span>
     </div>
-    <div class="chips" role="radiogroup" aria-label="Выбранная гипотеза">
+    <div class="chips" role="radiogroup" aria-label="Выбранный сценарий">
         @foreach (var h in Hypotheses.Items)
         {
             int slot = h.Slot;
@@ -15,7 +15,7 @@
                     @onclick="() => Select(slot)"><i class="key"></i><span class="chip-name">@h.Name</span></button>
         }
         <button class="chip add" disabled="@(!Hypotheses.CanAdd)" @onclick="Add"
-                title="@(Hypotheses.CanAdd ? "Новая гипотеза — копия выбранной" : $"Не больше {StoredHypotheses.Max} гипотез: удалите ненужную")">
+                title="@(Hypotheses.CanAdd ? "Новый сценарий — копия выбранного" : $"Не больше {StoredHypotheses.Max} сценариев: удалите ненужную")">
             + Копия
         </button>
     </div>
@@ -35,12 +35,12 @@
             }
             else
             {
-                <button class="btn-link muted" @onclick="() => _confirmDelete = Hypotheses.Selected">Удалить гипотезу</button>
+                <button class="btn-link muted" @onclick="() => _confirmDelete = Hypotheses.Selected">Удалить сценарий</button>
             }
         </div>
     }
     <div class="note" style="margin-top: 8px">
-        Ниже и в 3D — выбранная гипотеза, изменения сразу сохраняются в этом браузере.
+        Ниже и в 3D — выбранный сценарий, изменения сразу сохраняются в этом браузере.
         @(Hypotheses.Items.Count > 1 ? "Сравнение всех — под итогом." : "Чтобы сравнить варианты, сделайте копию и измените её.")
     </div>
 </div>
@@ -214,7 +214,7 @@
     {
         var now = f.Start;
         <div class="card">
-            <div class="card-title">Сравнение гипотез</div>
+            <div class="card-title">Сравнение сценариев</div>
             <div class="table-scroll">
                 <table class="changes compare">
                     <thead>
@@ -253,7 +253,7 @@
                 </table>
             </div>
             <div class="note" style="margin-top: 8px">
-                Все гипотезы считаются от текущих параметров. Текст предупреждений — в итоге гипотезы:
+                Все сценарии считаются от текущих параметров. Текст предупреждений — в итоге сценария:
                 нажмите на её название.
             </div>
         </div>

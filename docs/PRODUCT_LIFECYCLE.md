@@ -1,5 +1,7 @@
 # Канонический lifecycle продукта
 
+**Phase 5 реализована в отдельной ветке, 2026-10-09:** observed Hypothesis 14/30, frozen evidence/origin/snapshot/endpoint, basic factual outcome, expiry и recalibration archive. [Точный контракт и ограничения](HYPOTHESIS_LIFECYCLE.md). Phase 6+ остаётся планом. Исторические статусы ниже описывают предыдущие срезы; финальный GO определяется evidence/CI implementation PR.
+
 **Статус реализации Phase 1 (2026-10-09):** в отдельном implementation PR добавлены Profile/Avatar, immutable revisions, corrections/AvatarDerived, lock/recalibration, automatic-photo API, additive migration и backup. Контракты и ограничения — [AVATAR_DOMAIN](AVATAR_DOMAIN.md). TrackingCycle пока представлен origin/cycle IDs и событиями, RecalibrationSession — AvatarDraft. Phase 2 также реализована: initial creation/correction/review/lock, local photo-derived inputs, explainable quality и отдельная recalibration. Phase 3 ActivityDay и Phase 4 Nutrition v1 реализованы; полноценный Hypothesis lifecycle и post-lock photo check-in UI остаются целевой спецификацией.
 
 Статус: **целевая продуктовая спецификация**, 2026-10-09; не описание уже реализованных функций. Этот документ имеет приоритет при определении поведения продукта. [Roadmap](PRODUCT_LIFECYCLE_ROADMAP.md) задаёт порядок реализации, [технологические решения](PRODUCT_TECHNOLOGY_DECISIONS.md) — инструменты, [PRODUCT_STRUCTURE](PRODUCT_STRUCTURE.md) — карту текущего приложения и перехода, [VALIDATION](VALIDATION.md) — проверки. Формулы и исследовательские gates остаются в [Forecast v3 R&D](FORECAST_V3_RND_PLAN.md).
@@ -268,3 +270,7 @@ AI path: **future mesh → depth/normals/mask/keypoints → managed renderer →
 ## 12. Решения, которые ещё требуют отдельного ADR/benchmark
 
 Продуктовые правила выше уже определены. Открыты технические параметры: schema/transaction layout миграции и photo-only observation (Phase 1/6); morph bounds и residual policy (Phase 2); recent-window/coverage/точный 30-day adapter и late outcome policy (Phase 5); совместимость personalization через recalibration (Phase 5/6); warp occlusion/repair tolerances (Phase 7); numeric structural/identity thresholds, checkpoint/provider/retention (Phase 8); measured break-even/SLO для GPU (Phase 9). До решения соответствующий gate закрыт или используется явно описанный baseline.
+
+## Phase 5 — prospective Hypothesis (2026-10-09)
+
+Implemented after #24 merge and green main CI: explicit observed 14/30-day issuance, frozen evidence/Avatar/calibration/ForecastSnapshot, exact endpoint, basic factual outcome, expiry and recalibration archival. Manual scenarios remain separate. Policies, storage and limitations: [HYPOTHESIS_LIFECYCLE](HYPOTHESIS_LIFECYCLE.md). Phase 6+ remains deferred; final GO requires the PR validation evidence.

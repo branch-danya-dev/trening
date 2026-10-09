@@ -57,7 +57,7 @@
                 {
                     <div class="legend">
                         <span class="now">Сейчас (контур)</span>
-                        <span class="later">@(ManyHypotheses ? $"«{_hypotheses.Current.Name}», через" : "Через") @(_personalized.Display?.Muscle is null ? _forecast.Weeks[^1].Week : ShapeWeek) нед.</span>
+                        <span class="later">@if(_observedEndpoint is { } endpoint) { <span>Гипотеза: @endpoint.TargetDate.ToString("dd.MM.yyyy")</span> } else { <span>@(ManyHypotheses ? $"«{_hypotheses.Current.Name}», через" : "Через") @(_personalized.Display?.Muscle is null ? _forecast.Weeks[^1].Week : ShapeWeek) нед.</span> }</span>
                     </div>
                 }
             }
@@ -73,7 +73,7 @@
                             @onclick="() => SetMode(ViewMode.Compare)">Сравнение</button>
                     <button class="@Css.On(IsHistory)" @onclick="OpenHistory">История</button>
                 </div>
-                @if (_mode is ViewMode.Forecast or ViewMode.Compare && _personalized.Display?.Muscle is not null)
+                @if (_mode is ViewMode.Forecast or ViewMode.Compare && _personalized.Display?.Muscle is not null && _observedEndpoint is null)
                 {
                     <div class="seg" role="group" aria-label="Слой прогноза">
                         <button class="@Css.On(!_forecastHeatmap)" @onclick="() => SetForecastHeatmap(false)">Тело</button>
@@ -95,9 +95,9 @@
                 {
                     <ExercisePreview State="_exercise" />
                 }
-                @if (_mode is ViewMode.Forecast or ViewMode.Compare && ManyHypotheses)
+                @if (_mode is ViewMode.Forecast or ViewMode.Compare && ManyHypotheses && _observedEndpoint is null)
                 {
-                    <select class="select" aria-label="Какую гипотезу показать" value="@_hypotheses.Selected" @onchange="OnViewHypothesis">
+                    <select class="select" aria-label="Какой сценарий показать" value="@_hypotheses.Selected" @onchange="OnViewHypothesis">
                         @foreach (var h in _hypotheses.Items)
                         {
                             <option value="@h.Slot">@h.Name</option>
@@ -162,6 +162,7 @@
                 }
                 else if (_tab == Tab.History)
                 {
+                    <ObservedHypothesisPanel HistoryOnly="true" OnMeasure="NewMeasurement" OnEndpoint="ShowObservedEndpoint" />
                     <BodyHistory State="_history" Profile="_profile" Strength="_strength" Cardio="_workouts" OnView="ShowHistory" />
                     <details class="card"><summary>Фото-прогресс</summary><PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End" ForecastLabel="@ForecastLabel" RevisionManaged="@(Avatar is not null || _avatarError is not null)" /></details>
                 }
@@ -187,6 +188,9 @@
                 }
                 else
                 {
+                    <ObservedHypothesisPanel OnMeasure="NewMeasurement" OnEndpoint="ShowObservedEndpoint" />
+                    <h2>Ручные сценарии</h2><p class="note">Задайте предположения самостоятельно. Сценарии не являются гипотезами по закрытым наблюдениям.</p>
+                    <button class="btn" @onclick="ShowScenario">Показать сценарий в 3D</button>
                     <HypothesisPanel Profile="_profile" Hypotheses="_hypotheses" Forecasts="_forecasts" OnChange="ChangeHypothesis"
                                      OnHypotheses="ChangeHypotheses"
                                      Personalized="_personalized" OnSaveForecast="SaveForecast" OnNewForecast="NewForecast" OnSelectForecast="SelectForecast" OnImportLegacy="ImportLegacyForecasts" />
@@ -325,7 +329,7 @@
     }
 
     /// <summary>Подпись прогноза выбранной гипотезы: название и срок.</summary>
-    private string ForecastLabel => _forecast is null
+    private string ForecastLabel => _observedEndpoint is { } endpoint ? $"Гипотеза на {endpoint.TargetDate:dd.MM.yyyy}" : _forecast is null
         ? ""
         : $"«{_personalized.Display?.HypothesisName ?? _hypotheses.Current.Name}», {_forecast.Weeks[^1].Week} нед.";
 
@@ -424,6 +428,7 @@
 
     private void ChangeHypothesis(Action<StoredHypothesis> change)
     {
+        _observedEndpoint = null;
         _personalized.NewPreview();
         change(_hypotheses.Current.Plan);
         ProfileStorage.SaveHypotheses(_hypotheses);
@@ -433,6 +438,7 @@
     /// <summary>Выбор, копия, удаление, переименование. Таблица и график обновляются сразу, 3D — следующим кадром.</summary>
     private void ChangeHypotheses(Action<StoredHypotheses> change)
     {
+        _observedEndpoint = null;
         int selected = _hypotheses.Selected, count = _hypotheses.Items.Count;
         change(_hypotheses);
         ProfileStorage.SaveHypotheses(_hypotheses);
@@ -644,6 +650,7 @@
     {
         await Task.Delay(delayMs);
         if (version != _forecastVersion || !_viewerReady) return;
+        if (_observedEndpoint is not null) return;
 
         var forecast = RunForecasts();
         _fitForecast ??= _fitCurrent?.Clone();

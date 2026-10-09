@@ -1,0 +1,33 @@
+@using WorkoutCalculator.BodyModel.Hypotheses
+<div data-testid="hypothesis-review">
+    <p><strong>@ObservedHypothesisPanel.MaturityName(Core.EvidenceSummary.Maturity)</strong> · @Core.EvidenceSummary.WindowStart.ToString("dd.MM") — @Core.EvidenceSummary.WindowEndExclusive.AddDays(-1).ToString("dd.MM.yyyy")</p>
+    <p>Закрытых дней: @Core.EvidenceSummary.Activity.FactualDays · Отдых: @Core.EvidenceSummary.Activity.RestDays · Пропуски: @Core.EvidenceSummary.Activity.Gaps</p>
+    <p>Питание полностью заполнено: @Core.EvidenceSummary.Nutrition.EligibleDayCount · Частично: @Core.EvidenceSummary.Nutrition.PartialDayCount · Неизвестно: @Core.EvidenceSummary.Nutrition.NotRecordedDayCount</p>
+    <p>Средний рацион: @Nutrition(Core.EvidenceSummary.Nutrition.Average.CaloriesKcal) ккал · Б @Nutrition(Core.EvidenceSummary.Nutrition.Average.ProteinGrams) / Ж @Nutrition(Core.EvidenceSummary.Nutrition.Average.FatGrams) / У @Nutrition(Core.EvidenceSummary.Nutrition.Average.CarbsGrams) г</p>
+    <p>Известный расход вне силовых: @(Core.Assumptions.ObservedNonStrengthKcal is { } kcal ? Fmt.N(kcal)+" ккал/д" : "неизвестно; используется бытовое допущение") · Дней с полным расходом вне силовых: @Core.EvidenceSummary.Activity.CompleteEnergyDays</p>
+    <p>Силовые: наблюдалось @Fmt.N(Core.Assumptions.ObservedStrengthPerWeek,1) занятий/нед., в модели @Core.Assumptions.ModelStrengthPerWeek. Опыт: @ExperienceName(Core.Assumptions.Experience).</p>
+    <p class="note">Предположение о быте: коэффициент 1,2 + известная несиловая активность / исходный БМР, максимум 3. Кардио второй раз не добавляется. Подробная будущая силовая программа не задана; локальный рост мышц не прогнозируется.</p>
+    <h3>Состояние на @Core.TargetDate.ToString("dd.MM.yyyy")</h3>
+    <dl class="history-values" data-testid="hypothesis-endpoint">
+        <dt>Вес</dt><dd>@Fmt.N(Core.ExactEndpoint.Point.Body.WeightKg,2) кг · @Fmt.N(Core.ExactEndpoint.Point.WeightRange.Lower,2)–@Fmt.N(Core.ExactEndpoint.Point.WeightRange.Upper,2)</dd>
+        <dt>Жировая масса / доля</dt><dd>@Fmt.N(Core.ExactEndpoint.Point.Body.FatMassKg,2) кг / @Fmt.N(Core.ExactEndpoint.Point.Body.FatPercent,1) %</dd>
+        <dt>Безжировая масса</dt><dd>@Fmt.N(Core.ExactEndpoint.Point.Body.LeanMassKg,2) кг</dd>
+        <dt>Изменение воды и гликогена</dt><dd>@Fmt.N(Core.ExactEndpoint.Point.Body.GlycogenWaterKg,2) кг</dd>
+        @foreach(var g in Core.ExactEndpoint.Point.Girths.OrderBy(p=>p.Key)){var range=Core.ExactEndpoint.Point.GirthRanges[g.Key];<dt>@BodyProfile.GirthName(g.Key)</dt><dd>@Fmt.N(g.Value,1) см · @Fmt.N(range.Lower,1)–@Fmt.N(range.Upper,1)</dd>}
+    </dl>
+    @if(Core.Capabilities.CanBuildFutureAvatar3D) { <button class="btn" @onclick="()=>OnEndpoint.InvokeAsync(Core.ExactEndpoint)">Показать будущую форму в 3D</button> }
+    else { <p class="note">Числовой прогноз доступен, но конечная форма вне поддерживаемого диапазона 3D.</p> }
+    <p class="note">Форма по составу тела и обхватам. Диапазоны эвристические; коэффициент расширения @Fmt.N(Core.Uncertainty.RangeMultiplier,2) не является вероятностью точности.</p>
+    <details><summary>Наблюдения, исходный аватар и ограничения</summary>
+        <p>Данные отсечены: @Core.EvidenceCutoff.ToString("dd.MM.yyyy HH:mm zzz"). Аватар от @Core.CurrentAvatarRevisionAtIssue.CreatedAt.ToString("dd.MM.yyyy").</p>
+        <p>Модель: @Core.Forecast.ModelVersion · Калибровка: @(Core.CalibrationRevision?.Profile.Status ?? "без доступных предыдущих результатов")</p>
+        <ul>@foreach(var d in Core.FrozenEvidence){<li>@d.Date.ToString("dd.MM.yyyy") · @(d.IsFactual ? "подтверждённый день" : "нет данных")</li>}</ul>
+        <ul>@foreach(var w in Core.Uncertainty.Limitations.Distinct()){<li>@w</li>}</ul>
+    </details>
+</div>
+@code{
+    [Parameter,EditorRequired] public HypothesisCore Core{get;set;}=null!;
+    [Parameter] public EventCallback<HypothesisEndpoint> OnEndpoint{get;set;}
+    private static string Nutrition(decimal? n)=>n is { } value ? Fmt.N((double)value,1) : "неизвестно";
+    private static string ExperienceName(TrainingExperience e)=>e switch{TrainingExperience.Beginner=>"начинающий",TrainingExperience.Intermediate=>"средний",_=>"опытный"};
+}

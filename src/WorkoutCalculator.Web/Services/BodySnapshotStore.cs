@@ -65,13 +65,15 @@ public sealed class BodySnapshotStore(IJournalStorage storage)
             var data = new BodySnapshotData(SchemaVersion, snapshots.ToArray(), references.ToArray());
             Validate(data);
             var payload = JsonSerializer.Serialize(data, SnapshotJson.Default.BodySnapshotData);
+            var hypotheses = storage.Read(ObservedHypothesisStore.Key);
+            ObservedHypothesisStore.ProtectOutcomes(hypotheses, snapshots);
             // The first pre-import state is retained byte-for-byte; old weight/IndexedDB records are never changed.
             if (importing && storage.Read(ImportBackupKey) is null)
             {
                 var backup = read.OriginalPayload ?? JsonSerializer.Serialize(new BodySnapshotData(SchemaVersion, [], []), SnapshotJson.Default.BodySnapshotData);
                 if (!storage.CompareExchange(ImportBackupKey, null, backup)) return "Не удалось сохранить резервную копию. Импорт отменён.";
             }
-            if (!storage.CompareExchange(Key, read.OriginalPayload, payload))
+            if (!storage.CompareExchangeChecked(Key, read.OriginalPayload, payload, new Dictionary<string,string?> { [ObservedHypothesisStore.Key] = hypotheses }))
                 return "История изменена в другой вкладке. Перезагрузите страницу перед сохранением; черновик остался здесь.";
             _read = new(Array.AsReadOnly(data.Snapshots), Array.AsReadOnly(data.ImportedReferences), payload);
             return null;

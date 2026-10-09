@@ -143,3 +143,7 @@ Nutrition smoke covers serving 350→175, per100g, second entry, decimal comma, 
 5. Reload, full backup, clean restore: exact day states/closures/source IDs, без дубликатов. В validation export отдельно выберите дни: нет notes/raw IDs. Проверьте 320/390/1400 px.
 
 Автоматические проверки: 452 .NET, 54 JS, новый ActivityDay browser suite плюс десять прежних suites (включая published offline). [Контракт](ACTIVITY_DAY.md), [evidence](evidence/activity-day/report.json). Измерения — desktop headless Edge/SwiftShader; физический телефон требует отдельной ручной проверки.
+
+## Phase 5 Hypothesis tests
+
+Run dotnet test WorkoutCalculator.sln -c Release, node --test tests/js/*.test.mjs, and tests/browser/hypothesis-smoke.cjs against the running Release app with Playwright. HYPOTHESIS_OUTPUT selects screenshot/report output. The new smoke covers insufficient/preliminary gates, explicit 14/30 save, unchanged origin after another close/reload, stale review and one-active rejection, 3D endpoint, target outcome with weight only, expiry, recalibration and exact clean restore/private export at 320/390/1400px. It uses fixed calendar dates and genuine UI meal/day closure; fixtures reuse the resulting archives for later calendar states. Keep the existing 13 suites including nutrition/activity/offline. Evidence: [Hypothesis](evidence/hypothesis/README.md). Domain policies and test boundaries: [HYPOTHESIS_LIFECYCLE](HYPOTHESIS_LIFECYCLE.md).

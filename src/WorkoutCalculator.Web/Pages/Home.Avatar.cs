@@ -108,7 +108,11 @@ public partial class Home
         _avatarBusy = true; StateHasChanged(); await Task.Delay(1);
         try {
             AvatarCommand(() => _avatars.Confirm(new AvatarLifecycle(AvatarBuilder!), DateTimeOffset.Now, DateOnly.FromDateTime(DateTime.Now)));
-            if (_avatarError is null) CompleteAvatarOnboarding();
+            if (_avatarError is null)
+            {
+                CompleteAvatarOnboarding();
+                _avatarError = new ObservedHypothesisStore(new BrowserJournalStorage()).Synchronize(DateTimeOffset.Now);
+            }
         } catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = e.Message; }
         finally { _avatarBusy = false; }
     }
