@@ -1,0 +1,15 @@
+@using WorkoutCalculator.BodyModel.Avatars
+@using WorkoutCalculator.Activity
+@if (_pending) {
+    <aside class="previous-day" aria-label="Незавершённый день">Вчерашний день не завершён. <button class="btn" @onclick="OnOpen">Открыть активность</button></aside>
+}
+@code {
+    [Parameter] public AvatarState? Avatar { get; set; }
+    [Parameter] public EventCallback OnOpen { get; set; }
+    private bool _pending;
+    protected override void OnParametersSet() {
+        var store = new ActivityDayStore(new BrowserJournalStorage());
+        _pending = Avatar?.ActiveRevision is not null && store.Current.Error is null &&
+            store.Find(Avatar.ProfileId, DateOnly.FromDateTime(DateTime.Now).AddDays(-1))?.State is null or ActivityDayState.Open;
+    }
+}

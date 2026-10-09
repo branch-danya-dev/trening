@@ -34,6 +34,13 @@ export function analysisData(options, stores, report={}) {
         result.cardio=(stores.cardio || []).map(w=>pick(w,['Date','Activity','Setting','DurationMin','DistanceKm','ActiveKcal','WatchActiveKcal']));
         result.strength=(stores.strength?.sessions || []).map(s=>({date:s.date,durationMinutes:s.durationMinutes,exercises:s.exercises.map(e=>({exerciseId:e.exerciseId,sets:e.sets.filter(s=>s.completed).map(s=>pick(s,['reps','weightKg','rir','rpe','bodyweight','side']))}))}));
     }
+    if(options.activity) result.activity=(stores.activity?.days || []).map((d,i)=>({reference:`day-${i+1}`,date:d.date,state:d.state,
+        factual:['Completed','RestDay'].includes(d.state),
+        events:(d.closure?.summary?.events || d.actualEvents || []).map(e=>pick(e,['type','source','minutes','durationMinutes','distanceKm','steps','activeKcal','completedSets','reps'])),
+        summary:d.closure ? {...pick(d.closure.summary,['minutesByCategory','walkingDistanceKm','walkingSteps','cardioDistanceKm','strengthSets','strengthReps','strengthVolumeKg','estimatedActiveKcal','energyKnownEvents','allDurationsKnown','allEnergyKnown','unplannedTypes']),
+            muscleRaw:Object.fromEntries(Object.entries(d.closure.summary.muscleRaw || {}).filter(([k,v])=>['pectoralis','anterior-deltoid','lateral-deltoid','posterior-deltoid','lats','traps','rhomboids','biceps','triceps','forearms','rectus-abdominis','obliques','erectors','glute-max','glute-med','quadriceps','hamstrings','adductors','hip-flexors','calves'].includes(k)&&Number.isFinite(v))),
+            adherence:(d.closure.summary.adherence || []).map(a=>pick(a,['type','target','actual','unit','met']))}:undefined,
+        schemaVersion:d.closure?.schemaVersion,modelVersion:d.closure?.modelVersion}));
     if(options.validation) result.validation={body:(report.body || []).map(o=>pick(o,['girth','entered','calculated','source'])),manual:pick(report.manual,['Tape','Photo','Date','ExternalKcal','AvatarSimilarity']),evaluation:(report.evaluation || []).map(o=>({forecast:forecastRefs.get(o.ForecastId),fact:factRefs.get(o.FactId),...pick(o,['Date','HorizonDays','Metric','Actual','Predicted','BaselinePredicted','SignedError','AbsoluteError','SourceQuality','ExclusionReason'])}))};
     return result;
 }
@@ -41,7 +48,7 @@ export async function exportValidation(optionsJson, reportJson, build) {
     const options=JSON.parse(optionsJson);
     if(!Object.values(options).some(Boolean)) throw Error('Выберите хотя бы один раздел.');
     const env=options.forecasts||options.validation ? read('forecasts.v1') : null;
-    const stores={ avatars:options.avatars||options.profile?read('avatarDomain.v1'):null,profile:options.profile?read('body.v1'):null,facts:options.facts||options.profile||options.validation?read('bodySnapshots.v1'):null,
+    const stores={ activity:options.activity?parseNested(read('activityDays.v1')?.payload):null, avatars:options.avatars||options.profile?read('avatarDomain.v1'):null,profile:options.profile?read('body.v1'):null,facts:options.facts||options.profile||options.validation?read('bodySnapshots.v1'):null,
         forecasts:env?parseNested(env.payload):null,cardio:options.workouts?read('workouts.v1'):null,strength:options.workouts?read('strength.v1'):null };
     const data=analysisData(options,stores,JSON.parse(reportJson)), files=[{name:'analysis.json',data:new TextEncoder().encode(JSON.stringify(data,null,2))}];
     if(options.photos) { let i=0; for(const blob of await analysisImages()) files.push({name:`photos/${++i}.jpg`,data:new Uint8Array(await blob.arrayBuffer())}); }

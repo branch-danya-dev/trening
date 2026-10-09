@@ -125,3 +125,16 @@ strength и history. Он сохраняет прогноз, добавляет 
 7. В Profile проверьте `Avatar Validation`, optional similarity 1–5, полный backup/restore locked avatar и opt-in validation export без фото.
 
 Автоматизация: `node tests/browser/avatar-creation-smoke.cjs` при запущенном Web (`APP_URL`). `AVATAR_OUTPUT` задаёт каталог screenshots и JSON отчёта; `BROWSER_CHANNEL=msedge` или `chrome` допустим локально, CI использует Chromium. Cold/warm builder timings не включают 180 мс debounce и не являются замером физического телефона. Полный CI включает также skeletal, strength, history, forecast, muscle-forecast, product, avatar, errors и published offline `/trening/`.
+
+## ActivityDay — Phase 3
+
+`node tests/browser/activity-day-smoke.cjs` при работающем Web; `ACTIVITY_OUTPUT` задаёт каталог отчёта/screenshots, `APP_URL` — адрес, `BROWSER_CHANNEL=msedge` допустим локально. CI использует Chromium и сохраняет artifact `activity-day-evidence`.
+
+1. После locked Avatar откройте «Активность»: сегодня, полный календарь, отдельные «План» и «Факт». Исторические strength/cardio требуют review.
+2. Добавьте ходьбу (km/steps, optional minutes), растяжку и короткое упражнение из каталога. План сам не становится выполненным; без duration/distance калории неизвестны. Измените исходную тренировку в открытом дне: summary должен обновиться.
+3. «Закончить день» → review → подтверждение. Проверьте сумму времени, source kcal coverage, plan adherence и дневную карту на аватаре. После close нет обычного редактирования, вторая вкладка также не может изменить sources.
+4. Пустой прошлый день явно закройте как отдых; другой — «Нет данных». Пустые даты не превращаются в отдых сами. Будущий день не создаёт records и не закрывается.
+5. Reload, full backup, clean restore: exact day states/closures/source IDs, без дубликатов. В validation export отдельно выберите дни: нет notes/raw IDs. Проверьте 320/390/1400 px.
+
+Автоматические проверки: 452 .NET, 54 JS, новый ActivityDay browser suite плюс десять прежних suites (включая published offline). [Контракт](ACTIVITY_DAY.md), [evidence](evidence/activity-day/report.json). Измерения — desktop headless Edge/SwiftShader; физический телефон требует отдельной ручной проверки.
+

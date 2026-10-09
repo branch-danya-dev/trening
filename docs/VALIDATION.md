@@ -1,5 +1,13 @@
 # Ручная проверка продукта
 
+## Factual integrity дня — Phase 3
+
+Текущий реализованный gate описан в [ACTIVITY_DAY](ACTIVITY_DAY.md). `DayPlan is expectation; ClosedActivityDay is fact.` Open и MissingData не являются закрытым evidence. Прошедшая пустая дата остаётся незавершённой до явного выбора; RestDay никогда не выводится из отсутствия записей.
+
+Проверены domain state machine, uniqueness, explicit confirmation, plan/actual separation, deterministic aggregation, mapped muscle load, future rejection, idempotent source indexing, SHA/schema corruption, CAS после review, exact backup/clean restore и stale restore generation. Проверка исходных журналов защищает closed day от edit/delete/date move. Reopen/amend в этой версии запрещён; строки про superseding revisions и nutrition в перспективной матрице ниже относятся к следующим фазам.
+
+Daily muscle map — эвристическая относительная нагрузка, не ЭМГ/усталость. Active kcal — known-event subtotal с coverage; неизвестная длительность/расход не равны нулю. Для полного суточного баланса данных нет. Opt-in export содержит pseudonymized day-N и allowlisted metrics без notes/local IDs. Автоматические UX-тесты не валидируют физиологическую точность или скорость на реальном телефоне. [Browser evidence](evidence/activity-day/report.json).
+
 Цель — проверить понятность приложения и согласованность фактов/оценок/прогнозов на собственных наблюдениях. Функциональные smoke-тесты не доказывают физиологическую точность модели. Полный backup сделайте до эксперимента; исходные измерения храните отдельно.
 
 ## Manual Avatar validation — Phase 1

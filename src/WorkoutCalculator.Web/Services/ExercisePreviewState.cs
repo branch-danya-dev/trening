@@ -4,7 +4,7 @@ using WorkoutCalculator.Strength;
 
 namespace WorkoutCalculator.Web.Services;
 
-public enum MuscleLoadSource { Exercise, Session, Week }
+public enum MuscleLoadSource { Exercise, Session, Week, Day }
 
 /// <summary>Presentation state: clips for previews only; journal loads come from the Core aggregation service.</summary>
 public sealed class ExercisePreviewState
@@ -25,6 +25,7 @@ public sealed class ExercisePreviewState
     public string? JournalError => Journal?.StorageError;
     public string Caption => Source switch
     {
+        MuscleLoadSource.Day => "Относительная нагрузка за выбранный день · не ЭМГ и не усталость",
         MuscleLoadSource.Session => "Накопленная относительная нагрузка тренировки",
         MuscleLoadSource.Week => $"Нагрузка недели с {Journal?.Week.Monday:dd.MM.yyyy}",
         _ => "Предпросмотр: 3 × 10, RIR 2"
@@ -45,12 +46,14 @@ public sealed class ExercisePreviewState
         if (!Sessions.Any(s => s.Session.Id == SessionId)) SessionId = Sessions.FirstOrDefault()?.Session.Id;
         Load = Source switch
         {
+            MuscleLoadSource.Day => Load,
             MuscleLoadSource.Session => Sessions.FirstOrDefault(s => s.Session.Id == SessionId)?.Load ?? MuscleLoadEngine.Aggregate([]),
             MuscleLoadSource.Week => Journal?.Week.Load ?? MuscleLoadEngine.Aggregate([]),
             _ => MuscleLoadEngine.Calculate(Selected)
         };
         SendLoad();
     }
+    public void SetDailyLoad(MuscleLoadResult load) { Stop(); Source = MuscleLoadSource.Day; Load = load; Heatmap = true; SendLoad(); }
 
     public void Select(string id)
     {

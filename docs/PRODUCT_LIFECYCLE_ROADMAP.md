@@ -1,6 +1,8 @@
 # Roadmap реализации продуктового lifecycle
 
-**Обновление Phase 1, 2026-10-09:** domain foundation реализована в отдельном implementation PR от `main 9878994f4a0766f8ea8599c3fbb2b12e355a2701` после merge #20. Phase 2 реализована ниже; Phase 3–9 остаются планом. Исходный docs-only статус ниже сохранён как контекст первоначального roadmap.
+**Phase 3, 2026-10-09:** реализована от `main 6926da7330792eddf0bdbf56bfdc08035e92f06c` после обычного merge #22 и зелёного CI базы. DayPlan/actual, continuous calendar/today, explicit Completed/RestDay/MissingData, frozen Close Day, reference indexing, movement/spontaneous events, daily load, CAS/backup/export. Контракт и ограничения — [ACTIVITY_DAY](ACTIVITY_DAY.md), результаты — [browser report](evidence/activity-day/report.json). Phase 4–9 остаются планом; #19 не включён. Новый implementation PR не мержится автоматически.
+
+**Обновление Phase 1, 2026-10-09:** domain foundation реализована в отдельном implementation PR от `main 9878994f4a0766f8ea8599c3fbb2b12e355a2701` после merge #20. Phase 2 реализована ниже; Phase 3 обновлена выше. Исходный docs-only статус ниже сохранён как контекст первоначального roadmap.
 
 Статус: план, 2026-10-09. Ни одна фаза не считается выполненной этим docs PR. Канон — [PRODUCT_LIFECYCLE](PRODUCT_LIFECYCLE.md); инструменты — [PRODUCT_TECHNOLOGY_DECISIONS](PRODUCT_TECHNOLOGY_DECISIONS.md); критерии — [VALIDATION](VALIDATION.md). Каждая фаза — отдельная implementation task/PR с явным GO/NO-GO, без автоматического merge.
 
@@ -82,6 +84,8 @@ flowchart LR
 **Dependencies.** Phase 1; существующие MakeHuman/skeleton/atlas/fitter, photo segmentation/pose. BodyParts3D later.
 
 ## Phase 3 — ActivityDay lifecycle
+
+**Реализованный срез:** physical ActivityDay/plan/events/close, immutable terminal outcomes, reference indexing и backup/export. Amend/reopen, nutrition coverage/advisory и future evidence consumers не входят в Phase 3 implementation. Offset timestamps + local DateOnly сохраняют дату; named timezone/DST rules не введены. Исторические acceptance идеи ниже уточнены [ACTIVITY_DAY](ACTIVITY_DAY.md).
 
 **Результат:** календарь — ежедневный центр; только подтверждённые дни становятся behavioral evidence.
 

@@ -4,6 +4,7 @@
     <div class="exercise-controls">
         <select class="select load-source" aria-label="Источник нагрузки" title="Источник нагрузки" value="@State.Source" @onchange="SourceChanged">
             <option value="Exercise">Упражнение</option><option value="Session">Тренировка</option><option value="Week">Эта неделя</option>
+            @if (State.Source == MuscleLoadSource.Day) { <option value="Day">Выбранный день</option> }
         </select>
         @if (State.Source == MuscleLoadSource.Session)
         {
@@ -17,6 +18,7 @@
             </select>
         }
     </div>
+    @if (State.Source == MuscleLoadSource.Day) { <p class="note">@State.Caption</p> }
     <div class="exercise-controls">
         @if (State.Source == MuscleLoadSource.Exercise)
         {
@@ -40,7 +42,7 @@
     @if (State.Source != MuscleLoadSource.Exercise && State.JournalError is not null) { <small role="alert">@State.JournalError</small> }
     <details class="exercise-details">
         <summary>Мышцы и относительная нагрузка</summary>
-        <p>@State.Caption</p>
+        @if (State.Source != MuscleLoadSource.Day) { <p>@State.Caption</p> }
         @if (State.Source == MuscleLoadSource.Exercise)
         {
         <p><strong>Основные:</strong> @Names(State.Selected.PrimaryMuscles)</p>

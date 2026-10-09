@@ -31,6 +31,9 @@ public static partial class BrowserStorage
     [JSImport("compareExchange", Module)]
     public static partial bool CompareExchange(string key, string? expected, string value);
 
+    [JSImport("compareExchangeChecked", Module)]
+    public static partial bool CompareExchangeChecked(string key, string? expected, string value, string guards);
+
     // JS copies the borrowed MemoryView before returning its Promise.
     [JSImport("beginSha256Hex", Module)]
     private static partial JSObject BeginSha256Hex([JSMarshalAs<JSType.MemoryView>] Span<byte> bytes);

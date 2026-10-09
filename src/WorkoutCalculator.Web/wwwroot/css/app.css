@@ -1228,6 +1228,21 @@ table.changes tr.dim td { opacity: 0.5; }
 .calendar-day small { font-size: 10px; color: var(--muted); }
 .calendar-day.on { border-color: var(--accent); background: var(--accent-dim); }
 .calendar-entry { padding: 12px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.activity-day { margin-top: 24px; }
+.day-plan, .day-actual, .day-review { border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 12px 0; min-width: 0; }
+.day-plan { background: var(--card-2); border-style: dashed; }
+.day-actual { border-left: 3px solid var(--accent); }
+.day-review { background: var(--accent-dim); }
+.activity-day h3 { margin-top: 0; }
+.day-plan-editor input:not([type=checkbox]), .activity-quick-add input, .activity-quick-add select { display: block; width: 100%; border: 1px solid var(--border-strong); border-radius: 8px; padding: 10px; margin: 6px 0 14px; background: var(--card-2); color: inherit; }
+.day-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.day-summary { margin-top: 18px; }
+.activity-day .note, .activity-day .check { color: #a3b0bf; }
+.calendar-state { font-size: 12px; }
+.previous-day, .day-state { padding: 12px; border-radius: 8px; background: var(--accent-dim); }
+.main > .previous-day { grid-column: 1 / -1; margin: 8px 12px; font-size: 13px; }
+@media(min-width:901px) { .main:has(> .previous-day) { grid-template-rows: auto minmax(0,1fr); } }
+@media(min-width:701px) and (max-width:900px) { .main:has(> .previous-day) { grid-template-rows: auto minmax(0,1fr) minmax(0,1fr); } }
 .validation-panel .check { display: flex; margin: 10px 0; }
 #storage-warning { position: fixed; z-index: 9999; top: 0; left: 0; right: 0; padding: 12px; background: #543614; color: white; font-size: 13px; }
 .product-app .note, .product-app p, .product-app summary { overflow-wrap: anywhere; }

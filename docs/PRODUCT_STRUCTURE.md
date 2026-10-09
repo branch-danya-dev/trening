@@ -1,8 +1,21 @@
 # Структура продукта: целевой lifecycle и текущая реализация
 
+## Источники истины Phase 3
+
+ActivityDay реализован поверх существующих журналов, без новых ForecastInput/ForecastSnapshot полей. `DayPlan is expectation; ClosedActivityDay is fact.` Полная [матрица и state machine](ACTIVITY_DAY.md).
+
+| Данные | Owner |
+|---|---|
+| Дата/Profile/cycle/state/DayPlan/default template | `workoutcalc.activityDays.v1`, один CAS envelope |
+| Лёгкие физические события | ActivityEvent в этом envelope |
+| Силовая / кардио | Existing TrainingSession / LoggedWorkout; ActivityDay хранит reference |
+| Подтверждённая дневная сводка | Frozen ClosedActivityDay; underlying journal edits закрытой даты запрещены |
+
+«Активность» открывает сегодня; календарь показывает пустые прошлые и будущие даты. План отделён от факта. Шаблон доступен в «Профиле». Новые события/close не вызывают shape builder; карта дня использует прежний muscle engine/atlas. Старые dated workouts индексируются как Open/needs review, не Completed. Phase 4+ остаётся планом.
+
 ## Источники истины после Phase 1
 
-Phase 1 реализована и смержена в `main 932a2aa`; Phase 2 реализована от этой базы. Phase 3+ ниже остаются спецификацией.
+Phase 1 реализована и смержена в `main 932a2aa`; Phase 2 смержена в `main 6926da7`. Исторический текст ниже о будущих фазах уточняется статусом Phase 3 выше.
 
 | Данные | Единственный writable owner |
 |---|---|

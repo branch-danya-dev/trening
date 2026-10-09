@@ -1,0 +1,136 @@
+@using WorkoutCalculator.Activity
+@using WorkoutCalculator.BodyModel.Avatars
+@using WorkoutCalculator.Exercises
+<section class="activity-day" aria-label="День активности" data-day-state="@(_day?.State.ToString() ?? (Date > Today ? "Future" : "Unavailable"))" data-day-date="@Date.ToString("yyyy-MM-dd")">
+    <h3>@Date.ToString("dd.MM.yyyy") · @StateCaption</h3>
+    @if (_error is not null) { <p role="@(_readFailed ? "status" : "alert")">@_error</p> }
+    @if (Avatar?.ActiveRevision is null) { <p>Сначала зафиксируйте аватар, чтобы вести и завершать дни.</p> }
+    else if (Date > Today) { <p>Будущий день. Записи факта и завершение доступны не раньше этой даты.</p> }
+    else if (_day is { } day && _summary is { } summary)
+    {
+        @if (day.State == ActivityDayState.MissingData) { <p class="day-state">Нет данных подтверждено. Этот день не считается нулевой активностью.</p> }
+        @if (day.IsFactual) { <p class="day-state">Подтверждено @day.Closure!.ClosedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"). Сводка сохранена. Исправление закрытых дней пока недоступно.</p> }
+        <div class="day-plan" data-testid="day-plan"><h3>План</h3><p class="note">Ожидание на день</p>
+            @if (day.Plan.Slots.IsEmpty) { <p>Без обязательных пунктов.</p> }
+            @foreach (var slot in day.Plan.Slots) { <p>@Label(slot.Type) · @(slot.DistanceKm is { } km ? $"{Fmt.N(km, 1)} км" : slot.Steps is { } steps ? $"{steps} шагов" : slot.Minutes is { } minutes ? $"{Fmt.N(minutes)} мин" : "занятие")</p> }
+            @if (Editable) { <details><summary>Изменить план этого дня</summary><DayPlanEditor @key="day.Id" Plan="day.Plan" OnSave="SavePlan" /></details> }
+        </div>
+        <div class="day-actual" data-testid="day-actual"><h3>Факт</h3>
+            @if (day.State == ActivityDayState.Open && Date < Today) { <p class="note">День не завершён. Записи ниже ещё не подтверждены как итог дня.</p> }
+            @if (summary.Events.IsEmpty) { <p>Активность пока не записана. Пустой день не означает отдых.</p> }
+            @foreach (var entry in day.ActualEvents.Where(e => e.LinkedEntityId is null)) {
+                <article class="calendar-entry"><b>@Label(entry.Type)</b>
+                    @if (entry.DurationMinutes is { } minutes) { <span> · @Fmt.N(minutes) мин</span> }
+                    @if (entry.DistanceKm is { } km) { <span> · @Fmt.N(km, 1) км</span> }
+                    @if (entry.Steps is { } steps) { <span> · @steps шагов</span> }
+                    @if (entry.ExerciseId is { } exercise) { <span> · @ExerciseCatalog.Get(exercise).Name @entry.Sets × @entry.Reps</span> }
+                    @if (entry.Note is { Length: > 0 }) { <p>@entry.Note</p> }
+                    @if (Editable) { <button class="btn" @onclick="() => Edit(entry)">Исправить активность</button><button class="btn" @onclick="() => Remove(entry.Id)">Удалить активность</button> }
+                </article>
+            }
+            @if (summary.Events.Any(e => e.LinkedEntityId is not null)) { <p>Связанные тренировки: @summary.Events.Count(e => e.Type == ActivityEventType.Cardio) кардио, @summary.Events.Count(e => e.Type == ActivityEventType.Strength) силовых. Записи и переходы — ниже.</p> }
+            @if (Editable) {
+                <button class="btn primary" @onclick="NewEvent">Добавить активность</button>
+                @if (_adding) {
+                    <div class="activity-quick-add">
+                        <label>Вид активности<select aria-label="Вид активности" @bind="_type"><option value="Walking">Ходьба</option><option value="Mobility">Разминка / растяжка</option><option value="Spontaneous">Короткое упражнение</option><option value="Other">Другая активность</option></select></label>
+                        @if (_type == ActivityEventType.Walking) {
+                            <label>Дистанция, км<input aria-label="Дистанция ходьбы, км" type="number" step="0.1" min="0.01" max="300" @bind="_km" /></label>
+                            <label>Шаги<input aria-label="Шаги" type="number" min="1" max="200000" @bind="_steps" /></label>
+                            <p class="note">Укажите дистанцию или шаги. Для оценки калорий нужны дистанция и время. Записывайте только движение, которое ещё не внесено в кардио.</p>
+                        }
+                        <label>Время, мин — необязательно<input aria-label="Время активности, мин" type="number" min="1" max="1440" @bind="_minutes" /></label>
+                        @if (_type == ActivityEventType.Spontaneous) {
+                            <label>Упражнение<select aria-label="Короткое упражнение" @bind="_exerciseId"><option value="">Без привязки к каталогу</option>@foreach (var e in ExerciseCatalog.All) { <option value="@e.Id">@e.Name</option> }</select></label>
+                            @if (!string.IsNullOrEmpty(_exerciseId)) { <label>Подходы<input aria-label="Короткие подходы" type="number" min="1" max="100" @bind="_sets" /></label><label>Повторы в подходе<input aria-label="Короткие повторы" type="number" min="1" max="1000" @bind="_reps" /></label> }
+                        }
+                        <label>Заметка<input aria-label="Заметка активности" maxlength="1000" @bind="_note" /></label>
+                        <button class="btn primary" @onclick="SaveEvent">Сохранить активность</button><button class="btn" @onclick="() => _adding = false">Отмена</button>
+                    </div>
+                }
+            }
+            @if (day.State != ActivityDayState.MissingData) {
+            <div class="day-summary" data-testid="activity-summary">
+                <p>Записано времени: @Fmt.N(summary.MinutesByCategory.Values.Sum()) мин · @summary.StrengthSets подходов · @summary.StrengthReps повторений</p>
+                <p>Ходьба: @(summary.WalkingDistanceKm is { } distance ? $"{Fmt.N(distance, 1)} км" : "дистанция неизвестна") · @(summary.WalkingSteps is { } count ? $"{count} шагов" : "шаги неизвестны")</p>
+                <p>Активные калории за день: @(summary.EstimatedActiveKcal is { } kcal ? $"≈ {Fmt.N(kcal)} ккал" : "недостаточно данных") · оценка для @summary.EnergyKnownEvents из @summary.Events.Length записей</p>
+                @foreach (var item in summary.Adherence) { <p>@Label(item.Type): @(item.Actual is null ? "недостаточно данных" : item.Unit == "event" ? item.Met == true ? "выполнено" : "не записано" : $"{Fmt.N(item.Actual.Value, 1)} из {Fmt.N(item.Target ?? 0, 1)} {Unit(item.Unit)}")</p> }
+                @if (!summary.UnplannedTypes.IsEmpty) { <p>Вне плана: @string.Join(", ", summary.UnplannedTypes.Select(Label))</p> }
+                @foreach (var warning in summary.Warnings) { <p class="note">@warning</p> }
+                <h4>Нагрузка мышц за день</h4><MuscleLoadList Load="summary.MuscleLoad()" />
+                <button class="btn" @onclick="() => OnShowDailyLoad.InvokeAsync(summary.MuscleLoad())">Нагрузка дня на аватаре</button>
+            </div>
+            }
+        </div>
+        @if (Editable) {
+            <div class="day-actions"><button class="btn primary" @onclick="() => BeginReview(ActivityDayState.Completed)">Закончить день</button>
+                <button class="btn" @onclick="() => BeginReview(ActivityDayState.RestDay)">День отдыха</button>
+                @if (Date < Today) { <button class="btn" @onclick="() => BeginReview(ActivityDayState.MissingData)">Нет данных</button> }
+            </div>
+            @if (_review is not null) {
+                <section class="day-review" aria-label="Проверка дня"><h3>Проверка дня</h3>
+                    <p>@(_outcome == ActivityDayState.RestDay ? "Подтвердите день отдыха без записанной активности." : _outcome == ActivityDayState.MissingData ? "Подтвердите, что достоверного итога нет. Существующие записи сохранятся, но день не станет фактом." : "Проверьте записанную активность и сравнение с планом выше.")</p>
+                    @foreach (var e in _review.Summary.Events) { <p>@Label(e.Type) · @(e.Minutes is { } m ? $"{Fmt.N(m)} мин" : "время не указано") · @(e.ActiveKcal is { } k ? $"≈ {Fmt.N(k)} ккал" : "расход неизвестен")</p> }
+                    <label class="check"><input type="checkbox" @bind="_confirmed" /> Подтверждаю итог дня</label>
+                    <button class="btn primary" disabled="@(!_confirmed)" @onclick="Confirm">Подтвердить завершение</button>
+                    <button class="btn" @onclick="() => _review = null">Вернуться и исправить</button>
+                </section>
+            }
+        }
+    }
+</section>
+@code {
+    [Parameter, EditorRequired] public ActivityDayStore Store { get; set; } = default!;
+    [Parameter] public AvatarState? Avatar { get; set; }
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    [Parameter] public DateOnly Date { get; set; }
+    [Parameter] public int SourceVersion { get; set; }
+    private int _lastSourceVersion;
+    [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public EventCallback<MuscleLoadResult> OnShowDailyLoad { get; set; }
+    private DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+    private ActivityDay? _day;
+    private DailyActivitySummary? _summary;
+    private ActivityDayReview? _review;
+    private ActivityDayState _outcome;
+    private string? _error, _lastPayload, _editing;
+    private DateOnly _lastDate;
+    private bool _adding, _confirmed, _readFailed;
+    private ActivityEventType _type = ActivityEventType.Walking;
+    private double? _km, _minutes;
+    private int? _steps;
+    private int _sets = 3, _reps = 20;
+    private string _exerciseId = "", _note = "";
+    private bool Editable => _day?.State == ActivityDayState.Open && Date <= Today && Store.Current.Error is null;
+    private string StateCaption => _day?.State switch { ActivityDayState.Completed => "Завершён", ActivityDayState.RestDay => "День отдыха", ActivityDayState.MissingData => "Нет данных", _ => Date > Today ? "Будущий день" : Date == Today ? "Сегодня · открыт" : "Не завершён" };
+    protected override void OnParametersSet() { if (_lastDate != Date || _lastPayload != Store.Current.OriginalPayload || _lastSourceVersion != SourceVersion || _day is null) { _review = null; _adding = false; Refresh(); } }
+    private void Refresh() {
+        _error = Store.Current.Error;
+        _readFailed = true;
+        try {
+            _day = null; _summary = null;
+            if (_error is null && Avatar?.ActiveRevision is not null && Date <= Today) { _day = Store.Ensure(Avatar, Date, Today, DateTimeOffset.Now); var review = Store.Review(_day); _day = review.Day; _summary = review.Summary; }
+        } catch (Exception e) { _error = e.Message; }
+        _lastDate = Date; _lastPayload = Store.Current.OriginalPayload; _lastSourceVersion = SourceVersion;
+    }
+    private async Task Changed(string? error) { if (error is not null) { _readFailed = false; _error = error; return; } _review = null; _adding = false; Refresh(); await OnChanged.InvokeAsync(); }
+    private Task SavePlan(DayPlan plan) => Changed(Store.SavePlan(plan, _day, DateTimeOffset.Now));
+    private void NewEvent() { _adding = true; _editing = null; _type = ActivityEventType.Walking; _km = _minutes = null; _steps = null; _exerciseId = _note = ""; }
+    private void Edit(ActivityEvent e) { _adding = true; _editing = e.Id; _type = e.Type; _km = e.DistanceKm; _minutes = e.DurationMinutes; _steps = e.Steps; _exerciseId = e.ExerciseId ?? ""; _sets = e.Sets ?? 3; _reps = e.Reps ?? 20; _note = e.Note ?? ""; }
+    private Task Remove(string id) => Changed(Store.RemoveEvent(_day!, id, DateTimeOffset.Now));
+    private async Task SaveEvent() {
+        if (!_adding || !Editable) return;
+        try {
+            var now = DateTimeOffset.Now; var existing = _day!.ActualEvents.FirstOrDefault(e => e.Id == _editing);
+            var walking = _type == ActivityEventType.Walking; var mapped = _type == ActivityEventType.Spontaneous && !string.IsNullOrEmpty(_exerciseId);
+            var energy = walking ? ActivityEnergy.Walking(new UserProfile { Sex = Profile.Sex, Age = Profile.Age, HeightCm = Profile.HeightCm, WeightKg = Profile.WeightKg }, _km, _minutes) : null;
+            var entry = new ActivityEvent(existing?.Id ?? Guid.NewGuid().ToString(), _day.Id, _type, ActivitySource.Manual, existing?.CreatedAt ?? now, now,
+                DurationMinutes: _minutes, DistanceKm: walking ? _km : null, Steps: walking ? _steps : null, ExerciseId: mapped ? _exerciseId : null, Sets: mapped ? _sets : null, Reps: mapped ? _reps : null, Note: _note, Energy: energy);
+            await Changed(Store.SaveEvent(_day, entry, Today, now));
+        } catch (Exception e) { _readFailed = false; _error = e.Message; }
+    }
+    private void BeginReview(ActivityDayState outcome) { try { _outcome = outcome; _review = Store.Review(_day!); _confirmed = false; _error = null; } catch (Exception e) { _error = e.Message; } }
+    private Task Confirm() => Changed(_outcome == ActivityDayState.MissingData ? Store.Missing(_review!.Day, Today, DateTimeOffset.Now, _confirmed) : Store.Close(_review!, _outcome, Today, DateTimeOffset.Now, _confirmed));
+    public static string Label(ActivityEventType type) => type switch { ActivityEventType.Walking => "Ходьба", ActivityEventType.Cardio => "Кардио", ActivityEventType.Strength => "Силовая", ActivityEventType.Mobility => "Разминка / растяжка", ActivityEventType.Spontaneous => "Зарядка / короткое упражнение", _ => "Другая активность" };
+    private static string Unit(string unit) => unit switch { "km" => "км", "steps" => "шагов", _ => "мин" };
+}

@@ -1,0 +1,11 @@
+@using WorkoutCalculator.Activity
+<details class="card daily-default"><summary>План дня по умолчанию</summary>
+    <p>Применяется к новым дням. Уже созданные дни сохраняют свой план.</p>
+    <DayPlanEditor Plan="_store.Current.Data.DefaultPlan" OnSave="Save" />
+    @if (_message is not null) { <p role="status">@_message</p> }
+</details>
+@code {
+    private readonly ActivityDayStore _store = new(new BrowserJournalStorage());
+    private string? _message;
+    private void Save(DayPlan plan) => _message = _store.SavePlan(plan, null, DateTimeOffset.Now) ?? "План сохранён.";
+}
