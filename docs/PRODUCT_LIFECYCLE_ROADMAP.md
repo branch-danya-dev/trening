@@ -1,5 +1,7 @@
 # Roadmap реализации продуктового lifecycle
 
+**Phase 4, 2026-10-09:** Nutrition v1 реализована от `main 0f943cc4fdd637d30d71f7d7519bb0aaf0d8e05c` после merge #23 и #19. Ручные КБЖУ/граммы, отдельные meal plan/actual, явная полнота, frozen nutrition, schema-2 migration, protected edit/delete/move, Forecast v3 adapter без Hypothesis. Контракт — [NUTRITION_V1](NUTRITION_V1.md). Phase 5–9 остаются планом; новый PR не мержится автоматически. Исторические статусы ниже сохранены по фазам.
+
 **Phase 3, 2026-10-09:** реализована от `main 6926da7330792eddf0bdbf56bfdc08035e92f06c` после обычного merge #22 и зелёного CI базы. DayPlan/actual, continuous calendar/today, explicit Completed/RestDay/MissingData, frozen Close Day, reference indexing, movement/spontaneous events, daily load, CAS/backup/export. Контракт и ограничения — [ACTIVITY_DAY](ACTIVITY_DAY.md), результаты — [browser report](evidence/activity-day/report.json). Phase 4–9 остаются планом; #19 не включён. Новый implementation PR не мержится автоматически.
 
 **Обновление Phase 1, 2026-10-09:** domain foundation реализована в отдельном implementation PR от `main 9878994f4a0766f8ea8599c3fbb2b12e355a2701` после merge #20. Phase 2 реализована ниже; Phase 3 обновлена выше. Исходный docs-only статус ниже сохранён как контекст первоначального roadmap.
@@ -105,7 +107,7 @@ flowchart LR
 
 ## Phase 4 — Nutrition v1
 
-**Результат:** ручные КБЖУ и масса дают проверяемые daily totals.
+**Статус: реализовано в отдельной ветке, ожидает review/merge.** Ручные КБЖУ и масса дают проверяемые daily totals. Точный поставленный контракт и ограничения — [NUTRITION_V1](NUTRITION_V1.md).
 
 **Domain/API.** NutritionEntry с Per100g/StandardServing basis, basis grams, kcal/P/F/C, actual grams; пропорциональный пересчёт. Unknown vs zero, field completeness; reconciliation calorie/macro validation с versioned правилами Stage A. Подготовить FoodReference/INutritionCatalog adapter boundary без внешнего сервиса. Freeze чисел в ClosedActivityDay, не dynamic lookup блюда.
 
@@ -113,7 +115,7 @@ flowchart LR
 
 **Storage/migration.** Store исходных порций и результатов расчёта с version. Пустой старый день/legacy nutrition plan не конвертируется в съеденную еду. Saved dishes optional позже, snapshot порции изолирован от редактирования рецепта. Backup/restore новых events и draft.
 
-**Tests/browser smoke.** 350→175 г = 50% каждого поля; Per100g; дробные массы/округление итогов; отрицательные/нулевой basis/NaN/Infinity; missing macros, несколько meals, reload и amendment закрытой еды. Перенос meal time при тех же inputs не меняет forecast physiology. Несогласованная карточка не повреждает сохранённые valid records.
+**Tests/browser smoke.** 350→175 г = 50% каждого поля; Per100g; дробные массы/округление итогов; отрицательные/нулевой basis/NaN/Infinity; missing macros, несколько meals, reload и запрет amendment закрытой еды. Перенос meal time при тех же inputs не меняет forecast physiology. Несогласованная карточка не повреждает сохранённые valid records.
 
 **Acceptance.** Totals воспроизводимы, units явные, данные пользователя не «исправляются» скрытно. Closed nutrition → daily Forecast v3 adapter с coverage и documented fallback; no external API dependency. Отсутствие питания не трактуется как 0 kcal.
 

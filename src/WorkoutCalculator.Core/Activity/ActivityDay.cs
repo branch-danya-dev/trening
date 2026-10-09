@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using WorkoutCalculator.Nutrition;
 using WorkoutCalculator.Exercises;
 using WorkoutCalculator.Strength;
 
@@ -12,9 +13,12 @@ public sealed record DayPlanSlot(ActivityEventType Type, double? Minutes = null,
 /// <summary>Expectation only. Never converted into events or passed to a forecast.</summary>
 public sealed record DayPlan(ImmutableArray<DayPlanSlot> Slots)
 {
-    public static DayPlan Default => new([new(ActivityEventType.Walking, DistanceKm: 3), new(ActivityEventType.Mobility, Minutes: 10)]);
+    public ImmutableArray<MealPlanSlot> MealSlots { get; init; } = [];
+    public static DayPlan Default => new([new(ActivityEventType.Walking, DistanceKm: 3), new(ActivityEventType.Mobility, Minutes: 10)]) { MealSlots = MealPlanSlot.Defaults };
     public void Validate()
     {
+        if (MealSlots.IsDefault || MealSlots.Length > 12 || MealSlots.Any(s => s is null) || MealSlots.Select(s => s.Id).Distinct().Count() != MealSlots.Length) throw new ArgumentException("Некорректный план питания.");
+        foreach (var meal in MealSlots) meal.Validate();
         if (Slots.IsDefault || Slots.Length > 6 || Slots.Any(s => s is null) || Slots.Select(s => s.Type).Distinct().Count() != Slots.Length)
             throw new ArgumentException("Некорректный план дня.");
         foreach (var s in Slots)
@@ -101,12 +105,16 @@ public sealed record DailyActivitySummary(ImmutableArray<ActualActivitySummary> 
 }
 
 public sealed record ClosedActivityDay(string DayId, DateOnly Date, string ProfileId, string TrackingCycleId, string AvatarRevisionId,
-    DateTimeOffset ClosedAt, bool UserConfirmed, ActivityDayState Outcome, DailyActivitySummary Summary, int SchemaVersion = 1, string ModelVersion = "activity-summary-1");
+    DateTimeOffset ClosedAt, bool UserConfirmed, ActivityDayState Outcome, DailyActivitySummary Summary, int SchemaVersion = 1, string ModelVersion = "activity-summary-1")
+{
+    public ClosedNutritionSummary? Nutrition { get; init; }
+}
 
 public sealed record ActivityDay(string Id, string ProfileId, string TrackingCycleId, string AvatarRevisionId, DateOnly Date,
     ActivityDayState State, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, DayPlan Plan, ImmutableArray<ActivityEvent> ActualEvents,
     string? Notes = null, ClosedActivityDay? Closure = null, DateTimeOffset? MissingConfirmedAt = null, int Version = 1)
 {
+    public ImmutableArray<MealEvent> Meals { get; init; } = [];
     public bool IsFactual => State is ActivityDayState.Completed or ActivityDayState.RestDay;
     public static ActivityDay Create(string profileId, string cycleId, string revisionId, DateOnly date, DateOnly today, DayPlan plan, DateTimeOffset now)
     {
@@ -119,13 +127,18 @@ public sealed record ActivityDay(string Id, string ProfileId, string TrackingCyc
         if (State != ActivityDayState.Open) throw new ArgumentException("День уже завершён. Исправление закрытых дней пока недоступно.");
         var next = this with { Plan = plan, ActualEvents = events, UpdatedAt = now }; next.Validate(); return next;
     }
-    public ActivityDay Close(ActivityDayState outcome, DailyActivitySummary summary, DateOnly today, DateTimeOffset now, bool confirmed)
+    public ActivityDay EditMeals(ImmutableArray<MealEvent> meals, DateTimeOffset now)
+    {
+        if (State != ActivityDayState.Open) throw new ArgumentException("Закрытый день защищён от изменений питания.");
+        var next = this with { Meals = meals, UpdatedAt = now }; next.Validate(); return next;
+    }
+    public ActivityDay Close(ActivityDayState outcome, DailyActivitySummary summary, DateOnly today, DateTimeOffset now, bool confirmed, ClosedNutritionSummary? nutrition = null)
     {
         if (State != ActivityDayState.Open || Date > today || !confirmed || outcome is not (ActivityDayState.Completed or ActivityDayState.RestDay))
             throw new ArgumentException("Закрытие требует текущего или прошлого открытого дня и явного подтверждения.");
-        if (outcome == ActivityDayState.Completed && summary.Events.IsEmpty) throw new ArgumentException("Запишите активность или явно выберите день отдыха.");
+        if (outcome == ActivityDayState.Completed && summary.Events.IsEmpty && Meals.IsEmpty) throw new ArgumentException("Запишите активность или явно выберите день отдыха.");
         if (outcome == ActivityDayState.RestDay && !summary.Events.IsEmpty) throw new ArgumentException("В дне есть активность. Подтвердите выполненный день или исправьте записи.");
-        var next = this with { State = outcome, UpdatedAt = now, Closure = new(Id, Date, ProfileId, TrackingCycleId, AvatarRevisionId, now, true, outcome, summary) };
+        var next = this with { State = outcome, UpdatedAt = now, Closure = new(Id, Date, ProfileId, TrackingCycleId, AvatarRevisionId, now, true, outcome, summary) { Nutrition = nutrition } };
         next.Validate(); return next;
     }
     public ActivityDay Missing(DateOnly today, DateTimeOffset now, bool confirmed)
@@ -144,16 +157,29 @@ public sealed record ActivityDay(string Id, string ProfileId, string TrackingCyc
             if (e is null) throw new ArgumentException("Пустая активность."); e.Validate();
             if (e.DayId != Id || !ids.Add(e.Id) || e.LinkedEntityId is not null && !links.Add($"{e.Type}:{e.LinkedEntityId}")) throw new ArgumentException("Повторяющаяся или несвязанная активность.");
         }
+        if (Meals.IsDefault || Meals.Length > 100) throw new ArgumentException("Некорректная коллекция питания.");
+        foreach (var meal in Meals)
+        {
+            if (meal is null) throw new ArgumentException("Пустой приём пищи."); meal.Validate();
+            if (meal.DayId != Id || meal.UpdatedAt > UpdatedAt || !ids.Add(meal.Id)) throw new ArgumentException("Повторяющийся, чужой или будущий приём пищи.");
+            foreach (var entry in meal.Entries) if (!ids.Add(entry.Id)) throw new ArgumentException("Повторяющийся продукт.");
+        }
         if (IsFactual != (Closure is not null) || (State == ActivityDayState.MissingData) != (MissingConfirmedAt is not null)) throw new ArgumentException("Неверное состояние закрытия.");
         if (MissingConfirmedAt is { } missing && (missing != UpdatedAt || Date >= DateOnly.FromDateTime(missing.Date))) throw new ArgumentException("Нет данных подтверждается только за прошлый день.");
         if (Closure is { } c)
         {
             if (c.DayId != Id || c.Date != Date || c.ProfileId != ProfileId || c.TrackingCycleId != TrackingCycleId || c.AvatarRevisionId != AvatarRevisionId ||
                 c.Outcome != State || !c.UserConfirmed || c.SchemaVersion != 1 || c.ModelVersion != "activity-summary-1" || c.ClosedAt != UpdatedAt || Date > DateOnly.FromDateTime(c.ClosedAt.Date) || c.Summary is null ||
-                c.Summary.Events.IsDefault || !ids.SetEquals(c.Summary.Events.Select(e => e.EventId)) ||
+                c.Summary.Events.IsDefault || !ActualEvents.Select(e => e.Id).ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(c.Summary.Events.Select(e => e.EventId)) ||
                 c.Summary.Events.Select(e => e.EventId).Distinct().Count() != c.Summary.Events.Length ||
-                State == ActivityDayState.Completed && c.Summary.Events.IsEmpty || State == ActivityDayState.RestDay && !c.Summary.Events.IsEmpty)
+                State == ActivityDayState.Completed && c.Summary.Events.IsEmpty && Meals.IsEmpty || State == ActivityDayState.RestDay && !c.Summary.Events.IsEmpty)
                 throw new ArgumentException("Повреждена подтверждённая сводка дня.");
+            if (c.Nutrition is { } nutrition)
+            {
+                var actual = NutritionSummary.Build(Meals, nutrition.Coverage == NutritionCoverage.Complete, nutrition.NoFoodConfirmed, nutrition.Target);
+                if (!NutritionSummary.Matches(nutrition, actual)) throw new ArgumentException("Замороженное питание не соответствует записям.");
+            }
+            else if (!Meals.IsEmpty) throw new ArgumentException("Отсутствует итог питания закрытого дня.");
             ActivityDayAggregation.Validate(c.Summary, Plan);
             foreach (var e in ActualEvents) {
                 var frozen = c.Summary.Events.Single(s => s.EventId == e.Id);

@@ -1,3 +1,5 @@
+@using WorkoutCalculator.Nutrition
+@using WorkoutCalculator.BodyModel.Forecast
 @using WorkoutCalculator.Activity
 @using WorkoutCalculator.BodyModel.Avatars
 @using WorkoutCalculator.Exercises
@@ -13,9 +15,12 @@
         <div class="day-plan" data-testid="day-plan"><h3>План</h3><p class="note">Ожидание на день</p>
             @if (day.Plan.Slots.IsEmpty) { <p>Без обязательных пунктов.</p> }
             @foreach (var slot in day.Plan.Slots) { <p>@Label(slot.Type) · @(slot.DistanceKm is { } km ? $"{Fmt.N(km, 1)} км" : slot.Steps is { } steps ? $"{steps} шагов" : slot.Minutes is { } minutes ? $"{Fmt.N(minutes)} мин" : "занятие")</p> }
+            @foreach (var meal in day.Plan.MealSlots) { <p>@meal.Label · @(meal.Time?.ToString("HH:mm") ?? "без времени")</p> }
+            <p class="note">Приёмы пищи в плане — ожидания. Записывайте съеденное отдельно; время можно менять.</p>
             @if (Editable) { <details><summary>Изменить план этого дня</summary><DayPlanEditor @key="day.Id" Plan="day.Plan" OnSave="SavePlan" /></details> }
         </div>
         <div class="day-actual" data-testid="day-actual"><h3>Факт</h3>
+            <MealPanel @key="day.Id" Day="day" Store="Store" Avatar="Avatar" Summary="_nutrition!" Editable="Editable" OnChanged="MealsChanged" />
             @if (day.State == ActivityDayState.Open && Date < Today) { <p class="note">День не завершён. Записи ниже ещё не подтверждены как итог дня.</p> }
             @if (summary.Events.IsEmpty) { <p>Активность пока не записана. Пустой день не означает отдых.</p> }
             @foreach (var entry in day.ActualEvents.Where(e => e.LinkedEntityId is null)) {
@@ -71,6 +76,13 @@
                 <section class="day-review" aria-label="Проверка дня"><h3>Проверка дня</h3>
                     <p>@(_outcome == ActivityDayState.RestDay ? "Подтвердите день отдыха без записанной активности." : _outcome == ActivityDayState.MissingData ? "Подтвердите, что достоверного итога нет. Существующие записи сохранятся, но день не станет фактом." : "Проверьте записанную активность и сравнение с планом выше.")</p>
                     @foreach (var e in _review.Summary.Events) { <p>@Label(e.Type) · @(e.Minutes is { } m ? $"{Fmt.N(m)} мин" : "время не указано") · @(e.ActiveKcal is { } k ? $"≈ {Fmt.N(k)} ккал" : "расход неизвестен")</p> }
+                    @if (_outcome != ActivityDayState.MissingData) {
+                        <NutritionSummaryView Summary="_review.Nutrition!" />
+                        @foreach (var meal in _review.Day.Meals) { <p>@(meal.Label ?? MealPanel.Label(meal.Type)): @string.Join(", ", meal.Entries.Select(e => e.Reference.Name))</p> }
+                        <label class="check"><input type="checkbox" @bind="_nutritionComplete" /> Всё съеденное за день внесено?</label>
+                        @if (_review.Day.Meals.IsEmpty) { <label class="check"><input type="checkbox" @bind="_noFood" /> Подтверждаю отдельно: еды за день не было</label> }
+                        <p class="note">Без подтверждения записи останутся частичными. Пустые записи не означают голодание.</p>
+                    }
                     <label class="check"><input type="checkbox" @bind="_confirmed" /> Подтверждаю итог дня</label>
                     <button class="btn primary" disabled="@(!_confirmed)" @onclick="Confirm">Подтвердить завершение</button>
                     <button class="btn" @onclick="() => _review = null">Вернуться и исправить</button>
@@ -92,6 +104,14 @@
     private ActivityDay? _day;
     private DailyActivitySummary? _summary;
     private ActivityDayReview? _review;
+    private ClosedNutritionSummary? _nutrition;
+    private bool _nutritionComplete, _noFood;
+    private NutritionTarget? Target {
+        get {
+            try { return ProfileStorage.LoadHypotheses()?.Current is { } plan ? ClosedDayNutritionAggregator.TargetFrom(plan.Plan.ToInput()) : null; }
+            catch (Exception e) when (e is ArgumentException or OverflowException) { return null; }
+        }
+    }
     private ActivityDayState _outcome;
     private string? _error, _lastPayload, _editing;
     private DateOnly _lastDate;
@@ -109,11 +129,12 @@
         _readFailed = true;
         try {
             _day = null; _summary = null;
-            if (_error is null && Avatar?.ActiveRevision is not null && Date <= Today) { _day = Store.Ensure(Avatar, Date, Today, DateTimeOffset.Now); var review = Store.Review(_day); _day = review.Day; _summary = review.Summary; }
+            if (_error is null && Avatar?.ActiveRevision is not null && Date <= Today) { _day = Store.Ensure(Avatar, Date, Today, DateTimeOffset.Now); var review = Store.Review(_day, Target); _day = review.Day; _summary = review.Summary; _nutrition = review.Nutrition; }
         } catch (Exception e) { _error = e.Message; }
         _lastDate = Date; _lastPayload = Store.Current.OriginalPayload; _lastSourceVersion = SourceVersion;
     }
     private async Task Changed(string? error) { if (error is not null) { _readFailed = false; _error = error; return; } _review = null; _adding = false; Refresh(); await OnChanged.InvokeAsync(); }
+    private Task MealsChanged() => Changed(null);
     private Task SavePlan(DayPlan plan) => Changed(Store.SavePlan(plan, _day, DateTimeOffset.Now));
     private void NewEvent() { _adding = true; _editing = null; _type = ActivityEventType.Walking; _km = _minutes = null; _steps = null; _exerciseId = _note = ""; }
     private void Edit(ActivityEvent e) { _adding = true; _editing = e.Id; _type = e.Type; _km = e.DistanceKm; _minutes = e.DurationMinutes; _steps = e.Steps; _exerciseId = e.ExerciseId ?? ""; _sets = e.Sets ?? 3; _reps = e.Reps ?? 20; _note = e.Note ?? ""; }
@@ -129,8 +150,8 @@
             await Changed(Store.SaveEvent(_day, entry, Today, now));
         } catch (Exception e) { _readFailed = false; _error = e.Message; }
     }
-    private void BeginReview(ActivityDayState outcome) { try { _outcome = outcome; _review = Store.Review(_day!); _confirmed = false; _error = null; } catch (Exception e) { _error = e.Message; } }
-    private Task Confirm() => Changed(_outcome == ActivityDayState.MissingData ? Store.Missing(_review!.Day, Today, DateTimeOffset.Now, _confirmed) : Store.Close(_review!, _outcome, Today, DateTimeOffset.Now, _confirmed));
+    private void BeginReview(ActivityDayState outcome) { try { _outcome = outcome; _review = Store.Review(_day!, Target); _confirmed = false; _nutritionComplete = _noFood = false; _error = null; } catch (Exception e) { _error = e.Message; } }
+    private Task Confirm() => Changed(_outcome == ActivityDayState.MissingData ? Store.Missing(_review!.Day, Today, DateTimeOffset.Now, _confirmed) : Store.Close(_review!, _outcome, Today, DateTimeOffset.Now, _confirmed, _nutritionComplete, _noFood));
     public static string Label(ActivityEventType type) => type switch { ActivityEventType.Walking => "Ходьба", ActivityEventType.Cardio => "Кардио", ActivityEventType.Strength => "Силовая", ActivityEventType.Mobility => "Разминка / растяжка", ActivityEventType.Spontaneous => "Зарядка / короткое упражнение", _ => "Другая активность" };
     private static string Unit(string unit) => unit switch { "km" => "км", "steps" => "шагов", _ => "мин" };
 }

@@ -1,0 +1,47 @@
+@using WorkoutCalculator.Activity
+@using WorkoutCalculator.Nutrition
+@using WorkoutCalculator.BodyModel.Avatars
+<section class="day-nutrition" aria-label="Фактическое питание">
+    <NutritionSummaryView Summary="Summary" />
+    @foreach (var meal in Day.Meals) {
+        <article class="meal-card" @key="meal.Id">
+            <h4>@(meal.Label ?? Label(meal.Type)) @(meal.ActualTime?.ToString("HH:mm"))</h4>
+            <p class="note">@(meal.PlannedSlotId is null ? "Вне плана" : "Связан с пунктом плана")</p>
+            @foreach (var entry in meal.Entries) { <p>@entry.Reference.Name · @NutritionSummaryView.N(entry.ActualGrams) г<br />@NutritionSummaryView.Values(entry.Calculate())</p> }
+            @if (Editable) {
+                <button class="btn" @onclick="() => Edit(meal)">Изменить приём пищи</button><button class="btn" @onclick="() => Remove(meal)">Удалить приём пищи</button>
+                <details><summary>Перенести на другую дату</summary><label>Дата переноса<input aria-label="Дата переноса приёма пищи" type="date" max="@DateTime.Now.ToString("yyyy-MM-dd")" value="@_moveDate" @onchange="e => _moveDate=e.Value?.ToString() ?? string.Empty" /></label><button class="btn" @onclick="() => Move(meal)">Перенести приём пищи</button></details>
+            }
+        </article>
+    }
+    @if (Editable) {
+        <button class="btn primary" @onclick="() => Edit(null)">Добавить приём пищи</button>
+        @if (_adding) { <MealEditor @key="_editKey" Day="Day" Existing="_editing" OnSave="Save" OnCancel="() => _adding=false" /> }
+    }
+    @if (_error is not null) { <p role="alert">@_error</p> }
+</section>
+@code {
+    [Parameter, EditorRequired] public ActivityDay Day { get; set; } = default!;
+    [Parameter, EditorRequired] public ActivityDayStore Store { get; set; } = default!;
+    [Parameter, EditorRequired] public ClosedNutritionSummary Summary { get; set; } = default!;
+    [Parameter] public bool Editable { get; set; }
+    [Parameter] public AvatarState? Avatar { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+    private bool _adding;
+    private MealEvent? _editing;
+    private string? _error;
+    private Guid _editKey;
+    private string _moveDate = "";
+    private void Edit(MealEvent? meal) { _editing=meal; _adding=true; _editKey=Guid.NewGuid(); _error=null; }
+    private async Task Save(MealEvent meal) { _error=Store.SaveMeal(Day,meal,DateOnly.FromDateTime(DateTime.Now),DateTimeOffset.Now); if (_error is null) { _adding=false; await OnChanged.InvokeAsync(); } }
+    private async Task Remove(MealEvent meal) { _error=Store.RemoveMeal(Day,meal.Id,DateTimeOffset.Now); if (_error is null) await OnChanged.InvokeAsync(); }
+    private async Task Move(MealEvent meal) {
+        try {
+            if (Avatar is null || !DateOnly.TryParseExact(_moveDate,"yyyy-MM-dd",System.Globalization.CultureInfo.InvariantCulture,System.Globalization.DateTimeStyles.None,out var date)) throw new ArgumentException("Выберите открытую дату для переноса.");
+            var now=DateTimeOffset.Now; var today=DateOnly.FromDateTime(now.Date);
+            var target=Store.Ensure(Avatar,date,today,now);
+            _error=Store.MoveMeal(Day,target,meal.Id,today,now); if (_error is null) { _adding=false; await OnChanged.InvokeAsync(); }
+        } catch (ArgumentException e) { _error=e.Message; }
+    }
+    public static string Label(MealType t) => t switch { MealType.Breakfast => "Завтрак", MealType.Lunch => "Обед", MealType.Dinner => "Ужин", MealType.Snack => "Перекус", _ => "Другое" };
+}

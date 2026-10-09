@@ -1,6 +1,6 @@
 # Структура продукта: целевой lifecycle и текущая реализация
 
-## Источники истины Phase 3
+## Источники истины Phase 3 / 4
 
 ActivityDay реализован поверх существующих журналов, без новых ForecastInput/ForecastSnapshot полей. `DayPlan is expectation; ClosedActivityDay is fact.` Полная [матрица и state machine](ACTIVITY_DAY.md).
 
@@ -11,7 +11,7 @@ ActivityDay реализован поверх существующих журн�
 | Силовая / кардио | Existing TrainingSession / LoggedWorkout; ActivityDay хранит reference |
 | Подтверждённая дневная сводка | Frozen ClosedActivityDay; underlying journal edits закрытой даты запрещены |
 
-«Активность» открывает сегодня; календарь показывает пустые прошлые и будущие даты. План отделён от факта. Шаблон доступен в «Профиле». Новые события/close не вызывают shape builder; карта дня использует прежний muscle engine/atlas. Старые dated workouts индексируются как Open/needs review, не Completed. Phase 4+ остаётся планом.
+«Активность» открывает сегодня; календарь показывает пустые прошлые и будущие даты. План отделён от факта. Шаблон доступен в «Профиле». Новые события/close не вызывают shape builder; карта дня использует прежний muscle engine/atlas. Старые dated workouts индексируются как Open/needs review, не Completed. Phase 4 Nutrition реализована: `DayPlan.MealSlots` — ожидание; `ActivityDay.Meals` — фактические snapshots продуктов и съеденные граммы; `ClosedActivityDay.Nutrition` — frozen evidence. `NutritionTarget` — read-only view существующего сохранённого Forecast plan, нового target store нет. Schema 2 envelope атомарно владеет едой и активностью. [Полная source-of-truth matrix](NUTRITION_V1.md#model-and-ownership). Phase 5+ остаётся планом.
 
 ## Источники истины после Phase 1
 
