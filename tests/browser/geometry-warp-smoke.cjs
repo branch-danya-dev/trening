@@ -74,6 +74,18 @@ async function artifacts(p){return p.evaluate(async()=>{const m=await import(new
   await restoredContext.setOffline(true);
   if(process.env.GEOMETRY_PWA){await restored.reload();await ready(restored);await restored.evaluate(async()=>{await(await import(new URL('js/photos.js',document.baseURI))).unlock('1234');});await tab(restored,'Прогресс');}
   await create(restored);await restoredContext.setOffline(false);
+  if(process.env.GEOMETRY_ANATOMICAL){
+   const snapshot=await p.evaluate(()=>Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('workoutcalc.')).map(k=>[k,localStorage.getItem(k)])));
+   for(const fault of ['missing','corrupt']){
+    const fc=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'}),fp=await fc.newPage();fp.on('pageerror',e=>errors.push(e.message));
+    await fp.clock.setFixedTime(new Date('2026-10-09T09:00:00Z'));
+    await fc.route('**/makehuman-anatomical-muscle-fields-v1.bin',r=>r.fulfill({status:fault==='missing'?404:200,body:fault==='missing'?'':'corrupt',contentType:'application/octet-stream'}));
+    await fp.addInitScript(s=>{for(const [k,v]of Object.entries(s))localStorage.setItem(k,v);},snapshot);await fp.goto(url);await ready(fp);await tab(fp,'Прогресс');
+    await button(fp,'Показать будущую форму в 3D');await fp.getByRole('alert').filter({hasText:'точный повтор конечной формы временно недоступен'}).waitFor();
+    assert.equal(await fp.evaluate(k=>localStorage.getItem(k),key),snapshot[key],'unavailable asset cannot rewrite issued hypothesis');
+    await tab(fp,'Модель');await ready(fp);await fc.close();
+   }
+  }
   // Exact source deletion cascades in the same IndexedDB transaction, hypothesis survives.
   await restored.evaluate(async id=>{await(await import(new URL('js/photos.js',document.baseURI))).deleteSession(id);},first.request.sourcePhotoSessionId);assert.equal((await artifacts(restored)).length,0);await restored.reload();await ready(restored);await tab(restored,'Прогресс');await restored.getByText('Для этой гипотезы нет подходящего исходного фото, связанного с её исходным аватаром.',{exact:true}).waitFor();await button(restored,'Показать будущую форму в 3D');await restored.getByTestId('geometry-warp').screenshot({path:path.join(out,'unsupported-390.png')});
   // Opt-in diagnostics contain no pixels, photo paths, or local refs.

@@ -35,6 +35,7 @@
         <button role="tab" aria-selected="@(_tab == Tab.Profile)" class="@Css.On(_tab == Tab.Profile)" @onclick="OpenProfile">Профиль</button>
     </nav>
     @if (_avatarError is not null) { <p class="avatar-error" role="alert">@_avatarError</p> }
+    @if (_observedGeometryError is not null) { <p class="avatar-error" role="alert">@_observedGeometryError</p> }
     <div class="main">
         @if (_tab != Tab.Workout && _onboarding is null) { <ActivityDayReminder Avatar="Avatar" OnOpen="OpenActivity" /> }
         <section class="viewport" aria-label="3D-модель">
