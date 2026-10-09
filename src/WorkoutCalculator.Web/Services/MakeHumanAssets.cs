@@ -12,6 +12,7 @@ public sealed record MakeHumanAssets(MakeHumanModel Model, MuscleAtlas? Atlas, s
         var total = Stopwatch.StartNew();
         var modelTask = http.GetByteArrayAsync($"data/{MakeHumanData.FileName}?v={MakeHumanData.Version}");
         var atlasTask = DownloadAtlas(http);
+        var anatomyTask = DownloadAnatomy(http);
         var bytes = await modelTask;
         var model = new MakeHumanModel(MakeHumanData.Read(bytes));
         var (atlasBytes, error) = await atlasTask;
@@ -25,6 +26,9 @@ public sealed record MakeHumanAssets(MakeHumanModel Model, MuscleAtlas? Atlas, s
             Console.WriteLine($"Muscle atlas: {atlasBytes.Length} bytes, source hash {sourceHashMs:F1} ms, " +
                 $"read/validate {read.Elapsed.TotalMilliseconds - sourceHashMs:F1} ms, assets ready {total.Elapsed.TotalMilliseconds:F1} ms.");
             model.SetMuscleAtlas(atlas);
+            var anatomy=await anatomyTask;
+            var anatomyRead=Stopwatch.StartNew();model.SetAnatomicalFields(anatomy);
+            Console.WriteLine($"Anatomical fields: {anatomy?.Length??0} bytes, validation {anatomyRead.Elapsed.TotalMilliseconds:F1} ms, available={model.AnatomyError is null}; default=procedural.");
             return new(model, atlas, null);
         }
         catch (Exception e) when (e is InvalidDataException or JSException)
@@ -37,5 +41,10 @@ public sealed record MakeHumanAssets(MakeHumanModel Model, MuscleAtlas? Atlas, s
     {
         try { return (await http.GetByteArrayAsync($"data/{MuscleAtlasBinary.FileName}"), null); }
         catch (HttpRequestException) { return (null, "Карта мышц не загрузилась. Обновите страницу; анимация доступна."); }
+    }
+    private static async Task<byte[]?> DownloadAnatomy(HttpClient http)
+    {
+        try{return await http.GetByteArrayAsync($"data/{AnatomicalMuscleFields.FileName}");}
+        catch(HttpRequestException){return null;}
     }
 }

@@ -35,6 +35,7 @@
         <button role="tab" aria-selected="@(_tab == Tab.Profile)" class="@Css.On(_tab == Tab.Profile)" @onclick="OpenProfile">Профиль</button>
     </nav>
     @if (_avatarError is not null) { <p class="avatar-error" role="alert">@_avatarError</p> }
+    @if (_observedGeometryError is not null) { <p class="avatar-error" role="alert">@_observedGeometryError</p> }
     <div class="main">
         @if (_tab != Tab.Workout && _onboarding is null) { <ActivityDayReminder Avatar="Avatar" OnOpen="OpenActivity" /> }
         <section class="viewport" aria-label="3D-модель">
@@ -113,6 +114,10 @@
             @if (_mode is ViewMode.Forecast or ViewMode.Compare && _forecastBody is MakeHumanBody { MuscleLayerLimited: true })
             {
                 <div class="view-error" role="status">Локальная форма ограничена: заданные обхваты имеют приоритет.</div>
+            }
+            @if (_mode is ViewMode.Forecast or ViewMode.Compare && _forecastBody is MakeHumanBody { MuscleGeometryWarning: { } anatomyWarning })
+            {
+                <div class="view-error" role="status">@anatomyWarning</div>
             }
             @if (_videoError is not null)
             {
@@ -620,9 +625,10 @@
         }
     }
 
-    private MakeHumanBody BuildMakeHuman(BodyProfile profile, ref MakeHumanFit? fit, bool fitVolume, MuscleMorphState? muscle = null)
+    private MakeHumanBody BuildMakeHuman(BodyProfile profile, ref MakeHumanFit? fit, bool fitVolume, MuscleMorphState? muscle = null,
+        WorkoutCalculator.BodyModel.Muscles.MuscleGeometrySelection? muscleGeometry=null)
     {
-        var body = _mh!.Build(profile, fit, fitVolume, muscle);
+        var body = _mh!.Build(profile, fit, fitVolume, muscle,muscleGeometry:muscleGeometry);
         fit = body.Fit;
         return body;
     }
@@ -667,7 +673,8 @@
         }
         IBodyShape body = UseMakeHuman
             ? BuildMakeHuman(shapeProfile, ref _fitForecast, fitVolume: true,
-                muscle: _exercise.Atlas is not null ? muscle?.Weeks[ShapeWeek].Morph : null)
+                muscle: _exercise.Atlas is not null ? muscle?.Weeks[ShapeWeek].Morph : null,
+                muscleGeometry:_personalized.Display?.MuscleGeometry)
             : Mannequin.Build(shapeProfile);
         Show("forecast", body);
         _forecastBody = body;

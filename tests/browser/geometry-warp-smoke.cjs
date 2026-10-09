@@ -3,7 +3,7 @@ const {sourceFixture}=require('./geometry-fixture.cjs');
 const url=process.env.APP_URL||'http://127.0.0.1:5256',key='workoutcalc.observedHypotheses.v1';
 const button=(p,name)=>p.getByRole('button',{name,exact:true}).click(),tab=(p,name)=>p.getByRole('tab',{name,exact:true}).click();
 const ready=p=>p.waitForSelector('[data-model-ready="true"]',{timeout:60000});
-async function seed(p,fixture){
+async function seed(p,fixture,out){
  await p.clock.setFixedTime(new Date('2026-09-19T08:59:00Z'));
  await p.addInitScript(seed=>{if(!localStorage.getItem('workoutcalc.avatarDomain.v1')){localStorage.setItem('workoutcalc.avatarDomain.v1',JSON.stringify(seed));localStorage.setItem('workoutcalc.body.v1',JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57}));}},fixture.seed);
  await p.goto(url);await ready(p);await p.evaluate('window.sourceFixture='+sourceFixture.toString());
@@ -18,14 +18,21 @@ async function seed(p,fixture){
  },fixture.cases[0]);
  await p.clock.setFixedTime(new Date('2026-10-09T09:00:00Z'));await p.reload();await ready(p);
  for(const date of ['2026-10-06','2026-10-07','2026-10-08']){await tab(p,'Активность');await button(p,'День '+date);await button(p,'Добавить приём пищи');await p.getByLabel('Блюдо или продукт 1',{exact:true}).fill('Benchmark food');await p.getByLabel('Калории, ккал 1',{exact:true}).fill('200');await p.getByLabel('Съедено, г 1',{exact:true}).fill('1000');await button(p,'Сохранить приём пищи');await button(p,'День отдыха');await p.getByLabel('Всё съеденное за день внесено?').check();await p.getByLabel('Подтверждаю итог дня').check();await button(p,'Подтвердить завершение');}
- await tab(p,'План');await button(p,'Сохранить гипотезу');await p.locator('[data-hypothesis-state="Active"]').waitFor();await tab(p,'Прогресс');await p.getByTestId('geometry-warp').waitFor();
+ await tab(p,'План');await button(p,'Сохранить гипотезу');await p.locator('[data-hypothesis-state="Active"]').waitFor();
+ // Fresh synthetic test fixture only: exercise both pre-Stage-B absent metadata and a pinned anatomical endpoint.
+ const input=path.resolve(out,'issued-fixture.json'),output=path.resolve(out,'frozen-fixture.json');
+ await fs.writeFile(input,await p.evaluate(k=>localStorage.getItem(k),key));
+ const freeze=require('node:child_process').spawnSync('dotnet',['run','-c','Release','--no-build','--project','tools/WorkoutCalculator.AnatomicalMorphBenchmark','--','--freeze-fixture',input,output,process.env.GEOMETRY_ANATOMICAL?'anatomical':'legacy'],{encoding:'utf8',timeout:60000});
+ assert.equal(freeze.status,0,freeze.stdout+freeze.stderr);
+ await p.evaluate(({key,raw})=>localStorage.setItem(key,raw),{key,raw:await fs.readFile(output,'utf8')});
+ await p.reload();await ready(p);await tab(p,'Прогресс');await p.getByTestId('geometry-warp').waitFor();
 }
 async function create(p){await button(p,'Создать визуализацию');await p.locator('[data-testid="geometry-warp"][aria-busy="false"]').waitFor();assert.ok(await p.getByTestId('render-output').count(),await p.getByTestId('geometry-warp').innerText());}
 async function artifacts(p){return p.evaluate(async()=>{const m=await import(new URL('js/render-store.js',document.baseURI));return m.listArtifacts();});}
 (async()=>{
  const fixture=JSON.parse(await fs.readFile(process.env.GEOMETRY_FIXTURES||'work/geometry-fixtures.json','utf8')),out=process.env.GEOMETRY_OUTPUT||'work/geometry-evidence';await fs.mkdir(out,{recursive:true});
  const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,args:['--enable-unsafe-swiftshader','--use-angle=swiftshader']});let p;const errors=[],network=[],layout=[];
- try{const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'});p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));await seed(p,fixture);
+ try{const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'});p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));await seed(p,fixture,out);
   await button(p,'Показать будущую форму в 3D');p.on('request',r=>network.push({method:r.method(),url:r.url(),body:r.postData()}));
   await create(p);let saved=await artifacts(p);assert.equal(saved.length,1);assert.equal(saved[0].result.quality,'Accepted');assert.equal(saved[0].synthetic,true);const first=saved[0];
   assert.equal(network.filter(r=>/^https?:/.test(r.url)).length,0,JSON.stringify(network)); // blob: image display has no transport.
@@ -67,6 +74,18 @@ async function artifacts(p){return p.evaluate(async()=>{const m=await import(new
   await restoredContext.setOffline(true);
   if(process.env.GEOMETRY_PWA){await restored.reload();await ready(restored);await restored.evaluate(async()=>{await(await import(new URL('js/photos.js',document.baseURI))).unlock('1234');});await tab(restored,'Прогресс');}
   await create(restored);await restoredContext.setOffline(false);
+  if(process.env.GEOMETRY_ANATOMICAL){
+   const snapshot=await p.evaluate(()=>Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('workoutcalc.')).map(k=>[k,localStorage.getItem(k)])));
+   for(const fault of ['missing','corrupt']){
+    const fc=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'}),fp=await fc.newPage();fp.on('pageerror',e=>errors.push(e.message));
+    await fp.clock.setFixedTime(new Date('2026-10-09T09:00:00Z'));
+    await fc.route('**/makehuman-anatomical-muscle-fields-v1.bin',r=>r.fulfill({status:fault==='missing'?404:200,body:fault==='missing'?'':'corrupt',contentType:'application/octet-stream'}));
+    await fp.addInitScript(s=>{for(const [k,v]of Object.entries(s))localStorage.setItem(k,v);},snapshot);await fp.goto(url);await ready(fp);await tab(fp,'Прогресс');
+    await button(fp,'Показать будущую форму в 3D');await fp.getByRole('alert').filter({hasText:'точный повтор конечной формы временно недоступен'}).waitFor();
+    assert.equal(await fp.evaluate(k=>localStorage.getItem(k),key),snapshot[key],'unavailable asset cannot rewrite issued hypothesis');
+    await tab(fp,'Модель');await ready(fp);await fc.close();
+   }
+  }
   // Exact source deletion cascades in the same IndexedDB transaction, hypothesis survives.
   await restored.evaluate(async id=>{await(await import(new URL('js/photos.js',document.baseURI))).deleteSession(id);},first.request.sourcePhotoSessionId);assert.equal((await artifacts(restored)).length,0);await restored.reload();await ready(restored);await tab(restored,'Прогресс');await restored.getByText('Для этой гипотезы нет подходящего исходного фото, связанного с её исходным аватаром.',{exact:true}).waitFor();await button(restored,'Показать будущую форму в 3D');await restored.getByTestId('geometry-warp').screenshot({path:path.join(out,'unsupported-390.png')});
   // Opt-in diagnostics contain no pixels, photo paths, or local refs.

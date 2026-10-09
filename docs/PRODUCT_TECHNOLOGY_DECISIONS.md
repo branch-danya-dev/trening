@@ -96,3 +96,8 @@ Subscription revenue = U × subscriptionPrice. Если исключительн
 ## Что намеренно отложено
 
 BodyParts3D muscle fields, DeltaShape/Pseudo-DXA — отдельные validated R&D stages; food dictionaries/recipes/barcodes — расширение nutrition; meditation/journal/sleep — ActivityEvent extension без UX сейчас. Автономное построение следующего дня/coach допускается только после проверки Avatar/Forecast: текущий выбор — standard template, user settings и advisory recommendations.
+
+
+## Anatomical muscle fields — Stage B
+
+Stage B anatomy dependency (2026-10-09): BodyParts3D IS-A Release 4.0 under the current official CC BY 4.0 grant is pinned by SHA-256; only a 27,918-byte adapted sidecar is bundled, with [attribution](THIRD_PARTY_ASSETS.md). Offline builder, no remote CI dependency or browser OBJ processing. `muscle-field-anatomical-1` is research opt-in via frozen descriptors; procedural v1 remains default because material plausibility improvement has not passed GO. No Z-Anatomy, new physiology, GPU/API or Phase 8 work. [Details](ANATOMICAL_MUSCLE_FIELDS.md).

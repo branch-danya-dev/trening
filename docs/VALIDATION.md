@@ -224,3 +224,8 @@ Opt-in «Check-ins / наблюдения прогресса» adds pseudonymize
 Отдельная галочка «Диагностика геометрической визуализации» добавляет synthetic renderer records: псевдонимы render/Hypothesis/source и structural hashes, view, renderer/alignment/condition versions, quality metrics/state/reasons, timings/device capability. Это структурные ошибки, не проценты точности человека или прогноза. Source/generated image bytes, local blob URLs и raw refs не включаются. Photo opt-in остаётся отдельным и выключенным по умолчанию; он перечисляет factual originals, не `renderArtifacts`. Full backup не предназначен для validation exchange.
 
 Synthetic benchmark, негативные случаи, privacy/network и manual real-photo protocol: [GEOMETRY_WARP](GEOMETRY_WARP.md), [evidence](evidence/geometry-warp/README.md). Контролируемый MakeHuman benchmark не доказывает точность на реальных фотографиях.
+
+
+## Anatomical muscle fields — Stage B
+
+Stage B anatomical validation (2026-10-09): [evidence](evidence/anatomical-muscles/README.md) compares identity/procedural/anatomical in 488 cases across sexes, body sizes, posture, isolated positive/negative groups and actual training programs. It reports displacement, centroid, symmetry, girths, flux/volume, protected/joint regions, triangle/edge proxies and timings. Zero protected displacement and bounded extra girth error are structural results, not longitudinal-human accuracy. Five-view images do not yet establish material plausibility improvement: default remains NO-GO. Physical-phone and independent anatomical registration validation remain open.

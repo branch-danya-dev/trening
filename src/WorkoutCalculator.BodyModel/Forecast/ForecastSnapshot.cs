@@ -19,6 +19,8 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
 {
     public CompositionMetadata? Composition { get; init; }
     public TrainingAwareForecast? Muscle { get; init; }
+    [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]
+    public Muscles.MuscleGeometrySelection? MuscleGeometry { get; init; }
     /// <summary>Optional frozen origin link; old snapshots replay without an Avatar domain.</summary>
     public Avatars.AvatarForecastOrigin? AvatarOrigin { get; init; }
     public BodySnapshot? StartFact { get; init; }
@@ -74,7 +76,7 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
             JsonSerializer.Serialize(start, ForecastJson.Default.BodyProfile), JsonSerializer.Serialize(input, ForecastJson.Default.ForecastInput),
             revision?.Id, calibration, Freeze(baseline, null), Freeze(expected, calibration), expected.Warnings.ToImmutableArray(),
             expected.MaintenanceKcalPerDay, expected.CardioKcalPerSession, expected.StrengthKcalPerSession)
-        { Composition = baseline.Composition, StartFact = startFact, HypothesisId = hypothesisId, HypothesisName = hypothesisName, Reconstructed = reconstructed, ModelParameters = ForecastModelParameters.Capture(modelVersion) };
+        { MuscleGeometry=Muscles.MuscleGeometrySelection.Procedural, Composition = baseline.Composition, StartFact = startFact, HypothesisId = hypothesisId, HypothesisName = hypothesisName, Reconstructed = reconstructed, ModelParameters = ForecastModelParameters.Capture(modelVersion) };
         if (input.StrengthTraining && input.StrengthProgram is { Sessions.Length: > 0 } program)
         {
             var issuedDate = DateOnly.FromDateTime(now.Date);
@@ -101,6 +103,7 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
 
     public void Validate()
     {
+        MuscleGeometry?.Validate();
         AvatarOrigin?.Validate();
         if (!Guid.TryParse(Id, out var id) || id == Guid.Empty || CreatedAt == default || StartDate == default ||
             string.IsNullOrWhiteSpace(ModelVersion) || ModelVersion.Length > 100 || UncertaintyVersion != "expected-range-1" ||

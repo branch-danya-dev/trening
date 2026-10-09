@@ -280,3 +280,8 @@ no within-week recovery timing; no exercise-specific weight reference estimation
 calf girth equation; procedural atlas targets; coarse shared girth response; sparse local-data
 calibration; no clinical or real-world predictive validation. Actual training and manual longitudinal
 girths improve evidence, but cannot fully separate fat/water/muscle or adherence from response.
+
+
+## Anatomical muscle fields — Stage B
+
+Stage B geometry-only extension (2026-10-09): anatomical v1 changes where a saved RelativeGrowth state displaces the surface. It cannot alter MuscleAdaptationForecast, regional lean budgets, stimulus or composition values. Optional frozen provider/hash metadata defaults to procedural v1 for new forecasts and stays absent for old archives. BodyParts3D volume is never treated as factual muscle kg. The anatomical research provider remains NO-GO for default; [algorithm, safety and evidence](ANATOMICAL_MUSCLE_FIELDS.md).

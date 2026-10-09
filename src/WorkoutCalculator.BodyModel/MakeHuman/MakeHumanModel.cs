@@ -177,6 +177,23 @@ public sealed class MakeHumanModel
     public MakeHumanData Data { get; }
     private MuscleMorphFields? _muscleFields;
     public void SetMuscleAtlas(MuscleAtlas atlas) => _muscleFields ??= new MuscleMorphFields(Data, atlas);
+    private AnatomicalMuscleFields? _anatomicalFields;
+    public string? AnatomyError { get; private set; }
+    public bool SetAnatomicalFields(byte[]? bytes)
+    {
+        try
+        {
+            if(bytes is null)throw new InvalidDataException("Missing sidecar.");
+            _anatomicalFields=AnatomicalMuscleFields.Read(bytes,Data,AnatomicalAsset.Sha256,_muscleFields);
+            AnatomyError=null;return true;
+        }
+        catch(InvalidDataException)
+        {
+            _anatomicalFields=null;AnatomyError="Анатомическая карта недоступна или повреждена; используется процедурная форма мышц.";return false;
+        }
+    }
+    public bool HasMuscleGeometry(MuscleGeometrySelection? selection) => selection is null || selection == MuscleGeometrySelection.Procedural ||
+        (selection.ProviderVersion==AnatomicalMuscleFields.ModelVersion && selection.AssetSha256==_anatomicalFields?.AssetHash);
 
     /// <summary>Обхват профиля, которому соответствует уровень; null — уровня нет среди замеров.</summary>
     public static Girth? GirthOf(FitLevel level) => level switch
@@ -206,8 +223,17 @@ public sealed class MakeHumanModel
     /// слой как в <paramref name="warm"/>, не больше двух проходов подгонки.
     /// </param>
     public MakeHumanBody Build(BodyProfile profile, MakeHumanFit? warm = null, bool fitVolume = true, MuscleMorphState? muscle = null,
-        AvatarShapeCorrectionProfile? corrections = null, MakeHumanBody? correctionBaseline = null)
+        AvatarShapeCorrectionProfile? corrections = null, MakeHumanBody? correctionBaseline = null, MuscleGeometrySelection? muscleGeometry = null)
     {
+        muscleGeometry?.Validate();
+        bool anatomical=muscleGeometry?.ProviderVersion==AnatomicalMuscleFields.ModelVersion;
+        string? geometryWarning=null;
+        IMuscleMorphFieldProvider? provider=_muscleFields;
+        if(anatomical)
+        {
+            if(HasMuscleGeometry(muscleGeometry))provider=_anatomicalFields;
+            else geometryWarning=AnatomyError ?? "Закреплённая версия анатомической карты недоступна; используется процедурная форма мышц.";
+        }
         var p = profile.Clone();
         var fit = warm?.Clone() ?? new MakeHumanFit();
         var macros = MakeHumanMapping.From(p);
@@ -234,8 +260,8 @@ public sealed class MakeHumanModel
         // Muscle fields live in canonical rest coordinates. Fit/volume reconciliation below has final authority.
         if (muscle is not null && muscle.Groups.Values.Any(v => v != 0))
         {
-            if (_muscleFields is null) throw new InvalidOperationException("Muscle atlas not loaded.");
-            _muscleFields.Apply(pos, muscle, p.HeightCm);
+            if (provider is null && !anatomical) throw new InvalidOperationException("Muscle atlas not loaded.");
+            provider?.Apply(pos, muscle, p.HeightCm);
         }
         var posed = cache.Rig?.Pose(pos) ?? pos;
 
@@ -291,6 +317,19 @@ public sealed class MakeHumanModel
             }
             state.Invalidate();
         }
+        MakeHumanBody? muscleBaseline=null;
+        if(anatomical && muscle is not null && muscle.Groups.Values.Any(v=>v!=0))
+        {
+            muscleBaseline=Build(profile,warm,fitVolume,corrections:corrections,correctionBaseline:correctionBaseline);
+            var protection=new AvatarShapeFields(Data);
+            for(int v=0;v<Data.BodyVertexCount;v++)
+            {
+                double keep=MuscleFieldProtection.IsProtected(Data,v)?0:protection.Keep(v);
+                if(keep>=1)continue;
+                for(int k=0;k<3;k++){int i=v*3+k;posed[i]=muscleBaseline.Mesh.Positions[i]+keep*(posed[i]-muscleBaseline.Mesh.Positions[i]);}
+            }
+            state.Invalidate();
+        }
         var results = state.Results();
         var body = new float[Data.BodyVertexCount * 3];
         for (int i = 0; i < body.Length; i++) body[i] = (float)posed[i];
@@ -301,22 +340,35 @@ public sealed class MakeHumanModel
             Parts = [new MeshPart("Body", 0, Data.Triangles.Length)],
             Rings = [],
         };
+        if(muscleBaseline is not null)
+        {
+            Vec3 V(float[] ps,int v)=>new(ps[v*3],ps[v*3+1],ps[v*3+2]);
+            var before=muscleBaseline.Mesh.Positions;bool unsafeTriangle=false;
+            for(int t=0;t<Data.Triangles.Length;t+=3)
+            {
+                int a=Data.Triangles[t],b=Data.Triangles[t+1],c=Data.Triangles[t+2];
+                var n=(V(before,b)-V(before,a)).Cross(V(before,c)-V(before,a));var q=(V(body,b)-V(body,a)).Cross(V(body,c)-V(body,a));
+                if(n.Length>1e-10 && n.Dot(q)<=.05*n.Dot(n)){unsafeTriangle=true;break;}
+            }
+            if(unsafeTriangle){muscleBaseline.MuscleLayerLimited=true;muscleBaseline.MuscleGeometryWarning="Локальная мышечная форма ограничена для сохранения устойчивой поверхности.";return muscleBaseline;}
+        }
 
         // An inconsistent extreme profile can exhaust the fitting targets. Known girths win:
         // only in that case compare with the unlayered body and drop the local layer if it worsens a constraint.
         if (fitVolume && muscle is not null && muscle.Groups.Values.Any(v => v != 0) &&
             results.Any(r => r.FromInput && (!double.IsFinite(r.GotCm) || Math.Abs(r.GotCm - r.WantedCm) > .1)))
         {
-            var baseline = Build(profile, warm, fitVolume);
+            var baseline = muscleBaseline ?? Build(profile, warm, fitVolume);
             if (results.Any(r => r.FromInput && (!double.IsFinite(r.GotCm) ||
                 Math.Abs(r.GotCm - r.WantedCm) > Math.Abs(baseline.Results.Single(b => b.Level == r.Level).GotCm - r.WantedCm) + .1)))
             {
                 baseline.MuscleLayerLimited = true;
+                if(anatomical)baseline.MuscleGeometryWarning="Локальная мышечная форма ограничена для сохранения заданных обхватов.";
                 return baseline;
             }
         }
         return new MakeHumanBody(p, mesh, results, macros, fit, state.Measurements, () => Tapes(posed, p),
-            name => Joint(posed, name), () => new BodyGeometry(mesh, _runtimeRig.Value?.Bind(posed)));
+            name => Joint(posed, name), () => new BodyGeometry(mesh, _runtimeRig.Value?.Bind(posed))) { MuscleGeometryWarning=geometryWarning };
     }
 
     /// <summary>Ленты по готовой сетке: выпуклые оболочки сечений на уровнях обхватов профиля.</summary>
@@ -764,6 +816,7 @@ public sealed class MakeHumanBody : IBodyShape
     public Vec3 Landmark(string name) => _landmark(name);
 
     public bool MuscleLayerLimited { get; internal set; }
+    public string? MuscleGeometryWarning { get; internal set; }
     public BodyProfile Profile { get; }
     public BodyMesh Mesh { get; }
     /// <summary>Rig считается один раз и только для отображения; расчёт подгонки/прогноза не дорожает.</summary>
