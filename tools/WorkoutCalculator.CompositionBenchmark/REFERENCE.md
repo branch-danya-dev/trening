@@ -18,6 +18,8 @@ No web calculator scraping. Source discovery is manual/offline; CI only runs com
 
 Horizons 1/2/4/8/12/24 weeks. Report signed bias, MAE, P95, max for weight (= delta-weight error), fat, lean, glycogen+water, ECF-inclusive weight and last-week weight-change error. Also save mean predicted absolute/delta weight. Strata: sex, BMI, energy band, strength, known carbs, high activity, and horizon category. No outcome-based exclusions. Reference fat-floor crossings are counted. Strength/surplus disagreements are expected because the reference has no hypertrophy model. Agreement does not establish prospective accuracy.
 
+Fingerprint canonicalization: derived floating-point input fields are rounded to six decimal places (ToEven), matching report precision, before hashing compact invariant JSON. Native Windows/Linux math libraries can differ in the last bits of derived doubles. The harness-first commit used raw doubles; its original Windows hash was `327CF83C2A7297554A6D8CA659A4B6F4ADF2DBD3CE76D34C47607861B8CCA955`. This serialization correction changes only the fingerprint, never sampling, input values, reference equations or benchmark scores. Reports also use explicit LF line endings.
+
 ## Sodium prototype
 
 `HallReference.SodiumOverlay` solves equation 2 analytically and changes scale water only; it never feeds tissue physics. Research tests cover equal sodium, increase/decrease, carb interaction and saturation. **NO-GO production:** habitual sodium and hydration are unobserved; a plausible equation and synthetic agreement alone cannot show user benefit. Runtime accepts optional sodium metadata but does not act on it or expose a sodium editor.

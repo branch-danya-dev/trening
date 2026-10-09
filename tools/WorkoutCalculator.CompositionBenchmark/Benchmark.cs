@@ -21,9 +21,16 @@ public static class Benchmark
     public static BenchmarkReport Run(IReadOnlyDictionary<string, Func<Scenario, ForecastResult>> engines, int count = Scenarios.Count)
     {
         var scenarios = Scenarios.Generate(count);
-        var canonical = scenarios.Select(s => new { s.Id, s.Profile.Sex, s.Profile.Age, s.Profile.HeightCm, s.Profile.WeightKg,
-            s.Profile.BodyFatPercent, s.Input.ActivityFactor, s.Input.IntakeKcalPerDay, s.Input.StrengthTraining,
-            s.BaselineIntake, s.Protein, s.Carbs, s.Fat, s.Sodium, s.BaselineCarbs, s.ActivityEnergy, s.EnergyBand });
+        // Native math libraries may differ in last-bit double results. Fingerprint inputs at
+        // the report's declared 1e-6 precision; do not change the scenario or engine inputs.
+        double? Canonical(double? value) => value is { } v ? Round(v) : null;
+        var canonical = scenarios.Select(s => new { s.Id, s.Profile.Sex, s.Profile.Age,
+            HeightCm = Canonical(s.Profile.HeightCm), WeightKg = Canonical(s.Profile.WeightKg),
+            BodyFatPercent = Canonical(s.Profile.BodyFatPercent), ActivityFactor = Canonical(s.Input.ActivityFactor),
+            IntakeKcalPerDay = Canonical(s.Input.IntakeKcalPerDay), s.Input.StrengthTraining,
+            BaselineIntake = Canonical(s.BaselineIntake), Protein = Canonical(s.Protein), Carbs = Canonical(s.Carbs),
+            Fat = Canonical(s.Fat), Sodium = Canonical(s.Sodium), BaselineCarbs = Canonical(s.BaselineCarbs),
+            ActivityEnergy = Canonical(s.ActivityEnergy), s.EnergyBand });
         string hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(canonical))));
         var rows = new List<Row>(); int floor = 0;
         foreach (var s in scenarios)

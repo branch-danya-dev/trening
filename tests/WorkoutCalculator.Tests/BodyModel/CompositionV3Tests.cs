@@ -198,7 +198,7 @@ public class CompositionV3Tests
         var r = Benchmark.Run(new Dictionary<string, Func<Scenario, ForecastResult>> {
             ["legacy"] = s => ForecastEngine.RunVersion(s.Profile, s.Input, ForecastEngine.LegacyModelVersion),
             ["v3"] = s => ForecastEngine.Run(s.Profile, s.RefinedInput()) });
-        Assert.Equal("327CF83C2A7297554A6D8CA659A4B6F4ADF2DBD3CE76D34C47607861B8CCA955", r.ScenarioSha256);
+        Assert.Equal("69ACB731B555A862EE2F2EFC1BD201FABF700372A769E8C376E8E234BBEA56C8", r.ScenarioSha256);
         Assert.All(r.Summaries.Where(x => x.Engine == "v3"), x => {
             Assert.InRange(x.WeightKg.Maximum, 0, 15); Assert.InRange(x.WeightKg.Mae, 0, 5);
         });

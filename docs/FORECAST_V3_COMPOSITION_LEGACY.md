@@ -1,7 +1,7 @@
 # Forecast v3 composition benchmark (generated)
 
 Reference `hall-2011-appendix-rk4-1`; baseline main `471449780756f091234849d3055bd1e149f9312e`.
-4096 scenarios; LCG seed 20261009; scenario SHA-256 `327CF83C2A7297554A6D8CA659A4B6F4ADF2DBD3CE76D34C47607861B8CCA955`.
+4096 scenarios; LCG seed 20261009; scenario SHA-256 `69ACB731B555A862EE2F2EFC1BD201FABF700372A769E8C376E8E234BBEA56C8`.
 
 Reproduce: `dotnet run -c Release --project tools/WorkoutCalculator.CompositionBenchmark -- --legacy-only --check`. Use `--write` to regenerate. No network is used. See tools/WorkoutCalculator.CompositionBenchmark/REFERENCE.md for scope, equations and assumptions.
 

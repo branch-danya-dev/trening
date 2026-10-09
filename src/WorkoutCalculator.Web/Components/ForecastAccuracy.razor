@@ -136,8 +136,10 @@
     [Parameter] public EventCallback OnSave { get; set; }
     [Parameter] public EventCallback OnNew { get; set; }
     [Parameter] public EventCallback<string?> OnSelect { get; set; }
-    private ForecastCalibrationProfile Calibration => State.CurrentRevision?.Profile ?? State.Display?.Calibration ?? new();
-    private BacktestComparison? WeightScore => State.Backtest.Comparisons.Where(c => c.Metric == ForecastEvaluationService.Weight)
+    private ForecastCalibrationProfile Calibration => State.Display?.Calibration ?? State.CurrentRevision?.Profile ?? new();
+    private BacktestComparison? WeightScore => State.Backtest.ByModel
+        .Where(r => r.ModelVersion == (State.Display?.ModelVersion ?? ForecastEngine.ModelVersion)).Select(r => r.Score)
+        .Where(c => c.Metric == ForecastEvaluationService.Weight)
         .OrderByDescending(c => c.Baseline.Count > 0).ThenByDescending(c => c.HorizonWeeks).FirstOrDefault();
     private static string Number(double? n) => n.HasValue ? Fmt.N(n.Value, 3) : "—";
     private static string Percent(double? n) => n.HasValue ? Fmt.N(n.Value * 100, 0) + " %" : "—";
