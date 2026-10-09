@@ -7,7 +7,10 @@
 с поддержкой стороны подхода и нагрузки L/R. Полный ZIP backup переносит все локальные данные и фото;
 отдельный пакет анализа включает только явно выбранные разделы.
 
-Новый маршрут и границы фактов/оценок: [PRODUCT_STRUCTURE](docs/PRODUCT_STRUCTURE.md).
+Текущая структура: [PRODUCT_STRUCTURE](docs/PRODUCT_STRUCTURE.md). Целевой продуктовый маршрут
+**Profile → Avatar/Lock → ActivityDay/Close Day → Hypothesis → CheckIn** и редкий endpoint render:
+[канонический lifecycle](docs/PRODUCT_LIFECYCLE.md), [roadmap из 9 фаз](docs/PRODUCT_LIFECYCLE_ROADMAP.md),
+[инструменты и renderer decisions](docs/PRODUCT_TECHNOLOGY_DECISIONS.md). Это спецификация следующих этапов, не уже реализованные функции.
 Формат и восстановление: [BACKUP](docs/BACKUP.md). Протокол ручного GO/NO-GO, тесты,
 производительность и настройки Pages: [VALIDATION](docs/VALIDATION.md).
 

@@ -2,6 +2,48 @@
 
 Цель — проверить понятность приложения и согласованность фактов/оценок/прогнозов на собственных наблюдениях. Функциональные smoke-тесты не доказывают физиологическую точность модели. Полный backup сделайте до эксперимента; исходные измерения храните отдельно.
 
+## Validation целевого lifecycle — критерии будущих фаз
+
+Канон: [PRODUCT_LIFECYCLE](PRODUCT_LIFECYCLE.md); задачи: [roadmap](PRODUCT_LIFECYCLE_ROADMAP.md). Матрица этого раздела **ещё не является выполненными тестами или доступным UI**. Нижележащий протокол из 14 шагов, числа тестов и performance описывают базу #18. Stage A #19 проверяется отдельно и не закрывает lifecycle/renderer gates. При внедрении каждой фазы добавить фактический report: main/head SHA, versions, dataset/fixtures, команды, browser matrix, failures и GO/NO-GO.
+
+| Проверка | Процедура / независимая опора | Acceptance / NO-GO |
+|---|---|---|
+| Current Avatar review | На одинаковых позе/масштабе сравнить measurements-only, +photos и +manual corrections; tape/референсные фото держать отдельно от inputs для оценки | Обязательный просмотр и объяснение confidence до Confirm; субъективное «похож» не объявлять доказанной accuracy. |
+| Correction integrity | Зафиксировать measured fields/hash, изменить плечи/живот/бока/грудь/ягодицы/руки/ноги/визуальную полноту, Confirm/reload | Все factual поля неизменны; рабочая mesh меняется, derived values имеют AvatarDerived/source revision. NaN/self-intersection/недопустимый residual — reject/fallback. |
+| Correction accuracy | Измерить before/after silhouette/landmark/mesh-girth residual и повторяемость коррекции; held-out участники и разные формы/одежда | Публиковать ошибки/ухудшения и subgroup results. Улучшение субъективной likeness не валидирует BF%/muscle mass/training status proxy. |
+| Lock/recalibration | Проверить обычные экраны, отдельную session/cancel/confirm, старый forecast после нового origin | Нет свободных shape sliders; cancel ничего не меняет; commit атомарно архивирует cycle/hypothesis и создаёт revision+origin. Старые hashes/replay сохранены. |
+| Automatic factual update | Good/low-confidence/partial/photo-only check-in; повтор и запоздалое завершение fit; reload | Good → новая current revision с provenance, origin прежний; bad → uncertainty/last-good fallback. Photo-only не фабрикует measured values ради schema. |
+| Plan/fact boundary | Создать незакрытые plan/events, изменить шаблон, вызвать forecast; затем review/Close Day | Draft/Planned/Open дают ноль behavioral evidence. Template edit не меняет closed plan; после Confirm используется frozen ClosedActivityDay. |
+| Close Day integrity | Duplicate confirm, stale tab, interrupted writes, amendments underlying strength/cardio/nutrition | Один commit на idempotency key; partial failure не публикует факт. Amendment создаёт superseding revision, старые Hypothesis видят старый payload. |
+| Continuous calendar | Пропуск дней, часового пояса/полуночи, три варианта ответа о вчера, RestDay с едой/ходьбой | Даты не исчезают; MissingData не RestDay; unknown не 0; закрытая localDate не сдвигается. Gaps увеличивают uncertainty. |
+| Nutrition v1 | Standard350/actual175; basis100; decimal/unknown/zero/negative/NaN; несколько meals и согласованность kcal/macros | Каждый показатель масштабируется ×0.5 в примере; sum без промежуточного округления. Ошибки до Confirm; total energy balance не путается с calories workout. |
+| Meal timing | Повторить прогноз с теми же totals/evidence и изменённым только временем завтрака | Нет body composition штрафа/food-quality score; concrete metrics и coverage сохраняются. |
+| Maturity/evidence | 0/2/3/6/7 closed days, incomplete RestDays, gaps/старые записи, 3–5/6–8+ недель с/без check-ins | Preliminary с 3+ дней при policy допускается, confidence низкий; count не заменяет coverage. 0–2 блокирует AI, но допустимые numeric/3D scenarios остаются. |
+| Exact horizons/origins | 14 и 30 calendar days, граница месяца; новый Close Day после Save; поздно внесённый старый факт | 30-дневный endpoint не 28-дневный; frozen origin не меняется. No look-ahead по recordedAt/availability, не только observed date. |
+| Check-in и outcome | Weight-only/partial/photo-only/missing/late outcomes, matching window/offset, reset до target | Только известные поля Forecast vs Fact; ExpiredWithoutOutcome без accuracy/calibration. Manual reset не physiological outcome. Поздняя evaluation — новая revision. |
+| Calibration/replay | Изолировать версии composition/shape/cycle; затем добавить outcome и повторно открыть прошлый прогноз | Calibration меняет только будущие origins. Derived/render не truth labels; old numeric points/meshes не пересчитываются новым engine. |
+| Local geometry warp | Same mesh identity, positive/negative deltas, front/side, occlusion, WebGL loss/WebGPU unavailable; сравнить row warp и full-mesh warp | Geometry/hash/tolerance воспроизводимы, нет upload и paid inference; unsafe warp → 3D, не photorealistic promise. |
+| AI eligibility | Каждый gate отдельно false/unknown: unsaved Hypothesis, mutable/missing target, <3 дней/coverage, bad Avatar, unsuitable source, no consent | Ноль paid calls при fail; UI сообщает конкретную причину; допустимый 3D forecast доступен. |
+| AI structural adherence | Fixed participant-held-out source+target pairs: local warp, unconditioned baseline, conditioned renderer | Silhouette/boundary/width error, normalized keypoint displacement, identity/scene audit, no extra enhancement. Thresholds фиксируются до test set; fail → bounded retry или reject. |
+| Synthetic separation | Попытаться использовать generated artifact как photo check-in/calibration source; проследить полный data lineage | Render никогда не становится BodySnapshot/evidence. «Красивее» не основание менять target mesh. |
+| Cost/privacy/reliability | Consent/reject/cancel/retry/timeout/reload; второй ракурс; receipts и delete | Нет secrets в browser или implicit upload; учитываются paid failures, caps/idempotency; provider выключается независимо от дневника/3D. |
+
+### Протокол независимой проверки формы и прогноза
+
+До пользовательского claim заранее определить dataset consent/допустимое использование, целевые subgroup, held-out participants, measurement protocol, error metrics и threshold policy/version. Визуальные корректировки могут вносить subjective bias; независимый reference не должен быть тем же mesh/photo estimator, который создавал вход. Нельзя отбирать только удачные тела или картинки.
+
+Current Avatar: отдельно оценивать fit к ручным обхватам, silhouette/landmark residual, before/after ручной коррекции и её repeatability; фиксировать источник ошибок, одежду, позу, ракурс и confidence. BF%/training status/muscularity proxies допускаются как research priors до независимой validation; не выдавать mesh volume за реальную мышечную массу.
+
+Prospective hypothesis: сохранять origin до outcome, точные 14/30 дней, evidence availability/coverage, composition/shape/calibration versions и gaps. На CheckIn сопоставить реальные вес/обхваты/фото в одинаковых условиях; показывать actual date offset и missing fields. Отчёт: N, MAE, bias (fact − forecast), coverage диапазона, ошибки по horizon/maturity/subgroup. Межмодельное согласие Hall и synthetic tests не доказывают human accuracy. Late entries и outcome не должны попадать в старую calibration.
+
+Renderer: оценивать только adherence к target future mesh, не его физиологическую правильность. Report accepted/rejected counts, p95 structural error/latency и cost per accepted endpoint с ракурсами/retries. Частично закрытое лицо/неподходящая поза могут делать metric неприменимой — это fail/unsupported, не автоматический pass. Примеры для ручного аудита включают отрицательные случаи и границы допустимых изменений.
+
+### Автоматизация и отчётность новых фаз
+
+Будущие domain tests покрывают provenance/state transitions/concurrency/migration/no-look-ahead; browser smoke — весь маршрут Avatar → today → Close Day → explicit Hypothesis → factual CheckIn на desktop/320/390 px с reload/ошибками. Расширять существующие skeletal/history/forecast/muscle-forecast/product/errors/offline suites по затронутому поведению; Stage A composition suite после merge #19 сохраняется. Реальные camera/touch/iOS/Safari и shape accuracy требуют отдельного ручного прохода.
+
+Validation export расширять только implementation-фазой: opt-in closed-day revisions/coverage, Avatar lineage/derived labels, exact endpoint/evidence/gate metadata, outcome/calibration versions и renderer validation/cost receipts. Сохранять прежние privacy defaults: фото/имена/notes не включаются автоматически. Пока схема текущего package ниже не содержит этих новых сущностей.
+
 ## Протокол GO / NO-GO
 
 Используйте обычный браузер по HTTPS или localhost. Повторите ключевые шаги на телефоне. Запишите версию из «Профиль → Диагностика и версия».

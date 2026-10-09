@@ -1,6 +1,28 @@
-# Приложение для ручной пользовательской проверки
+# Структура продукта: целевой lifecycle и текущая реализация
+
+Главный продуктовый ориентир — [PRODUCT_LIFECYCLE](PRODUCT_LIFECYCLE.md). Порядок разработки — [PRODUCT_LIFECYCLE_ROADMAP](PRODUCT_LIFECYCLE_ROADMAP.md), выбор инструментов — [PRODUCT_TECHNOLOGY_DECISIONS](PRODUCT_TECHNOLOGY_DECISIONS.md). Новые правила ниже являются спецификацией, а не реализованными возможностями main.
+
+## Целевой маршрут
+
+**Profile → Avatar → shape review/correction → Confirm/Lock → ActivityDay → Close Day → Hypothesis 14/30 дней → optional endpoint Render → CheckIn → Forecast vs Fact.**
+
+| Раздел | Целевая роль |
+|---|---|
+| Профиль | Системная учётная запись/настройки, active Avatar, приватность, backup. Profile не является телом. |
+| Создание Avatar / Модель | Measurements и optional photos → reconstruction → обязательный 3D review → semantic correction → подтверждение. В обычном режиме locked; ручная перестройка только в Recalibration Session с новым tracking origin. |
+| Активность | Главный экран после Avatar: сегодня в непрерывном календаре, template, реальные события и питание, review/Close Day. MissingData отличается от RestDay. |
+| Прогресс | Фактические CheckIn/BodySnapshot, current Avatar revisions и архив. Новые фото обновляют current revision автоматически после quality gate, сохраняя origin/историю. |
+| Гипотеза (раздел План) | Явное создание versioned прогноза из closed evidence на 14/30 дней; maturity/uncertainty, одна конечная точка, check-in и сравнение с фактами. Незакрытый daily plan не вход forecast. |
+
+Nutrition v1 — ручные КБЖУ и пропорциональный пересчёт массы порции. Meal time организационный, без food quality score. Render — optional milestone с evidence/Avatar/photo gates; local GeometryWarpRenderer baseline, managed AI позже. Автономный coach, mental UX и постоянный GPU на старте не входят в scope.
+
+Рабочий Avatar включает подтверждённые shape corrections, но factual сантиметры не изменяются. Mesh girths и leanness/muscularity proxies — `AvatarDerived`/priors, не измеренный BF% или масса мышц. Закрытый день и Hypothesis используют frozen revisions; исправления создают новые версии.
+
+## Реализованная база после #18
 
 Этап собран на `main` после последовательного merge #15 и #16 (`1ddb66e3`). Новых моделей состава тела не добавлено. Сохранены skeletal viewer, пять анимаций, атлас мышц, журналы, история и неизменяемые прогнозы.
+
+Сам #18 затем смержен в main `4714497`; #17 с Forecast v3 R&D также смержен. Проверка 2026-10-09: #19 Stage A находится на review. Разделы ниже фиксируют существующий маршрут #18; **он ещё не реализует** отдельные Profile/Avatar revisions, lock/recalibration, ClosedActivityDay, nutrition journal, maturity gates и новый Hypothesis lifecycle. Нынешние mutable plan scenarios не равны новой Hypothesis. При расхождении поведения старого UI и целевой модели руководствоваться каноном и фазами миграции, сохраняя legacy replay.
 
 ## Разделы и основной маршрут
 
