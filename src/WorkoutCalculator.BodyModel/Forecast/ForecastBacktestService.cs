@@ -5,15 +5,26 @@ namespace WorkoutCalculator.BodyModel.Forecast;
 
 public sealed record ForecastScore(int Count, double? Mae, double? Bias, double? RangeCoverage);
 public sealed record BacktestComparison(int HorizonWeeks, string Metric, ForecastScore Baseline, ForecastScore Personalized);
+public sealed record VersionedBacktestComparison(string ModelVersion, BacktestComparison Score);
 public sealed record BacktestResult(ImmutableArray<BacktestComparison> Comparisons, int Origins, ImmutableArray<string> Exclusions)
 {
     public ImmutableArray<BacktestComparison> TrainingComparisons { get; init; } = [];
+    public ImmutableArray<VersionedBacktestComparison> ByModel { get; init; } = [];
 }
 
 public static class ForecastBacktestService
 {
     /// <summary>Prequential replay: each saved origin uses its frozen, then-available calibration; never today's profile.</summary>
     public static BacktestResult Run(IEnumerable<ForecastSnapshot> forecasts, IEnumerable<CalibrationRevision> revisions,
+        IEnumerable<BodySnapshot> facts, DateOnly through)
+    {
+        var archive = forecasts.ToArray(); var history = revisions.ToArray(); var actual = facts.ToArray();
+        var result = RunCore(archive, history, actual, through);
+        return result with { ByModel = archive.GroupBy(f => f.ModelVersion).OrderBy(g => g.Key, StringComparer.Ordinal)
+            .SelectMany(g => RunCore(g, history, actual, through).Comparisons.Select(c => new VersionedBacktestComparison(g.Key, c))).ToImmutableArray() };
+    }
+
+    private static BacktestResult RunCore(IEnumerable<ForecastSnapshot> forecasts, IEnumerable<CalibrationRevision> revisions,
         IEnumerable<BodySnapshot> facts, DateOnly through)
     {
         var history = revisions.ToDictionary(r => r.Id);
@@ -25,11 +36,11 @@ public static class ForecastBacktestService
         {
             if (f.StartDate > through) continue;
             if (f.Reconstructed || DateOnly.FromDateTime(f.CreatedAt.Date) > f.StartDate ||
-                (f.CalibrationRevisionId is { } id && (!history.TryGetValue(id, out var r) || r.CreatedAt > f.CreatedAt || r.ThroughDate > f.StartDate)))
+                (f.CalibrationRevisionId is { } id && (!history.TryGetValue(id, out var r) || r.CreatedAt > f.CreatedAt || r.ThroughDate > f.StartDate || r.CompositionModelVersion != f.ModelVersion)))
             { exclusions.Add($"{f.Id}: origin/calibration was not available at T"); continue; }
             origins++;
             var evaluated = ForecastEvaluationService.Evaluate(f, actual, through);
-            foreach (int week in new[] { 2, 4, 8 })
+            foreach (int week in new[] { 1, 2, 4, 8, 12, 24 })
             {
                 if (week > f.HorizonWeeks) continue;
                 // Nearest available fact within +/- 3 days, once per metric; compare on its actual date.
@@ -42,7 +53,7 @@ public static class ForecastBacktestService
             }
         }
         var result = ImmutableArray.CreateBuilder<BacktestComparison>();
-        foreach (int week in new[] { 2, 4, 8 })
+        foreach (int week in new[] { 1, 2, 4, 8, 12, 24 })
             foreach (var metric in new[] { ForecastEvaluationService.Weight, ForecastEvaluationService.BodyFat }.Concat(Enum.GetValues<Girth>().Select(ForecastEvaluationService.GirthMetric)))
             {
                 var group = samples.Where(s => s.Week == week && s.Observation.Metric == metric).ToArray();

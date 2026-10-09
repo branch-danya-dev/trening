@@ -6,7 +6,7 @@ namespace WorkoutCalculator.BodyModel.Forecast;
 /// <summary>Frozen numeric baseline parameters supplement version + inputs + saved output. No reflection/AOT dependency.</summary>
 public static class ForecastModelParameters
 {
-    public static ImmutableDictionary<string, double> Capture()
+    public static ImmutableDictionary<string, double> Capture(string modelVersion = ForecastEngine.ModelVersion)
     {
         var values = new Dictionary<string, double>
         {
@@ -27,6 +27,21 @@ public static class ForecastModelParameters
             foreach (var (region, share) in C.FatShares(sex)) values[$"FatShare.{sex}.{region}"] = share;
         }
         foreach (var (region, share) in C.LeanShares) values[$"LeanShare.{region}"] = share;
+        if (modelVersion == ForecastEngine.ModelVersion)
+        {
+            values["ProteinTef"] = CompositionNutrition.ProteinTef;
+            values["CarbsTef"] = CompositionNutrition.CarbsTef;
+            values["FatTef"] = CompositionNutrition.FatTef;
+            values["MacroTolerance"] = CompositionNutrition.MacroTolerance;
+            values["BaselineCarbShare"] = CompositionNutrition.BaselineCarbShare;
+            values["InitialGlycogenKg"] = CompositionNutrition.InitialGlycogenKg;
+            values["BoundWaterRatio"] = CompositionNutrition.BoundWaterRatio;
+            values["GlycogenKcalPerKg"] = CompositionNutrition.GlycogenKcalPerKg;
+            values["MaximumCarbRatio"] = CompositionNutrition.MaximumCarbRatio;
+            values["MinimumLeanKg"] = CompositionNutrition.MinimumLeanKg;
+            values["MinimumLeanFraction"] = CompositionNutrition.MinimumLeanFraction;
+            values["EcfEnabled"] = 0;
+        }
         return values.ToImmutableDictionary();
     }
 }

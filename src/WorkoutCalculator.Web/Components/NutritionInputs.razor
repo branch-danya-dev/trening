@@ -1,0 +1,39 @@
+<details class="advanced-nutrition">
+    <summary>Уточнить питание (необязательно)</summary>
+    <p class="note">Макросы уточняют термический эффект пищи и воду/гликоген. Если не знаете — прогноз работает без них.
+        Можно заполнить часть полей. Для всех трёх макросов калории должны совпадать с питанием с допуском 5 %.</p>
+    <div class="field-row"><label for="nutrition-protein">Белок, г/день</label><input id="nutrition-protein" type="number" min="0" step="1" @bind="_protein" /></div>
+    <div class="field-row"><label for="nutrition-carbs">Углеводы, г/день</label><input id="nutrition-carbs" type="number" min="0" step="1" @bind="_carbs" /></div>
+    <div class="field-row"><label for="nutrition-fat">Жиры, г/день</label><input id="nutrition-fat" type="number" min="0" step="1" @bind="_fat" /></div>
+    <div class="field-row"><label for="nutrition-before-intake">Питание до плана, ккал/день</label><input id="nutrition-before-intake" type="number" min="500" max="10000" step="10" @bind="_beforeIntake" /></div>
+    <div class="field-row"><label for="nutrition-before-carbs">Углеводы до плана, г/день</label><input id="nutrition-before-carbs" type="number" min="10" max="2000" step="1" @bind="_beforeCarbs" /></div>
+    <p class="note">Исходное питание — привычный рацион при стабильном весе. Без него модель предполагает поддержание по бытовой активности,
+        а тренировки плана считает добавленными. Без исходных углеводов предполагается 50 % калорий; это оценка, не измерение.</p>
+    @if (_error is not null) { <p class="error nutrition-error" role="alert">@_error</p> }
+    <button class="btn-link" @onclick="Apply">Применить уточнение питания</button>
+    <button class="btn-link" @onclick="Clear">Очистить уточнение питания</button>
+</details>
+
+@code {
+    [Parameter, EditorRequired] public StoredHypothesis Plan { get; set; } = default!;
+    [Parameter] public EventCallback<Action<StoredHypothesis>> OnApply { get; set; }
+    private double? _protein, _carbs, _fat, _beforeIntake, _beforeCarbs;
+    private string? _error, _source;
+    protected override void OnParametersSet()
+    {
+        string source = string.Join("|", Plan.IntakeKcalPerDay, Plan.ProteinGramsPerDay, Plan.CarbsGramsPerDay, Plan.FatGramsPerDay, Plan.BaselineIntakeKcalPerDay, Plan.BaselineCarbsGramsPerDay);
+        if (source == _source) return;
+        _source = source;
+        _protein = Plan.ProteinGramsPerDay; _carbs = Plan.CarbsGramsPerDay; _fat = Plan.FatGramsPerDay;
+        _beforeIntake = Plan.BaselineIntakeKcalPerDay; _beforeCarbs = Plan.BaselineCarbsGramsPerDay;
+    }
+    private async Task Apply()
+    {
+        var draft = Plan.Clone(); Assign(draft);
+        try { CompositionNutrition.Resolve(draft.ToInput()); _error = null; await OnApply.InvokeAsync(Assign); }
+        catch (ArgumentException e) { _error = e.Message; }
+    }
+    private void Assign(StoredHypothesis p)
+    { p.ProteinGramsPerDay = _protein; p.CarbsGramsPerDay = _carbs; p.FatGramsPerDay = _fat; p.BaselineIntakeKcalPerDay = _beforeIntake; p.BaselineCarbsGramsPerDay = _beforeCarbs; }
+    private async Task Clear() { _protein = _carbs = _fat = _beforeIntake = _beforeCarbs = null; await Apply(); }
+}

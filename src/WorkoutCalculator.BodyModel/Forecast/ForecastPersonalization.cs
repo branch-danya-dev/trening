@@ -38,6 +38,7 @@ public static class ForecastPersonalization
         var end = ProfileAt(baseline.Start, weeks[^1], calibration);
         return new ForecastResult
         {
+            Composition = baseline.Composition,
             Start = baseline.Start.Clone(), End = end, Weeks = weeks, Warnings = baseline.Warnings.ToImmutableArray(),
             MaintenanceKcalPerDay = baseline.MaintenanceKcalPerDay, CardioKcalPerSession = baseline.CardioKcalPerSession,
             StrengthKcalPerSession = baseline.StrengthKcalPerSession

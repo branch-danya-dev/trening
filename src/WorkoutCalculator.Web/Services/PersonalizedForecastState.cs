@@ -10,7 +10,7 @@ namespace WorkoutCalculator.Web.Services;
 public sealed class PersonalizedForecastState(ForecastStore store)
 {
     public ForecastArchive Archive { get; private set; } = new([], []);
-    public CalibrationRevision? CurrentRevision => Archive.Revisions.LastOrDefault();
+    public CalibrationRevision? CurrentRevision => Archive.Revisions.LastOrDefault(r => r.CompositionModelVersion == ForecastEngine.ModelVersion);
     public string? Error { get; private set; }
     public string? StorageError { get; private set; }
     public string? SelectedId { get; private set; }
@@ -36,7 +36,7 @@ public sealed class PersonalizedForecastState(ForecastStore store)
         var fingerprint = ForecastStore.Hash(JsonSerializer.Serialize(eligible, ForecastJson.Default.ImmutableArrayBodySnapshot));
         if (CurrentRevision?.EvidenceFingerprint != fingerprint && (eligible.Length > 0 || CurrentRevision is not null))
         {
-            var revision = ForecastCalibrationService.Build(Archive.Forecasts, eligible, today, now, fingerprint, CurrentRevision);
+            var revision = ForecastCalibrationService.Build(Archive.Forecasts, eligible, today, now, fingerprint, Archive.Revisions.LastOrDefault());
             Error = store.Append(revision);
             if (Error is not null) return;
             Archive = Archive with { Revisions = Archive.Revisions.Add(revision) };
@@ -53,6 +53,7 @@ public sealed class PersonalizedForecastState(ForecastStore store)
         try
         {
             Preview = ForecastSnapshot.Create(profile, input, today, now, CurrentRevision, startFact, hypothesisId, hypothesisName, strengthHistory: strengthHistory, bodyHistory: bodyHistory, previousForecasts: Archive.Forecasts);
+            Error = StorageError;
             _lastPreviewResult = Preview.Replay();
         }
         catch (ArgumentException e)

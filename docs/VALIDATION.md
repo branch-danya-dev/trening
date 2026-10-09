@@ -98,7 +98,7 @@ Validation export расширять только implementation-фазой: opt
 * Обхваты: введено / рассчитано на 3D / разница / источник. При отсутствии факта — «Оценка для 3D». Сравнивайте один уровень ленты, одинаковую позу и спокойное дыхание.
 * Фото: независимая лента и оценка фото, абсолютная ошибка в сантиметрах; фиксируйте ракурс, одежду и предупреждения анализатора. Фотооценку не считайте независимой истиной.
 * Калории: сохранённая оценка тренировки, активные ккал часов, разница; отдельная дата и необязательная внешняя оценка. Сравнивайте active с active, а не total. Часы тоже не являются безошибочным ground truth.
-* Прогноз: выбранная версия и дата, последующие BodySnapshots, signed/absolute error. Проверка на истории использует заранее сохранённые версии и доступные тогда данные; для горизонтов 2/4/8 недель берётся ближайший факт ±3 дня.
+* Прогноз: выбранная версия и дата, последующие BodySnapshots, signed/absolute error. Проверка на истории использует заранее сохранённые версии и доступные тогда данные; для горизонтов 1/2/4/8/12/24 недель берётся ближайший факт ±3 дня. Результаты разных composition versions показаны отдельно.
 * Форма: обхваты, фактически выполненная программа, записи reps/weight/RIR и проекция модели. Сравниваются сохранённые composition-only и training-aware точки. Изменение обхвата включает жир/воду/позу; истинный рост бицепса в килограммах не запрашивается.
 
 Для регулярной проверки снимайте вес в сопоставимых условиях, обхваты повторяйте несколько раз и сохраняйте реальную дату. Не подгоняйте историю под желаемый прогноз. Базовые метрики: MAE, bias (факт минус прогноз), количество наблюдений, покрытие ожидаемого диапазона. Диапазон эвристический, не статистический доверительный интервал. Недостаток наблюдений отображается явно.
@@ -182,3 +182,28 @@ Validation export раздела Avatar содержит pseudonyms, source cove
 ## Ограничения
 
 Прогноз формы эвристический и симметричный; региональная L/R карта нагрузки не превращается в независимый прогноз роста левой и правой мышцы. Каталог — 50 описаний и только пять анимаций. Дни программы описательные, следующий элемент на главном экране — начало повторяющейся программы, без отдельного планировщика дат. Legacy-кардио хранит итоги, поэтому правка календаря не восстанавливает несуществующие исходные отрезки тренировки. Полный backup не является зашифрованным контейнером; его лимиты и восстановление описаны в [BACKUP.md](BACKUP.md).
+# Composition v3 / Stage A
+
+Baseline main `471449780756f091234849d3055bd1e149f9312e`; architecture/formulas/negative findings: [FORECAST_V3_COMPOSITION](FORECAST_V3_COMPOSITION.md).
+
+Run from repository root (.NET 10):
+
+```sh
+dotnet build WorkoutCalculator.sln -c Release
+dotnet test WorkoutCalculator.sln -c Release --no-build
+node --test tests/js/*.test.mjs
+dotnet run -c Release --no-build --project tools/WorkoutCalculator.CompositionBenchmark -- --legacy-only --check
+dotnet run -c Release --no-build --project tools/WorkoutCalculator.CompositionBenchmark -- --check
+```
+
+The CI runs all eight pre-existing browser suites (skeletal, strength, history, forecast, muscle-forecast, product, errors, published offline), plus `composition-smoke.cjs`. Use the same local-server/Playwright setup as `.github/workflows/ci.yml`; `BROWSER_CHANNEL=chrome` supports local installed Chrome. The new suite checks optional fields, atomic validation without storage mutation, normalization warning, persisted inputs/modes, fallback, legacy JSON replay and no overflow at **320×844 / 390×844**. All benchmark checks are offline after dependencies are restored.
+
+Manual nutrition route: План → Уточнить питание. Leave all blank and save a forecast; then create a new one with macros, optionally habitual maintenance and habitual carbs. Inconsistent totals must show a message and preserve the valid plan. Select the older version and verify its output remains frozen. Diagnostics show composition/TEF/glycogen/AT/water/reference versions. Sodium is intentionally absent from the production editor.
+
+Model tests cover equal diet/activity deficit, partial/full macros, invalid totals/NaN/Infinity, isocaloric carbs, unchanged-carb deficit, carb cut/refeed, energy and mass conservation, sodium no-op, 52-week valid extremes, explicit rejection of tissue exhaustion, parameter capture, old numerical replay, version-partitioned calibration and prospective-only score rows. Existing diet-only pinned tests now explicitly state habitual maintenance including training; their expected equations are unchanged. The old numeric reference-point test explicitly invokes the retained legacy engine. The sequential personalization test still checks its original ≤8-week intervention window; longer horizons have separate availability tests.
+
+Optional CPU performance rerun (not a deterministic CI artifact):
+
+```sh
+dotnet run -c Release --project tools/WorkoutCalculator.CompositionBenchmark -- --performance
+```

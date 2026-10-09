@@ -21,6 +21,10 @@ jobs:
         run: dotnet build WorkoutCalculator.sln -c Release
       - name: Тесты
         run: dotnet test WorkoutCalculator.sln -c Release --no-build
+      - name: Reproduce Hall composition benchmark
+        run: |
+          dotnet run -c Release --no-build --project tools/WorkoutCalculator.CompositionBenchmark -- --legacy-only --check
+          dotnet run -c Release --no-build --project tools/WorkoutCalculator.CompositionBenchmark -- --check
       - name: JS-тесты (проверка позы, архив)
         run: node --test tests/js/*.test.mjs
       - name: Установка браузера для 3D smoke
@@ -44,6 +48,7 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/strength-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/history-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/forecast-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/composition-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/muscle-forecast-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/product-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/avatar-smoke.cjs

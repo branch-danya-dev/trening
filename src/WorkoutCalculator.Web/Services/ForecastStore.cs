@@ -120,6 +120,8 @@ public sealed class ForecastStore(IJournalStorage storage)
                     !double.IsFinite(o.BaselineWaterKg) || (o.StartValue is { } start && !double.IsFinite(start)) ||
                     !observationKeys.Add((o.FactId, o.Metric)))
                     throw new JsonException("Повреждены наблюдения калибровки.");
+            if (r.Observations.Any(o => forecasts[o.ForecastId].ModelVersion != r.CompositionModelVersion))
+                throw new JsonException("В ревизии смешаны версии composition engine.");
             previous = r;
         }
         foreach (var f in archive.Forecasts)
@@ -127,6 +129,7 @@ public sealed class ForecastStore(IJournalStorage storage)
             if (f.CalibrationRevisionId is null && (f.Calibration.WeightResponseFactor != 1 || f.Calibration.FatLeanPartitionCorrection != 0 || f.Calibration.GirthResponseFactors.Count > 0))
                 throw new JsonException("Персональный прогноз не связан с ревизией.");
             if (f.CalibrationRevisionId is { } id && (!revisions.TryGetValue(id, out var r) || r.CreatedAt > f.CreatedAt ||
+                r.CompositionModelVersion != f.ModelVersion ||
                 JsonSerializer.Serialize(r.Profile, ForecastStoreJson.Default.ForecastCalibrationProfile) != JsonSerializer.Serialize(f.Calibration, ForecastStoreJson.Default.ForecastCalibrationProfile)))
                 throw new JsonException("Нарушена связь прогноза с калибровкой.");
         }

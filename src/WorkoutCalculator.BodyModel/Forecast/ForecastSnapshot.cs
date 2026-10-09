@@ -17,6 +17,7 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
     ImmutableArray<ForecastPoint> Baseline, ImmutableArray<ForecastPoint> Expected,
     ImmutableArray<string> Warnings, double MaintenanceKcalPerDay, double CardioKcalPerSession, double StrengthKcalPerSession)
 {
+    public CompositionMetadata? Composition { get; init; }
     public TrainingAwareForecast? Muscle { get; init; }
     /// <summary>Optional frozen origin link; old snapshots replay without an Avatar domain.</summary>
     public Avatars.AvatarForecastOrigin? AvatarOrigin { get; init; }
@@ -38,16 +39,19 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
         var end = start.Clone();
         end.WeightKg = points[^1].Body.WeightKg; end.BodyFatPercent = points[^1].Body.FatPercent;
         foreach (var (g, cm) in points[^1].Girths) end.SetGirth(g, cm);
-        return new() { Start = start, End = end, Weeks = points.Select(p => p.Body).ToImmutableArray(), Warnings = Warnings,
+        return new() { Composition = Composition, Start = start, End = end, Weeks = points.Select(p => p.Body).ToImmutableArray(), Warnings = Warnings,
             MaintenanceKcalPerDay = MaintenanceKcalPerDay, CardioKcalPerSession = CardioKcalPerSession, StrengthKcalPerSession = StrengthKcalPerSession };
     }
 
     public static ForecastSnapshot Create(BodyProfile profile, ForecastInput input, DateOnly startDate, DateTimeOffset now,
         CalibrationRevision? revision = null, BodySnapshot? startFact = null, string? hypothesisId = null, string? hypothesisName = null,
         bool reconstructed = false, IEnumerable<TrainingSession>? strengthHistory = null,
-        IEnumerable<BodySnapshot>? bodyHistory = null, IEnumerable<ForecastSnapshot>? previousForecasts = null)
+        IEnumerable<BodySnapshot>? bodyHistory = null, IEnumerable<ForecastSnapshot>? previousForecasts = null,
+        string modelVersion = ForecastEngine.ModelVersion)
     {
         if (revision is not null && revision.CreatedAt > now) throw new ArgumentException("Калибровка ещё не была доступна.");
+        if (revision is not null && revision.ThroughDate > startDate) throw new ArgumentException("Калибровка использует факты после даты начала.");
+        if (revision is not null && revision.CompositionModelVersion != modelVersion) throw new ArgumentException("Калибровка относится к другой версии composition engine.");
         var start = profile.Clone();
         if (startFact is not null)
         {
@@ -59,25 +63,25 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
         }
         ValidateInput(start, input);
         var calibration = revision?.Profile ?? new();
-        var baseline = ForecastEngine.Run(start, input);
+        var baseline = ForecastEngine.RunVersion(start, input, modelVersion);
         var expected = ForecastPersonalization.Apply(baseline, calibration);
         ImmutableArray<ForecastPoint> Freeze(ForecastResult result, ForecastCalibrationProfile? c) => result.Weeks.Select(w =>
         {
             var body = ForecastPersonalization.ProfileAt(start, w, c);
             return new ForecastPoint(w, Enum.GetValues<Girth>().ToImmutableDictionary(g => g, body.GetGirth), ForecastUncertainty.Weight(w.WeightKg, w.Week, c));
         }).ToImmutableArray();
-        var snapshot = new ForecastSnapshot(Guid.NewGuid().ToString(), now, startDate, ForecastEngine.ModelVersion,
+        var snapshot = new ForecastSnapshot(Guid.NewGuid().ToString(), now, startDate, modelVersion,
             JsonSerializer.Serialize(start, ForecastJson.Default.BodyProfile), JsonSerializer.Serialize(input, ForecastJson.Default.ForecastInput),
             revision?.Id, calibration, Freeze(baseline, null), Freeze(expected, calibration), expected.Warnings.ToImmutableArray(),
             expected.MaintenanceKcalPerDay, expected.CardioKcalPerSession, expected.StrengthKcalPerSession)
-        { StartFact = startFact, HypothesisId = hypothesisId, HypothesisName = hypothesisName, Reconstructed = reconstructed, ModelParameters = ForecastModelParameters.Capture() };
+        { Composition = baseline.Composition, StartFact = startFact, HypothesisId = hypothesisId, HypothesisName = hypothesisName, Reconstructed = reconstructed, ModelParameters = ForecastModelParameters.Capture(modelVersion) };
         if (input.StrengthTraining && input.StrengthProgram is { Sessions.Length: > 0 } program)
         {
             var issuedDate = DateOnly.FromDateTime(now.Date);
             var cutoff = startDate <= issuedDate ? startDate : issuedDate.AddDays(1);
             var history = (strengthHistory ?? []).Where(s => s.Date < cutoff).ToArray();
             var stimulus = TrainingStimulusEngine.Build(program, history, startDate) with { ThroughDate = cutoff.AddDays(-1) };
-            var response = MuscleResponseCalibrationService.Build((previousForecasts ?? []).Where(f => f.CreatedAt <= now), (bodyHistory ?? []).Where(f => f.Date < cutoff), history, cutoff);
+            var response = MuscleResponseCalibrationService.Build((previousForecasts ?? []).Where(f => f.CreatedAt <= now && f.ModelVersion == modelVersion), (bodyHistory ?? []).Where(f => f.Date < cutoff), history, cutoff);
             // The same-date anchor is known at issue time. It cannot train a response but its
             // photo provenance must still widen the future shape range, even with no older facts.
             if (startFact is not null)
@@ -109,6 +113,14 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
             throw new ArgumentException("Повреждён снимок прогноза.");
         Calibration.Validate();
         var start = StartProfile(); var input = Input(); ValidateInput(start, input);
+        if (ModelVersion == ForecastEngine.ModelVersion)
+        {
+            CompositionNutrition.Resolve(input);
+            if (Composition is null || Composition.ModelVersion != ModelVersion ||
+                !double.IsFinite(Composition.BaselineIntakeKcalPerDay) || Composition.BaselineIntakeKcalPerDay <= 0 ||
+                !double.IsFinite(Composition.BaselineCarbsGramsPerDay) || Composition.BaselineCarbsGramsPerDay <= 0)
+                throw new ArgumentException("Отсутствует metadata composition engine.");
+        }
         if (input.Weeks != HorizonWeeks) throw new ArgumentException("Срок прогноза не совпадает с точками.");
         StartFact?.Validate();
         if (StartFact is not null && StartFact.Date != StartDate) throw new ArgumentException("Неверная дата исходного факта.");
@@ -119,6 +131,10 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
                 if (p?.Body is not { } w || w.Week != i || !ForecastCalibrationProfile.In(w.WeightKg, .01, 600) ||
                     !ForecastCalibrationProfile.In(w.FatMassKg, .001, 600) || !ForecastCalibrationProfile.In(w.LeanMassKg, .001, 600) ||
                     !double.IsFinite(w.GlycogenWaterKg) || !double.IsFinite(w.AdaptationKcalPerDay) ||
+                    !double.IsFinite(w.DietEnergyChange) || !double.IsFinite(w.ActivityEnergyChange) ||
+                    !double.IsFinite(w.AdaptiveThermogenesisKcalPerDay) || !double.IsFinite(w.TefChangeKcalPerDay) ||
+                    w.GlycogenKg.HasValue != w.BoundWaterKg.HasValue ||
+                    (w.GlycogenKg is { } gkg && (!double.IsFinite(gkg) || w.BoundWaterKg is not { } bw || !double.IsFinite(bw) || Math.Abs(gkg + bw - w.GlycogenWaterKg) > 1e-6)) ||
                     !double.IsFinite(w.BmrKcal) || !double.IsFinite(w.ExpenditureKcalPerDay) || !double.IsFinite(w.BalanceKcalPerDay) ||
                     Math.Abs(w.FatMassKg + w.LeanMassKg + w.GlycogenWaterKg - w.WeightKg) > 1e-6 ||
                     p.Girths is null || p.Girths.Count != Enum.GetValues<Girth>().Length ||

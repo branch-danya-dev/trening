@@ -259,6 +259,12 @@ public sealed class StoredProfile
 /// <summary>Ввод режима гипотез — в том виде, как его держит интерфейс.</summary>
 public sealed class StoredHypothesis
 {
+    public double? ProteinGramsPerDay { get; set; }
+    public double? CarbsGramsPerDay { get; set; }
+    public double? FatGramsPerDay { get; set; }
+    public double? SodiumMgPerDay { get; set; }
+    public double? BaselineIntakeKcalPerDay { get; set; }
+    public double? BaselineCarbsGramsPerDay { get; set; }
     public int Weeks { get; set; } = 12;
     public double IntakeKcalPerDay { get; set; }
     public double ActivityFactor { get; set; } = 1.3;
@@ -294,6 +300,8 @@ public sealed class StoredHypothesis
 
     public ForecastInput ToInput() => new()
     {
+        ProteinGramsPerDay = ProteinGramsPerDay, CarbsGramsPerDay = CarbsGramsPerDay, FatGramsPerDay = FatGramsPerDay,
+        SodiumMgPerDay = SodiumMgPerDay, BaselineIntakeKcalPerDay = BaselineIntakeKcalPerDay, BaselineCarbsGramsPerDay = BaselineCarbsGramsPerDay,
         Weeks = Weeks,
         IntakeKcalPerDay = IntakeKcalPerDay,
         ActivityFactor = ActivityFactor,

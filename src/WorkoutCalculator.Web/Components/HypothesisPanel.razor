@@ -53,6 +53,8 @@
                  Hint="@($"Поддержание сейчас ≈ {Fmt.N(Maintenance.Total)} ккал в день")"
                  Value="Hypothesis.IntakeKcalPerDay" ValueChanged="v => Change(h => h.IntakeKcalPerDay = v)" />
     <button class="btn-link" @onclick="SetMaintenance">Поставить поддержание</button>
+    <NutritionInputs @key="Hypotheses.Selected" Plan="Hypothesis" OnApply="Change" />
+    @if (_nutritionError is not null) { <p class="error" role="alert">@_nutritionError</p> }
     <ParamSlider Label="Бытовая активность" Unit="× БМР" Min="1.1" Max="1.9" Step="0.05"
                  Hint="@ActivityHint(Hypothesis.ActivityFactor)"
                  Value="Hypothesis.ActivityFactor" ValueChanged="v => Change(h => h.ActivityFactor = v)" />
@@ -357,7 +359,13 @@
         Maintenance = ForecastEngine.Expenditure(Profile, Profile.WeightKg, Hypothesis.ToInput());
     }
 
-    private Task Change(Action<StoredHypothesis> change) => OnChange.InvokeAsync(change);
+    private string? _nutritionError;
+    private Task Change(Action<StoredHypothesis> change)
+    {
+        var draft = Hypothesis.Clone(); change(draft);
+        try { CompositionNutrition.Resolve(draft.ToInput()); _nutritionError = null; return OnChange.InvokeAsync(change); }
+        catch (ArgumentException e) { _nutritionError = e.Message; return Task.CompletedTask; }
+    }
 
     private Task Select(int slot) => OnHypotheses.InvokeAsync(h => h.Select(slot));
 
