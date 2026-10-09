@@ -82,6 +82,9 @@ class PCA:
 
 def representation_benchmark(train, validation, manifest, dimensions, topology_hash):
     """Records curves only: no TEST inputs and no automatic promotion of a model."""
+    # Provenance failures are fatal even when a subgroup is too small to fit.
+    # Do not convert a leakage exception into an ordinary rank diagnostic.
+    train_members(manifest, [r["participant"] for r in train])
     lookup = {r["participant"]: r["split"] for r in manifest["assignments"]}
     if any(lookup.get(r["participant"]) != "val" for r in validation):
         raise ValueError("Representation selection must use VAL, not TEST")
@@ -143,6 +146,9 @@ class Support:
     @classmethod
     def fit(cls, pca, shapes, inputs, participants, manifest):
         train_members(manifest, participants)
+        train_members(manifest, pca.training_participants)
+        if pca.split_hash != manifest["sha256"]:
+            raise ValueError("Support and PCA must share a frozen split")
         if len(shapes) != len(inputs) or len(inputs) != len(participants) or not inputs:
             raise ValueError("Misaligned support inputs")
         keys = sorted(inputs[0]["numeric"])

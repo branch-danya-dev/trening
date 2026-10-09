@@ -92,6 +92,19 @@ class ResearchTests(unittest.TestCase):
         with self.assertRaises(ValueError): rigid_landmark_registration(m, np.zeros((4, 3)), m.vertices)
         with self.assertRaises(ValueError): rigid_landmark_registration(m, m.vertices, m.vertices*2)
 
+    def test_representation_report_cannot_swallow_train_leakage(self):
+        test = next(p for p, s in self.lookup.items() if s == "test")
+        val = next(p for p, s in self.lookup.items() if s == "val")
+        rows = [{"participant": test, "sex": "Male", "shape": self.x[0]}]
+        with self.assertRaisesRegex(ValueError, "Training"):
+            representation_benchmark(rows, [{"participant": val, "sex": "Male", "shape": self.x[0]}], self.manifest, 2, "test")
+
+    def test_support_cannot_mix_split_provenance(self):
+        pca = copy.deepcopy(self.pca); pca.split_hash = "other-split"
+        inputs = [{"numeric": {"horizon": 28}, "subgroup": "Male"} for _ in self.x]
+        with self.assertRaisesRegex(ValueError, "frozen split"):
+            Support.fit(pca, self.x, inputs, self.train, self.manifest)
+
     def test_registration_correspondence_requires_topology_hash(self):
         m = tetra(); mapping = identity_map(m)
         np.testing.assert_equal(correspondence(m, m, mapping).vertices, m.vertices)
