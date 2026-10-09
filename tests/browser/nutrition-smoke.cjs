@@ -15,7 +15,7 @@ async function food(p,n,{name='Макароны по-флотски',basis='Serv
  const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,executablePath:process.env.BROWSER_PATH||undefined,args:['--enable-unsafe-swiftshader']});
  const dir=process.env.NUTRITION_OUTPUT||await fs.mkdtemp(path.join(os.tmpdir(),'nutrition-'));await fs.mkdir(dir,{recursive:true});const errors=[],timings={},layout=[];let p;
  try{
-  const context=await browser.newContext({viewport:{width:390,height:844}});p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+  const context=await browser.newContext({viewport:{width:390,height:844},locale:'en-US'});p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
   await context.route('**/js/viewer.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:await response.text()+'\nexport function nutritionSmoke(){return meshes.current.geometry.uuid;}'});});
   await p.addInitScript(()=>{if(!localStorage.getItem('workoutcalc.body.v1'))localStorage.setItem('workoutcalc.body.v1',JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57}));});
   await p.goto(url);await ready(p);const geometry=()=>p.evaluate(async()=> (await import(new URL('js/viewer.js',document.baseURI))).nutritionSmoke());const initial=await geometry();let start=Date.now();await tab(p,'Активность');await p.locator('[data-day-state="Open"]').waitFor();timings.openTodayMs=Date.now()-start;
