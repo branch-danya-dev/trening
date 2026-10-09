@@ -17,6 +17,8 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
   await p.addInitScript(()=>{if(!localStorage.getItem('workoutcalc.body.v1'))localStorage.setItem('workoutcalc.body.v1',JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57}));});
   await p.clock.setFixedTime(new Date('2026-01-05T09:00:00Z'));await p.goto(url);await ready(p);const current=await read(p,'current');
   const procedural=structuredClone(programs[0]);procedural.id='00000000-0000-4000-8000-000000000099';procedural.muscleGeometry={providerVersion:'muscle-field-procedural-1',assetSha256:null};
+  // This legacy procedural fixture predates the registry; an anatomical manifest would be invalid after switching its provider.
+  delete procedural.modelManifest;
   await p.evaluate(async({items,key})=>{const payload=JSON.stringify({forecasts:items,revisions:[]}),bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(payload));const sha256=Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();localStorage.setItem(key,JSON.stringify({schemaVersion:1,payload,sha256}));},{items:[procedural,...programs],key});
   await p.reload();await ready(p);assert.deepEqual(await read(p,'current'),current,'factual Avatar unchanged after loading anatomical asset');await tab(p,'План');
   const select=async id=>{await p.getByLabel('Версия прогноза',{exact:true}).selectOption(id);await p.getByRole('button',{name:'Прогноз',exact:true}).click();await p.waitForFunction(()=>!!viewer.smokeState().meshes.forecast);};

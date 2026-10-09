@@ -1,6 +1,6 @@
 # Frozen desktop evidence
 
-Generated on 2026-10-09 from clean implementation commit `a3ff06039a226475dbcd7f37c92769503ef4e42f`. Subsequent publication changes contain documentation/evidence only. [Provenance](provenance.json) records all successful reproduction commands and SHA-256 of this published report subset and the original reports. Only line endings were normalised to LF for publication. Reproduce with `python tools/reproduce_model_validation.py <fresh-directory>`.
+Generated on 2026-10-09 from clean implementation commit `a3ff06039a226475dbcd7f37c92769503ef4e42f`. Subsequent commits publish documentation/evidence and align the legacy browser fixture with absent pre-registry metadata; application implementation is unchanged. [Provenance](provenance.json) records all successful reproduction commands and SHA-256 of this published report subset and the original reports. Only line endings were normalised to LF for publication. Reproduce with `python tools/reproduce_model_validation.py <fresh-directory>`.
 
 All inputs are synthetic structural fixtures. No participant dataset, C1 fit, Pseudo-DXA ablation or human accuracy result exists here. [Empty prospective report](prospective-empty.json) is `NO_PROSPECTIVE_DATA`. The full .NET/JS/Python suite was separately run on the same implementation: 667 / 84 / 34 passing; Release zero warnings/errors. Full PR CI additionally covers the remaining browser regression and published offline PWA.
 
