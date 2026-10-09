@@ -5,6 +5,10 @@
 
 Этот документ **не является реализацией**. Он фиксирует границы, архитектурные правила, порядок исследований, критерии качества и условия GO / NO-GO.
 
+Продуктовое уточнение 2026-10-09: [PRODUCT_LIFECYCLE](PRODUCT_LIFECYCLE.md) — канон lifecycle/evidence, [PRODUCT_LIFECYCLE_ROADMAP](PRODUCT_LIFECYCLE_ROADMAP.md) — порядок продуктовых фаз, [PRODUCT_TECHNOLOGY_DECISIONS](PRODUCT_TECHNOLOGY_DECISIONS.md) — стек/provider/cost decisions. Этот R&D-план уже смержен через #17 и обновляется на базе main после #18 (`4714497`). [#19 Stage A](https://github.com/branch-danya-dev/trening/pull/19) на момент аудита открыт, head `62ad481`; его implementation/benchmarks не копируются в docs branch и не считаются закрытием последующих gates.
+
+Ключевое уточнение renderer: **milestone-only**, одна основная конечная точка на сохранённую Hypothesis (+14/+30 дней), optional front/side той же точки. Current state показывают реальные фото и Avatar; AI future render не выполняется ежедневно. Обязательный baseline — local `GeometryWarpRenderer`; запуск AI через managed API после evidence/Avatar/photo/structural gates; own GPU только после measured business gate. Source of truth — frozen future mesh.
+
 ---
 
 # 1. Цель этапа
@@ -70,9 +74,9 @@ Image renderer получает уже рассчитанную target geometry 
 
 Эти правила действуют для всех последующих этапов.
 
-## 2.1 Facts != Estimates != Forecasts != Renders
+## 2.1 Facts != Estimates != AvatarDerived != Forecasts != Renders
 
-В системе остаются четыре принципиально разные сущности.
+В системе разделяются наблюдения, оценки, признаки геометрии, прогнозы и визуализации. Полное определение — в каноническом lifecycle.
 
 ### Facts
 
@@ -81,9 +85,9 @@ Image renderer получает уже рассчитанную target geometry 
 - вес;
 - ручные обхваты;
 - подтверждённый процент жира;
-- тренировочный журнал;
+- подтверждённые behavioral evidence из ClosedActivityDay, а не незакрытый план или draft журнала;
 - BodySnapshot;
-- photo-derived значения с явным provenance.
+- реальные фотографии как наблюдения с provenance.
 
 ### Estimates
 
@@ -92,9 +96,14 @@ Image renderer получает уже рассчитанную target geometry 
 - ANSUR fallback;
 - visual completion;
 - оценочный % жира;
+- photo-derived значения с явным методом/источником/uncertainty, отличные от ручных измерений;
 - восстановленные отсутствующие пропорции.
 
 Они не становятся фактами автоматически.
+
+### AvatarDerived
+
+Подтверждённая manual shape correction входит в рабочую геометрию Avatar, но не меняет factual measurements. Mesh girths, shoulder/waist ratio, regional volume, visual leanness/muscularity proxy хранятся в `AvatarDerivedMetrics` с точной AvatarRevision и версией метода. Это дополнительные inputs/priors после validation, а не измеренный BF%/масса мышц. Фотооценки и derived descriptors одного источника не считать независимыми доказательствами.
 
 ### Forecasts
 
@@ -148,6 +157,8 @@ Render не является новым фактом и не может учас
 - renderer target version при наличии;
 - рассчитанные числовые точки.
 
+Для нового lifecycle также сохраняются Hypothesis/TrackingCycle origin, current AvatarRevision, IDs/revisions только закрытых behavioral evidence, availability cutoff, evidence coverage/maturity policy, точные 14/30-day target date/endpoint, target mesh/hash или воспроизводимый versioned artifact. Weekly legacy points не переименовываются в 30-day outcome. Ручная recalibration создаёт новый origin и архивирует старую цепочку; factual check-in автоматически обновляет current revision с provenance, не меняя origin и ранее сохранённые прогнозы.
+
 Обновление Forecast v3 не должно изменять replay ранее сохранённых прогнозов.
 
 ---
@@ -193,7 +204,7 @@ renderer-target: geometry-condition-1
 - improved composition vs текущий ForecastEngine;
 - anatomical morphs vs текущие procedural MuscleMorphFields;
 - DeltaShape vs текущий BodyShapeForecast;
-- conditioned renderer vs обычный image-edit renderer.
+- conditioned renderer vs обязательный deterministic GeometryWarpRenderer и optional обычный image-edit renderer.
 
 Новый подход не принимается только потому, что выглядит сложнее или визуально эффектнее.
 
@@ -1191,6 +1202,32 @@ future surface
 
 Создавать реалистичное изображение forecast result, не передавая generative model право решать форму тела.
 
+## 21.1 Milestone и eligibility
+
+Сохранённая Hypothesis имеет один основной endpoint через **14 или 30 дней**. Optional front/side — два ракурса одной точки. Нет daily AI render, автоматического пересоздания Hypothesis после каждого дня или десятков платных timeline images. Current state — real photos/current Avatar.
+
+AI preflight требует одновременно: saved Hypothesis; immutable target ForecastSnapshot; рассчитанный и сохранённый future mesh; minimum evidence maturity/coverage; достаточный Avatar confidence; пригодное source photo/alignment. Дополнительно обязательны approved provider/license/validator policy и согласие на upload. Gate decision/reasons/version сохраняются, неизвестный gate = fail.
+
+Maturity: 0–2 closed days — недостаточно для lifestyle visual hypothesis/AI; 3–6 — preliminary с низким confidence; ≥7 — observed recent routine; 3–5 недель+check-ins — начальная персонализация; 6–8+ недель с пригодными данными — более сильная. Пороги стартовые, требуют empirical validation. Count не заменяет coverage; MissingData не RestDay и расширяет uncertainty. Behavioral evidence только из ClosedActivityDay; открытый daily plan не вход forecast.
+
+При fail допустимые numerical weight/training/3D forecasts остаются с широкой uncertainty и объяснением missing inputs. Даже 0–2 дня не запрещают engine-approved numerical/3D scenario; это не observed lifestyle hypothesis. Exact evidence/photo/confidence thresholds фиксировать Phase 5/8 до production.
+
+## 21.2 GeometryWarpRenderer — обязательный бесплатный baseline
+
+Source photo + current fitted mesh + frozen future mesh → camera/pose alignment → current-to-future projected displacement → barycentric/dense texture warp через Three.js/WebGL (WebGPU optional) → bounded background/silhouette repair → structural validation.
+
+Существующие `PhotoWarp.cs` и `warp.js` работают через horizontal slices/row warp; это исходный baseline, не уже реализованный dense renderer. Сохранить его для comparison/fallback. Новый GeometryWarpRenderer должен поддерживать versioned correspondence/visibility, identity warp, occlusion/error handling и deterministic numerical tolerance. $0 external inference, privacy-local; не обещать photorealistic quality или восстановление невидимой текстуры. Unsafe warp → 3D fallback.
+
+## 21.3 Providers и launch policy
+
+`IPhotorealisticRenderer`/общий render contract отделён от physiology. Providers: `ManagedDepthRenderer` (fal/другой managed API), later `SelfHostedRenderer` (RunPod/serverless/GPU), optional general image renderer research baseline и local `GeometryWarpRenderer` с capability `photorealistic=false`.
+
+На старте **managed first / no dedicated GPU**. Предпочтительная capability: source image + depth/structural conditioning, FLUX/Qwen-class candidates. fal — первый benchmark candidate, exact provider/checkpoint/adapters фиксируются только после benchmark/license/privacy/cost review. Odo — architecture reference only. API secrets в будущем server gateway, не в WASM; отсутствие cloud consent сохраняет local core.
+
+RenderRequest связывает source photo/current revision, frozen target mesh/maps/hash, camera/pose, Hypothesis/ForecastSnapshot, view, settings и idempotency key. RenderResult хранит provider/model/settings/seed, artifact, validation, attempts/cost/latency/failure. AI replay читает artifact; повтор API не гарантирует тот же output. Retry не меняет physiology/target и имеет лимит, затем Failed/3D fallback.
+
+200 paying users × 1–2 hypotheses/month = 200–400 основных endpoint renders; views/retries считаются дополнительно. Это может давать малую долю subscription revenue при низкой цене inference, но проверять полную стоимость. Тарифный пример, формулы break-even и measured usage gate — в [технологических решениях](PRODUCT_TECHNOLOGY_DECISIONS.md#экономика-и-business-gate). Не арендовать dedicated GPU заранее.
+
 ---
 
 # 22. Odo — architectural reference
@@ -1224,9 +1261,9 @@ https://github.com/FastCodeAI/Odo
 
 ---
 
-# 23. Prototype renderer candidate — Qwen Image Edit
+# 23. Prototype renderer candidates — FLUX / Qwen class
 
-Qwen-Image-Edit-2509 можно использовать как один из prototype candidates.
+Qwen-Image-Edit-2509 можно использовать как один из prototype candidates наряду с FLUX-class managed structural endpoints. Семейство модели не гарантирует нужные controls в конкретном API; benchmark source-image + depth/identity и лицензий exact adapters обязателен. Проверенные первичные источники/кандидаты — [технологические решения](PRODUCT_TECHNOLOGY_DECISIONS.md).
 
 На момент roadmap model card указывает Apache 2.0.
 
@@ -1266,6 +1303,8 @@ https://huggingface.co/Qwen/Qwen-Image-Edit-2509
 
 ForecastSnapshot определяет точную future 3D geometry.
 
+Это immutable endpoint выбранной Hypothesis, а не geometry, которую свободно придумывает renderer. Входные current/source revisions фиксируются; несовместимое новое фото не подменяет прошлый target. Eligibility проверяется до upload/paid job.
+
 ---
 
 ## 24.4 Structural maps
@@ -1287,6 +1326,8 @@ Image model получает:
 1. исходное фото;
 2. target structural conditions;
 3. минимальную инструкцию на сохранение identity/scene.
+
+Generated image проходит independent structural validator по frozen target maps. Нет дополнительного похудения/мускулатуры сверх target. Threshold fail → bounded retry того же endpoint или Failed; не показывать failed image как faithful forecast. Local GeometryWarpRenderer остаётся baseline/fallback.
 
 ---
 
@@ -1337,11 +1378,13 @@ Renderer должен стремиться сохранить:
 Каждый generated result должен быть связан с:
 
 - source photo ID;
+- source current AvatarRevision, Hypothesis ID, точная target date/view и evidence gate policy/decision;
 - ForecastSnapshot ID;
 - target mesh/model version;
 - structural maps version;
 - renderer model/checkpoint;
 - renderer settings;
+- mesh/maps/artifact hashes, validator version/result, attempts/cost/provider receipt и consent reference;
 - creation timestamp.
 
 ---
@@ -1425,6 +1468,8 @@ Renderer считается пригодным для пользовательс
 5. privacy flow реализован;
 6. renderer можно полностью отключить без потери core forecast.
 
+Также обязательны сравнение с GeometryWarpRenderer, пройденные eligibility gates, immutable endpoint/replay, bounded cost/retry policy и сохранение отрицательных результатов benchmark. Числовые structural/identity thresholds утверждаются до held-out evaluation; без них production gate не пройден.
+
 ---
 
 # 31. Что не делать на этом этапе
@@ -1487,15 +1532,24 @@ Girth и visual shape не могут самостоятельно иденти�
 
 # 32. Целевая архитектура Forecast v3
 
+Схема ниже показывает также будущие R&D-слои: DeltaShape/BodyParts3D не считаются реализованными. Product adapter сохраняет evidence cutoff и отделяет наблюдавшийся режим от scenario assumptions. Sodium/ECF не production input до отдельного GO.
+
 ~~~text
              CURRENT FACTUAL BODY
  BodySnapshot + manual measurements + photos
                         ↓
-              CURRENT CANONICAL MESH
+ reconstruction + confirmed shape corrections
+                        ↓
+   LOCKED AVATAR REVISION + AvatarDerived priors
 
 ================================================
 
              NUMERICAL FORECAST
+
+      ClosedActivityDay / factual CheckIn
+         + explicit frozen assumptions
+         (no open daily plan / draft logs)
+                        ↓
 
        improved Hall / Forbes engine
          + diet/activity separation
@@ -1524,7 +1578,7 @@ Girth и visual shape не могут самостоятельно иденти�
 
             LOCAL MUSCLE MODEL
 
-              strength program
+ observed closed strength + frozen scenario
                     ↓
               MuscleLoadEngine
                     ↓
@@ -1544,15 +1598,21 @@ Girth и visual shape не могут самостоятельно иденти�
 
               PHOTO VISUALIZATION
 
+    saved Hypothesis / immutable endpoint
+         + evidence / Avatar / photo gate
+
             original user photo
                     +
         target depth / normals / mask
                     +
                 keypoints
                     ↓
-        geometry-conditioned renderer
+    local GeometryWarpRenderer baseline
+      / managed conditioned renderer
                     ↓
-      PHOTOREALISTIC FORECAST VISUAL
+       independent structural validator
+                    ↓
+    ONE ENDPOINT VISUAL / retry or fallback
 
 ================================================
 
@@ -1567,7 +1627,7 @@ Girth и visual shape не могут самостоятельно иденти�
 
 # 33. Порядок реализации
 
-Порядок обязателен, если независимый результат предыдущего этапа не показывает необходимость перестановки.
+Это порядок независимого R&D, а не порядок реализации всего продукта. [PRODUCT_LIFECYCLE_ROADMAP](PRODUCT_LIFECYCLE_ROADMAP.md) задаёт продуктовые Phases 1–9: domain/Avatar/закрытые дни/nutrition/Hypothesis/check-ins предшествуют пользовательскому renderer. BodyParts3D и DeltaShape не блокируют эти foundation-фазы; researcher proof-of-concept не открывает production feature без lifecycle gates.
 
 ## Шаг 1 — Hall/NIDDK refinement
 
@@ -1626,7 +1686,7 @@ Girth и visual shape не могут самостоятельно иденти�
 
 ---
 
-## Шаг 3 — geometry-conditioned renderer proof-of-concept
+## Шаг 3 — GeometryWarp baseline, затем managed conditioned renderer proof-of-concept
 
 ### Входы
 
@@ -1637,7 +1697,8 @@ Girth и visual shape не могут самостоятельно иденти�
 ### Выходы
 
 - renderer adapter interface;
-- one research implementation;
+- обязательный local GeometryWarpRenderer и row-warp comparison;
+- managed structural research implementation для одной endpoint point;
 - structural adherence benchmark.
 
 ### Acceptance
@@ -1645,10 +1706,12 @@ Girth и visual shape не могут самостоятельно иденти�
 - generated silhouette closer to target than unconditioned baseline;
 - identity preserved acceptably;
 - renderer never feeds calibration.
+- published comparison с GeometryWarpRenderer, eligibility/evidence gates и per-accepted-render cost;
+- managed API first; own GPU только после measured business gate.
 
 ### Rollback
 
-- 3D forecast only.
+- local GeometryWarpRenderer, если source подходит, иначе 3D forecast only.
 
 ---
 
@@ -1843,6 +1906,8 @@ Forecast v3 должен иметь четыре независимых уров
 - photos;
 - volume.
 
+Отдельно сравнивать before/after manual shape correction с независимой опорой и repeatability. Factual measurements должны оставаться неизменными; mesh metrics — AvatarDerived. Провести ablation measurements-only / +photos / +correction, анализ subgroup/uncertainty. Субъективное сходство не валидирует BF%/muscularity proxy. Lock/recalibration и automatic factual update проверяются по [VALIDATION](VALIDATION.md).
+
 ---
 
 ## 36.3 Future-shape validation
@@ -2033,8 +2098,8 @@ Experimental notebooks/tools/datasets должны быть отделены о�
 9. Сгенерировать first anatomical displacement sidecar.
 10. Провести side-by-side visual/geometry benchmark procedural vs anatomical.
 11. Добавить export target depth/normal/silhouette из predicted MakeHuman mesh.
-12. Создать renderer interface и unconditioned baseline.
-13. Создать depth/structure-conditioned renderer prototype.
+12. Создать renderer interface и обязательный local GeometryWarpRenderer baseline; optional unconditioned renderer как research control.
+13. Создать managed depth/structure-conditioned renderer prototype для одной frozen Hypothesis endpoint, с eligibility/structural gates и cost receipts; no dedicated GPU at launch.
 14. Сравнить structural adherence.
 15. Параллельно подать заявки Shape Up! / Fenland.
 16. После доступа построить registered longitudinal research dataset.
