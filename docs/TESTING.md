@@ -137,4 +137,3 @@ strength и history. Он сохраняет прогноз, добавляет 
 5. Reload, full backup, clean restore: exact day states/closures/source IDs, без дубликатов. В validation export отдельно выберите дни: нет notes/raw IDs. Проверьте 320/390/1400 px.
 
 Автоматические проверки: 452 .NET, 54 JS, новый ActivityDay browser suite плюс десять прежних suites (включая published offline). [Контракт](ACTIVITY_DAY.md), [evidence](evidence/activity-day/report.json). Измерения — desktop headless Edge/SwiftShader; физический телефон требует отдельной ручной проверки.
-
