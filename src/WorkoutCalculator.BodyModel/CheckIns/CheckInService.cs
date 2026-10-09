@@ -29,9 +29,9 @@ public static class CheckInService
     }
 
     /// <summary>Uncorrected base is the versioned prior. Corrections are applied once, never to the previous corrected mesh.</summary>
-    public static AvatarReconstructionInputs Merge(Profile profile, AvatarRevision prior, BodySnapshot fact, bool usePhotos)
+    public static AvatarReconstructionInputs Merge(Profile profile, AvatarRevision prior, BodySnapshot fact, bool usePhotos, string? analysisHash = null)
     {
-        var references = usePhotos && fact.PhotoSessionId is { } session ? new[] { new AvatarPhotoReference(session,CheckInQualityPolicy.PhotoVersion,CheckInQualityPolicy.MinimumConfidence) } : [];
+        var references = usePhotos && fact.PhotoSessionId is { } session ? new[] { new AvatarPhotoReference(session,CheckInQualityPolicy.PhotoVersion,CheckInQualityPolicy.MinimumConfidence){AnalysisHash=analysisHash} } : [];
         var captured = AvatarBuilder.Capture(profile,fact,photos:references);
         var merged = prior.Inputs.BaseProfile();
         merged.Sex = profile.Sex; merged.HeightCm = profile.HeightCm; merged.Age = profile.AgeAtCreation;
@@ -82,7 +82,7 @@ public static class CheckInService
         {
             try
             {
-                var inputs=Merge(profile,prior,fact,photoAccepted);
+                var inputs=Merge(profile,prior,fact,photoAccepted,photoAccepted?c.Photo!.AnalysisHash:null);
                 built=builder.Build(inputs,prior.Corrections);
                 if(built.Quality.SoftTissueLimitReached) reasons.Add(CheckInReason.TissueLimit);
                 if(!built.Quality.MissingGirths.IsEmpty) reasons.Add(CheckInReason.MissingGeometry);

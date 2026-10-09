@@ -219,3 +219,8 @@ Save an observed hypothesis before the outcome, retaining the closed-data cutoff
 ## Phase 6 — Current Avatar check-ins (2026-10-09)
 
 Opt-in «Check-ins / наблюдения прогресса» adds pseudonymized lineage, dates, nullable manual facts, supported PhotoDerived estimates/RMSE, source and quality decisions, avatar-update result, residuals and linked hypothesis status. Photos/names/notes/local IDs/PIN/keys are excluded unless photos are separately opted in. Diagnostics distinguish prior-mesh vs new tape, photo vs same-day tape and fit residuals; constraints are explicitly marked and `IndependentValidationOfNewFit=false`. This prepares prospective research data and makes no accuracy claim. [Field/quality contract](CHECKIN_LIFECYCLE.md), [evidence and limitations](evidence/checkin/README.md).
+## Phase 7 — opt-in geometry diagnostics
+
+Отдельная галочка «Диагностика геометрической визуализации» добавляет synthetic renderer records: псевдонимы render/Hypothesis/source и structural hashes, view, renderer/alignment/condition versions, quality metrics/state/reasons, timings/device capability. Это структурные ошибки, не проценты точности человека или прогноза. Source/generated image bytes, local blob URLs и raw refs не включаются. Photo opt-in остаётся отдельным и выключенным по умолчанию; он перечисляет factual originals, не `renderArtifacts`. Full backup не предназначен для validation exchange.
+
+Synthetic benchmark, негативные случаи, privacy/network и manual real-photo protocol: [GEOMETRY_WARP](GEOMETRY_WARP.md), [evidence](evidence/geometry-warp/README.md). Контролируемый MakeHuman benchmark не доказывает точность на реальных фотографиях.

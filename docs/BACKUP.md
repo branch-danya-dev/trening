@@ -45,3 +45,10 @@ Avatar domain проверяется `BackupValidation` до мутаций: sch
 ## Phase 6 — Current Avatar check-ins (2026-10-09)
 
 Full backup includes `workoutcalc.checkIns.v1` unchanged, referenced BodySnapshots, Avatar revisions, decisions for rejected observations, candidate/outcome links and all retained photo blobs/settings, including back references. Old backups without CheckIns remain valid. Strict restore checks snapshot/revision/cycle links and rejects orphan factual-update revisions. The pending CheckIn journal is recovered under the archive lock before export/restore and is never exported itself. Repeated reload cannot re-ingest a session or create another revision. Validation export blocks while a cross-store transaction is pending. Details: [commit/recovery contract](CHECKIN_LIFECYCLE.md), [exact restore evidence](evidence/checkin/README.md).
+## Phase 7 — saved synthetic renders
+
+Full backup включает отдельную `renderArtifacts` таблицу IndexedDB schema 3: `workoutcalc.renders.v1` envelope и точные output blobs либо AES-GCM ciphertext/IV/type вместе с прежними PIN settings. Нет повторного encode или regeneration при restore. Depth/normal buffers transient и не сохраняются. Старый backup без этой таблицы допустим и восстанавливается с пустыми renders.
+
+Preflight проверяет synthetic=true, provider/version, hashes, frozen Hypothesis/core/revision/endpoint/source links, quality policy и byte checksum (для ciphertext — при decrypt). C# domain validation выполняется до restore mutation. Полная metadata/bytes входят в recovery before-image и общий Web Lock/generation guard. Source-delete атомарно удаляет derived renders; удаление одного render не удаляет Hypothesis. При восстановлении всего backup возвращается исходный согласованный source+render набор. Скачать image вне приложения — отдельный файл вне cascade.
+
+Saved images не исключаются из «полного» backup. Лимиты ZIP остаются прежними; размер зависит от количества PNG и исходных фото. [Exact encrypted round-trip и measured fixture size](evidence/geometry-warp/README.md), [storage contract](GEOMETRY_WARP.md).

@@ -154,6 +154,8 @@ public sealed class PhotoSession
     public PhotoAnalysis? Analysis { get; set; }
     public DateOnly? ObservedDate { get; set; }
     public string? SourceKind { get; set; }
+    public bool Synthetic { get; set; }
+    public Dictionary<string,string>? ImageHashes { get; set; }
 }
 
 public sealed record CheckInPhotoMeta(Sex Sex,double HeightCm,DateOnly ObservedDate,string SourceKind);

@@ -2,6 +2,7 @@ import { zip, lock as lockPhotos } from './photos.js';
 import { LOCK, EPOCH, acceptGeneration } from './data-guard.js';
 import { reportStorageError } from './storage.js';
 import { recoverCheckIn } from './checkin-transaction.js';
+import { validateArtifact } from './render-contract.js';
 
 export async function initialize() {
     try { const message = await recover(); if (message) reportStorageError(message); }
@@ -10,7 +11,7 @@ export async function initialize() {
 
 const encoder = new TextEncoder(), decoder = new TextDecoder('utf-8', { fatal: true });
 const LIMIT = 512 * 1024 * 1024, MAX_FILES = 20000;
-const tables = ['sessions', 'images', 'settings'];
+const tables = ['sessions', 'images', 'settings', 'renderArtifacts'];
 const ownKey = k => k.startsWith('workoutcalc.');
 const req = r => new Promise((resolve, reject) => { r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
 const done = tx => new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onabort = tx.onerror = () => reject(tx.error || Error('Запись не выполнена: проверьте свободное место.')); });
@@ -20,7 +21,7 @@ function open(name, version, upgrade) { return new Promise((resolve, reject) => 
     const r = indexedDB.open(name, version); r.onupgradeneeded = () => upgrade(r.result);
     r.onsuccess = () => resolve(r.result); r.onerror = r.onblocked = () => reject(Error('Хранилище фото недоступно. Закройте другие версии приложения и повторите.'));
 }); }
-async function photosDb() { return open('body3d-photos', 2, db => {
+async function photosDb() { return open('body3d-photos', 3, db => {
     for (const t of tables) if (!db.objectStoreNames.contains(t)) db.createObjectStore(t, { keyPath: t === 'sessions' ? 'id' : 'key' });
 }); }
 async function recoveryDb() { return open('trening-recovery', 1, db => db.createObjectStore('recovery')); }
@@ -39,7 +40,7 @@ async function readPhotos() {
 async function replacePhotos(value) {
     const db = await photosDb();
     try { const tx = db.transaction(tables, 'readwrite'), finished = done(tx);
-        for (const t of tables) { const store = tx.objectStore(t); store.clear(); for (const row of value[t]) store.put(row); }
+        for (const t of tables) { const store = tx.objectStore(t); store.clear(); for (const row of value[t]||[]) store.put(row); }
         await finished;
     } finally { db.close(); }
 }
@@ -139,8 +140,9 @@ export async function validateArchive(bytes) {
     for(const [k,v] of Object.entries(local)) if(!ownKey(k) || typeof v!=='string') throw Error('Неизвестный ключ хранилища.');
     const used=new Set(), photos=decodeRecords(parse('photos.json'),files,used);
     for(const name of names) if(name.startsWith('blobs/') && !used.has(name)) throw Error('Файл фото не связан с метаданными.');
-    if(!photos || Object.keys(photos).sort().join()!==[...tables].sort().join()) throw Error('Неполный набор хранилищ фото.');
+    if(!photos || Object.keys(photos).sort().join()!==tables.filter(t=>t!=='renderArtifacts'||photos.renderArtifacts!==undefined).sort().join()) throw Error('Неполный набор хранилищ фото.');
     for(const t of tables) {
+        if(t==='renderArtifacts'&&photos[t]===undefined)continue; // Old backups remain byte-preserving and valid.
         if(!Array.isArray(photos[t])) throw Error('Некорректное хранилище '+t);
         const ids=new Set(); for(const row of photos[t]) { const id=row?.[t==='sessions'?'id':'key']; if(typeof id!=='string' || !id || ids.has(id)) throw Error('Некорректные или повторные записи '+t); ids.add(id); }
     }
@@ -161,6 +163,10 @@ export async function validateArchive(bytes) {
             throw Error('Некорректные данные изображения.');
     }
     if (requiredImages.size) throw Error('Отсутствуют изображения или превью фотосессии.');
+    for(const row of photos.renderArtifacts||[]) {
+        if(pin ? row.blob||!(row.iv instanceof Uint8Array)||row.iv.length!==12||!(row.data instanceof ArrayBuffer)||row.data.byteLength<16 : !(row.blob instanceof Blob))throw Error('Повреждена защита синтетического рендера.');
+        await validateArtifact(row,local,photos.sessions);
+    }
     return { local, photos, manifest };
 }
 export function download(blob, name) {
@@ -177,6 +183,7 @@ export async function exportBackup(build) {
 }
 let prepared;
 export function preparedLocal() { if (!prepared) throw Error("Архив не проверен."); return JSON.stringify(prepared.local); }
+export function preparedRenders() { if(!prepared)throw Error('Архив не проверен.');return JSON.stringify((prepared.photos.renderArtifacts||[]).map(r=>r.metadata)); }
 export async function inspectInput(id) {
     prepared=null; const file=document.getElementById(id)?.files?.[0]; if(!file) throw Error('Выберите ZIP-файл.');
     prepared=await validateArchive(new Uint8Array(await file.arrayBuffer()));

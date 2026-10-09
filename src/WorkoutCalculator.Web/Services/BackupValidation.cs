@@ -4,6 +4,14 @@ namespace WorkoutCalculator.Web.Services;
 /// <summary>Use the same domain validators as normal reads before any restore mutation.</summary>
 public static class BackupValidation
 {
+    public static void ValidateRenders(string json,string local)
+    {
+        using var doc=JsonDocument.Parse(local);
+        var raw=doc.RootElement.TryGetProperty(ObservedHypothesisStore.Key,out var value)?value.GetString():null;
+        var hypotheses=ObservedHypothesisStore.Decode(raw);
+        var artifacts=JsonSerializer.Deserialize(json,WorkoutCalculator.BodyModel.Rendering.RenderJson.Default.RenderArtifactArray)??[];
+        foreach(var a in artifacts)a.Validate(hypotheses.Items.Single(h=>h.Core.Id==a.Request.HypothesisId));
+    }
     public static void Validate(string json)
     {
         using var doc = JsonDocument.Parse(json);

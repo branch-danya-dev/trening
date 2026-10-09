@@ -8,7 +8,7 @@ const tab = (p,name) => p.getByRole('tab',{name,exact:true}).click();
 async function storage(p) { return p.evaluate(async()=>{
  const b=await import(new URL('js/backup.js',document.baseURI));
  // Use the public exporter/parser for byte assertions, not JSON stringification of Blob/ArrayBuffer.
- const db=await new Promise((res,rej)=>{const r=indexedDB.open('body3d-photos',2);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+ const db=await new Promise((res,rej)=>{const r=indexedDB.open('body3d-photos');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
  const photos={}; for(const t of ['sessions','images','settings'])photos[t]=await new Promise((res,rej)=>{const r=db.transaction(t).objectStore(t).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});db.close();
  const local=Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('workoutcalc.')).sort().map(k=>[k,localStorage.getItem(k)]));
  const archive=await b.makeArchive({local,photos},'smoke'); const files=b.readZip(new Uint8Array(await archive.arrayBuffer()));

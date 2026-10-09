@@ -25,6 +25,7 @@ const assert = require('node:assert/strict');
         const open = p => p.getByRole('tab', { name: 'Прогресс', exact: true }).click();
         await page.addInitScript(() => { if (!localStorage.getItem('workoutcalc.body.v1')) localStorage.setItem('workoutcalc.body.v1', JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57})); });
         await page.goto(url); await ready(page);
+        const actualNow=new Date();await page.clock.setFixedTime(new Date('2026-10-04T22:30:00Z')); // Timestamp is captured at creation, never edited afterward.
         const legacy = await page.evaluate(async () => {
             const weights = JSON.stringify([{ Date: '2026-10-02', WeightKg: 89 }]);
             const cardio = JSON.stringify([{ Id: 'old-cardio', Date: '2026-10-03', Activity: 0, Setting: 0,
@@ -44,10 +45,11 @@ const assert = require('node:assert/strict');
             const profile = (view, size) => ({ view, width: 500, height: 1000, top: 0, bottom: 1000, crown: 0, floor: 1000,
                 cmPerPixel: .18, scaleFromSide: false, facingLeft: false, pose: [], warnings: [],
                 levels: [.601, .505].map(fraction => ({ fraction, row: 500, left: 0, right: 100, sizeCm: size, snapped: true, armOverlap: false })) });
-            await photos.updateSession(session.id, JSON.stringify({ createdAt: '2026-10-04T22:30:00Z',
+            await photos.updateSession(session.id, JSON.stringify({
                 analysis: { front: profile('Front', 35), side: profile('Side', 25), analyzedAt: '2026-10-05T09:00:00Z', milliseconds: 10 } }));
             return { weights, cardio, photoId: session.id, photoMeta: await photos.listMeta() };
         });
+        await page.clock.setFixedTime(actualNow);
         await page.reload(); await ready(page);
         await page.getByLabel('Нагрузка мышц', { exact: true }).check();
         await page.getByRole('button', { name: '▶ Упражнение', exact: true }).click();
@@ -114,7 +116,7 @@ const assert = require('node:assert/strict');
         assert.equal(await page.evaluate(k => localStorage.getItem(k + '.backup.before-import'), key), payloadBeforeImport);
         const unchanged = await page.evaluate(async () => {
             const photos = await import(new URL('js/photos.js', document.baseURI));
-            const db = await new Promise((resolve, reject) => { const r = indexedDB.open('body3d-photos', 2); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
+            const db = await new Promise((resolve, reject) => { const r = indexedDB.open('body3d-photos'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
             const imageCount = await new Promise((resolve, reject) => { const r = db.transaction('images').objectStore('images').count(); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
             return { weights: localStorage.getItem('workoutcalc.weights.v1'), cardio: localStorage.getItem('workoutcalc.workouts.v1'), meta: await photos.listMeta(), imageCount };
         });

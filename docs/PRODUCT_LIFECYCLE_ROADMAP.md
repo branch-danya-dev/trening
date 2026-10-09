@@ -165,6 +165,8 @@ flowchart LR
 
 ## Phase 7 — GeometryWarpRenderer
 
+**Статус, 2026-10-09:** реализована в `codex/geometry-warp-renderer` после обычного merge #26 и зелёного main CI. [Точный v1 contract](GEOMETRY_WARP.md), [структурный benchmark и regression](evidence/geometry-warp/README.md). Reusable depth/normal/mask bundle, separate encrypted synthetic store, exact backup и source-delete cascade входят в Phase 7. GO относится к проверенным structural/integration gates; real-human accuracy и физический слабый телефон не проверены. PR без auto-merge. Phase 8 не реализована.
+
 **Результат:** обязательная бесплатная локальная визуализация геометрического изменения и structural benchmark.
 
 **Domain/API.** Общий RenderRequest/Result envelope, capability `photorealistic=false`; source/current/future mesh refs, camera/pose/alignment, projected displacement, barycentric/dense texture warp, deterministic bounded repair. Начать с аудита существующих PhotoWarp/warp.js, сохранить их как comparison, не называть их уже готовым full-mesh renderer. Зафиксировать supported views/occlusions и numerical tolerance.
@@ -177,7 +179,7 @@ flowchart LR
 
 **Acceptance.** $0 external inference, local privacy, deterministic geometry mapping, target неизменен. Repair не создаёт выдуманную «улучшенную» анатомию. Benchmark опубликован с отрицательными случаями; при ошибке warp не маркируется как успешный. Geometry baseline обязателен перед AI comparison.
 
-**Rollback/fallback.** Safe existing row warp только для поддерживаемых условий с label либо 3D-only; unsupported device не ломает forecast.
+**Rollback/fallback.** Новый Hypothesis renderer при unsupported/rejected переходит в 3D-only; legacy row warp сохранён в прежнем photo flow и benchmark, автоматически подставлять его вместо frozen Hypothesis render нельзя. Unsupported device не ломает forecast.
 
 **Dependencies.** Phases 5–6, immutable mesh/pose artifact contract. WebGPU optional; не требует GPU аренды.
 

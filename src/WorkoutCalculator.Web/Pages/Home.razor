@@ -163,7 +163,7 @@
                 else if (_tab == Tab.History)
                 {
                     <CheckInPanel @key="CheckInComponentKey" Avatar="Avatar" Profile="_avatars.Profile" Builder="AvatarBuilder" StartOpen="_checkInOpen" OnChanged="CheckInChanged" OnRecalibrate="StartAvatarRecalibration" />
-                    <ObservedHypothesisPanel @key="_checkInChanges" HistoryOnly="true" OnMeasure="NewCheckIn" OnEndpoint="ShowObservedEndpoint" />
+                    <ObservedHypothesisPanel Builder="AvatarBuilder" @key="_checkInChanges" HistoryOnly="true" OnMeasure="NewCheckIn" OnEndpoint="ShowObservedEndpoint" />
                     <details open="@(!_checkInOpen)"><summary>Архив фактических замеров</summary><BodyHistory State="_history" Profile="_profile" Strength="_strength" Cardio="_workouts" OnView="ShowHistory" /></details>
                     <details class="card"><summary>Фото-прогресс</summary><PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End" ForecastLabel="@ForecastLabel" RevisionManaged="@(Avatar is not null || _avatarError is not null)" /></details>
                 }
@@ -189,7 +189,7 @@
                 }
                 else
                 {
-                    <ObservedHypothesisPanel OnMeasure="NewCheckIn" OnEndpoint="ShowObservedEndpoint" />
+                    <ObservedHypothesisPanel Builder="AvatarBuilder" OnMeasure="NewCheckIn" OnEndpoint="ShowObservedEndpoint" />
                     <h2>Ручные сценарии</h2><p class="note">Задайте предположения самостоятельно. Сценарии не являются гипотезами по закрытым наблюдениям.</p>
                     <button class="btn" @onclick="ShowScenario">Показать сценарий в 3D</button>
                     <HypothesisPanel Profile="_profile" Hypotheses="_hypotheses" Forecasts="_forecasts" OnChange="ChangeHypothesis"

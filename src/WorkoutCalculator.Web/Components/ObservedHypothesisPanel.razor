@@ -20,6 +20,7 @@
         <p>Прошло: @Math.Clamp(Today.DayNumber-c.LocalStartDate.DayNumber,0,c.HorizonDays) дней · До цели: @Math.Max(0,c.TargetDate.DayNumber-Today.DayNumber) дней</p>
         <p class="note">Прогноз сохранён и не меняется после новых закрытых дней.</p>
         <HypothesisReviewView Core="c" OnEndpoint="OnEndpoint" />
+        <GeometryWarpPanel @key="saved.CoreHash" Hypothesis="saved" Builder="Builder" />
         @if(saved.IsOpen && Today >= c.TargetDate.AddDays(-1) && Today <= c.TargetDate.AddDays(3))
         {
             <div class="hypothesis-outcome" data-testid="hypothesis-outcome">
@@ -82,6 +83,7 @@
 
 @code {
     [Parameter] public bool HistoryOnly {get;set;}
+    [Parameter] public AvatarBuilder? Builder {get;set;}
     [Parameter] public EventCallback<HypothesisEndpoint> OnEndpoint {get;set;}
     [Parameter] public EventCallback OnMeasure {get;set;}
     private readonly ObservedHypothesisStore _store=new(new BrowserJournalStorage());

@@ -4,6 +4,7 @@ import { checkInAnalysis } from './validation-checkins.js';
 import { assertReadable } from './data-guard.js';
 import { packageFiles, download } from './backup.js';
 import { analysisImages } from './photos.js';
+import { diagnostics } from './render-store.js';
 const read = key => JSON.parse(localStorage.getItem('workoutcalc.' + key) || 'null');
 const pick = (value, keys) => Object.fromEntries(keys.filter(k => value?.[k] !== undefined).map(k => [k,value[k]]));
 const parseNested = value => typeof value === 'string' ? JSON.parse(value) : value;
@@ -61,7 +62,9 @@ export async function exportValidation(optionsJson, reportJson, build) {
     const env=options.forecasts||options.validation ? read('forecasts.v1') : null;
     const stores={ checkIns:options.checkIns?parseNested(read('checkIns.v1')?.payload):null,hypotheses:options.hypotheses||options.checkIns?parseNested(read('observedHypotheses.v1')?.payload):null,activity:options.activity?parseNested(read('activityDays.v1')?.payload):null, avatars:options.avatars||options.profile||options.checkIns?read('avatarDomain.v1'):null,profile:options.profile?read('body.v1'):null,facts:options.facts||options.profile||options.validation?read('bodySnapshots.v1'):null,
         forecasts:env?parseNested(env.payload):null,cardio:options.workouts?read('workouts.v1'):null,strength:options.workouts?read('strength.v1'):null };
-    const data=analysisData(options,stores,JSON.parse(reportJson)), files=[{name:'analysis.json',data:new TextEncoder().encode(JSON.stringify(data,null,2))}];
+    const data=analysisData(options,stores,JSON.parse(reportJson));
+    if(options.renders)data.renders=await diagnostics();
+    const files=[{name:'analysis.json',data:new TextEncoder().encode(JSON.stringify(data,null,2))}];
     if(options.photos) { let i=0; for(const blob of await analysisImages()) files.push({name:`photos/${++i}.jpg`,data:new Uint8Array(await blob.arrayBuffer())}); }
     download(await packageFiles(files,build,'trening-validation'),'validation-package.zip');
 }

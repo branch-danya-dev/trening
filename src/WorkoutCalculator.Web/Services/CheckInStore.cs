@@ -168,7 +168,8 @@ public sealed class CheckInStore(IJournalStorage storage)
             var profile=avatars.Current.Data!.Profiles.Single(p=>p.Id==c.ProfileId);
             if(c.Revision is { } merged && c.Snapshot is { } observed &&
                 JsonSerializer.Serialize(merged.Inputs,AvatarDomainJson.Default.AvatarReconstructionInputs)!=
-                JsonSerializer.Serialize(CheckInService.Merge(profile,baseline,observed,c.Quality!.PhotoAccepted),AvatarDomainJson.Default.AvatarReconstructionInputs))
+                JsonSerializer.Serialize(CheckInService.Merge(profile,baseline,observed,c.Quality!.PhotoAccepted,
+                    merged.Inputs.Photos.Any(p=>p.AnalysisHash is not null)?c.Photo?.AnalysisHash:null),AvatarDomainJson.Default.AvatarReconstructionInputs))
                 throw new ArgumentException("Реконструкция не соответствует политике исходной формы и новых фактов.");
             if(c.Quality?.PhotoAccepted==true && !CheckInQualityPolicy.PhotoReasons(c,profile).IsEmpty)throw new ArgumentException("Фото не проходит сохранённую политику качества.");
             if(c.Revision is { } accepted && (accepted.CreatedAt!=c.RecordedAt || accepted.Corrections!=baseline.Corrections ||

@@ -5,8 +5,9 @@
 // С PIN-кодом снимки и превью хранятся зашифрованными (AES-GCM, ключ из PIN через PBKDF2) — см. «Защита».
 
 import { assertWritable } from './data-guard.js';
+import { hashBytes, synthetic, rejectSyntheticImage } from './render-contract.js';
 const DB_NAME = 'body3d-photos';
-const DB_VERSION = 2; // 2 — хранилище settings (PIN)
+const DB_VERSION = 3; // Separate synthetic artifacts share only encryption and atomic retention.
 const MAX_SIDE = 2048;
 const THUMB_SIDE = 320;
 const VIEWS = ['front', 'side', 'back'];
@@ -14,7 +15,7 @@ const ARCHIVE_FORMAT = 1;
 
 let dbPromise = null;
 
-function openDb() {
+export function openDb() {
     dbPromise ??= new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         request.onupgradeneeded = () => {
@@ -22,8 +23,10 @@ function openDb() {
             if (!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions', { keyPath: 'id' });
             if (!db.objectStoreNames.contains('images')) db.createObjectStore('images', { keyPath: 'key' });
             if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath: 'key' });
+            if (!db.objectStoreNames.contains('renderArtifacts')) db.createObjectStore('renderArtifacts', { keyPath: 'key' });
         };
-        request.onsuccess = () => resolve(request.result);
+        request.onsuccess = () => { request.result.onversionchange=()=>{request.result.close();dbPromise=null;}; resolve(request.result); };
+        request.onblocked = () => reject(Error('Закройте старые вкладки приложения для обновления хранилища.'));
         request.onerror = () => reject(new Error('Хранилище браузера недоступно (приватный режим?)'));
     });
     return dbPromise;
@@ -34,12 +37,12 @@ async function transact(mode, work) {
     const db = await openDb();
     return new Promise((resolve, reject) => {
         if (mode === 'readwrite') assertWritable();
-        const tx = db.transaction(['sessions', 'images'], mode);
+        const tx = db.transaction(['sessions', 'images', 'renderArtifacts'], mode);
         let result;
         tx.oncomplete = () => resolve(result);
         tx.onerror = () => reject(tx.error ?? new Error('Ошибка хранилища'));
         tx.onabort = () => reject(tx.error ?? new Error('Не хватает места в хранилище браузера'));
-        result = work(tx.objectStore('sessions'), tx.objectStore('images'));
+        result = work(tx.objectStore('sessions'), tx.objectStore('images'), tx.objectStore('renderArtifacts'));
     });
 }
 
@@ -67,6 +70,10 @@ let lockTimer = null;
 let lockListener = null;
 /** Адреса (blob:) снимков целиком и прогнозов на фото — при блокировке освобождаются. */
 const openUrls = new Set();
+const urlSources = new Map();
+const deletionChannel = typeof document !== 'undefined' && typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('trening-photo-deletions') : null;
+function revokeSource(id) { for(const [url,source]of urlSources)if(id===null||source===id)revokeUrl(url); }
+if(deletionChannel)deletionChannel.onmessage=e=>{if(e.data?.kind==='delete-source')revokeSource(e.data.id);};
 
 if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
@@ -104,14 +111,14 @@ async function pinSettings() {
 }
 
 /** Поля записи снимка: зашифрованные, если включён PIN, иначе — сам Blob. */
-async function seal(blob, key) {
+export async function seal(blob, key) {
     if (!key) return { blob };
     const { iv, data } = await encryptBytes(key, await blob.arrayBuffer());
     return { iv, data, type: blob.type || 'image/jpeg' };
 }
 
 /** Снимок из записи; зашифрованный без разблокировки — исключение. */
-async function unseal(record) {
+export async function unseal(record) {
     if (!record) return null;
     if (record.blob) return record.blob;
     if (!cryptoKey) throw new Error(LOCKED);
@@ -128,7 +135,7 @@ export async function analysisImages() {
 }
 
 /** Ключ для новых снимков: null — защита выключена; включена, но закрыта — исключение. */
-async function writeKey() {
+export async function writeKey() {
     if (!(await pinSettings())) return null;
     if (!cryptoKey) throw new Error(LOCKED);
     return cryptoKey;
@@ -153,21 +160,24 @@ async function rewriteImages(rewrite, pin) {
     const records = await req(db.transaction('images', 'readonly').objectStore('images').getAll());
     const next = [];
     for (const r of records) next.push({ key: r.key, ...(await rewrite(r)) });
+    const renderRows = await req(db.transaction('renderArtifacts','readonly').objectStore('renderArtifacts').getAll());
+    const renderNext=[]; for(const r of renderRows) renderNext.push({key:r.key,metadata:r.metadata,...await rewrite(r)});
     await new Promise((resolve, reject) => {
         assertWritable();
-        const tx = db.transaction(['images', 'settings'], 'readwrite');
+        const tx = db.transaction(['images', 'settings', 'renderArtifacts'], 'readwrite');
         tx.oncomplete = resolve;
         tx.onerror = () => reject(tx.error ?? new Error('Ошибка хранилища'));
         tx.onabort = () => reject(tx.error ?? new Error('Не хватает места в хранилище браузера'));
         const images = tx.objectStore('images');
         for (const r of next) images.put(r);
+        for (const r of renderNext) tx.objectStore('renderArtifacts').put(r);
         if (pin) tx.objectStore('settings').put(pin);
         else tx.objectStore('settings').delete('pin');
     });
 }
 
 /** Включает PIN: соль и проверочная запись в settings, все снимки шифруются; защита сразу открыта. */
-export async function enablePin(pin) {
+async function enablePinCore(pin) {
     checkPin(pin);
     if (await pinSettings()) throw new Error('PIN-код уже установлен');
     const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -198,6 +208,7 @@ export function lock(notify = true) {
     cryptoKey = null;
     for (const url of openUrls) URL.revokeObjectURL(url);
     openUrls.clear();
+    urlSources.clear();
     thumbUrls.forEach(URL.revokeObjectURL);
     thumbUrls = [];
     if (notify) lockListener?.();
@@ -210,7 +221,7 @@ export function onLock(callback) {
 export function clearLockListener() { lockListener = null; }
 
 /** Снимает защиту: проверка PIN, все снимки расшифровываются, соль и проверка удаляются. */
-export async function disablePin(pin) {
+async function disablePinCore(pin) {
     await unlock(pin);
     await rewriteImages(async r => ({ blob: await unseal(r) }), null);
     cryptoKey = null; // снимки больше не зашифрованы: освобождать нечего, интерфейс знает о снятии защиты
@@ -255,22 +266,24 @@ async function prepare(file) {
  * Новая сессия из снимков: images — { front: Blob|File, side: Blob|File } (хотя бы один).
  * meta — замеры на момент съёмки (рост, вес, пол…). Возвращает сохранённую сессию.
  */
-export async function saveSession(meta, images) {
+async function saveSessionCore(meta, images) {
+    if(synthetic(meta))throw Error('Синтетическая визуализация не является фактическим фото.');
     const views = VIEWS.filter(v => images[v]);
     if (views.length === 0) throw new Error('Нет ни одного снимка');
     const key = await writeKey();
     const prepared = {};
-    for (const v of views) prepared[v] = await prepare(images[v]);
+    for (const v of views) { await rejectSyntheticImage(images[v]); prepared[v] = await prepare(images[v]); }
     const sealed = {};
     for (const v of views) sealed[v] = { full: await seal(prepared[v].full.blob, key), thumb: await seal(prepared[v].thumb.blob, key) };
 
     const now = new Date();
     const session = {
+        ...meta,
         id: `s-${now.getTime().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
         createdAt: now.toISOString(),
-        ...meta,
         views,
         sizes: Object.fromEntries(views.map(v => [v, { width: prepared[v].full.width, height: prepared[v].full.height }])),
+        imageHashes: Object.fromEntries(await Promise.all(views.map(async v=>[v,await hashBytes(await prepared[v].full.blob.arrayBuffer())]))),
     };
     await transact('readwrite', (sessions, imagesStore) => {
         sessions.put(session);
@@ -307,7 +320,7 @@ export async function saveFromInputs(metaJson, frontInputId, sideInputId) {
 export async function saveCheckInInputs(metaJson,frontInputId,sideInputId,backInputId) {
     const images=filesFromInputs({front:frontInputId,side:sideInputId,back:backInputId});
     const meta=JSON.parse(metaJson);
-    if(meta.sourceKind!=='OriginalObservation')throw Error('Нужны реальные фото наблюдения.');
+    if(meta.sourceKind!=='OriginalObservation'||synthetic(meta))throw Error('Нужны реальные фото наблюдения.');
     const session=await saveSession(meta,images);
     for(const id of [frontInputId,sideInputId,backInputId]){const input=document.getElementById(id);if(input)input.value='';}
     await requestPersist();return JSON.stringify(session);
@@ -363,57 +376,75 @@ export async function getImage(id, view) {
     return unseal(record);
 }
 
+export async function getSession(id) { const db=await openDb();return req(db.transaction('sessions','readonly').objectStore('sessions').get(id)); }
+export async function assertFactualSession(id) { const s=await getSession(id); if(!s||synthetic(s))throw Error('Нужна исходная фотосессия, а не синтетический рендер.');return s; }
+export function photoWrite(action) { if(!navigator.locks)throw Error('Безопасная запись недоступна в этом браузере.');return navigator.locks.request('trening-archive',{mode:'exclusive'},()=>{assertWritable();return action();}); }
+export const saveSession=(meta,images)=>photoWrite(()=>saveSessionCore(meta,images));
+export const enablePin=pin=>photoWrite(()=>enablePinCore(pin));
+export const disablePin=pin=>photoWrite(()=>disablePinCore(pin));
+
 /** Дописывает в сессию поля из patchJson (например, результат разбора снимков). */
-export async function updateSession(id, patchJson) {
+async function updateSessionCore(id, patchJson) {
     const patch = JSON.parse(patchJson);
     const db = await openDb();
     const session = await req(db.transaction('sessions', 'readonly').objectStore('sessions').get(id));
     if (!session) throw new Error('Сессия не найдена');
+    if(synthetic(patch)||patch.imageHashes||patch.views||patch.createdAt||patch.sourceKind&&patch.sourceKind!==session.sourceKind)throw Error('Нельзя менять происхождение исходного фото.');
     await transact('readwrite', sessions => { sessions.put({ ...session, ...patch, id }); });
 }
+export const updateSession=(id,patch)=>photoWrite(()=>updateSessionCore(id,patch));
 
 /** Адрес снимка целиком (blob:) для показа; освободить — revokeUrl. */
 export async function imageUrl(id, view) {
     const blob = await getImage(id, view);
-    return blob ? photoUrl(blob) : '';
+    return blob ? photoUrl(blob,id) : '';
 }
 
 /** Адрес (blob:) снимка или его производной; при блокировке освобождается сам. */
-export function photoUrl(blob) {
+export function photoUrl(blob,sourceId=null) {
     const url = URL.createObjectURL(blob);
     openUrls.add(url);
+    urlSources.set(url,sourceId);
     return url;
 }
 
 export function revokeUrl(url) {
     if (!url) return;
     openUrls.delete(url);
+    urlSources.delete(url);
     URL.revokeObjectURL(url);
 }
 
-export async function deleteSession(id) {
-    await transact('readwrite', (sessions, images) => {
+async function deleteSessionCore(id) {
+    await transact('readwrite', (sessions, images, renders) => {
         sessions.delete(id);
+        const all=renders.getAll();all.onsuccess=()=>{for(const r of all.result)if(r.metadata.request.sourcePhotoSessionId===id)renders.delete(r.key);};
         for (const v of VIEWS) {
             images.delete(imageKey(id, v));
             images.delete(imageKey(id, v, true));
         }
     });
+    revokeSource(id);deletionChannel?.postMessage({kind:'delete-source',id});
 }
+export const deleteSession=id=>photoWrite(()=>deleteSessionCore(id));
 
 /** Удаляет все сессии и PIN-код: так же начинают заново, если PIN забыт (снимки без него не восстановить). */
-export async function deleteAll() {
+async function deleteAllCore() {
     const db = await openDb();
     await new Promise((resolve, reject) => {
-        const tx = db.transaction(['sessions', 'images', 'settings'], 'readwrite');
+        assertWritable();
+        const tx = db.transaction(['sessions', 'images', 'settings', 'renderArtifacts'], 'readwrite');
         tx.oncomplete = resolve;
         tx.onerror = () => reject(tx.error ?? new Error('Ошибка хранилища'));
         tx.objectStore('sessions').clear();
         tx.objectStore('images').clear();
+        tx.objectStore('renderArtifacts').clear();
         tx.objectStore('settings').delete('pin');
     });
     lock();
+    revokeSource(null);deletionChannel?.postMessage({kind:'delete-source',id:null});
 }
+export const deleteAll=()=>photoWrite(deleteAllCore);
 
 // ---------- Место и защита от очистки ----------
 
@@ -486,7 +517,7 @@ export async function exportArchive() {
 }
 
 /** Импорт zip из поля выбора файла. Сессии, которые уже есть (тот же id), пропускаются. JSON: { added, skipped }. */
-export async function importArchive(inputId) {
+async function importArchiveCore(inputId) {
     const input = document.getElementById(inputId);
     const file = input?.files?.[0];
     if (!file) throw new Error('Файл не выбран');
@@ -502,12 +533,14 @@ export async function importArchive(inputId) {
         const existing = new Set(await req(db.transaction('sessions', 'readonly').objectStore('sessions').getAllKeys()));
         let added = 0, skipped = 0;
         for (const s of manifest.sessions) {
+            if(synthetic(s))throw Error('Синтетическая визуализация не может импортироваться как фотосессия.');
             if (typeof s?.id !== 'string' || existing.has(s.id)) { skipped++; continue; }
             const views = VIEWS.filter(v => s.files?.[v] && entries.has(s.files[v]));
             if (views.length === 0) { skipped++; continue; }
             const prepared = {};
             for (const v of views) {
                 const blob = new Blob([await entries.get(s.files[v]).read()], { type: 'image/jpeg' });
+                await rejectSyntheticImage(blob);
                 const { full, thumb } = await prepare(blob);
                 prepared[v] = { full: await seal(full.blob, key), thumb: await seal(thumb.blob, key) };
             }
@@ -528,6 +561,7 @@ export async function importArchive(inputId) {
         input.value = '';
     }
 }
+export const importArchive=inputId=>photoWrite(()=>importArchiveCore(inputId));
 
 // ---------- Zip: запись без сжатия (JPEG уже сжат), чтение — без сжатия и deflate ----------
 

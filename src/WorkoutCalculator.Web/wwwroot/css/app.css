@@ -1310,3 +1310,4 @@ table.changes tr.dim td { opacity: 0.5; }
 .checkin-panel summary { align-content: center; cursor: pointer; }
 .checkin-panel .note { color: #adbdca; }
 .checkin-history { padding: 12px 0; border-top: 1px solid var(--border); }
+.geometry-warp{margin-top:1rem;border-top:1px solid var(--border,#ccc);padding-top:1rem;min-width:0}.render-image{display:block;max-width:100%;height:auto;margin:1rem 0}.page-hidden .render-image{filter:blur(20px)}.geometry-warp p{overflow-wrap:anywhere}

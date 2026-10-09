@@ -32,6 +32,7 @@ public sealed record CheckInPhoto(string SessionId, DateOnly ObservedDate, Check
     public string RetentionPolicy { get; init; } = "local-user-managed-1";
     public void Validate()
     {
+        if (SessionId?.StartsWith("render:", StringComparison.Ordinal) == true) throw new ArgumentException("Визуализация не является наблюдением.");
         if (string.IsNullOrWhiteSpace(SessionId) || SessionId.Length > 200 || ObservedDate == default || !Enum.IsDefined(Source) ||
             !Enum.IsDefined(Sex) || !AvatarRules.In(HeightCm,100,250) || !(Front || Side || Back) ||
             AnalysisVersion != CheckInQualityPolicy.PhotoVersion || RetentionPolicy != "local-user-managed-1" ||
