@@ -19,6 +19,8 @@ Draft analysis may be enriched only for the same photo/session/date/source/profi
 
 `BodySnapshot.Validate()` is unchanged: an empty snapshot is still invalid. Weight is recommended, not globally required. Weight-only, BF-only and girth-only facts are possible. No preceding weight, BF, girth, sex, height, age or shape is copied into the new snapshot. System profile supplies sex/height to reconstruction only. Photo-only front/side analysis can create a partial snapshot from supported waist/hip estimates; reference-only, unusable or unsupported photos remain in the envelope without a fake snapshot.
 
+The legacy runtime/calculator projection also starts from the active revision and persistent profile, then overlays known facts; a partial snapshot must not reset sex/height/age to demographic defaults. This projection is not persisted as a measured snapshot and supplies no new outcome fields.
+
 ## Sources and photos
 
 - Manual numeric values are factual and override lower-priority photo estimates in the same observation.

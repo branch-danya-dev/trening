@@ -17,7 +17,8 @@ public partial class Home
     private BodySnapshot? CurrentFact => _history.Timeline.Items.Where(s => s.Date <= DateOnly.FromDateTime(DateTime.Now))
         .OrderBy(s => s.Date).ThenBy(s => _checkInFactTimes.GetValueOrDefault(s.Id)).ThenBy(s => s.Id, StringComparer.Ordinal).LastOrDefault();
     private string CurrentFactCaption => (Avatar is not null ? "Текущая форма — сохранённая ревизия аватара. " : "") + (CurrentFact is { } fact
-        ? $"Факты за {fact.Date:dd.MM.yyyy}. Для 3D условно заполнены: {string.Join(", ", SnapshotVisuals.Build(fact).EstimatedFields)}."
+        ? Avatar is not null ? $"Факты за {fact.Date:dd.MM.yyyy}. Неизмеренные параметры формы сохраняются из предыдущей ревизии и не считаются новыми замерами."
+            : $"Факты за {fact.Date:dd.MM.yyyy}. Для 3D условно заполнены: {string.Join(", ", SnapshotVisuals.Build(fact).EstimatedFields)}."
         : "Измерений пока нет. Параметры внешнего вида ещё не подтверждены как факты.");
     private void InitializeProduct()
     {
@@ -35,7 +36,22 @@ public partial class Home
         var signature = fact is null ? null : System.Text.Json.JsonSerializer.Serialize(fact, SnapshotJson.Default.BodySnapshot);
         if (signature == _appliedFact) return;
         _appliedFact = signature;
-        if (fact is not null) { _profile = SnapshotVisuals.Build(fact).Profile; if (_viewerReady) Refresh(); }
+        if (fact is not null)
+        {
+            // Runtime/calculator projection may use the current prior; the immutable partial fact is never filled.
+            _profile = Avatar?.ActiveRevision?.Inputs.BaseProfile() ?? SnapshotVisuals.Build(fact).Profile;
+            if(fact.WeightKg is { } weight)_profile.WeightKg=weight;
+            if(fact.BodyFatPercent is { } fat)_profile.BodyFatPercent=fat;
+            foreach(var (g,value)in fact.Measurements)_profile.SetGirth(g,value.Cm);
+            if(fact.Posture is { } posture)_profile.Posture=posture;
+            if(fact.BodyForm is { } form)_profile.Form=form;
+            if(_avatars.Profile is { } profile)
+            {
+                _profile.Sex=profile.Sex;_profile.HeightCm=profile.HeightCm;_profile.Age=profile.AgeAtCreation;
+                _profile.RestingHr=profile.RestingHr;_profile.Vo2Max=profile.Vo2Max;
+            }
+            if (_viewerReady) Refresh();
+        }
     }
     private void PreviewOnboarding(BodyProfile profile) { _profile = profile; RequestRebuild(); }
     private async Task FinishOnboarding()
