@@ -1,5 +1,7 @@
 # Roadmap реализации продуктового lifecycle
 
+**Обновление Phase 1, 2026-10-09:** domain foundation реализована в отдельном implementation PR от `main 9878994f4a0766f8ea8599c3fbb2b12e355a2701` после merge #20. Phase 2–9 остаются планом. Исходный docs-only статус ниже сохранён как контекст первоначального roadmap.
+
 Статус: план, 2026-10-09. Ни одна фаза не считается выполненной этим docs PR. Канон — [PRODUCT_LIFECYCLE](PRODUCT_LIFECYCLE.md); инструменты — [PRODUCT_TECHNOLOGY_DECISIONS](PRODUCT_TECHNOLOGY_DECISIONS.md); критерии — [VALIDATION](VALIDATION.md). Каждая фаза — отдельная implementation task/PR с явным GO/NO-GO, без автоматического merge.
 
 ## Исходная база и совместная работа
@@ -38,6 +40,10 @@ flowchart LR
 Порядок — продуктовый. R&D BodyParts3D/DeltaShape остаётся отдельной веткой исследований по [Forecast v3](FORECAST_V3_RND_PLAN.md), не обязательной блокировкой календаря/питания. Малые PR внутри фазы допустимы, но следующий публичный capability открывается только после acceptance зависимостей.
 
 ## Phase 1 — Domain foundation
+
+**Реализация:** [AVATAR_DOMAIN](AVATAR_DOMAIN.md). Разделены Profile/Avatar collections в atomic CAS envelope; добавлены immutable revisions, visual corrections, final-mesh metrics/quality, draft/lock/recalibration, durable cycle events и automatic-photo service. Сохранены BodySnapshot/ForecastSnapshot history и legacy before-images. Full backup включает домен; validation export opt-in/pseudonymized. UI: confirm/lock, отдельная коррекция, history/status.
+
+**Known debt Phase 2:** polished создание/review, photo UI wiring, независимые flank/muscularity controls, эмпирическая confidence и визуальная точность. Пока manual reset требует явного старта нового forecast cycle; legacy plan scenarios не объявлены новым Hypothesis lifecycle. Управления несколькими Avatar нет. При первой смене fitter/asset потребуется совместимый versioned replay. Ниже сохранены исходный scope и acceptance для трассировки.
 
 **Результат:** система различает Profile, тело, рабочий origin, наблюдения и версии; migration сохраняет старую историю.
 

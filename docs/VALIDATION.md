@@ -2,6 +2,22 @@
 
 Цель — проверить понятность приложения и согласованность фактов/оценок/прогнозов на собственных наблюдениях. Функциональные smoke-тесты не доказывают физиологическую точность модели. Полный backup сделайте до эксперимента; исходные измерения храните отдельно.
 
+## Manual Avatar validation — Phase 1
+
+Автоматические gates домена/хранения не доказывают визуальную точность фигуры. Выполнять протокол на добровольно предоставленных данных, сохранять исходные факты и `AvatarDerived` раздельно. Схема/API — [AVATAR_DOMAIN](AVATAR_DOMAIN.md).
+
+1. До проверки скачать полный backup. Записать build, builder/fitter/asset/correction versions, текущую revision, source/effective date и missing input fields. Отдельно указать, какие значения измерены лентой, получены из фото или заполнены visual prior. Не заменять неизвестный BF% производной оценкой.
+2. Создать factual BodySnapshot с независимыми обхватами на прежних стандартных уровнях. Сравнить с final mesh girths в «Профиль → Ручная проверка»: по каждому уровню сохранить factual cm, mesh cm, signed/absolute residual. Отсутствующее сечение отметить отсутствующим; не подставлять DTO. Сопоставить quality.MissingGirths, MaximumGirthResidualCm и SoftTissueLimitReached.
+3. Сделать визуальный аудит текущего аватара спереди/сбоку/сзади при нейтральной позе и одинаковой камере: плечи, грудь, живот, талия, ягодицы, руки/ноги, осанка, пересечения и неестественные деформации. Зафиксировать реальные фото отдельно от рендера; никакого AI-image evidence.
+4. Нажать «Исправить аватар». Сохранить before screenshot и baseline revision. Менять по одному bounded control; записать его dimensionless delta, after screenshot, изменения mesh girths/ratios/volume. Factual BodySnapshot и frozen base старой revision должны остаться byte/semantic неизменными. ±8% fullness target — характеристика geometry adapter, не поправка factual сантиметров.
+5. Проверить cancel: прежний origin/mesh/history сохранены. Повторить с confirm: появился новый predecessor-linked revision, active pointer сменился, старая revision осталась, новый цикл требует явного подтверждения. Reload должен восстановить те же controls, revision и mesh. Попытка изменить active shape через обычный flow недоступна.
+6. Отдельно проверить photo API на синтетических/разрешённых данных: confidence ниже 0.8, отсутствие metadata или stale date сохраняют текущую revision; допустимый check-in создаёт PhotoCheckIn revision с provenance и прежним tracking origin. Это policy gate, не доказательство качества фото. Реальный check-in UI подключается позже.
+7. Сохранить прогноз до recalibration и после явно начатого нового цикла. Проверить исходный AvatarOrigin и отсутствие изменений прежних numeric points. Legacy snapshot без AvatarOrigin должен проигрываться как раньше.
+8. Backup → restore в чистом браузере: active revision, вся history, draft/events, corrections/metrics и фото должны совпасть. В другой открытой вкладке запись после restore должна блокироваться. Future-schema archive должен отклоняться до замены данных.
+9. В validation package выбрать «Ревизии аватара и производные метрики». Проверить `avatar-N`/`revision-N`, `Source=AvatarDerived`, units/modelVersion/null confidence, corrections, quality и optional `fact-N`; отсутствие исходных IDs, photo session IDs, notes/reason, raw reconstruction JSON, PIN/keys. Фото включаются отдельным явным выбором.
+
+Итог ручного отчёта: профиль/ракурс/контроль, before/after, объективные residuals, визуальные замечания, версия/качество и ограничения. Не выдавать training-status/BF% за измерения: таких metrics в Phase 1 нет. Независимая оценка accuracy на людях остаётся задачей Phase 2.
+
 ## Validation целевого lifecycle — критерии будущих фаз
 
 Канон: [PRODUCT_LIFECYCLE](PRODUCT_LIFECYCLE.md); задачи: [roadmap](PRODUCT_LIFECYCLE_ROADMAP.md). Матрица этого раздела **ещё не является выполненными тестами или доступным UI**. Нижележащий протокол из 14 шагов, числа тестов и performance описывают базу #18. Stage A #19 проверяется отдельно и не закрывает lifecycle/renderer gates. При внедрении каждой фазы добавить фактический report: main/head SHA, versions, dataset/fixtures, команды, browser matrix, failures и GO/NO-GO.

@@ -85,8 +85,11 @@ const assert = require('node:assert/strict');
         // A profile rebuild must discard the old animation and bind to the newly fitted posture.
         await page.evaluate(() => viewer.playAnimation('current', 'biceps-curl'));
         await page.locator('.model-adjustments > summary').click();
+        await page.getByRole('button', { name: 'Исправить аватар', exact: true }).click();
         await page.getByRole('textbox', { name: 'Сутулость', exact: true }).fill('20');
         await page.getByRole('textbox', { name: 'Сутулость', exact: true }).press('Tab');
+        await page.getByRole('button', { name: 'Подтвердить и заблокировать аватар', exact: true }).click();
+        await page.getByRole('button', { name: 'Начать новый цикл прогнозов', exact: true }).click();
         await page.waitForFunction(() => viewer.smokeState().meshes.current !== originalCurrent);
         assert.equal(await page.evaluate(() => {
             const { meshes, rigs } = viewer.smokeState();

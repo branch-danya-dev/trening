@@ -34,6 +34,7 @@
         <button role="tab" aria-selected="@(_tab == Tab.Hypothesis)" class="@Css.On(_tab == Tab.Hypothesis)" @onclick="OpenHypothesis">План</button>
         <button role="tab" aria-selected="@(_tab == Tab.Profile)" class="@Css.On(_tab == Tab.Profile)" @onclick="OpenProfile">Профиль</button>
     </nav>
+    @if (_avatarError is not null) { <p class="avatar-error" role="alert">@_avatarError</p> }
     <div class="main">
         <section class="viewport" aria-label="3D-модель">
             <canvas id="body-canvas" tabindex="0"></canvas>
@@ -134,9 +135,8 @@
                     <Dashboard Fact="CurrentFact" Facts="_history.Timeline.Items" Cardio="_workouts" Strength="_strength" Goal="@_preferences.Goal" Plan="_hypotheses.Current" Calibration="_personalized" />
                     <p class="note">@CurrentFactCaption</p>
                     <div class="history-actions"><button class="btn primary" @onclick="NewMeasurement">Записать замеры</button><button class="btn" @onclick="() => _tab = Tab.Photos">Фото</button></div>
-                    <details class="model-adjustments"><summary>Настроить внешний вид 3D</summary><p class="note">Это настройки изображения. Для сохранения измерений используйте «Записать замеры». Пропуски заполнены условными оценками.</p>
-                    <ProfilePanel Profile="_profile" Report="_report" ModelHints="ModelHints()" ModelNote="@ModelNote()" OnHighlight="SetHighlight" PostureApplies="UseMakeHuman"
-                                  OnChange="ChangeProfile" />
+                    <details class="model-adjustments"><summary>Настроить внешний вид 3D</summary>
+                    <AvatarPanel State="Avatar" OnStart="StartAvatarRecalibration" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" OnCancel="CancelAvatarRecalibration" OnUseFact="UseCurrentAvatarFact" OnNewCycle="BeginAvatarForecastCycle" />
                     </details>
                 }
                 else if (_tab == Tab.Workout)
@@ -148,13 +148,13 @@
                 }
                 else if (_tab == Tab.Photos)
                 {
-                    <PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End"
+                    <PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End" RevisionManaged="@(Avatar is not null || _avatarError is not null)"
                                  ForecastLabel="@ForecastLabel" />
                 }
                 else if (_tab == Tab.History)
                 {
                     <BodyHistory State="_history" Profile="_profile" Strength="_strength" Cardio="_workouts" OnView="ShowHistory" />
-                    <details class="card"><summary>Фото-прогресс</summary><PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End" ForecastLabel="@ForecastLabel" /></details>
+                    <details class="card"><summary>Фото-прогресс</summary><PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End" ForecastLabel="@ForecastLabel" RevisionManaged="@(Avatar is not null || _avatarError is not null)" /></details>
                 }
                 else if (_tab == Tab.Profile)
                 {
@@ -167,6 +167,7 @@
                     <label class="check"><input type="checkbox" @bind="_privacy.Watermark" @bind:after="SavePrivacy" /> Водяной знак на фото</label>
                     <button class="btn" @onclick="() => _tab = Tab.Photos">Фото и защита PIN</button></section>
                     <BackupPanel />
+                    <AvatarPanel State="Avatar" OnStart="StartAvatarRecalibration" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" OnCancel="CancelAvatarRecalibration" OnUseFact="UseCurrentAvatarFact" OnNewCycle="BeginAvatarForecastCycle" />
                     <ValidationPanel Fact="CurrentFact" Profile="_profile" Body="_current" Facts="_history.Timeline.Items" Cardio="_workouts" Calibration="_personalized" />
                     <details class="card"><summary>Диагностика и версия</summary>
                         <p>Сборка @AppInfo.Build. Каталог: @WorkoutCalculator.Exercises.ExerciseCatalog.All.Count упражнений.</p>
@@ -320,6 +321,7 @@
         _strength.Load();
         _history.Load();
         _personalized.Load();
+        _avatars.Load();
         InitializeProduct();
         RefreshCalibration();
         _exercise.Journal = _strength;
@@ -347,6 +349,7 @@
             _exercise.Atlas = assets.Atlas;
             _exercise.AtlasError = assets.AtlasError;
             _mhStatus = null;
+            InitializeAvatar();
         }
         catch (Exception e) when (e is HttpRequestException or InvalidDataException)
         {
@@ -383,6 +386,19 @@
 
     private void ChangeProfile(Action<BodyProfile> change)
     {
+        if (Avatar is not null || _avatars.Current.Error is not null)
+        {
+            // Old photo/profile callbacks cannot bypass the revision lock. Calculator settings are separate.
+            var candidate = _profile.Clone(); change(candidate);
+            var hr = candidate.RestingHr; var vo2 = candidate.Vo2Max;
+            candidate.RestingHr = _profile.RestingHr; candidate.Vo2Max = _profile.Vo2Max;
+            if (System.Text.Json.JsonSerializer.Serialize(candidate, ForecastJson.Default.BodyProfile) !=
+                System.Text.Json.JsonSerializer.Serialize(_profile, ForecastJson.Default.BodyProfile))
+            { _avatarError = "Активная форма заблокирована. Используйте «Исправить аватар»; фото сохраняется отдельно."; return; }
+            _avatarError = _avatars.UpdateCalculationSettings(hr, vo2);
+            if (_avatarError is null) { _profile.RestingHr = hr; _profile.Vo2Max = vo2; }
+            return;
+        }
         _personalized.NewPreview();
         change(_profile);
         ProfileStorage.SaveProfile(_profile);
@@ -562,10 +578,11 @@
                 _dirty = false;
                 var sw = Stopwatch.StartNew();
                 // Быстрая сборка: MakeHuman — с прошлого решения и без подгонки слоя под вес
-                IBodyShape body = UseMakeHuman ? BuildMakeHuman(_profile, ref _fitCurrent, fitVolume: false) : Mannequin.Build(_profile.Clone());
+                IBodyShape body = UseMakeHuman ? _avatarRepresentation?.Body ?? BuildMakeHuman(_profile, ref _fitCurrent, fitVolume: false)
+                    : Mannequin.Build(AvatarFallbackProfile());
                 _buildMs = sw.Elapsed.TotalMilliseconds;
                 sw.Restart();
-                Show("current", body);
+                if (!ReferenceEquals(_current, body)) Show("current", body);
                 _uploadMs = sw.Elapsed.TotalMilliseconds;
 
                 _current = body;
@@ -599,8 +616,8 @@
 
         if (UseMakeHuman)
         {
-            var body = BuildMakeHuman(profile, ref _fitCurrent, fitVolume: true);
-            Show("current", body);
+            var body = _avatarRepresentation?.Body ?? BuildMakeHuman(profile, ref _fitCurrent, fitVolume: true);
+            if (!ReferenceEquals(_current, body)) Show("current", body);
             _current = body;
         }
         _checkMs = sw.Elapsed.TotalMilliseconds;

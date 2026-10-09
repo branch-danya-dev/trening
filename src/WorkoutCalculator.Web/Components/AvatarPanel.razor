@@ -1,0 +1,50 @@
+@using WorkoutCalculator.BodyModel.Avatars
+<section class="card avatar-panel" aria-label="Аватар" data-avatar-status="@State?.Status" data-avatar-revision="@State?.ActiveRevisionId" data-avatar-revisions="@State?.Revisions.Length">
+    <h2>Аватар</h2>
+    @if (State is null) { <p>Аватар будет доступен после загрузки модели и завершения настройки.</p> }
+    else
+    {
+        <p>@(State.Draft is null ? "Активный аватар заблокирован" : "Черновик аватара — ещё не подтверждён")</p>
+        <p>Ревизий: @State.Revisions.Length. Текущая: <span class="avatar-id">@(State.ActiveRevisionId ?? "не создана")</span></p>
+        @if (State.Status == AvatarStatus.Active) { <button class="btn" @onclick="OnStart">Исправить аватар</button> }
+        @if (State.Draft is { } draft)
+        {
+            var c = draft.Corrections;
+            <p class="note">Коррекции меняют внешний вид. Замеры сохраняются отдельно. Подтверждение коррекции начинает новый цикл прогнозов.</p>
+            <ParamSlider Label="Форма плеч и талии" Min="-1" Max="1" Step="0.1" Value="c.ShoulderWaistShape" ValueChanged="v => Edit(c with { ShoulderWaistShape = v })" />
+            <ParamSlider Label="Выступ живота" Min="-1" Max="1" Step="0.1" Value="c.AbdomenProminence" ValueChanged="v => Edit(c with { AbdomenProminence = v })" />
+            <ParamSlider Label="Форма ягодиц" Min="-1" Max="1" Step="0.1" Value="c.GluteShape" ValueChanged="v => Edit(c with { GluteShape = v })" />
+            <ParamSlider Label="Глубина корпуса" Min="-1" Max="1" Step="0.1" Value="c.TorsoDepth" ValueChanged="v => Edit(c with { TorsoDepth = v })" />
+            <ParamSlider Label="Полнота груди" Min="-1" Max="1" Step="0.1" Value="c.ChestFullness" ValueChanged="v => Edit(c with { ChestFullness = v })" />
+            <ParamSlider Label="Полнота талии" Min="-1" Max="1" Step="0.1" Value="c.WaistFullness" ValueChanged="v => Edit(c with { WaistFullness = v })" />
+            <ParamSlider Label="Полнота рук" Min="-1" Max="1" Step="0.1" Value="c.ArmFullness" ValueChanged="v => Edit(c with { ArmFullness = v })" />
+            <ParamSlider Label="Полнота ног" Min="-1" Max="1" Step="0.1" Value="c.LegFullness" ValueChanged="v => Edit(c with { LegFullness = v })" />
+            <ParamSlider Label="Сутулость" Unit="°" Min="-15" Max="25" Value="c.PostureOffset.Kyphosis" ValueChanged="v => Edit(c with { PostureOffset = c.PostureOffset with { Kyphosis = v } })" />
+            <button class="btn" @onclick="OnUseFact">Использовать последний факт</button>
+            <button class="btn primary" @onclick="OnConfirm">Подтвердить и заблокировать аватар</button>
+            @if (State.Status == AvatarStatus.Recalibrating) { <button class="btn" @onclick="OnCancel">Отменить коррекцию</button> }
+        }
+        @if (State.HypothesisResetRequired)
+        {
+            <p role="status">Аватар изменён. Старые прогнозы сохранены; для новых расчётов подтвердите новый цикл.</p>
+            <button class="btn" disabled="@(State.Status != AvatarStatus.Active)" @onclick="OnNewCycle">Начать новый цикл прогнозов</button>
+        }
+        <details><summary>История ревизий и происхождение</summary>
+            @foreach (var r in State.Revisions.Reverse())
+            {
+                <p><span class="avatar-id">@r.Id</span> · @r.Source · @(r.Id == State.ActiveRevisionId ? "текущая" : "архив") · @r.EffectiveDate</p>
+                <p class="note">Метрики: @r.DerivedMetrics.Source · @AvatarDerivedMetrics.Version. Версия: @r.BuilderVersion. Оценки: @string.Join(", ", r.Inputs.Fields.Where(f => f.Source is AvatarFieldSource.VisualEstimate or AvatarFieldSource.LegacyVisualEstimate).Select(f => f.Field)).</p>
+            }
+        </details>
+    }
+</section>
+@code {
+    [Parameter] public AvatarState? State { get; set; }
+    [Parameter] public EventCallback OnStart { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnUseFact { get; set; }
+    [Parameter] public EventCallback OnNewCycle { get; set; }
+    [Parameter] public EventCallback<AvatarShapeCorrectionProfile> OnEdit { get; set; }
+    private Task Edit(AvatarShapeCorrectionProfile c) => OnEdit.InvokeAsync(c);
+}

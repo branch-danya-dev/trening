@@ -1,0 +1,75 @@
+// Real WASM domain, migration, immutable revision UI, mesh, CAS, archive and mobile checks.
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs/promises'), os = require('node:os'), path = require('node:path');
+const url=process.env.APP_URL || 'http://127.0.0.1:5256',key='workoutcalc.avatarDomain.v1';
+const legacy={Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57};
+const ready=p=>p.waitForSelector('[data-model-ready="true"]',{timeout:60000});
+const tab=(p,name)=>p.getByRole('tab',{name,exact:true}).click();
+const button=(p,name)=>p.getByRole('button',{name,exact:true}).click();
+const read=p=>p.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,executablePath:process.env.BROWSER_PATH||undefined,args:['--enable-unsafe-swiftshader']});
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'avatar-smoke-')), errors=[];
+ try {
+  const context=await browser.newContext({viewport:{width:390,height:844}});
+  await context.route('**/js/viewer.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:await response.text()+'\nexport function avatarSmoke(){return meshes.current.geometry.attributes.position.array.slice();}'});});
+  const p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  await p.addInitScript(legacy=>{if(!localStorage.getItem('workoutcalc.body.v1'))localStorage.setItem('workoutcalc.body.v1',JSON.stringify(legacy));},legacy);
+  await p.goto(url);await ready(p);const migrated=await read(p), first=migrated.avatars[0];
+  assert.equal(migrated.profiles.length,1);assert.equal(first.status,'Active');assert.equal(first.revisions.length,1);assert.equal(first.revisions[0].source,'Migration');
+  assert.equal(first.revisions[0].inputs.fact,null);assert.equal(first.revisions[0].derivedMetrics.source,'AvatarDerived');assert.notEqual(first.id,migrated.profiles[0].id);
+  const originalLegacy=await p.evaluate(()=>localStorage.getItem('workoutcalc.body.v1'));
+  assert.equal(await p.evaluate(()=>localStorage.getItem('workoutcalc.bodySnapshots.v1')),null);
+  await p.reload();await ready(p);assert.deepEqual(await read(p),migrated,'migration read is idempotent');
+  const geometry=()=>p.evaluate(async()=>Array.from((await import(new URL('js/viewer.js',document.baseURI))).avatarSmoke()));
+  const baseline=await geometry();
+  await tab(p,'План');await button(p,'Сохранить прогноз и начать план');
+  const forecastRaw=await p.evaluate(()=>JSON.parse(JSON.parse(localStorage.getItem('workoutcalc.forecasts.v1')).payload).forecasts[0]);
+  assert.equal(forecastRaw.avatarOrigin.avatarRevisionId,first.activeRevisionId);
+  await tab(p,'Профиль');await p.getByText('Активный аватар заблокирован',{exact:true}).waitFor();
+  assert.equal(await p.getByRole('textbox',{name:'Выступ живота',exact:true}).count(),0);
+  const stale=await context.newPage();await stale.goto(url);await ready(stale);await tab(stale,'Профиль');
+  await button(p,'Исправить аватар');await button(stale,'Исправить аватар');await stale.getByRole('alert').filter({hasText:'другой вкладке'}).waitFor();await stale.close();
+  await p.getByRole('textbox',{name:'Полнота талии',exact:true}).fill('0.8');await p.getByRole('textbox',{name:'Полнота талии',exact:true}).press('Tab');
+  let draft=(await read(p)).avatars[0];assert.equal(draft.status,'Recalibrating');assert.deepEqual(draft.revisions,first.revisions);
+  await p.reload();await ready(p);await tab(p,'Профиль');assert.equal((await read(p)).avatars[0].draft.corrections.waistFullness,.8);
+  await button(p,'Подтвердить и заблокировать аватар');let next=(await read(p)).avatars[0];
+  assert.equal(next.status,'Active');assert.equal(next.revisions.length,2);assert.deepEqual(next.revisions[0],first.revisions[0]);
+  assert.equal(next.revisions[1].predecessorRevisionId,first.activeRevisionId);assert.equal(next.revisions[1].source,'ManualRecalibration');
+  assert.equal(next.hypothesisResetRequired,true);assert.notEqual(next.trackingCycleId,first.trackingCycleId);
+  assert.ok(Math.abs(next.revisions[1].derivedMetrics.values['girth.Waist'].value-first.revisions[0].derivedMetrics.values['girth.Waist'].value)>3);
+  await tab(p,'Модель');await p.waitForTimeout(400);assert.notDeepEqual(await geometry(),baseline,'current mesh uses revision');
+  assert.equal(await p.evaluate(()=>localStorage.getItem('workoutcalc.body.v1')),originalLegacy);
+  assert.equal(await p.evaluate(()=>localStorage.getItem('workoutcalc.bodySnapshots.v1')),null);
+  await tab(p,'План');await button(p,'Новый прогноз от текущего профиля');await button(p,'Сохранить прогноз и начать план');
+  assert.equal(await p.evaluate(()=>JSON.parse(JSON.parse(localStorage.getItem('workoutcalc.forecasts.v1')).payload).forecasts.length),1,'pending reset blocks forecast issue');
+  await tab(p,'Профиль');await button(p,'Начать новый цикл прогнозов');await tab(p,'План');await button(p,'Сохранить прогноз и начать план');
+  const forecasts=await p.evaluate(()=>JSON.parse(JSON.parse(localStorage.getItem('workoutcalc.forecasts.v1')).payload).forecasts);
+  assert.equal(forecasts.length,2);assert.deepEqual(forecasts[0],forecastRaw);assert.equal(forecasts[1].avatarOrigin.avatarRevisionId,next.activeRevisionId);
+  const mobile=[];
+  for(const width of [320,390]){await p.setViewportSize({width,height:844});await tab(p,'Профиль');await button(p,'Исправить аватар');
+   const layout=await p.evaluate(()=>({page:document.documentElement.scrollWidth,panel:document.querySelector('.panel-body').clientWidth,scroll:document.querySelector('.panel-body').scrollWidth}));
+   assert.ok(layout.page<=width&&layout.scroll<=layout.panel+1,JSON.stringify(layout));mobile.push({width,...layout});await button(p,'Отменить коррекцию');}
+  const rawBefore=await p.evaluate(k=>localStorage.getItem(k),key),download=p.waitForEvent('download');await button(p,'Скачать полный backup');
+  const archive=await download,archivePath=path.join(dir,'avatar.zip');await archive.saveAs(archivePath);
+  await button(p,'Исправить аватар');await button(p,'Подтвердить и заблокировать аватар');
+  await p.getByLabel('Архив резервной копии').setInputFiles(archivePath);await p.getByLabel('Подтверждаю замену всех данных').check();
+  await Promise.all([p.waitForNavigation(),button(p,'Восстановить данные')]);await ready(p);
+  assert.equal(await p.evaluate(k=>localStorage.getItem(k),key),rawBefore,'exact avatar restore including history');
+  await tab(p,'Профиль');await p.getByLabel('Ревизии аватара и производные метрики',{exact:true}).check();
+  const vd=p.waitForEvent('download');await button(p,'Экспортировать validation package');const vp=path.join(dir,'validation.zip');await (await vd).saveAs(vp);
+  const bytes=await fs.readFile(vp);const output=await p.evaluate(async b=>{const backup=await import(new URL('js/backup.js',document.baseURI));return new TextDecoder().decode(backup.readZip(new Uint8Array(b)).get('analysis.json'));},[...bytes]);
+  assert.ok(output.includes('AvatarDerived'));for(const secret of [first.id,migrated.profiles[0].id,first.activeRevisionId,next.activeRevisionId])assert.ok(!output.includes(secret));
+  const invalidBackup=await p.evaluate(async key=>{const b=await import(new URL('js/backup.js',document.baseURI)),data=JSON.parse(localStorage.getItem(key));data.schemaVersion=99;
+   return Array.from(new Uint8Array(await(await b.makeArchive({local:{[key]:JSON.stringify(data)},photos:{sessions:[],images:[],settings:[]}},'future')).arrayBuffer()));},key);
+  const invalidPath=path.join(dir,'future.zip');await fs.writeFile(invalidPath,Buffer.from(invalidBackup));await p.getByLabel('Архив резервной копии').setInputFiles(invalidPath);
+  await p.locator('.backup-panel [role="alert"]').getByText(/Архив не прошёл проверку/).waitFor();assert.equal(await p.evaluate(k=>localStorage.getItem(k),key),rawBefore,'invalid backup rejected before restore');
+  if(process.env.AVATAR_SCREENSHOT)await p.screenshot({path:process.env.AVATAR_SCREENSHOT,fullPage:true});
+  // Future schema preserves raw data and blocks mutation rather than recreating an avatar from legacy.
+  const future=JSON.parse(rawBefore);future.schemaVersion=99;await p.evaluate(({key,future})=>localStorage.setItem(key,JSON.stringify(future)),{key,future});
+  await p.reload();await ready(p);await p.getByRole('alert').filter({hasText:'заблокирована'}).waitFor();
+  assert.equal((await read(p)).schemaVersion,99);
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({avatar:'passed',checks:['migration-idempotent','legacy-facts-preserved','lock','recalibration-reload','immutable-history','mesh-rebuild','cycle-reset','forecast-origin-replay','CAS','backup-restore','validation-pseudonyms','future-schema'],mobile,browserErrors:0}));
+ } finally {await browser.close();}
+})().catch(e=>{console.error(e);process.exit(1)});

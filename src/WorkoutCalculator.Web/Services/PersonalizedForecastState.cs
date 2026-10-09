@@ -62,9 +62,15 @@ public sealed class PersonalizedForecastState(ForecastStore store)
         }
         return Selected?.Replay() ?? _lastPreviewResult ?? ForecastEngine.Run(BodyDefaults.Default(), new() { IntakeKcalPerDay = 2000 });
     }
-    public bool SavePreview()
+    public bool SavePreview(WorkoutCalculator.BodyModel.Avatars.AvatarState? avatar = null)
     {
         if (Preview is null || StorageError is not null) return false;
+        if (avatar is not null)
+        {
+            try { Preview = WorkoutCalculator.BodyModel.Avatars.AvatarForecastOrigin.Attach(Preview, avatar); }
+            catch (ArgumentException e) { Error = e.Message; return false; }
+            catch (InvalidOperationException e) { Error = e.Message; return false; }
+        }
         Error = store.Append(Preview);
         if (Error is not null) return false;
         Archive = Archive with { Forecasts = Archive.Forecasts.Add(Preview) }; SelectedId = Preview.Id;

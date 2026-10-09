@@ -1,3 +1,6 @@
+.avatar-id, .avatar-panel .note, .avatar-error { overflow-wrap: anywhere; }
+.avatar-error { margin: 0; padding: 8px 16px; color: var(--danger, #c95454); }
+
 /* Local product shell; shared existing feature panels remain below. */
 
 :root {

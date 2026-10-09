@@ -5,6 +5,7 @@
 <section class="card validation-panel" aria-label="Ручная проверка">
     <h2>Ручная проверка</h2>
     <h3>Замеры и 3D</h3>
+    <p class="note">Колонка 3D — производные значения геометрии (AvatarDerived), а не измерения тела. При открытой коррекции она показывает черновик.</p>
     <div class="table-scroll"><table class="changes"><thead><tr><th>Обхват</th><th>Введено</th><th>3D</th><th>Разница</th><th>Источник</th></tr></thead><tbody>
     @foreach (var g in Enum.GetValues<Girth>()) {
         var observation = Fact?.Measurements.GetValueOrDefault(g); var calculated = Body?.MeasureGirthCm(g);
@@ -41,7 +42,7 @@
     [Parameter] public IReadOnlyList<BodySnapshot> Facts { get; set; } = [];
     [Parameter] public IReadOnlyList<LoggedWorkout> Cardio { get; set; } = [];
     [Parameter, EditorRequired] public PersonalizedForecastState Calibration { get; set; } = default!;
-    private static readonly Dictionary<string,string> Choices = new() { ["profile"]="Параметры профиля без идентификаторов", ["facts"]="История фактических замеров", ["forecasts"]="Версии прогнозов", ["workouts"]="Сводки тренировок", ["validation"]="Метрики и контрольные значения" };
+    private static readonly Dictionary<string,string> Choices = new() { ["profile"]="Параметры профиля без идентификаторов", ["facts"]="История фактических замеров", ["avatars"]="Ревизии аватара и производные метрики", ["forecasts"]="Версии прогнозов", ["workouts"]="Сводки тренировок", ["validation"]="Метрики и контрольные значения" };
     private Dictionary<string,bool> _selected = Choices.Keys.ToDictionary(k => k, _ => false);
     private ManualValidation _manual = new();
     private bool _photos, _busy;

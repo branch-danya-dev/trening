@@ -1,5 +1,23 @@
 # Структура продукта: целевой lifecycle и текущая реализация
 
+## Источники истины после Phase 1
+
+Phase 1 реализована отдельным PR от `main 9878994f`; последующие целевые фазы ниже остаются спецификацией.
+
+| Данные | Единственный writable owner |
+|---|---|
+| Системный профиль, пол/рост/возрастной источник, goal/settings | `Profile`, Profiles collection в `workoutcalc.avatarDomain.v1` |
+| Фактические body observations | `BodySnapshotStore`, `workoutcalc.bodySnapshots.v1` |
+| Рабочая форма и frozen reconstruction inputs | `AvatarRevision`, Avatars collection того же atomic envelope |
+| Ручная визуальная коррекция | `AvatarShapeCorrectionProfile` в draft/revision; не factual сантиметры |
+| Производные mesh metrics | `AvatarDerivedMetrics`, `Source=AvatarDerived` |
+| Прогнозы и calibration history | `ForecastStore`, `workoutcalc.forecasts.v1`; optional frozen AvatarOrigin |
+| Photo blobs и метаданные фотосессий | Existing IndexedDB photo store; revision хранит только refs/metadata |
+
+Profiles/Avatars фиксируются одним CAS commit для целостности ссылок; детали — [AVATAR_DOMAIN](AVATAR_DOMAIN.md). Frozen факт в revision — snapshot для replay, не редактируемая копия BodySnapshotStore. Legacy `body.v1/preferences.v1` после migration остаются before-images. `BodyProfile` — вычислительный адаптер.
+
+Текущий 3D использует сохранённую revision или явно открытый draft preview. Свободная настройка active body заменена действием «Исправить аватар». После manual confirm требуется явное начало нового forecast cycle; старые forecasts сохраняются. Первичный onboarding собирает факты, затем отдельное подтверждение блокирует Avatar. Photo revision API подготовлен; новый check-in UI ещё не подключён. Текст ниже о старой реализации после #18 — исходная база, а не новый источник истины.
+
 Главный продуктовый ориентир — [PRODUCT_LIFECYCLE](PRODUCT_LIFECYCLE.md). Порядок разработки — [PRODUCT_LIFECYCLE_ROADMAP](PRODUCT_LIFECYCLE_ROADMAP.md), выбор инструментов — [PRODUCT_TECHNOLOGY_DECISIONS](PRODUCT_TECHNOLOGY_DECISIONS.md). Новые правила ниже являются спецификацией, а не реализованными возможностями main.
 
 ## Целевой маршрут

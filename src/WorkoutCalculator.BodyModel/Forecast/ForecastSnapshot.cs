@@ -18,6 +18,8 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
     ImmutableArray<string> Warnings, double MaintenanceKcalPerDay, double CardioKcalPerSession, double StrengthKcalPerSession)
 {
     public TrainingAwareForecast? Muscle { get; init; }
+    /// <summary>Optional frozen origin link; old snapshots replay without an Avatar domain.</summary>
+    public Avatars.AvatarForecastOrigin? AvatarOrigin { get; init; }
     public BodySnapshot? StartFact { get; init; }
     public string? HypothesisId { get; init; }
     public string? HypothesisName { get; init; }
@@ -95,6 +97,7 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
 
     public void Validate()
     {
+        AvatarOrigin?.Validate();
         if (!Guid.TryParse(Id, out var id) || id == Guid.Empty || CreatedAt == default || StartDate == default ||
             string.IsNullOrWhiteSpace(ModelVersion) || ModelVersion.Length > 100 || UncertaintyVersion != "expected-range-1" ||
             StartProfileJson is null || InputJson is null || StartProfileJson.Length > 16000 || InputJson.Length > 1000000 ||
