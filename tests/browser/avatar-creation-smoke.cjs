@@ -22,7 +22,8 @@ async function seedPhoto(p,bad=false){return p.evaluate(async bad=>{
 },bad);}
 (async()=>{
  const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,args:['--enable-unsafe-swiftshader']});
- const errors=[],dir=await fs.mkdtemp(path.join(os.tmpdir(),'avatar-creation-')),evidence={suite:'avatar-creation-smoke',matrix:[],performance:{warm:[]},checks:[]};
+ const errors=[],dir=process.env.AVATAR_OUTPUT||await fs.mkdtemp(path.join(os.tmpdir(),'avatar-creation-')),evidence={suite:'avatar-creation-smoke',matrix:[],performance:{warm:[]},checks:[]};
+ await fs.mkdir(dir,{recursive:true});
  const configure=async c=>{await c.route('**/js/viewer.js',async route=>{const r=await route.fetch();await route.fulfill({response:r,body:await r.text()+'\nexport function avatarCreationMesh(){return meshes.current.geometry.attributes.position.array.slice();}'});});};
  const watch=p=>p.on('pageerror',e=>errors.push(e.message));
  try{

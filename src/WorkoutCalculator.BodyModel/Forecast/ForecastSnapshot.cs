@@ -17,6 +17,8 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
     ImmutableArray<ForecastPoint> Baseline, ImmutableArray<ForecastPoint> Expected,
     ImmutableArray<string> Warnings, double MaintenanceKcalPerDay, double CardioKcalPerSession, double StrengthKcalPerSession)
 {
+    [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]
+    public ModelVersionManifest? ModelManifest { get; init; }
     public CompositionMetadata? Composition { get; init; }
     public TrainingAwareForecast? Muscle { get; init; }
     [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]
@@ -76,7 +78,7 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
             JsonSerializer.Serialize(start, ForecastJson.Default.BodyProfile), JsonSerializer.Serialize(input, ForecastJson.Default.ForecastInput),
             revision?.Id, calibration, Freeze(baseline, null), Freeze(expected, calibration), expected.Warnings.ToImmutableArray(),
             expected.MaintenanceKcalPerDay, expected.CardioKcalPerSession, expected.StrengthKcalPerSession)
-        { MuscleGeometry=Muscles.MuscleGeometrySelection.Procedural, Composition = baseline.Composition, StartFact = startFact, HypothesisId = hypothesisId, HypothesisName = hypothesisName, Reconstructed = reconstructed, ModelParameters = ForecastModelParameters.Capture(modelVersion) };
+        { ModelManifest=ModelRegistry.FreezeV1(modelVersion), MuscleGeometry=ModelRegistry.DefaultMuscle, Composition = baseline.Composition, StartFact = startFact, HypothesisId = hypothesisId, HypothesisName = hypothesisName, Reconstructed = reconstructed, ModelParameters = ForecastModelParameters.Capture(modelVersion) };
         if (input.StrengthTraining && input.StrengthProgram is { Sessions.Length: > 0 } program)
         {
             var issuedDate = DateOnly.FromDateTime(now.Date);
@@ -104,6 +106,7 @@ public sealed record ForecastSnapshot(string Id, DateTimeOffset CreatedAt, DateO
     public void Validate()
     {
         MuscleGeometry?.Validate();
+        ModelManifest?.Validate(ModelVersion, MuscleGeometry);
         AvatarOrigin?.Validate();
         if (!Guid.TryParse(Id, out var id) || id == Guid.Empty || CreatedAt == default || StartDate == default ||
             string.IsNullOrWhiteSpace(ModelVersion) || ModelVersion.Length > 100 || UncertaintyVersion != "expected-range-1" ||

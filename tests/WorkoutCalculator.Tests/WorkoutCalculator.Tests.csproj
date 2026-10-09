@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="BodyModel/legacy-hypothesis-registry.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="BodyModel/legacy-composition-snapshot.json" CopyToOutputDirectory="PreserveNewest" />
     <Using Include="Xunit" />
   </ItemGroup>

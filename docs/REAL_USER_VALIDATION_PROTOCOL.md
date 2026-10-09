@@ -49,3 +49,7 @@ Before launch set a concrete retention end, approved recipients and deletion con
 ## Observation checklist for the later UI review
 
 Observe onboarding completion, confusion between facts and estimates, photo retakes, correction/reset use, missing-versus-rest understanding, nutrition completeness, hypothesis assumptions and range interpretation, finding CheckIn at the target date, recognising old-versus-current revisions, backup/restore, opt-in export and deletion. Measure completion time, errors, abandonment and explanations in participants' own words. Test real low-end phones, memory pressure, offline recovery and permission failures. Viewport emulation is not phone performance evidence. Redesign is outside this R&D package.
+
+## Readiness handoff
+
+This package prepares the protocol and tools only. [Readiness report](USER_TEST_READINESS.md) separates safe functional statements from unvalidated accuracy, and lists the flows for observation. Final code review and the responsible study owner's consent/governance arrangements precede recruitment. A successful synthetic regression or a desktop benchmark does not start the study.

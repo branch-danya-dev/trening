@@ -58,7 +58,7 @@ public static class ProceduralBaseline
         clock.Restart();var end=model.Build(endpoint,muscle:morph,muscleGeometry:MuscleGeometrySelection.Procedural);double endMs=clock.Elapsed.TotalMilliseconds;
         object Mesh(MakeHumanBody b)=>new {vertices=b.Mesh.Positions.Chunk(3).ToArray(),triangles=b.Mesh.Indices.Chunk(3).ToArray()};
         return new { version="procedural-research-bridge-1", request.InformationPolicy,request.HorizonDays,request.Synthetic,
-            compositionVersion=snapshot.ModelVersion,shapeVersion="body-shape-procedural-1",muscleProvider=MuscleGeometrySelection.Procedural,
+            compositionVersion=snapshot.ModelVersion,shapeVersion=ModelRegistry.ShapeVersion,modelManifest=snapshot.ModelManifest,muscleProvider=MuscleGeometrySelection.Procedural,
             assetSha256=Convert.ToHexString(SHA256.HashData(bytes)),composition,start=Mesh(start),endpoint=Mesh(end),
             girths=Enum.GetValues<Girth>().ToDictionary(g=>g.ToString(),endpoint.GetGirth),
             fitResiduals=end.Results.Select(r=>new {level=r.Level.ToString(),r.FromInput,r.WantedCm,r.GotCm}),
@@ -75,6 +75,7 @@ public static class Program
     {
         try
         {
+            if(args.Length==3 && args[0]=="--performance"){PerformanceAudit.Run(Path.GetFullPath(args[1]),args[2]);return 0;}
             if(args.Length!=3)throw new ArgumentException("Usage: <repository-root> <request.json> <output.json>");
             var options=new JsonSerializerOptions {PropertyNamingPolicy=JsonNamingPolicy.CamelCase,PropertyNameCaseInsensitive=true};
             options.Converters.Add(new JsonStringEnumConverter());

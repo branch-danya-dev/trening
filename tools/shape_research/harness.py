@@ -57,7 +57,7 @@ def evaluate_registered(*, pairs, manifest, frozen, model_artifact, policy, gate
         for name, mesh in [("procedural", procedural), ("candidate", candidate)]:
             metrics = compare(mesh, reference, **options, fat_kg=pair.composition_t1.fat_kg, ffm_kg=pair.composition_t1.fat_free_kg)
             results[name].append({"participant": pair.participant_id, "strata": strata(pair), "metrics": metrics,
-                                  "fallback": case.get("fallback", False) if name == "candidate" else False})
+                                  "fallback": case.get("fallback") if name == "candidate" else False})
     reports = {k: aggregate(v, minimum_participants=policy["minimum_test_participants"]) for k, v in results.items()}
     comparisons = {}
     for group, baseline_group in reports["procedural"].items():

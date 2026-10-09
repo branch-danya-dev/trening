@@ -1,4 +1,4 @@
-// Explicit allowlist: never include source IDs, hashes, notes, photos, raw provenance or input JSON.
+// Explicit allowlist: no source IDs/hashes, notes, photos, raw provenance or input JSON. Public model digests are allowed.
 const pick=(v,keys)=>Object.fromEntries(keys.filter(k=>v?.[k]!==undefined).map(k=>[k,v[k]]));
 export function hypothesisAnalysis(h,index){
  const c=h.core||{},s=c.evidenceSummary||{},event=(h.events||[]).at(-1),outcome=event?.outcome;
@@ -12,6 +12,7 @@ export function hypothesisAnalysis(h,index){
   evidence:{...pick(s,['windowStart','windowEndExclusive','positiveNutritionDays']),activity:pick(s.activity,['factualDays','completedDays','restDays','missingDays','gaps','averageNonStrengthKcal','completeEnergyDays','knownEnergyEvents','unknownEnergyEvents','nonStrengthVariance','walkingKm','walkingSteps','cardioSessions','cardioKcal','strengthSessions','strengthPerWeek','knownDurationEvents','totalEvents']),
    nutrition:{...pick(s.nutrition,['observedDays','eligibleDayCount','partialDayCount','notRecordedDayCount','calorieVariance']),average:pick(s.nutrition?.average,['caloriesKcal','proteinGrams','fatGrams','carbsGrams'])}},
   assumptions:pick(c.assumptions,['adapterVersion','sedentaryBaseline','startingBmr','observedNonStrengthKcal','activityFactor','observedStrengthPerWeek','modelStrengthPerWeek','experience']),
+  modelManifest:pick(c.forecast?.modelManifest,['registryVersion','shapeVersion','muscleVersion','photoVersion','calibrationVersion','uncertaintyVersion','evidenceRangeVersion','endpointVersion','geometryWarpVersion','shapeModelHash','sha256']),
   modelVersion:c.forecast?.modelVersion,calibrationVersion:c.calibrationRevision?.profile?.version||null,
   calibration:pick(c.calibrationRevision?.profile,['weightObservations','weightResponseFactor','fatLeanPartitionCorrection']),
   endpoint:{body:pick(c.exactEndpoint?.point?.body,['weightKg','fatMassKg','fatPercent','leanMassKg','glycogenWaterKg','glycogenKg','boundWaterKg']),...pick(c.exactEndpoint?.point,['weightRange','girths','girthRanges'])},

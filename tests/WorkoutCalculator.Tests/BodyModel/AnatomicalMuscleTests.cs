@@ -100,9 +100,9 @@ public class AnatomicalMuscleTests(MakeHumanFixture fx,ITestOutputHelper output)
     }
     [Fact] public void GeometrySelectionNeverChangesForecastMassAndOldMetadataStaysAbsent()
     {
-        var original=MuscleGrowthForecastTests.Snapshot();var research=original with {MuscleGeometry=AnatomicalAsset.Selection};research.Validate();
+        var original=MuscleGrowthForecastTests.Snapshot();var research=original with {MuscleGeometry=AnatomicalAsset.Selection,ModelManifest=ModelRegistry.FreezeV1(original.ModelVersion,AnatomicalAsset.Selection)};research.Validate();
         Assert.Equal(original.Expected,research.Expected);Assert.Equal(original.Muscle,research.Muscle);Assert.Equal(original.ModelParameters,research.ModelParameters);
-        var legacy=original with{MuscleGeometry=null};var json=JsonSerializer.Serialize(legacy,ForecastJson.Default.ForecastSnapshot);Assert.DoesNotContain("muscleGeometry",json);
+        var legacy=original with{MuscleGeometry=null,ModelManifest=null};var json=JsonSerializer.Serialize(legacy,ForecastJson.Default.ForecastSnapshot);Assert.DoesNotContain("muscleGeometry",json);
         Assert.Equal(json,JsonSerializer.Serialize(JsonSerializer.Deserialize(json,ForecastJson.Default.ForecastSnapshot),ForecastJson.Default.ForecastSnapshot));
         var saved=JsonSerializer.Serialize(research,ForecastJson.Default.ForecastSnapshot);Assert.Equal(AnatomicalAsset.Selection,JsonSerializer.Deserialize(saved,ForecastJson.Default.ForecastSnapshot)!.MuscleGeometry);
     }

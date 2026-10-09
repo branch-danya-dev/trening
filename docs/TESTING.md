@@ -1,5 +1,8 @@
 # Как проверять приложение
 
+Current decision, 2026-10-09: the non-AI R&D package is ready for final review. Product lifecycle Phases 1–7 are implemented; Phase 8 managed renderer and Phase 9 GPU/business work remain deferred. C0/prospective infrastructure exists; C1 remains `BLOCKED_PENDING_DATA_ACCESS`, Pseudo-DXA is blocked by prerequisite/rights. Procedural shape and muscle remain production defaults; BodyParts3D is research NO-GO for default. No participants recruited, no application submitted, no renderer integration. [Current validation matrix](MODEL_VALIDATION_STATUS.md), [hardening and reproduction](MODEL_PRODUCTION_HARDENING.md), [readiness for later controlled tests](USER_TEST_READINESS.md) supersede the historical planning status below.
+
+
 Forecast v3 composition: [формулы и ограничения](FORECAST_V3_COMPOSITION.md), [автоматические и ручные проверки Stage A](VALIDATION.md#composition-v3--stage-a), [воспроизводимый benchmark](FORECAST_V3_COMPOSITION_BENCHMARK.md). Макросы необязательны; sodium/ECF в production выключен. Ранее сохранённые прогнозы воспроизводятся без пересчёта.
 
 Чек-лист для проверки приложения на реальных данных: что открыть, что проверить
@@ -64,10 +67,10 @@ Forecast v3 composition: [формулы и ограничения](FORECAST_V3_
 - [ ] После «Сохранить сессию» разбор запускается сам (первый раз — до минуты): бирюзовый контур идёт по телу, а не по фону или одежде; точки у рук — там, где
       рука касается тела.
 - [ ] **Обхваты по фото против ленты** (таблица разбора). Талия и бёдра по фото должны быть в пределах
-      ±2–3 см от ленты. Это ключевая цифра: формулы откалиброваны на людях ANSUR II, но на живых снимках
-      ещё не проверены.
+      заранее согласованного исследовательского допуска. Записать фактическую ошибку в сантиметрах и источник;
+      ±2–3 см не являются подтверждённой точностью приложения. ANSUR II не заменяет проверку на независимых фото.
 - [ ] **Повторяемость:** две сессии подряд за 5 минут (отойти и встать заново) → «Сравнить с:» → изменения
-      не больше 0,5 см. Это уровень шума, ниже него разница между сессиями ничего не значит.
+      записать наблюдаемую разницу. Порог 0,5 см и уровень шума пока не подтверждены на независимых участниках.
 - [ ] «Подогнать модель по фото»: расхождение силуэтов уменьшается, оранжевый пунктир модели ложится на
       контур, осанка на вкладке «Параметры» похожа на вашу (прогиб, сутулость). «Вернуть как было» работает.
 - [ ] Через неделю-две — новая сессия: карта изменений и обхваты «было → стало» совпадают с лентой

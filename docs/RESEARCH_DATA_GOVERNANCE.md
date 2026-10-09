@@ -11,3 +11,7 @@ Research cache/registered shapes/latents and study exports remain sensitive, eve
 The user has directed that applications must not be submitted now. Applicant organisation, official researcher, email, IRB/ethics, partner and storage country remain unfilled. The current Fenland ordinary research route requires institutional capacity the project has not established; its possible commercial route must be clarified rather than assumed impossible or approved.
 
 Product facts, estimates, Avatar-derived measurements, forecasts and renders remain distinct. No research estimate or generated image is an observed fact or calibration outcome. Managed/photorealistic rendering and provider/GPU/API work are deferred.
+
+## Release audit
+
+The reproduction command runs the tracked-path guard; it is a filename policy, not a full content DLP scanner. Restricted raw meshes, derived research shapes, pair manifests and model weights remain outside Git. No consented participant intake exists. The final readiness report includes only synthetic structural timings. Public model provenance hashes may enter opt-in analysis exports; participant/source-photo hashes, private agreements and raw inputs remain excluded. See [release controls](MODEL_PRODUCTION_HARDENING.md).

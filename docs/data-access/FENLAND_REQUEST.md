@@ -40,7 +40,7 @@ The DOCX form is linked on the official study page. Transfer this title, rationa
 
 ## Exact unanswered questions
 
-- Can the proposed commercial entity apply directly, and which research-affiliation/ethics requirements apply?
+- Can an independent developer without institutional affiliation apply? Is a research institution or university specifically mandatory, or can a future commercial entity use the commercial route? What ethics determination is required for already de-identified secondary data?
 - Does Fenland have repeat independent optical body surfaces, or only DXA-derived geometry? What raw/registered products and participant counts are available per visit?
 - Which exact variables/releases and participant linkage are approved? What restrictions apply to derived meshes and registration dependencies?
 - May approved data train a latent model and may its weights be exported, redistributed and used commercially? What terms, fees, attribution and publication review apply?

@@ -1,16 +1,18 @@
 import copy
-from dataclasses import replace
+from dataclasses import asdict, replace
 from datetime import date, timedelta
 from pathlib import Path
 import tempfile
 import unittest
 import numpy as np
 
-from shape_research.contracts import Composition, LongitudinalBodyPair, digest, split_participants, check_split, require_data_access, contained
+from shape_research.contracts import Composition, LongitudinalBodyPair, digest, split_participants, check_split, require_data_access, contained, restricted_output
 from shape_research.geometry import Mesh, import_mesh, rigid_landmark_registration, correspondence, closed_volume, cache_artifact, delete_cache
 from shape_research.models import PCA, Support, DeltaShapeInput, ZeroChangeModel, representation_benchmark
 from shape_research.metrics import compare, nearest_surface, strata, aggregate
 from shape_research.harness import freeze_evaluation, evaluate_registered
+from shape_research.__main__ import gated_context
+from shape_research.contracts import canonical
 
 
 def pairs(n=20):
@@ -41,6 +43,36 @@ class ResearchTests(unittest.TestCase):
         self.rng = np.random.default_rng(37)
         self.x = self.rng.normal(size=(len(self.train), 2)) @ np.array([[1., 0, 1, 2], [0, 2, 1, 0]]) + 4
         self.pca = PCA.fit(self.x, self.train, self.manifest, 2, "test-topology")
+
+    def test_cli_cannot_disguise_the_running_repository(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root/"pairs.json").write_bytes(canonical([asdict(p) for p in self.pairs]))
+            (root/"split.json").write_bytes(canonical(self.manifest))
+            (root/"gate.json").write_bytes(canonical({}))
+            config = {"data_root":d,"repo_root":d,"pairs":str(root/"pairs.json"),"split":str(root/"split.json"),"gate":str(root/"gate.json")}
+            with self.assertRaisesRegex(ValueError,"running checkout"): gated_context(config)
+            config["repo_root"] = str(Path(__file__).resolve().parents[1])
+            with self.assertRaisesRegex(ValueError,"BLOCKED"): gated_context(config)
+
+    def test_missing_support_is_not_in_domain_evidence(self):
+        rows = [{"participant":p.participant_id,"strata":["all"],"metrics":{"error":1}} for p in self.pairs[:5]]
+        report = aggregate(rows)["all"]
+        self.assertEqual(report["support_observed_pairs"],0)
+        self.assertEqual(report["support_missing_pairs"],5)
+        rows[0]["fallback"] = True; rows[1]["fallback"] = False
+        report = aggregate(rows)["all"]
+        self.assertEqual(report["fallback_count"],1)
+        self.assertEqual(report["support_observed_pairs"],2)
+
+    def test_restricted_derivatives_cannot_leave_data_root_or_overwrite_evidence(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as repo:
+            target = restricted_output(Path(d)/"new.json", Path(d), Path(repo))
+            self.assertEqual(target.parent, Path(d).resolve())
+            with self.assertRaises(ValueError): restricted_output(Path(repo)/"leak.json", Path(d), Path(repo))
+            target.write_text("frozen")
+            with self.assertRaises(ValueError): restricted_output(target, Path(d), Path(repo))
+            with self.assertRaises(ValueError): restricted_output(Path(repo)/"other.json", Path(repo), Path(repo))
 
     def test_contract_rejects_wrong_horizon_and_compartments(self):
         self.pairs[0].validate()
@@ -178,6 +210,31 @@ class ResearchTests(unittest.TestCase):
         self.assertEqual(len(receipt["sha256"]), 64)
         artifact = self.pca.artifact();artifact["training_participants"].append(next(p for p,s in self.lookup.items() if s == "test"));artifact["sha256"] = digest({k:v for k,v in artifact.items() if k != "sha256"})
         with self.assertRaises(ValueError): freeze_evaluation(self.manifest, self.pairs, artifact, policy)
+
+    def test_paired_improvement_still_cannot_promote_synthetic_evidence(self):
+        cohort = pairs(30); manifest = split_participants(cohort, "paired-test")
+        lookup = check_split(manifest, cohort)
+        value = {"version":"synthetic-pipeline-fixture", "split_hash":manifest["sha256"],
+                 "training_participants":[p for p,s in lookup.items() if s == "train"]}
+        artifact = {**value, "sha256":digest(value)}
+        policy = dict(surface_improvement_fraction=.1,girth_improvement_fraction=.1,
+                      maximum_subgroup_regression_fraction=.1,minimum_test_participants=5,information_policy="t0-only")
+        receipt = freeze_evaluation(manifest,cohort,artifact,policy)
+        actual = tetra(); candidate = Mesh(actual.vertices*1.02,actual.triangles); baseline = Mesh(actual.vertices*1.1,actual.triangles)
+        cases = {digest([p.participant_id,p.t0,p.t1]):{
+            "actual":actual.to_dict(),"candidate":candidate.to_dict(),"model_hash":artifact["sha256"],
+            "t0_source_sha256":p.mesh_sha256_t0,"t1_source_sha256":p.mesh_sha256_t1,"makehuman_to_research":identity_map(actual),
+            "rings":{"synthetic-ring":[0,1,2]},"fallback":False,
+            "procedural":{"version":"procedural-research-bridge-1","shapeVersion":"body-shape-procedural-1",
+                          "horizonDays":28,"synthetic":True,"informationPolicy":"t0-only","endpoint":baseline.to_dict()}}
+            for p in cohort if lookup[p.participant_id] == "test"}
+        report = evaluate_registered(pairs=cohort,manifest=manifest,frozen=receipt,model_artifact=artifact,policy=policy,
+                                     gate={},data_root=Path('.'),repo_root=Path('.'),cases=cases,synthetic_test=True)
+        self.assertTrue(report["paired_comparisons"]["all"]["surface_mean_m"]["material_improvement"])
+        self.assertTrue(report["paired_comparisons"]["all"]["girth_mae_cm"]["material_improvement"])
+        self.assertFalse(report["production_go"])
+        self.assertEqual(report["evidence"],"SYNTHETIC_TEST_ONLY")
+
 
     def test_held_out_harness_is_paired_and_synthetic_never_go(self):
         policy = dict(surface_improvement_fraction=.1, girth_improvement_fraction=.1, maximum_subgroup_regression_fraction=.1, minimum_test_participants=5, information_policy="t0-only")

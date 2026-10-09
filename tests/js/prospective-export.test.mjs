@@ -17,3 +17,9 @@ test('optional geometry export is derived metrics with no mesh or photo',()=>{
  assert.equal(row.avatarGeometry.metrics['girth.Waist'].value,90);
  assert.ok(!JSON.stringify(row).includes('PRIVATE'));assert.match(row.avatarGeometry.method,/not-independent/);
 });
+
+test('registry export keeps only public provenance, not training or source references',()=>{
+ const row=hypothesisAnalysis({core:{forecast:{modelManifest:{registryVersion:'forecast-model-registry-1',shapeVersion:'body-shape-procedural-1',sha256:'A'.repeat(64),trainingParticipants:['PRIVATE'],sourcePhotoHash:'PRIVATE',rawDataRoot:'PRIVATE'}}}},0);
+ assert.equal(row.modelManifest.shapeVersion,'body-shape-procedural-1');assert.equal(row.modelManifest.sha256,'A'.repeat(64));
+ assert.ok(!JSON.stringify(row).includes('PRIVATE'));
+});
