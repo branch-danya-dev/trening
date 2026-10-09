@@ -1,5 +1,7 @@
 # Инструменты и архитектурные решения lifecycle
 
+**Принято в Phase 7, 2026-10-09:** isolated WebGL2 projective triangle warp, shared MakeHuman topology и ортографический bounded alignment. У нового provider нет зависимости от live Three.js camera, WebGPU, сервера или внешнего inference. Source depth rejection, target z-buffer и bounded deterministic repair проходят versioned quality gates. Общий `IForecastRenderer` и structural depth/normal/mask bundle подготовлены для будущего Phase 8; AI adapter не реализован. Найденный legacy `PhotoWarp.cs`/`warp.js` сохранён и включён в сравнение. [Решение, численные limits и evidence](GEOMETRY_WARP.md).
+
 Статус: рекомендации для [roadmap](PRODUCT_LIFECYCLE_ROADMAP.md), 2026-10-09. Код и зависимости этим документом не меняются. [Канон](PRODUCT_LIFECYCLE.md) определяет поведение; exact provider/checkpoint закрепляется только после benchmark, license, privacy и cost review.
 
 ## Сохраняемый стек и границы новых слоёв

@@ -2,7 +2,7 @@
 // а по снимку считается яркость каждого пикселя — по ней C# уточняет края маски. Маска и яркость
 // передаются в C# бинарно: C# выделяет массив нужного размера, JS копирует в него (copyMask, copyLuma).
 import { landmarker } from './pose.js';
-import { getImage } from './photos.js';
+import { getImage, assertFactualSession } from './photos.js';
 
 let current = null;
 
@@ -12,6 +12,7 @@ let current = null;
  */
 export async function prepare(sessionId, view) {
     current = null;
+    await assertFactualSession(sessionId);
     const blob = await getImage(sessionId, view);
     if (!blob) throw new Error('Снимок не найден в хранилище');
     const bitmap = await createImageBitmap(blob);

@@ -35,6 +35,11 @@ public sealed record ProfileLevel(double Fraction, int Row, double Left, double 
 public sealed record PhotoProfile(PhotoView View, int Width, int Height, int Top, int Bottom, double Crown, double Floor, double CmPerPixel,
     bool ScaleFromSide, bool FacingLeft, IReadOnlyList<ProfileLevel> Levels, IReadOnlyList<PosePoint> Pose, IReadOnlyList<string> Warnings)
 {
+    // Optional for legacy hash compatibility. Original segmentation, not a rendered structural map.
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public PhotoBodyMask? BodyMask { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? SourceImageHash { get; init; }
     /// <summary>Уровень, ближайший к доле роста (не дальше полушага), без помех от рук; null — нет такого.</summary>
     public ProfileLevel? At(double fraction) =>
         Levels.Where(l => !l.ArmOverlap && Math.Abs(l.Fraction - fraction) <= SilhouetteProfiler.Step / 2 + 1e-9)
@@ -42,6 +47,30 @@ public sealed record PhotoProfile(PhotoView View, int Width, int Height, int Top
 
     /// <summary>Сбоку — край спереди (живот, грудь) и сзади (спина, ягодицы) на уровне, пиксели.</summary>
     public (double Front, double Back) FrontBack(ProfileLevel l) => FacingLeft ? (l.Left, l.Right) : (l.Right, l.Left);
+}
+
+public sealed record PhotoBodyMask(string Version, int[] Runs)
+{
+    public const string CurrentVersion = "photo-mask-rle-1";
+    public static PhotoBodyMask Capture(byte[] mask)
+    {
+        var runs = new List<int>();
+        for (int i = 0; i < mask.Length; i++)
+        {
+            if (mask[i] < 128) continue;
+            int start = i;
+            while (i + 1 < mask.Length && mask[i + 1] >= 128) i++;
+            runs.Add(start); runs.Add(i - start + 1);
+        }
+        return new(CurrentVersion, runs.ToArray());
+    }
+    public bool Valid(int pixels)
+    {
+        if (Version != CurrentVersion || Runs is null || Runs.Length == 0 || Runs.Length % 2 != 0 || Runs.Length > pixels) return false;
+        long end = 0;
+        for (int i = 0; i < Runs.Length; i += 2) { if (Runs[i] < end || Runs[i + 1] <= 0) return false; end = (long)Runs[i] + Runs[i + 1]; if (end > pixels) return false; }
+        return true;
+    }
 }
 
 /// <summary>

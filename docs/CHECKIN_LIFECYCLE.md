@@ -100,3 +100,8 @@ Opt-in «Check-ins / наблюдения прогресса» exports pseudonym
 The new `checkin-smoke` covers manual, accepted pair, bad/conflicting photos, back-only, target-date outcome, immutable endpoint, exact reload/clean restore and 320/390/1400 layouts. All existing suites remain in CI. Offline operation uses local code/stores/assets; first-use MediaPipe assets follow the existing runtime-cache policy and need to have been downloaded before going offline. Deterministic silhouette fixtures validate plumbing/reconstruction, not real-world photo accuracy. Desktop Edge/Chromium automation does not validate a physical low-end phone.
 
 Deferred: Phase 7 GeometryWarpRenderer, Phase 8 AI renderer/API, backend upload, daily photo requirements, autonomous coaching, BodyParts3D/DeltaShape and empirical accuracy claims.
+# Phase 7 synthetic exclusion — 2026-10-09
+
+Качественные photo-derived revisions теперь сохраняют combined `CheckInAnalysis` hash в `AvatarPhotoReference`; analysis содержит optional full RLE body mask и source JPEG hash. Старые revisions без этих полей читаются без переписывания hashes. Recoverable CheckIn replay учитывает наличие frozen hash, сохраняя совместимость Phase 6.
+
+`renderArtifacts` никогда не перечисляется как фотосессия. Factual writers/PhotoAnalyzer отвергают synthetic metadata, `render:` refs и экспортированные PNG/JPEG с synthetic marker даже при claim `OriginalObservation`. BodySnapshot и Hypothesis outcome также отвергают render refs. Реальный факт не создаётся из визуализации. Это контроль API/метаданных, не распознавание внешнего редактирования файла. [Контракт и тесты](GEOMETRY_WARP.md).

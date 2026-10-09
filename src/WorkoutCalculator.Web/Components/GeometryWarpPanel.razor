@@ -1,0 +1,61 @@
+@using WorkoutCalculator.BodyModel.Rendering
+@using WorkoutCalculator.BodyModel.Avatars
+@using WorkoutCalculator.BodyModel.Hypotheses
+@implements IDisposable
+
+<section class="geometry-warp" data-testid="geometry-warp" data-quality="@(_result?.Quality.ToString() ?? "Unavailable")" aria-busy="@(_busy ? "true" : "false")">
+    <h3>Геометрическая визуализация</h3>
+    <p>Фото локально деформируется по рассчитанной 3D-форме. Это не фотография будущего и не AI-генерация.</p>
+    <p>Целевая дата: @Hypothesis.Core.TargetDate.ToString("dd.MM.yyyy") · @Hypothesis.Core.HorizonDays дней</p>
+    @if(_error is not null){<p role="status">@_error</p>}
+    @if(_sources.Count>0 || _saved.Length>0)
+    {
+        <div class="button-row">
+            @foreach(var view in _sources.Keys.Concat(_saved.Select(a=>a.Request.View)).Distinct()){<button class="btn" disabled="@_busy" aria-pressed="@(_view==view)" @onclick="()=>Select(view)">@(view==RenderView.Front?"Спереди":"Сбоку")</button>}
+        </div>
+        @if(_sources.TryGetValue(_view,out var source)){<p>Исходное фото от @source.ObservedAt.ToString("dd.MM.yyyy"), связанное с исходной ревизией аватара.</p>}
+        <p class="note">Нужна нейтральная поза в полный рост: руки отведены, как у исходной 3D-модели, одежда прилегающая. Свободная одежда, перекрытия и сложный фон могут сделать результат непригодным.</p>
+        <button class="btn" disabled="@(_busy||Builder is null||!_sources.ContainsKey(_view))" @onclick="Create">@(_busy?"Создаём на устройстве…":"Создать визуализацию")</button>
+    }
+    @if(_result is { } r)
+    {
+        <p data-testid="render-quality">@(r.Quality switch {RenderQualityState.Accepted=>"Структурные проверки пройдены",RenderQualityState.Limited=>"Ограниченная визуализация",RenderQualityState.Rejected=>"Визуализация отклонена",_=>"Визуализация недоступна"})</p>
+        @foreach(var reason in r.Reasons){<p class="note">@reason</p>}
+        @if(_url is not null && r.ArtifactId is not null && r.Quality is RenderQualityState.Accepted or RenderQualityState.Limited)
+        {
+            <img class="render-image" src="@_url" alt="Синтетическая геометрическая визуализация рассчитанной формы" data-testid="render-output" />
+            <button class="btn" @onclick="()=>GeometryWarpRenderer.Download(r.ArtifactId)">Скачать</button>
+            <button class="btn-link" @onclick="Remove">Удалить визуализацию</button>
+        }
+        @if(r.Metrics is { } m){<details><summary>Структурные проверки — не оценка точности прогноза</summary>
+            <p>Совпадение силуэта (IoU): @Fmt.N(m.TargetSilhouetteIoU,4) · Ошибка контура / рост: @Fmt.N(m.ContourDistance,4)</p>
+            <p>Доля восстановленного фона: @Fmt.N(m.RepairedBackgroundFraction,4) · Доля растянутого края: @Fmt.N(m.StretchedBodyFraction,4)</p>
+            <p>Пиксели фона изменены вне допустимой зоны: @Fmt.N(m.BackgroundChangedOutsideBand,4)</p>
+        </details>}
+    }
+    <p class="note">Исходные фото и результат остаются на устройстве. При удалении фотосессии её локальные визуализации удаляются. 3D-сравнение доступно независимо от рендера.</p>
+</section>
+
+@code{
+    [Parameter,EditorRequired]public Hypothesis Hypothesis{get;set;}=null!;
+    [Parameter]public AvatarBuilder? Builder{get;set;}
+    private readonly Dictionary<RenderView,RenderSource> _sources=[];
+    private RenderArtifact[] _saved=[];
+    private RenderView _view;private RenderResult? _result;private string? _error,_url,_loaded;private bool _busy,_disposed;
+    protected override async Task OnParametersSetAsync(){if(_loaded==Hypothesis.CoreHash)return;_loaded=Hypothesis.CoreHash;Clear();_sources.Clear();try{
+        var photos=await PhotoStore.ListMeta();
+        foreach(var view in new[]{RenderView.Front,RenderView.Side})foreach(var p in photos){var s=GeometryWarpRenderer.Source(p);if(RenderSourcePolicy.Reason(Hypothesis.Core,s,view) is null){_sources[view]=s;break;}}
+        _view=_sources.Keys.FirstOrDefault();_error=_sources.Count==0?RenderSourcePolicy.Missing:null;
+        if(_sources.Count==0){var related=photos.FirstOrDefault(p=>Hypothesis.Core.CurrentAvatarRevisionAtIssue.Inputs.Photos.Any(r=>r.SessionId==p.Id));if(related is not null)_error=RenderSourcePolicy.Reason(Hypothesis.Core,GeometryWarpRenderer.Source(related),RenderView.Front);}
+        _saved=await GeometryWarpRenderer.Saved(Hypothesis);await Select(_view);
+    }catch(Exception e){_error=e.Message.Split('\n')[0];}}
+    private void Clear(){if(_url is not null)PhotoStore.RevokeUrl(_url);_url=null;_result=null;}
+    private async Task Select(RenderView v){Clear();_view=v;try{if(_saved.FirstOrDefault(a=>a.Request.View==v) is { } a){_result=a.Result;_url=await GeometryWarpRenderer.Url(a.Request.Id);}}catch(Exception e){_error=e.Message.Split('\n')[0];}}
+    private async Task Create(){if(Builder is null||!_sources.TryGetValue(_view,out var source))return;_busy=true;_error=null;Clear();await Task.Yield();try{
+        var request=RenderRequest.Freeze(Hypothesis,source,_view,DateTimeOffset.Now);
+        var result=await new GeometryWarpRenderer(Builder).Render(request,Hypothesis,source);
+        if(_disposed)return;_result=result;if(result.ArtifactId is not null){_url=await GeometryWarpRenderer.Url(result.ArtifactId);_saved=await GeometryWarpRenderer.Saved(Hypothesis);}
+    }catch(Exception e){_error=e.Message.Split('\n')[0];}finally{_busy=false;}}
+    private async Task Remove(){if(_result?.ArtifactId is { } id)await GeometryWarpRenderer.Delete(id);_saved=await GeometryWarpRenderer.Saved(Hypothesis);Clear();}
+    public void Dispose(){_disposed=true;Clear();}
+}

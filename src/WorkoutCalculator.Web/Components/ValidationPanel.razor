@@ -59,7 +59,7 @@
     [Parameter] public IReadOnlyList<BodySnapshot> Facts { get; set; } = [];
     [Parameter] public IReadOnlyList<LoggedWorkout> Cardio { get; set; } = [];
     [Parameter, EditorRequired] public PersonalizedForecastState Calibration { get; set; } = default!;
-    private static readonly Dictionary<string,string> Choices = new() { ["profile"]="Параметры профиля без идентификаторов", ["facts"]="История фактических замеров", ["avatars"]="Ревизии аватара и производные метрики", ["forecasts"]="Версии прогнозов", ["workouts"]="Сводки тренировок", ["activity"]="Дни активности и подтверждённые итоги", ["hypotheses"]="Гипотезы по наблюдениям и результаты", ["checkIns"]="Check-ins / наблюдения прогресса", ["validation"]="Метрики и контрольные значения" };
+    private static readonly Dictionary<string,string> Choices = new() { ["profile"]="Параметры профиля без идентификаторов", ["facts"]="История фактических замеров", ["avatars"]="Ревизии аватара и производные метрики", ["forecasts"]="Версии прогнозов", ["workouts"]="Сводки тренировок", ["activity"]="Дни активности и подтверждённые итоги", ["hypotheses"]="Гипотезы по наблюдениям и результаты", ["checkIns"]="Check-ins / наблюдения прогресса", ["renders"]="Диагностика геометрических визуализаций (без изображений)", ["validation"]="Метрики и контрольные значения" };
     private Dictionary<string,bool> _selected = Choices.Keys.ToDictionary(k => k, _ => false);
     private ManualValidation _manual = new();
     private bool _photos, _busy;

@@ -29,7 +29,8 @@ public static class AvatarPhotoReconstruction
         foreach (var e in estimates) { observations[e.Girth] = new(e.GirthCm, e.RmseCm, session); profile.SetGirth(e.Girth, e.GirthCm); }
         var result = input with { BaseProfileJson = JsonSerializer.Serialize(profile, ForecastJson.Default.BodyProfile),
             PhotoEstimates = observations.ToImmutable(),
-            Photos = input.Photos.Where(p => p.SessionId != session).Append(new(session, PipelineVersion, .8)).ToImmutableArray(),
+            Photos = input.Photos.Where(p => p.SessionId != session).Append(new AvatarPhotoReference(session, PipelineVersion, .8)
+            { AnalysisHash = front?.BodyMask is not null && side?.BodyMask is not null ? Hypotheses.HypothesisHash.Of(new CheckIns.CheckInAnalysis(front,side),CheckIns.CheckInJson.Default.CheckInAnalysis) : null }).ToImmutableArray(),
             Fields = input.Fields.Select(f => Enum.TryParse<Girth>(f.Field, out var g) && observations.ContainsKey(g)
                 ? f with { Source = AvatarFieldSource.PhotoDerived } : f).ToImmutableArray() };
         result.Validate();

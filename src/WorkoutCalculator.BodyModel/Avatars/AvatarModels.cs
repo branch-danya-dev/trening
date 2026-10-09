@@ -33,7 +33,11 @@ public enum AvatarStatus { Draft, Active, Recalibrating, Archived }
 public enum AvatarRevisionSource { InitialCreation, PhotoCheckIn, ManualRecalibration, Migration, FactualUpdate }
 public enum AvatarFieldSource { Profile, Factual, PhotoDerived, VisualEstimate, LegacyVisualEstimate, Corrected }
 public sealed record AvatarFieldOrigin(string Field, AvatarFieldSource Source);
-public sealed record AvatarPhotoReference(string SessionId, string PipelineVersion, double Confidence);
+public sealed record AvatarPhotoReference(string SessionId, string PipelineVersion, double Confidence)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? AnalysisHash { get; init; }
+}
 
 /// <summary>Dimensionless visual controls; never written to BodySnapshot.Measurements.</summary>
 public sealed record AvatarShapeCorrectionProfile

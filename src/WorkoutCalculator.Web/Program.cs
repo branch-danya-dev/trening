@@ -29,5 +29,6 @@ await JSHost.ImportAsync(PhotoStore.Module, "../js/photos.js");
 await JSHost.ImportAsync(Capture.Module, "../js/capture.js");
 await JSHost.ImportAsync(PhotoAnalyzer.Module, "../js/analysis.js");
 await JSHost.ImportAsync(PhotoWarpInterop.Module, "../js/warp.js");
+await JSHost.ImportAsync(GeometryWarpRenderer.Module, "../js/geometry-warp.js");
 
 await builder.Build().RunAsync();

@@ -29,6 +29,8 @@ public static partial class PhotoAnalyzer
     /// <summary>Разбирает снимки сессии и сохраняет результат в ней. Ошибки — с текстом для пользователя.</summary>
     public static async Task<PhotoAnalysis> Analyze(PhotoSession session)
     {
+        if (session.Synthetic || session.SourceKind is "Synthetic" or "Generated" || session.Id.StartsWith("render:", StringComparison.Ordinal))
+            throw new ArgumentException("Синтетическая визуализация не является фактическим фото.");
         var watch = Stopwatch.StartNew();
         var inputs = new Dictionary<PhotoView, PhotoInput>();
         foreach (string view in session.Views)
@@ -63,6 +65,10 @@ public static partial class PhotoAnalyzer
         }
         result.AnalyzedAt = DateTimeOffset.Now;
         result.Milliseconds = (int)watch.ElapsedMilliseconds;
+        PhotoProfile? WithMask(PhotoProfile? p, PhotoView view, string key) => p is null ? null : p with
+        { BodyMask = PhotoBodyMask.Capture(inputs[view].Mask), SourceImageHash = session.ImageHashes?.GetValueOrDefault(key) };
+        result.Front = WithMask(result.Front, PhotoView.Front, "front");
+        result.Side = WithMask(result.Side, PhotoView.Side, "side");
         await PhotoStore.Update(session.Id, JsonSerializer.Serialize(new AnalysisPatch(result), PhotoJson.Default.AnalysisPatch));
         session.Analysis = result;
         return result;

@@ -57,6 +57,8 @@ public sealed record BodySnapshot(string Id, DateOnly Date, SnapshotSource Sourc
             foreach (var n in new[] { f.Stomach, f.Buttocks, f.TorsoDepth, f.VShape }) Check(n, -1, 1, "Форма вне диапазона.");
         if (Notes?.Length > 4000 || SourceReference?.Length > 500 || PhotoSessionId?.Length > 200)
             throw new ArgumentException("Слишком длинная заметка или ссылка.");
+        if (PhotoSessionId?.StartsWith("render:", StringComparison.Ordinal) == true || SourceReference?.StartsWith("render:", StringComparison.Ordinal) == true)
+            throw new ArgumentException("Синтетический рендер не является фактическим состоянием тела.");
         if (Source == SnapshotSource.Photo && string.IsNullOrWhiteSpace(PhotoSessionId)) throw new ArgumentException("Нет ссылки на фотосессию.");
     }
 

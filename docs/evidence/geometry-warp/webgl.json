@@ -1,0 +1,14 @@
+{
+  "sourceOcclusion": true,
+  "targetOcclusion": true,
+  "frontVisible": true,
+  "finite": true,
+  "normalsCorrect": true,
+  "lost": true,
+  "shaderFailure": true,
+  "unavailable": true,
+  "identityShaderHoles": 0,
+  "identityShaderHoleSamples": [],
+  "identityShaderMaxByteError": 0,
+  "repeatMaxByteError": 0
+}

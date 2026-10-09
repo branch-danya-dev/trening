@@ -33,6 +33,7 @@
     private Task Inspect() { _summary = null; _confirm = false; return Run(async m => {
         var raw = await m.InvokeAsync<string>("inspectInput", _inputId);
         var local = await m.InvokeAsync<string>("preparedLocal"); BackupValidation.Validate(local);
+        BackupValidation.ValidateRenders(await m.InvokeAsync<string>("preparedRenders"),local);
         using var doc = JsonDocument.Parse(raw); var r = doc.RootElement;
         _summary = $"Архив от {r.GetProperty("createdAt").GetString()}, сборка {r.GetProperty("build").GetString()}. Разделов: {r.GetProperty("sections").GetArrayLength()}, фотосессий: {r.GetProperty("photos").GetInt32()}, файлов изображений: {r.GetProperty("images").GetInt32()}.";
     }); }

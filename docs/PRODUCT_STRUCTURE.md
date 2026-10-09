@@ -1,5 +1,7 @@
 # Структура продукта: целевой lifecycle и текущая реализация
 
+**Текущий слой Phase 7:** `BodyModel.Rendering` владеет contract/policies; `GeometryWarpRenderer` реконструирует frozen source/target; `geometry-warp*.js` выполняет isolated WebGL2 rendering. `GeometryWarpPanel` находится только внутри saved Hypothesis в «Плане»/«Прогрессе», не в ActivityDay. Synthetic `renderArtifacts` в IndexedDB отделены от factual `sessions/images`. Live viewer не является источником камеры/геометрии рендера. [Ownership, privacy, retention](GEOMETRY_WARP.md).
+
 **Текущий слой Phase 6:** `CheckInStore` / `workoutcalc.checkIns.v1` хранит наблюдения и решения о качестве. «Прогресс → Новый замер» — единая форма текущего факта, обновления Avatar и опциональной проверки гипотезы. Строгий recoverable commit объединяет CheckIn, BodySnapshot и AvatarRevision; Hypothesis получает ссылку после сохранения факта. [Контракт](CHECKIN_LIFECYCLE.md).
 
 **Текущий слой Phase 5:** `ObservedHypothesisStore` / `workoutcalc.observedHypotheses.v1` — единственный owner наблюдаемых гипотез, embedded immutable ForecastSnapshots и outcome events. «План» содержит review/save, «Прогресс» — историю/результат. Legacy `workoutcalc.hypotheses.v1` остаётся owner ручных сценариев. [Полный source-of-truth контракт](HYPOTHESIS_LIFECYCLE.md).
