@@ -1,0 +1,4498 @@
+{
+  "Reference": "hall-2011-appendix-rk4-1",
+  "BaselineSha": "471449780756f091234849d3055bd1e149f9312e",
+  "Seed": 20261009,
+  "Scenarios": 4096,
+  "ScenarioSha256": "327CF83C2A7297554A6D8CA659A4B6F4ADF2DBD3CE76D34C47607861B8CCA955",
+  "ReferenceBelowFatFloor": 0,
+  "Summaries": [
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI20-25",
+      "Weeks": 1,
+      "Count": 1174,
+      "WeightKg": {
+        "Mae": 0.240043,
+        "Bias": 0.115246,
+        "P95": 0.676813,
+        "Maximum": 0.774248
+      },
+      "FatKg": {
+        "Mae": 0.03952,
+        "Bias": -0.011303,
+        "P95": 0.095311,
+        "Maximum": 0.120125
+      },
+      "LeanKg": {
+        "Mae": 0.064358,
+        "Bias": -0.030784,
+        "P95": 0.201715,
+        "Maximum": 0.39956
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.289828,
+        "Bias": 0.157333,
+        "P95": 0.814613,
+        "Maximum": 0.900105
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.694763,
+        "Bias": 0.364962,
+        "P95": 1.75666,
+        "Maximum": 2.085905
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.240043,
+        "Bias": 0.115246,
+        "P95": 0.676813,
+        "Maximum": 0.774248
+      },
+      "MeanPredictedWeightKg": 67.064418,
+      "MeanPredictedDeltaWeightKg": -0.155651
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI20-25",
+      "Weeks": 2,
+      "Count": 1174,
+      "WeightKg": {
+        "Mae": 0.252546,
+        "Bias": 0.092172,
+        "P95": 0.698473,
+        "Maximum": 0.851071
+      },
+      "FatKg": {
+        "Mae": 0.050615,
+        "Bias": -0.002531,
+        "P95": 0.120262,
+        "Maximum": 0.185882
+      },
+      "LeanKg": {
+        "Mae": 0.116261,
+        "Bias": -0.046528,
+        "P95": 0.372004,
+        "Maximum": 0.68626
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.290369,
+        "Bias": 0.14123,
+        "P95": 0.834732,
+        "Maximum": 0.946144
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.683468,
+        "Bias": 0.339793,
+        "P95": 1.766254,
+        "Maximum": 2.086674
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.050406,
+        "Bias": -0.023074,
+        "P95": 0.106953,
+        "Maximum": 0.176535
+      },
+      "MeanPredictedWeightKg": 66.951548,
+      "MeanPredictedDeltaWeightKg": -0.26852
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI20-25",
+      "Weeks": 4,
+      "Count": 1174,
+      "WeightKg": {
+        "Mae": 0.299598,
+        "Bias": 0.078002,
+        "P95": 0.805544,
+        "Maximum": 1.054549
+      },
+      "FatKg": {
+        "Mae": 0.082032,
+        "Bias": 0.014172,
+        "P95": 0.20581,
+        "Maximum": 0.331523
+      },
+      "LeanKg": {
+        "Mae": 0.214804,
+        "Bias": -0.073476,
+        "P95": 0.687969,
+        "Maximum": 1.195201
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.290694,
+        "Bias": 0.137306,
+        "P95": 0.836713,
+        "Maximum": 0.958861
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.691026,
+        "Bias": 0.320808,
+        "P95": 1.777892,
+        "Maximum": 2.205293
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.041352,
+        "Bias": -0.004081,
+        "P95": 0.106996,
+        "Maximum": 0.171525
+      },
+      "MeanPredictedWeightKg": 66.768506,
+      "MeanPredictedDeltaWeightKg": -0.451562
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI20-25",
+      "Weeks": 8,
+      "Count": 1174,
+      "WeightKg": {
+        "Mae": 0.412233,
+        "Bias": 0.074491,
+        "P95": 1.102892,
+        "Maximum": 1.604023
+      },
+      "FatKg": {
+        "Mae": 0.155783,
+        "Bias": 0.045389,
+        "P95": 0.416997,
+        "Maximum": 0.633932
+      },
+      "LeanKg": {
+        "Mae": 0.399793,
+        "Bias": -0.116836,
+        "P95": 1.251684,
+        "Maximum": 2.059143
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.290075,
+        "Bias": 0.145938,
+        "P95": 0.836713,
+        "Maximum": 0.945889
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.750487,
+        "Bias": 0.308131,
+        "P95": 1.928236,
+        "Maximum": 2.467546
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.036966,
+        "Bias": -0.000432,
+        "P95": 0.09135,
+        "Maximum": 0.125591
+      },
+      "MeanPredictedWeightKg": 66.443304,
+      "MeanPredictedDeltaWeightKg": -0.776764
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI20-25",
+      "Weeks": 12,
+      "Count": 1174,
+      "WeightKg": {
+        "Mae": 0.527763,
+        "Bias": 0.072054,
+        "P95": 1.36426,
+        "Maximum": 2.024929
+      },
+      "FatKg": {
+        "Mae": 0.235396,
+        "Bias": 0.072374,
+        "P95": 0.63335,
+        "Maximum": 0.952193
+      },
+      "LeanKg": {
+        "Mae": 0.573684,
+        "Bias": -0.153435,
+        "P95": 1.739336,
+        "Maximum": 2.786976
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.290669,
+        "Bias": 0.153115,
+        "P95": 0.835136,
+        "Maximum": 0.935381
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.813363,
+        "Bias": 0.297149,
+        "P95": 2.136492,
+        "Maximum": 2.842772
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.033887,
+        "Bias": -0.000796,
+        "P95": 0.076995,
+        "Maximum": 0.13849
+      },
+      "MeanPredictedWeightKg": 66.138473,
+      "MeanPredictedDeltaWeightKg": -1.081595
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI20-25",
+      "Weeks": 24,
+      "Count": 1174,
+      "WeightKg": {
+        "Mae": 0.859506,
+        "Bias": 0.044823,
+        "P95": 1.938317,
+        "Maximum": 3.323304
+      },
+      "FatKg": {
+        "Mae": 0.499231,
+        "Bias": 0.12644,
+        "P95": 1.362969,
+        "Maximum": 2.006385
+      },
+      "LeanKg": {
+        "Mae": 1.060734,
+        "Bias": -0.25201,
+        "P95": 2.917799,
+        "Maximum": 4.439141
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.296045,
+        "Bias": 0.170393,
+        "P95": 0.830928,
+        "Maximum": 0.909977
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.013928,
+        "Bias": 0.247972,
+        "P95": 2.607512,
+        "Maximum": 3.551379
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.02888,
+        "Bias": -0.003749,
+        "P95": 0.074826,
+        "Maximum": 0.228423
+      },
+      "MeanPredictedWeightKg": 65.325813,
+      "MeanPredictedDeltaWeightKg": -1.894255
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI25-30",
+      "Weeks": 1,
+      "Count": 1145,
+      "WeightKg": {
+        "Mae": 0.258393,
+        "Bias": 0.138464,
+        "P95": 0.699067,
+        "Maximum": 0.780826
+      },
+      "FatKg": {
+        "Mae": 0.039883,
+        "Bias": -0.015933,
+        "P95": 0.095906,
+        "Maximum": 0.118635
+      },
+      "LeanKg": {
+        "Mae": 0.045032,
+        "Bias": -0.014837,
+        "P95": 0.130413,
+        "Maximum": 0.275412
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.30763,
+        "Bias": 0.169234,
+        "P95": 0.821875,
+        "Maximum": 0.903381
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.722979,
+        "Bias": 0.414177,
+        "P95": 1.789897,
+        "Maximum": 2.167424
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.258393,
+        "Bias": 0.138464,
+        "P95": 0.699067,
+        "Maximum": 0.780826
+      },
+      "MeanPredictedWeightKg": 82.141487,
+      "MeanPredictedDeltaWeightKg": -0.200432
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI25-30",
+      "Weeks": 2,
+      "Count": 1145,
+      "WeightKg": {
+        "Mae": 0.269073,
+        "Bias": 0.118445,
+        "P95": 0.710466,
+        "Maximum": 0.864546
+      },
+      "FatKg": {
+        "Mae": 0.046997,
+        "Bias": -0.007624,
+        "P95": 0.107442,
+        "Maximum": 0.149313
+      },
+      "LeanKg": {
+        "Mae": 0.082259,
+        "Bias": -0.01843,
+        "P95": 0.243347,
+        "Maximum": 0.475229
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.311807,
+        "Bias": 0.144499,
+        "P95": 0.836675,
+        "Maximum": 0.954114
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.708253,
+        "Bias": 0.392378,
+        "P95": 1.76497,
+        "Maximum": 2.133951
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.043886,
+        "Bias": -0.020019,
+        "P95": 0.103368,
+        "Maximum": 0.135555
+      },
+      "MeanPredictedWeightKg": 82.000588,
+      "MeanPredictedDeltaWeightKg": -0.341332
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI25-30",
+      "Weeks": 4,
+      "Count": 1145,
+      "WeightKg": {
+        "Mae": 0.298764,
+        "Bias": 0.12292,
+        "P95": 0.799222,
+        "Maximum": 1.007678
+      },
+      "FatKg": {
+        "Mae": 0.067784,
+        "Bias": 0.008007,
+        "P95": 0.163997,
+        "Maximum": 0.242045
+      },
+      "LeanKg": {
+        "Mae": 0.154227,
+        "Bias": -0.023267,
+        "P95": 0.45532,
+        "Maximum": 0.837965
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.313052,
+        "Bias": 0.138181,
+        "P95": 0.839803,
+        "Maximum": 0.968774
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.707116,
+        "Bias": 0.392562,
+        "P95": 1.771406,
+        "Maximum": 2.228751
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.032929,
+        "Bias": 0.006053,
+        "P95": 0.085625,
+        "Maximum": 0.124371
+      },
+      "MeanPredictedWeightKg": 81.777062,
+      "MeanPredictedDeltaWeightKg": -0.564857
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI25-30",
+      "Weeks": 8,
+      "Count": 1145,
+      "WeightKg": {
+        "Mae": 0.378744,
+        "Bias": 0.160909,
+        "P95": 1.035171,
+        "Maximum": 1.298616
+      },
+      "FatKg": {
+        "Mae": 0.122767,
+        "Bias": 0.038571,
+        "P95": 0.330703,
+        "Maximum": 0.451184
+      },
+      "LeanKg": {
+        "Mae": 0.291864,
+        "Bias": -0.026451,
+        "P95": 0.845427,
+        "Maximum": 1.477437
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.311025,
+        "Bias": 0.148788,
+        "P95": 0.836713,
+        "Maximum": 0.956347
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.746469,
+        "Bias": 0.422304,
+        "P95": 1.919936,
+        "Maximum": 2.466228
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.031034,
+        "Bias": 0.009779,
+        "P95": 0.081088,
+        "Maximum": 0.101092
+      },
+      "MeanPredictedWeightKg": 81.382974,
+      "MeanPredictedDeltaWeightKg": -0.958945
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI25-30",
+      "Weeks": 12,
+      "Count": 1145,
+      "WeightKg": {
+        "Mae": 0.465821,
+        "Bias": 0.198669,
+        "P95": 1.243165,
+        "Maximum": 1.58975
+      },
+      "FatKg": {
+        "Mae": 0.180267,
+        "Bias": 0.066084,
+        "P95": 0.501714,
+        "Maximum": 0.669345
+      },
+      "LeanKg": {
+        "Mae": 0.423456,
+        "Bias": -0.024906,
+        "P95": 1.203172,
+        "Maximum": 2.040685
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.309888,
+        "Bias": 0.157492,
+        "P95": 0.836713,
+        "Maximum": 0.946391
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.808833,
+        "Bias": 0.452262,
+        "P95": 2.115513,
+        "Maximum": 2.77001
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.028862,
+        "Bias": 0.009211,
+        "P95": 0.075118,
+        "Maximum": 0.096153
+      },
+      "MeanPredictedWeightKg": 81.013599,
+      "MeanPredictedDeltaWeightKg": -1.32832
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI25-30",
+      "Weeks": 24,
+      "Count": 1145,
+      "WeightKg": {
+        "Mae": 0.744427,
+        "Bias": 0.294191,
+        "P95": 1.906973,
+        "Maximum": 2.480475
+      },
+      "FatKg": {
+        "Mae": 0.361931,
+        "Bias": 0.123199,
+        "P95": 1.011708,
+        "Maximum": 1.461725
+      },
+      "LeanKg": {
+        "Mae": 0.793206,
+        "Bias": -0.007481,
+        "P95": 2.190289,
+        "Maximum": 3.412442
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.310932,
+        "Bias": 0.178473,
+        "P95": 0.836713,
+        "Maximum": 0.922319
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.991874,
+        "Bias": 0.526963,
+        "P95": 2.62185,
+        "Maximum": 3.557402
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.024895,
+        "Bias": 0.00675,
+        "P95": 0.063843,
+        "Maximum": 0.085929
+      },
+      "MeanPredictedWeightKg": 80.026027,
+      "MeanPredictedDeltaWeightKg": -2.315892
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI30-38",
+      "Weeks": 1,
+      "Count": 1777,
+      "WeightKg": {
+        "Mae": 0.259412,
+        "Bias": 0.124123,
+        "P95": 0.715105,
+        "Maximum": 0.867623
+      },
+      "FatKg": {
+        "Mae": 0.038407,
+        "Bias": -0.011627,
+        "P95": 0.095466,
+        "Maximum": 0.10756
+      },
+      "LeanKg": {
+        "Mae": 0.036476,
+        "Bias": -0.007385,
+        "P95": 0.104024,
+        "Maximum": 0.212308
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.30555,
+        "Bias": 0.143136,
+        "P95": 0.835327,
+        "Maximum": 0.935507
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.694245,
+        "Bias": 0.376559,
+        "P95": 1.724129,
+        "Maximum": 2.142969
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.259412,
+        "Bias": 0.124123,
+        "P95": 0.715105,
+        "Maximum": 0.867623
+      },
+      "MeanPredictedWeightKg": 101.564393,
+      "MeanPredictedDeltaWeightKg": -0.175259
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI30-38",
+      "Weeks": 2,
+      "Count": 1777,
+      "WeightKg": {
+        "Mae": 0.273399,
+        "Bias": 0.108651,
+        "P95": 0.722804,
+        "Maximum": 1.012005
+      },
+      "FatKg": {
+        "Mae": 0.044659,
+        "Bias": -0.00023,
+        "P95": 0.100428,
+        "Maximum": 0.119784
+      },
+      "LeanKg": {
+        "Mae": 0.068164,
+        "Bias": -0.007598,
+        "P95": 0.197072,
+        "Maximum": 0.366961
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.316996,
+        "Bias": 0.116479,
+        "P95": 0.859879,
+        "Maximum": 0.99028
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.682156,
+        "Bias": 0.359803,
+        "P95": 1.682771,
+        "Maximum": 2.269807
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.044184,
+        "Bias": -0.015472,
+        "P95": 0.115977,
+        "Maximum": 0.153245
+      },
+      "MeanPredictedWeightKg": 101.448503,
+      "MeanPredictedDeltaWeightKg": -0.291149
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI30-38",
+      "Weeks": 4,
+      "Count": 1777,
+      "WeightKg": {
+        "Mae": 0.298623,
+        "Bias": 0.12607,
+        "P95": 0.76662,
+        "Maximum": 1.265318
+      },
+      "FatKg": {
+        "Mae": 0.064597,
+        "Bias": 0.022536,
+        "P95": 0.159346,
+        "Maximum": 0.224124
+      },
+      "LeanKg": {
+        "Mae": 0.129608,
+        "Bias": -0.00599,
+        "P95": 0.386405,
+        "Maximum": 0.650179
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.320451,
+        "Bias": 0.109524,
+        "P95": 0.866793,
+        "Maximum": 1.005928
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.682382,
+        "Bias": 0.373966,
+        "P95": 1.728234,
+        "Maximum": 2.489626
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.032716,
+        "Bias": 0.012718,
+        "P95": 0.089001,
+        "Maximum": 0.134619
+      },
+      "MeanPredictedWeightKg": 101.273092,
+      "MeanPredictedDeltaWeightKg": -0.46656
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI30-38",
+      "Weeks": 8,
+      "Count": 1777,
+      "WeightKg": {
+        "Mae": 0.369558,
+        "Bias": 0.192343,
+        "P95": 0.95463,
+        "Maximum": 1.74875
+      },
+      "FatKg": {
+        "Mae": 0.120035,
+        "Bias": 0.070113,
+        "P95": 0.332216,
+        "Maximum": 0.478196
+      },
+      "LeanKg": {
+        "Mae": 0.248272,
+        "Bias": 0.002945,
+        "P95": 0.757667,
+        "Maximum": 1.156609
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.31613,
+        "Bias": 0.119285,
+        "P95": 0.858714,
+        "Maximum": 0.99129
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.724954,
+        "Bias": 0.433957,
+        "P95": 1.886794,
+        "Maximum": 2.909739
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.033248,
+        "Bias": 0.017042,
+        "P95": 0.091626,
+        "Maximum": 0.129661
+      },
+      "MeanPredictedWeightKg": 100.969104,
+      "MeanPredictedDeltaWeightKg": -0.770548
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI30-38",
+      "Weeks": 12,
+      "Count": 1777,
+      "WeightKg": {
+        "Mae": 0.46283,
+        "Bias": 0.260425,
+        "P95": 1.251824,
+        "Maximum": 2.215182
+      },
+      "FatKg": {
+        "Mae": 0.178691,
+        "Bias": 0.116762,
+        "P95": 0.501268,
+        "Maximum": 0.733684
+      },
+      "LeanKg": {
+        "Mae": 0.362798,
+        "Bias": 0.016481,
+        "P95": 1.134703,
+        "Maximum": 1.708556
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.313099,
+        "Bias": 0.127183,
+        "P95": 0.852346,
+        "Maximum": 0.979526
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.796302,
+        "Bias": 0.496058,
+        "P95": 1.991334,
+        "Maximum": 3.31669
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.031793,
+        "Bias": 0.016989,
+        "P95": 0.087865,
+        "Maximum": 0.124547
+      },
+      "MeanPredictedWeightKg": 100.684323,
+      "MeanPredictedDeltaWeightKg": -1.055329
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "BMI30-38",
+      "Weeks": 24,
+      "Count": 1777,
+      "WeightKg": {
+        "Mae": 0.769328,
+        "Bias": 0.460655,
+        "P95": 2.178652,
+        "Maximum": 3.494514
+      },
+      "FatKg": {
+        "Mae": 0.350956,
+        "Bias": 0.239398,
+        "P95": 0.974583,
+        "Maximum": 1.456917
+      },
+      "LeanKg": {
+        "Mae": 0.685316,
+        "Bias": 0.075068,
+        "P95": 2.127336,
+        "Maximum": 3.488057
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.307269,
+        "Bias": 0.146189,
+        "P95": 0.836713,
+        "Maximum": 0.951065
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.045024,
+        "Bias": 0.680056,
+        "P95": 2.597616,
+        "Maximum": 4.439227
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.028493,
+        "Bias": 0.016302,
+        "P95": 0.076049,
+        "Maximum": 0.108709
+      },
+      "MeanPredictedWeightKg": 99.92343,
+      "MeanPredictedDeltaWeightKg": -1.816222
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Female",
+      "Weeks": 1,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.251469,
+        "Bias": 0.149563,
+        "P95": 0.711657,
+        "Maximum": 0.867623
+      },
+      "FatKg": {
+        "Mae": 0.038708,
+        "Bias": -0.021286,
+        "P95": 0.097985,
+        "Maximum": 0.120125
+      },
+      "LeanKg": {
+        "Mae": 0.042649,
+        "Bias": -0.003214,
+        "P95": 0.123834,
+        "Maximum": 0.241445
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.295617,
+        "Bias": 0.174063,
+        "P95": 0.828791,
+        "Maximum": 0.921556
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.715991,
+        "Bias": 0.427476,
+        "P95": 1.766619,
+        "Maximum": 2.167424
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.251469,
+        "Bias": 0.149563,
+        "P95": 0.711657,
+        "Maximum": 0.867623
+      },
+      "MeanPredictedWeightKg": 86.585693,
+      "MeanPredictedDeltaWeightKg": -0.157441
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Female",
+      "Weeks": 2,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.26617,
+        "Bias": 0.136514,
+        "P95": 0.719487,
+        "Maximum": 1.012005
+      },
+      "FatKg": {
+        "Mae": 0.04391,
+        "Bias": -0.019147,
+        "P95": 0.111458,
+        "Maximum": 0.15638
+      },
+      "LeanKg": {
+        "Mae": 0.07977,
+        "Bias": 0.002686,
+        "P95": 0.243261,
+        "Maximum": 0.419021
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.296386,
+        "Bias": 0.152975,
+        "P95": 0.836709,
+        "Maximum": 0.97094
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.702526,
+        "Bias": 0.412934,
+        "P95": 1.773329,
+        "Maximum": 2.269807
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.043282,
+        "Bias": -0.013049,
+        "P95": 0.116767,
+        "Maximum": 0.153245
+      },
+      "MeanPredictedWeightKg": 86.479251,
+      "MeanPredictedDeltaWeightKg": -0.263883
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Female",
+      "Weeks": 4,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.300536,
+        "Bias": 0.14645,
+        "P95": 0.784533,
+        "Maximum": 1.265318
+      },
+      "FatKg": {
+        "Mae": 0.059304,
+        "Bias": -0.016815,
+        "P95": 0.151702,
+        "Maximum": 0.252153
+      },
+      "LeanKg": {
+        "Mae": 0.152802,
+        "Bias": 0.016334,
+        "P95": 0.470773,
+        "Maximum": 0.74217
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.297307,
+        "Bias": 0.146932,
+        "P95": 0.840397,
+        "Maximum": 0.984727
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.704926,
+        "Bias": 0.419132,
+        "P95": 1.789772,
+        "Maximum": 2.489626
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.033512,
+        "Bias": 0.008104,
+        "P95": 0.0941,
+        "Maximum": 0.134619
+      },
+      "MeanPredictedWeightKg": 86.315634,
+      "MeanPredictedDeltaWeightKg": -0.4275
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Female",
+      "Weeks": 8,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.38993,
+        "Bias": 0.190417,
+        "P95": 1.016224,
+        "Maximum": 1.74875
+      },
+      "FatKg": {
+        "Mae": 0.095369,
+        "Bias": -0.013891,
+        "P95": 0.271646,
+        "Maximum": 0.467695
+      },
+      "LeanKg": {
+        "Mae": 0.29482,
+        "Bias": 0.049288,
+        "P95": 0.909943,
+        "Maximum": 1.316632
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.296575,
+        "Bias": 0.155021,
+        "P95": 0.836713,
+        "Maximum": 0.970743
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.749687,
+        "Bias": 0.455899,
+        "P95": 1.930356,
+        "Maximum": 2.909739
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.031761,
+        "Bias": 0.011327,
+        "P95": 0.084986,
+        "Maximum": 0.129661
+      },
+      "MeanPredictedWeightKg": 86.030789,
+      "MeanPredictedDeltaWeightKg": -0.712345
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Female",
+      "Weeks": 12,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.491254,
+        "Bias": 0.235857,
+        "P95": 1.273016,
+        "Maximum": 2.215182
+      },
+      "FatKg": {
+        "Mae": 0.133519,
+        "Bias": -0.013211,
+        "P95": 0.411869,
+        "Maximum": 0.700104
+      },
+      "LeanKg": {
+        "Mae": 0.433045,
+        "Bias": 0.087489,
+        "P95": 1.320048,
+        "Maximum": 1.827668
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.296808,
+        "Bias": 0.161579,
+        "P95": 0.836713,
+        "Maximum": 0.959437
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.815793,
+        "Bias": 0.494503,
+        "P95": 2.120535,
+        "Maximum": 3.31669
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.030386,
+        "Bias": 0.011375,
+        "P95": 0.079613,
+        "Maximum": 0.124547
+      },
+      "MeanPredictedWeightKg": 85.76366,
+      "MeanPredictedDeltaWeightKg": -0.979474
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Female",
+      "Weeks": 24,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.791167,
+        "Bias": 0.370471,
+        "P95": 2.089795,
+        "Maximum": 3.494514
+      },
+      "FatKg": {
+        "Mae": 0.263912,
+        "Bias": -0.029465,
+        "P95": 0.896612,
+        "Maximum": 1.606989
+      },
+      "LeanKg": {
+        "Mae": 0.83468,
+        "Bias": 0.222606,
+        "P95": 2.50055,
+        "Maximum": 3.488057
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.300227,
+        "Bias": 0.17733,
+        "P95": 0.836713,
+        "Maximum": 0.9321
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.045697,
+        "Bias": 0.610706,
+        "P95": 2.675642,
+        "Maximum": 4.439227
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.02726,
+        "Bias": 0.0109,
+        "P95": 0.071736,
+        "Maximum": 0.124583
+      },
+      "MeanPredictedWeightKg": 85.046951,
+      "MeanPredictedDeltaWeightKg": -1.696183
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Male",
+      "Weeks": 1,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.255682,
+        "Bias": 0.101612,
+        "P95": 0.692018,
+        "Maximum": 0.761704
+      },
+      "FatKg": {
+        "Mae": 0.03957,
+        "Bias": -0.004189,
+        "P95": 0.086646,
+        "Maximum": 0.114881
+      },
+      "LeanKg": {
+        "Mae": 0.05107,
+        "Bias": -0.029136,
+        "P95": 0.160519,
+        "Maximum": 0.39956
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.307634,
+        "Bias": 0.134938,
+        "P95": 0.820124,
+        "Maximum": 0.935507
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.688861,
+        "Bias": 0.340025,
+        "P95": 1.701836,
+        "Maximum": 2.089261
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.255682,
+        "Bias": 0.101612,
+        "P95": 0.692018,
+        "Maximum": 0.761704
+      },
+      "MeanPredictedWeightKg": 85.907254,
+      "MeanPredictedDeltaWeightKg": -0.19591
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Male",
+      "Weeks": 2,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.266257,
+        "Bias": 0.076818,
+        "P95": 0.71229,
+        "Maximum": 0.784295
+      },
+      "FatKg": {
+        "Mae": 0.05013,
+        "Bias": 0.013234,
+        "P95": 0.100823,
+        "Maximum": 0.185882
+      },
+      "LeanKg": {
+        "Mae": 0.09201,
+        "Bias": -0.046254,
+        "P95": 0.30336,
+        "Maximum": 0.68626
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.319442,
+        "Bias": 0.109838,
+        "P95": 0.847475,
+        "Maximum": 0.99028
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.677128,
+        "Bias": 0.313414,
+        "P95": 1.664272,
+        "Maximum": 2.11442
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.048486,
+        "Bias": -0.024795,
+        "P95": 0.102793,
+        "Maximum": 0.176535
+      },
+      "MeanPredictedWeightKg": 85.769665,
+      "MeanPredictedDeltaWeightKg": -0.333499
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Male",
+      "Weeks": 4,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.297348,
+        "Bias": 0.076374,
+        "P95": 0.77869,
+        "Maximum": 1.054549
+      },
+      "FatKg": {
+        "Mae": 0.081666,
+        "Bias": 0.04897,
+        "P95": 0.18276,
+        "Maximum": 0.331523
+      },
+      "LeanKg": {
+        "Mae": 0.169015,
+        "Bias": -0.076659,
+        "P95": 0.570116,
+        "Maximum": 1.195201
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.3224,
+        "Bias": 0.104064,
+        "P95": 0.853984,
+        "Maximum": 1.005928
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.678622,
+        "Bias": 0.308724,
+        "P95": 1.696531,
+        "Maximum": 2.205293
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.036991,
+        "Bias": 0.003975,
+        "P95": 0.098423,
+        "Maximum": 0.171525
+      },
+      "MeanPredictedWeightKg": 85.551186,
+      "MeanPredictedDeltaWeightKg": -0.551979
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Male",
+      "Weeks": 8,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.378785,
+        "Bias": 0.109137,
+        "P95": 1.080624,
+        "Maximum": 1.604023
+      },
+      "FatKg": {
+        "Mae": 0.166721,
+        "Bias": 0.12231,
+        "P95": 0.377274,
+        "Maximum": 0.633932
+      },
+      "LeanKg": {
+        "Mae": 0.312953,
+        "Bias": -0.128496,
+        "P95": 1.042977,
+        "Maximum": 2.059143
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.317896,
+        "Bias": 0.115322,
+        "P95": 0.847806,
+        "Maximum": 0.99129
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.726887,
+        "Bias": 0.333371,
+        "P95": 1.846729,
+        "Maximum": 2.467546
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.035628,
+        "Bias": 0.008679,
+        "P95": 0.088982,
+        "Maximum": 0.125591
+      },
+      "MeanPredictedWeightKg": 85.165521,
+      "MeanPredictedDeltaWeightKg": -0.937644
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Male",
+      "Weeks": 12,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.4733,
+        "Bias": 0.142484,
+        "P95": 1.352562,
+        "Maximum": 2.024929
+      },
+      "FatKg": {
+        "Mae": 0.25725,
+        "Bias": 0.192957,
+        "P95": 0.578405,
+        "Maximum": 0.952193
+      },
+      "LeanKg": {
+        "Mae": 0.447353,
+        "Bias": -0.175069,
+        "P95": 1.463918,
+        "Maximum": 2.786976
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.314737,
+        "Bias": 0.124597,
+        "P95": 0.842769,
+        "Maximum": 0.979526
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.793597,
+        "Bias": 0.359105,
+        "P95": 1.999382,
+        "Maximum": 2.842772
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.032761,
+        "Bias": 0.008059,
+        "P95": 0.080214,
+        "Maximum": 0.13849
+      },
+      "MeanPredictedWeightKg": 84.804299,
+      "MeanPredictedDeltaWeightKg": -1.298865
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "Male",
+      "Weeks": 24,
+      "Count": 2048,
+      "WeightKg": {
+        "Mae": 0.785261,
+        "Bias": 0.2194,
+        "P95": 1.906973,
+        "Maximum": 3.323304
+      },
+      "FatKg": {
+        "Mae": 0.529134,
+        "Bias": 0.378544,
+        "P95": 1.189224,
+        "Maximum": 2.006385
+      },
+      "LeanKg": {
+        "Mae": 0.811476,
+        "Bias": -0.306117,
+        "P95": 2.508209,
+        "Maximum": 4.439141
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.309925,
+        "Bias": 0.146972,
+        "P95": 0.832513,
+        "Maximum": 0.951065
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.99681,
+        "Bias": 0.416126,
+        "P95": 2.47471,
+        "Maximum": 3.557402
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.027936,
+        "Bias": 0.00487,
+        "P95": 0.068168,
+        "Maximum": 0.228423
+      },
+      "MeanPredictedWeightKg": 83.842815,
+      "MeanPredictedDeltaWeightKg": -2.260349
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "all",
+      "Weeks": 1,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.253575,
+        "Bias": 0.125588,
+        "P95": 0.702913,
+        "Maximum": 0.867623
+      },
+      "FatKg": {
+        "Mae": 0.039139,
+        "Bias": -0.012738,
+        "P95": 0.095486,
+        "Maximum": 0.120125
+      },
+      "LeanKg": {
+        "Mae": 0.046859,
+        "Bias": -0.016175,
+        "P95": 0.137795,
+        "Maximum": 0.39956
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.301625,
+        "Bias": 0.1545,
+        "P95": 0.826762,
+        "Maximum": 0.935507
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.702426,
+        "Bias": 0.383751,
+        "P95": 1.756244,
+        "Maximum": 2.167424
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.253575,
+        "Bias": 0.125588,
+        "P95": 0.702913,
+        "Maximum": 0.867623
+      },
+      "MeanPredictedWeightKg": 86.246474,
+      "MeanPredictedDeltaWeightKg": -0.176676
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "all",
+      "Weeks": 2,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.266213,
+        "Bias": 0.106666,
+        "P95": 0.71677,
+        "Maximum": 1.012005
+      },
+      "FatKg": {
+        "Mae": 0.04702,
+        "Bias": -0.002957,
+        "P95": 0.106389,
+        "Maximum": 0.185882
+      },
+      "LeanKg": {
+        "Mae": 0.08589,
+        "Bias": -0.021784,
+        "P95": 0.265204,
+        "Maximum": 0.68626
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.307914,
+        "Bias": 0.131406,
+        "P95": 0.838882,
+        "Maximum": 0.99028
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.689827,
+        "Bias": 0.363174,
+        "P95": 1.735684,
+        "Maximum": 2.269807
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.045884,
+        "Bias": -0.018922,
+        "P95": 0.110332,
+        "Maximum": 0.176535
+      },
+      "MeanPredictedWeightKg": 86.124458,
+      "MeanPredictedDeltaWeightKg": -0.298691
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "all",
+      "Weeks": 4,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.298942,
+        "Bias": 0.111412,
+        "P95": 0.783496,
+        "Maximum": 1.265318
+      },
+      "FatKg": {
+        "Mae": 0.070485,
+        "Bias": 0.016077,
+        "P95": 0.173466,
+        "Maximum": 0.331523
+      },
+      "LeanKg": {
+        "Mae": 0.160909,
+        "Bias": -0.030163,
+        "P95": 0.510538,
+        "Maximum": 1.195201
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.309853,
+        "Bias": 0.125498,
+        "P95": 0.84467,
+        "Maximum": 1.005928
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.691774,
+        "Bias": 0.363928,
+        "P95": 1.764664,
+        "Maximum": 2.489626
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.035251,
+        "Bias": 0.00604,
+        "P95": 0.096118,
+        "Maximum": 0.171525
+      },
+      "MeanPredictedWeightKg": 85.93341,
+      "MeanPredictedDeltaWeightKg": -0.489739
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "all",
+      "Weeks": 8,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.384357,
+        "Bias": 0.149777,
+        "P95": 1.025505,
+        "Maximum": 1.74875
+      },
+      "FatKg": {
+        "Mae": 0.131045,
+        "Bias": 0.05421,
+        "P95": 0.351592,
+        "Maximum": 0.633932
+      },
+      "LeanKg": {
+        "Mae": 0.303887,
+        "Bias": -0.039604,
+        "P95": 0.960385,
+        "Maximum": 2.059143
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.307235,
+        "Bias": 0.135172,
+        "P95": 0.839426,
+        "Maximum": 0.99129
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.738287,
+        "Bias": 0.394635,
+        "P95": 1.907599,
+        "Maximum": 2.909739
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.033695,
+        "Bias": 0.010003,
+        "P95": 0.088433,
+        "Maximum": 0.129661
+      },
+      "MeanPredictedWeightKg": 85.598155,
+      "MeanPredictedDeltaWeightKg": -0.824994
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "all",
+      "Weeks": 12,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.482277,
+        "Bias": 0.189171,
+        "P95": 1.30127,
+        "Maximum": 2.215182
+      },
+      "FatKg": {
+        "Mae": 0.195384,
+        "Bias": 0.089873,
+        "P95": 0.534947,
+        "Maximum": 0.952193
+      },
+      "LeanKg": {
+        "Mae": 0.440199,
+        "Bias": -0.04379,
+        "P95": 1.372866,
+        "Maximum": 2.786976
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.305773,
+        "Bias": 0.143088,
+        "P95": 0.836713,
+        "Maximum": 0.979526
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.804695,
+        "Bias": 0.426804,
+        "P95": 2.059113,
+        "Maximum": 3.31669
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.031574,
+        "Bias": 0.009717,
+        "P95": 0.080098,
+        "Maximum": 0.13849
+      },
+      "MeanPredictedWeightKg": 85.28398,
+      "MeanPredictedDeltaWeightKg": -1.13917
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "all",
+      "Weeks": 24,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.788214,
+        "Bias": 0.294935,
+        "P95": 2.012867,
+        "Maximum": 3.494514
+      },
+      "FatKg": {
+        "Mae": 0.396523,
+        "Bias": 0.17454,
+        "P95": 1.088029,
+        "Maximum": 2.006385
+      },
+      "LeanKg": {
+        "Mae": 0.823078,
+        "Bias": -0.041756,
+        "P95": 2.508209,
+        "Maximum": 4.439141
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.305076,
+        "Bias": 0.162151,
+        "P95": 0.836713,
+        "Maximum": 0.951065
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.021253,
+        "Bias": 0.513416,
+        "P95": 2.604242,
+        "Maximum": 4.439227
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.027598,
+        "Bias": 0.007885,
+        "P95": 0.069801,
+        "Maximum": 0.228423
+      },
+      "MeanPredictedWeightKg": 84.444883,
+      "MeanPredictedDeltaWeightKg": -1.978266
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "high-activity",
+      "Weeks": 1,
+      "Count": 1677,
+      "WeightKg": {
+        "Mae": 0.246934,
+        "Bias": 0.116125,
+        "P95": 0.704506,
+        "Maximum": 0.867623
+      },
+      "FatKg": {
+        "Mae": 0.038535,
+        "Bias": -0.012407,
+        "P95": 0.096528,
+        "Maximum": 0.118635
+      },
+      "LeanKg": {
+        "Mae": 0.046601,
+        "Bias": -0.01725,
+        "P95": 0.137872,
+        "Maximum": 0.360577
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.292287,
+        "Bias": 0.145783,
+        "P95": 0.831049,
+        "Maximum": 0.935507
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.679395,
+        "Bias": 0.369583,
+        "P95": 1.736113,
+        "Maximum": 2.086564
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.246934,
+        "Bias": 0.116125,
+        "P95": 0.704506,
+        "Maximum": 0.867623
+      },
+      "MeanPredictedWeightKg": 86.049887,
+      "MeanPredictedDeltaWeightKg": -0.187161
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "high-activity",
+      "Weeks": 2,
+      "Count": 1677,
+      "WeightKg": {
+        "Mae": 0.261328,
+        "Bias": 0.093517,
+        "P95": 0.712069,
+        "Maximum": 1.012005
+      },
+      "FatKg": {
+        "Mae": 0.047037,
+        "Bias": -0.003069,
+        "P95": 0.109572,
+        "Maximum": 0.17493
+      },
+      "LeanKg": {
+        "Mae": 0.085393,
+        "Bias": -0.024192,
+        "P95": 0.267051,
+        "Maximum": 0.615455
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.299756,
+        "Bias": 0.120778,
+        "P95": 0.846766,
+        "Maximum": 0.99028
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.665313,
+        "Bias": 0.3447,
+        "P95": 1.690562,
+        "Maximum": 2.133951
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.04743,
+        "Bias": -0.022609,
+        "P95": 0.11057,
+        "Maximum": 0.156027
+      },
+      "MeanPredictedWeightKg": 85.920357,
+      "MeanPredictedDeltaWeightKg": -0.316691
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "high-activity",
+      "Weeks": 4,
+      "Count": 1677,
+      "WeightKg": {
+        "Mae": 0.29339,
+        "Bias": 0.094113,
+        "P95": 0.770742,
+        "Maximum": 1.265318
+      },
+      "FatKg": {
+        "Mae": 0.071564,
+        "Bias": 0.014489,
+        "P95": 0.177169,
+        "Maximum": 0.316881
+      },
+      "LeanKg": {
+        "Mae": 0.159718,
+        "Bias": -0.035317,
+        "P95": 0.51204,
+        "Maximum": 1.067244
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.301982,
+        "Bias": 0.114941,
+        "P95": 0.851275,
+        "Maximum": 1.005928
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.665011,
+        "Bias": 0.340116,
+        "P95": 1.727194,
+        "Maximum": 2.228751
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.03462,
+        "Bias": 0.004076,
+        "P95": 0.092433,
+        "Maximum": 0.149577
+      },
+      "MeanPredictedWeightKg": 85.717405,
+      "MeanPredictedDeltaWeightKg": -0.519643
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "high-activity",
+      "Weeks": 8,
+      "Count": 1677,
+      "WeightKg": {
+        "Mae": 0.373864,
+        "Bias": 0.124279,
+        "P95": 0.960099,
+        "Maximum": 1.74875
+      },
+      "FatKg": {
+        "Mae": 0.134746,
+        "Bias": 0.048903,
+        "P95": 0.361812,
+        "Maximum": 0.618969
+      },
+      "LeanKg": {
+        "Mae": 0.301172,
+        "Bias": -0.050278,
+        "P95": 0.9569,
+        "Maximum": 1.826729
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.298647,
+        "Bias": 0.125654,
+        "P95": 0.845607,
+        "Maximum": 0.99129
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.703552,
+        "Bias": 0.360404,
+        "P95": 1.853054,
+        "Maximum": 2.45967
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.03257,
+        "Bias": 0.007854,
+        "P95": 0.081942,
+        "Maximum": 0.126678
+      },
+      "MeanPredictedWeightKg": 85.362353,
+      "MeanPredictedDeltaWeightKg": -0.874695
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "high-activity",
+      "Weeks": 12,
+      "Count": 1677,
+      "WeightKg": {
+        "Mae": 0.464276,
+        "Bias": 0.154439,
+        "P95": 1.235251,
+        "Maximum": 2.215182
+      },
+      "FatKg": {
+        "Mae": 0.202865,
+        "Bias": 0.080229,
+        "P95": 0.554774,
+        "Maximum": 0.943293
+      },
+      "LeanKg": {
+        "Mae": 0.435705,
+        "Bias": -0.060211,
+        "P95": 1.368689,
+        "Maximum": 2.458029
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.296675,
+        "Bias": 0.134422,
+        "P95": 0.840995,
+        "Maximum": 0.979526
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.758243,
+        "Bias": 0.381319,
+        "P95": 1.972631,
+        "Maximum": 2.864038
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.030363,
+        "Bias": 0.007318,
+        "P95": 0.074444,
+        "Maximum": 0.13849
+      },
+      "MeanPredictedWeightKg": 85.031452,
+      "MeanPredictedDeltaWeightKg": -1.205596
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "high-activity",
+      "Weeks": 24,
+      "Count": 1677,
+      "WeightKg": {
+        "Mae": 0.749841,
+        "Bias": 0.227593,
+        "P95": 1.854756,
+        "Maximum": 3.494514
+      },
+      "FatKg": {
+        "Mae": 0.422191,
+        "Bias": 0.149898,
+        "P95": 1.144048,
+        "Maximum": 2.006385
+      },
+      "LeanKg": {
+        "Mae": 0.814419,
+        "Bias": -0.077687,
+        "P95": 2.44719,
+        "Maximum": 3.853869
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.294479,
+        "Bias": 0.155382,
+        "P95": 0.836713,
+        "Maximum": 0.951065
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.944165,
+        "Bias": 0.430381,
+        "P95": 2.455013,
+        "Maximum": 3.969217
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.026319,
+        "Bias": 0.004954,
+        "P95": 0.069869,
+        "Maximum": 0.228423
+      },
+      "MeanPredictedWeightKg": 84.157936,
+      "MeanPredictedDeltaWeightKg": -2.079113
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "known-carbs",
+      "Weeks": 1,
+      "Count": 3072,
+      "WeightKg": {
+        "Mae": 0.31511,
+        "Bias": 0.183063,
+        "P95": 0.709842,
+        "Maximum": 0.867623
+      },
+      "FatKg": {
+        "Mae": 0.045581,
+        "Bias": -0.02003,
+        "P95": 0.096797,
+        "Maximum": 0.120125
+      },
+      "LeanKg": {
+        "Mae": 0.051646,
+        "Bias": -0.025218,
+        "P95": 0.153394,
+        "Maximum": 0.39956
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.37187,
+        "Bias": 0.228311,
+        "P95": 0.831591,
+        "Maximum": 0.935507
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.830953,
+        "Bias": 0.504202,
+        "P95": 1.818302,
+        "Maximum": 2.167424
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.31511,
+        "Bias": 0.183063,
+        "P95": 0.709842,
+        "Maximum": 0.867623
+      },
+      "MeanPredictedWeightKg": 86.369004,
+      "MeanPredictedDeltaWeightKg": -0.134492
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "known-carbs",
+      "Weeks": 2,
+      "Count": 3072,
+      "WeightKg": {
+        "Mae": 0.320715,
+        "Bias": 0.162913,
+        "P95": 0.72468,
+        "Maximum": 1.012005
+      },
+      "FatKg": {
+        "Mae": 0.051627,
+        "Bias": -0.010819,
+        "P95": 0.110527,
+        "Maximum": 0.185882
+      },
+      "LeanKg": {
+        "Mae": 0.093324,
+        "Bias": -0.037011,
+        "P95": 0.293082,
+        "Maximum": 0.68626
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.372113,
+        "Bias": 0.210742,
+        "P95": 0.853471,
+        "Maximum": 0.99028
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.820457,
+        "Bias": 0.48199,
+        "P95": 1.798895,
+        "Maximum": 2.269807
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.041029,
+        "Bias": -0.02015,
+        "P95": 0.105597,
+        "Maximum": 0.176535
+      },
+      "MeanPredictedWeightKg": 86.27848,
+      "MeanPredictedDeltaWeightKg": -0.225016
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "known-carbs",
+      "Weeks": 4,
+      "Count": 3072,
+      "WeightKg": {
+        "Mae": 0.347181,
+        "Bias": 0.156191,
+        "P95": 0.816255,
+        "Maximum": 1.265318
+      },
+      "FatKg": {
+        "Mae": 0.07249,
+        "Bias": 0.007386,
+        "P95": 0.174849,
+        "Maximum": 0.331523
+      },
+      "LeanKg": {
+        "Mae": 0.172833,
+        "Bias": -0.057202,
+        "P95": 0.550992,
+        "Maximum": 1.195201
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.372208,
+        "Bias": 0.206007,
+        "P95": 0.862141,
+        "Maximum": 1.005928
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.824047,
+        "Bias": 0.470303,
+        "P95": 1.810654,
+        "Maximum": 2.489626
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.035507,
+        "Bias": -0.000251,
+        "P95": 0.095481,
+        "Maximum": 0.171525
+      },
+      "MeanPredictedWeightKg": 86.13949,
+      "MeanPredictedDeltaWeightKg": -0.364006
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "known-carbs",
+      "Weeks": 8,
+      "Count": 3072,
+      "WeightKg": {
+        "Mae": 0.428753,
+        "Bias": 0.168867,
+        "P95": 1.108784,
+        "Maximum": 1.74875
+      },
+      "FatKg": {
+        "Mae": 0.131092,
+        "Bias": 0.043993,
+        "P95": 0.345717,
+        "Maximum": 0.633932
+      },
+      "LeanKg": {
+        "Mae": 0.323129,
+        "Bias": -0.089089,
+        "P95": 1.021969,
+        "Maximum": 2.059143
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.372548,
+        "Bias": 0.213963,
+        "P95": 0.854268,
+        "Maximum": 0.99129
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.868515,
+        "Bias": 0.473472,
+        "P95": 1.970011,
+        "Maximum": 2.909739
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.033455,
+        "Bias": 0.003781,
+        "P95": 0.086009,
+        "Maximum": 0.127794
+      },
+      "MeanPredictedWeightKg": 85.897386,
+      "MeanPredictedDeltaWeightKg": -0.60611
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "known-carbs",
+      "Weeks": 12,
+      "Count": 3072,
+      "WeightKg": {
+        "Mae": 0.521749,
+        "Bias": 0.185023,
+        "P95": 1.374225,
+        "Maximum": 2.215182
+      },
+      "FatKg": {
+        "Mae": 0.194945,
+        "Bias": 0.078906,
+        "P95": 0.523538,
+        "Maximum": 0.952193
+      },
+      "LeanKg": {
+        "Mae": 0.465041,
+        "Bias": -0.114356,
+        "P95": 1.458567,
+        "Maximum": 2.786976
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.37329,
+        "Bias": 0.220473,
+        "P95": 0.848545,
+        "Maximum": 0.979526
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.92717,
+        "Bias": 0.480678,
+        "P95": 2.175359,
+        "Maximum": 3.31669
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.03097,
+        "Bias": 0.004146,
+        "P95": 0.076338,
+        "Maximum": 0.12277
+      },
+      "MeanPredictedWeightKg": 85.670771,
+      "MeanPredictedDeltaWeightKg": -0.832725
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "known-carbs",
+      "Weeks": 24,
+      "Count": 3072,
+      "WeightKg": {
+        "Mae": 0.810299,
+        "Bias": 0.234583,
+        "P95": 2.023125,
+        "Maximum": 3.494514
+      },
+      "FatKg": {
+        "Mae": 0.39579,
+        "Bias": 0.166856,
+        "P95": 1.093033,
+        "Maximum": 2.006385
+      },
+      "LeanKg": {
+        "Mae": 0.856227,
+        "Bias": -0.168444,
+        "P95": 2.578191,
+        "Maximum": 4.439141
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.37685,
+        "Bias": 0.23617,
+        "P95": 0.836713,
+        "Maximum": 0.951065
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.112193,
+        "Bias": 0.506554,
+        "P95": 2.735745,
+        "Maximum": 4.439227
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.02602,
+        "Bias": 0.003879,
+        "P95": 0.064457,
+        "Maximum": 0.178357
+      },
+      "MeanPredictedWeightKg": 85.067764,
+      "MeanPredictedDeltaWeightKg": -1.435732
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "large-deficit",
+      "Weeks": 1,
+      "Count": 610,
+      "WeightKg": {
+        "Mae": 0.210835,
+        "Bias": 0.071041,
+        "P95": 0.574176,
+        "Maximum": 0.642564
+      },
+      "FatKg": {
+        "Mae": 0.034619,
+        "Bias": -0.026106,
+        "P95": 0.10114,
+        "Maximum": 0.107951
+      },
+      "LeanKg": {
+        "Mae": 0.013056,
+        "Bias": -0.009486,
+        "P95": 0.044172,
+        "Maximum": 0.112552
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.250802,
+        "Bias": 0.106633,
+        "P95": 0.715327,
+        "Maximum": 0.778938
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.672425,
+        "Bias": 0.60489,
+        "P95": 1.894067,
+        "Maximum": 2.086564
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.210835,
+        "Bias": 0.071041,
+        "P95": 0.574176,
+        "Maximum": 0.642564
+      },
+      "MeanPredictedWeightKg": 88.133193,
+      "MeanPredictedDeltaWeightKg": -0.91314
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "large-deficit",
+      "Weeks": 2,
+      "Count": 610,
+      "WeightKg": {
+        "Mae": 0.245344,
+        "Bias": -0.02456,
+        "P95": 0.497358,
+        "Maximum": 0.587923
+      },
+      "FatKg": {
+        "Mae": 0.041241,
+        "Bias": -0.020242,
+        "P95": 0.110316,
+        "Maximum": 0.12661
+      },
+      "LeanKg": {
+        "Mae": 0.015656,
+        "Bias": -0.006518,
+        "P95": 0.045752,
+        "Maximum": 0.132115
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.283678,
+        "Bias": 0.0022,
+        "P95": 0.655231,
+        "Maximum": 0.737791
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.619521,
+        "Bias": 0.505616,
+        "P95": 1.799244,
+        "Maximum": 2.003688
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.095601,
+        "Bias": -0.095601,
+        "P95": 0.121852,
+        "Maximum": 0.140632
+      },
+      "MeanPredictedWeightKg": 87.459347,
+      "MeanPredictedDeltaWeightKg": -1.586986
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "large-deficit",
+      "Weeks": 4,
+      "Count": 610,
+      "WeightKg": {
+        "Mae": 0.251617,
+        "Bias": -0.046891,
+        "P95": 0.460916,
+        "Maximum": 0.543125
+      },
+      "FatKg": {
+        "Mae": 0.060285,
+        "Bias": -0.018724,
+        "P95": 0.139485,
+        "Maximum": 0.177281
+      },
+      "LeanKg": {
+        "Mae": 0.023262,
+        "Bias": -0.005056,
+        "P95": 0.057019,
+        "Maximum": 0.188963
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.293486,
+        "Bias": -0.023111,
+        "P95": 0.64313,
+        "Maximum": 0.728082
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.593367,
+        "Bias": 0.4745,
+        "P95": 1.747161,
+        "Maximum": 1.956316
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.017293,
+        "Bias": 0.001689,
+        "P95": 0.036203,
+        "Maximum": 0.050024
+      },
+      "MeanPredictedWeightKg": 86.351553,
+      "MeanPredictedDeltaWeightKg": -2.69478
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "large-deficit",
+      "Weeks": 8,
+      "Count": 610,
+      "WeightKg": {
+        "Mae": 0.226913,
+        "Bias": -0.006235,
+        "P95": 0.523582,
+        "Maximum": 0.628893
+      },
+      "FatKg": {
+        "Mae": 0.108107,
+        "Bias": -0.018031,
+        "P95": 0.229288,
+        "Maximum": 0.306236
+      },
+      "LeanKg": {
+        "Mae": 0.044514,
+        "Bias": -0.006219,
+        "P95": 0.102752,
+        "Maximum": 0.376421
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.27806,
+        "Bias": 0.018015,
+        "P95": 0.674645,
+        "Maximum": 0.769315
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.583866,
+        "Bias": 0.498186,
+        "P95": 1.753109,
+        "Maximum": 1.958
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.01984,
+        "Bias": 0.009524,
+        "P95": 0.05166,
+        "Maximum": 0.091201
+      },
+      "MeanPredictedWeightKg": 84.367761,
+      "MeanPredictedDeltaWeightKg": -4.678573
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "large-deficit",
+      "Weeks": 12,
+      "Count": 610,
+      "WeightKg": {
+        "Mae": 0.249499,
+        "Bias": 0.021739,
+        "P95": 0.64983,
+        "Maximum": 0.97987
+      },
+      "FatKg": {
+        "Mae": 0.157865,
+        "Bias": -0.017641,
+        "P95": 0.349952,
+        "Maximum": 0.473108
+      },
+      "LeanKg": {
+        "Mae": 0.071842,
+        "Bias": -0.012494,
+        "P95": 0.185125,
+        "Maximum": 0.685843
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.26778,
+        "Bias": 0.051875,
+        "P95": 0.699607,
+        "Maximum": 0.803747
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.591192,
+        "Bias": 0.510014,
+        "P95": 1.767988,
+        "Maximum": 2.140653
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.021692,
+        "Bias": 0.005619,
+        "P95": 0.053991,
+        "Maximum": 0.13849
+      },
+      "MeanPredictedWeightKg": 82.499809,
+      "MeanPredictedDeltaWeightKg": -6.546524
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "large-deficit",
+      "Weeks": 24,
+      "Count": 610,
+      "WeightKg": {
+        "Mae": 0.479514,
+        "Bias": 0.027578,
+        "P95": 1.288914,
+        "Maximum": 3.323304
+      },
+      "FatKg": {
+        "Mae": 0.313147,
+        "Bias": -0.030577,
+        "P95": 0.740818,
+        "Maximum": 0.989456
+      },
+      "LeanKg": {
+        "Mae": 0.199553,
+        "Bias": -0.075575,
+        "P95": 0.626963,
+        "Maximum": 2.647386
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.254824,
+        "Bias": 0.13373,
+        "P95": 0.768143,
+        "Maximum": 0.880837
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.723349,
+        "Bias": 0.472636,
+        "P95": 1.888969,
+        "Maximum": 2.97502
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.029778,
+        "Bias": -0.003713,
+        "P95": 0.080392,
+        "Maximum": 0.228423
+      },
+      "MeanPredictedWeightKg": 77.458322,
+      "MeanPredictedDeltaWeightKg": -11.588012
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "long-horizon",
+      "Weeks": 24,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.788214,
+        "Bias": 0.294935,
+        "P95": 2.012867,
+        "Maximum": 3.494514
+      },
+      "FatKg": {
+        "Mae": 0.396523,
+        "Bias": 0.17454,
+        "P95": 1.088029,
+        "Maximum": 2.006385
+      },
+      "LeanKg": {
+        "Mae": 0.823078,
+        "Bias": -0.041756,
+        "P95": 2.508209,
+        "Maximum": 4.439141
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.305076,
+        "Bias": 0.162151,
+        "P95": 0.836713,
+        "Maximum": 0.951065
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.021253,
+        "Bias": 0.513416,
+        "P95": 2.604242,
+        "Maximum": 4.439227
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.027598,
+        "Bias": 0.007885,
+        "P95": 0.069801,
+        "Maximum": 0.228423
+      },
+      "MeanPredictedWeightKg": 84.444883,
+      "MeanPredictedDeltaWeightKg": -1.978266
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "maintenance",
+      "Weeks": 1,
+      "Count": 683,
+      "WeightKg": {
+        "Mae": 0.29554,
+        "Bias": 0.178516,
+        "P95": 0.711637,
+        "Maximum": 0.721634
+      },
+      "FatKg": {
+        "Mae": 0.039148,
+        "Bias": -0.018992,
+        "P95": 0.09488,
+        "Maximum": 0.099462
+      },
+      "LeanKg": {
+        "Mae": 0.01605,
+        "Bias": -0.007349,
+        "P95": 0.048558,
+        "Maximum": 0.098506
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.350738,
+        "Bias": 0.204857,
+        "P95": 0.830002,
+        "Maximum": 0.836223
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.733305,
+        "Bias": 0.392741,
+        "P95": 1.63642,
+        "Maximum": 1.649598
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.29554,
+        "Bias": 0.178516,
+        "P95": 0.711637,
+        "Maximum": 0.721634
+      },
+      "MeanPredictedWeightKg": 86.152544,
+      "MeanPredictedDeltaWeightKg": 1E-06
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "maintenance",
+      "Weeks": 2,
+      "Count": 683,
+      "WeightKg": {
+        "Mae": 0.296124,
+        "Bias": 0.186747,
+        "P95": 0.718362,
+        "Maximum": 0.734182
+      },
+      "FatKg": {
+        "Mae": 0.040551,
+        "Bias": -0.014763,
+        "P95": 0.09823,
+        "Maximum": 0.103702
+      },
+      "LeanKg": {
+        "Mae": 0.016692,
+        "Bias": -0.00549,
+        "P95": 0.04797,
+        "Maximum": 0.098871
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.352928,
+        "Bias": 0.207,
+        "P95": 0.836638,
+        "Maximum": 0.836713
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.730778,
+        "Bias": 0.399748,
+        "P95": 1.637891,
+        "Maximum": 1.651277
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.008589,
+        "Bias": 0.008232,
+        "P95": 0.019647,
+        "Maximum": 0.037676
+      },
+      "MeanPredictedWeightKg": 86.152544,
+      "MeanPredictedDeltaWeightKg": 1E-06
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "maintenance",
+      "Weeks": 4,
+      "Count": 683,
+      "WeightKg": {
+        "Mae": 0.301131,
+        "Bias": 0.202269,
+        "P95": 0.738898,
+        "Maximum": 0.77869
+      },
+      "FatKg": {
+        "Mae": 0.04541,
+        "Bias": -0.00402,
+        "P95": 0.104957,
+        "Maximum": 0.111923
+      },
+      "LeanKg": {
+        "Mae": 0.01853,
+        "Bias": -0.000767,
+        "P95": 0.051633,
+        "Maximum": 0.095339
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.352984,
+        "Bias": 0.207057,
+        "P95": 0.836713,
+        "Maximum": 0.836713
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.721397,
+        "Bias": 0.412265,
+        "P95": 1.637914,
+        "Maximum": 1.680863
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.009191,
+        "Bias": 0.008021,
+        "P95": 0.021937,
+        "Maximum": 0.027357
+      },
+      "MeanPredictedWeightKg": 86.152545,
+      "MeanPredictedDeltaWeightKg": 2E-06
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "maintenance",
+      "Weeks": 8,
+      "Count": 683,
+      "WeightKg": {
+        "Mae": 0.313764,
+        "Bias": 0.23577,
+        "P95": 0.800932,
+        "Maximum": 0.876747
+      },
+      "FatKg": {
+        "Mae": 0.063117,
+        "Bias": 0.019284,
+        "P95": 0.141585,
+        "Maximum": 0.201635
+      },
+      "LeanKg": {
+        "Mae": 0.025921,
+        "Bias": 0.009429,
+        "P95": 0.06841,
+        "Maximum": 0.10369
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.352984,
+        "Bias": 0.207057,
+        "P95": 0.836713,
+        "Maximum": 0.836713
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.719234,
+        "Bias": 0.440054,
+        "P95": 1.667989,
+        "Maximum": 1.766937
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.009475,
+        "Bias": 0.008368,
+        "P95": 0.023038,
+        "Maximum": 0.028504
+      },
+      "MeanPredictedWeightKg": 86.152547,
+      "MeanPredictedDeltaWeightKg": 4E-06
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "maintenance",
+      "Weeks": 12,
+      "Count": 683,
+      "WeightKg": {
+        "Mae": 0.327366,
+        "Bias": 0.268201,
+        "P95": 0.862401,
+        "Maximum": 0.974742
+      },
+      "FatKg": {
+        "Mae": 0.085264,
+        "Bias": 0.041888,
+        "P95": 0.207745,
+        "Maximum": 0.291885
+      },
+      "LeanKg": {
+        "Mae": 0.034681,
+        "Bias": 0.019257,
+        "P95": 0.094399,
+        "Maximum": 0.137133
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.352984,
+        "Bias": 0.207057,
+        "P95": 0.836713,
+        "Maximum": 0.836713
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.720579,
+        "Bias": 0.467149,
+        "P95": 1.708161,
+        "Maximum": 1.853356
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.00897,
+        "Bias": 0.007926,
+        "P95": 0.022237,
+        "Maximum": 0.027388
+      },
+      "MeanPredictedWeightKg": 86.152548,
+      "MeanPredictedDeltaWeightKg": 5E-06
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "maintenance",
+      "Weeks": 24,
+      "Count": 683,
+      "WeightKg": {
+        "Mae": 0.402825,
+        "Bias": 0.353562,
+        "P95": 1.019983,
+        "Maximum": 1.25054
+      },
+      "FatKg": {
+        "Mae": 0.15203,
+        "Bias": 0.101612,
+        "P95": 0.400426,
+        "Maximum": 0.53678
+      },
+      "LeanKg": {
+        "Mae": 0.061997,
+        "Bias": 0.044893,
+        "P95": 0.161045,
+        "Maximum": 0.221869
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.352984,
+        "Bias": 0.207057,
+        "P95": 0.836713,
+        "Maximum": 0.836713
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.724676,
+        "Bias": 0.538489,
+        "P95": 1.806648,
+        "Maximum": 2.096734
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.007341,
+        "Bias": 0.006463,
+        "P95": 0.018924,
+        "Maximum": 0.023431
+      },
+      "MeanPredictedWeightKg": 86.152553,
+      "MeanPredictedDeltaWeightKg": 1E-05
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "medium-horizon",
+      "Weeks": 4,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.298942,
+        "Bias": 0.111412,
+        "P95": 0.783496,
+        "Maximum": 1.265318
+      },
+      "FatKg": {
+        "Mae": 0.070485,
+        "Bias": 0.016077,
+        "P95": 0.173466,
+        "Maximum": 0.331523
+      },
+      "LeanKg": {
+        "Mae": 0.160909,
+        "Bias": -0.030163,
+        "P95": 0.510538,
+        "Maximum": 1.195201
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.309853,
+        "Bias": 0.125498,
+        "P95": 0.84467,
+        "Maximum": 1.005928
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.691774,
+        "Bias": 0.363928,
+        "P95": 1.764664,
+        "Maximum": 2.489626
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.035251,
+        "Bias": 0.00604,
+        "P95": 0.096118,
+        "Maximum": 0.171525
+      },
+      "MeanPredictedWeightKg": 85.93341,
+      "MeanPredictedDeltaWeightKg": -0.489739
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "medium-horizon",
+      "Weeks": 8,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.384357,
+        "Bias": 0.149777,
+        "P95": 1.025505,
+        "Maximum": 1.74875
+      },
+      "FatKg": {
+        "Mae": 0.131045,
+        "Bias": 0.05421,
+        "P95": 0.351592,
+        "Maximum": 0.633932
+      },
+      "LeanKg": {
+        "Mae": 0.303887,
+        "Bias": -0.039604,
+        "P95": 0.960385,
+        "Maximum": 2.059143
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.307235,
+        "Bias": 0.135172,
+        "P95": 0.839426,
+        "Maximum": 0.99129
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.738287,
+        "Bias": 0.394635,
+        "P95": 1.907599,
+        "Maximum": 2.909739
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.033695,
+        "Bias": 0.010003,
+        "P95": 0.088433,
+        "Maximum": 0.129661
+      },
+      "MeanPredictedWeightKg": 85.598155,
+      "MeanPredictedDeltaWeightKg": -0.824994
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "medium-horizon",
+      "Weeks": 12,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.482277,
+        "Bias": 0.189171,
+        "P95": 1.30127,
+        "Maximum": 2.215182
+      },
+      "FatKg": {
+        "Mae": 0.195384,
+        "Bias": 0.089873,
+        "P95": 0.534947,
+        "Maximum": 0.952193
+      },
+      "LeanKg": {
+        "Mae": 0.440199,
+        "Bias": -0.04379,
+        "P95": 1.372866,
+        "Maximum": 2.786976
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.305773,
+        "Bias": 0.143088,
+        "P95": 0.836713,
+        "Maximum": 0.979526
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.804695,
+        "Bias": 0.426804,
+        "P95": 2.059113,
+        "Maximum": 3.31669
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.031574,
+        "Bias": 0.009717,
+        "P95": 0.080098,
+        "Maximum": 0.13849
+      },
+      "MeanPredictedWeightKg": 85.28398,
+      "MeanPredictedDeltaWeightKg": -1.13917
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "moderate-deficit",
+      "Weeks": 1,
+      "Count": 731,
+      "WeightKg": {
+        "Mae": 0.266877,
+        "Bias": 0.145579,
+        "P95": 0.662055,
+        "Maximum": 0.739533
+      },
+      "FatKg": {
+        "Mae": 0.041655,
+        "Bias": -0.034055,
+        "P95": 0.101262,
+        "Maximum": 0.120125
+      },
+      "LeanKg": {
+        "Mae": 0.040872,
+        "Bias": 0.021834,
+        "P95": 0.104941,
+        "Maximum": 0.165779
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.31176,
+        "Bias": 0.157799,
+        "P95": 0.74932,
+        "Maximum": 0.800214
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.725329,
+        "Bias": 0.582357,
+        "P95": 1.665502,
+        "Maximum": 2.167424
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.266877,
+        "Bias": 0.145579,
+        "P95": 0.662055,
+        "Maximum": 0.739533
+      },
+      "MeanPredictedWeightKg": 84.646664,
+      "MeanPredictedDeltaWeightKg": -0.581035
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "moderate-deficit",
+      "Weeks": 2,
+      "Count": 731,
+      "WeightKg": {
+        "Mae": 0.268868,
+        "Bias": 0.1081,
+        "P95": 0.673762,
+        "Maximum": 0.8297
+      },
+      "FatKg": {
+        "Mae": 0.047038,
+        "Bias": -0.038682,
+        "P95": 0.111458,
+        "Maximum": 0.15638
+      },
+      "LeanKg": {
+        "Mae": 0.076309,
+        "Bias": 0.055578,
+        "P95": 0.217426,
+        "Maximum": 0.34001
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.308186,
+        "Bias": 0.091204,
+        "P95": 0.710338,
+        "Maximum": 0.809384
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.706617,
+        "Bias": 0.542226,
+        "P95": 1.672031,
+        "Maximum": 2.124119
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.049058,
+        "Bias": -0.037479,
+        "P95": 0.094381,
+        "Maximum": 0.112077
+      },
+      "MeanPredictedWeightKg": 84.219002,
+      "MeanPredictedDeltaWeightKg": -1.008697
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "moderate-deficit",
+      "Weeks": 4,
+      "Count": 731,
+      "WeightKg": {
+        "Mae": 0.291072,
+        "Bias": 0.13546,
+        "P95": 0.770742,
+        "Maximum": 1.026532
+      },
+      "FatKg": {
+        "Mae": 0.062557,
+        "Bias": -0.054954,
+        "P95": 0.145925,
+        "Maximum": 0.230204
+      },
+      "LeanKg": {
+        "Mae": 0.146201,
+        "Bias": 0.117234,
+        "P95": 0.424528,
+        "Maximum": 0.666931
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.307808,
+        "Bias": 0.073181,
+        "P95": 0.696016,
+        "Maximum": 0.803535
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.716545,
+        "Bias": 0.563111,
+        "P95": 1.755855,
+        "Maximum": 2.067051
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.035311,
+        "Bias": 0.021387,
+        "P95": 0.081218,
+        "Maximum": 0.111457
+      },
+      "MeanPredictedWeightKg": 83.517203,
+      "MeanPredictedDeltaWeightKg": -1.710496
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "moderate-deficit",
+      "Weeks": 8,
+      "Count": 731,
+      "WeightKg": {
+        "Mae": 0.386461,
+        "Bias": 0.235857,
+        "P95": 1.012627,
+        "Maximum": 1.416501
+      },
+      "FatKg": {
+        "Mae": 0.101818,
+        "Bias": -0.091204,
+        "P95": 0.247932,
+        "Maximum": 0.416487
+      },
+      "LeanKg": {
+        "Mae": 0.284168,
+        "Bias": 0.230667,
+        "P95": 0.832114,
+        "Maximum": 1.268271
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.308785,
+        "Bias": 0.096394,
+        "P95": 0.71698,
+        "Maximum": 0.817021
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.776982,
+        "Bias": 0.651049,
+        "P95": 1.964357,
+        "Maximum": 2.382488
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.035049,
+        "Bias": 0.023864,
+        "P95": 0.075893,
+        "Maximum": 0.097034
+      },
+      "MeanPredictedWeightKg": 82.260503,
+      "MeanPredictedDeltaWeightKg": -2.967196
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "moderate-deficit",
+      "Weeks": 12,
+      "Count": 731,
+      "WeightKg": {
+        "Mae": 0.504148,
+        "Bias": 0.320616,
+        "P95": 1.237853,
+        "Maximum": 1.755043
+      },
+      "FatKg": {
+        "Mae": 0.146819,
+        "Bias": -0.130223,
+        "P95": 0.382404,
+        "Maximum": 0.672637
+      },
+      "LeanKg": {
+        "Mae": 0.420842,
+        "Bias": 0.335528,
+        "P95": 1.23206,
+        "Maximum": 1.817439
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.31057,
+        "Bias": 0.115311,
+        "P95": 0.737866,
+        "Maximum": 0.828177
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.854292,
+        "Bias": 0.724013,
+        "P95": 2.158383,
+        "Maximum": 2.690667
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.034513,
+        "Bias": 0.019731,
+        "P95": 0.069336,
+        "Maximum": 0.087442
+      },
+      "MeanPredictedWeightKg": 81.075918,
+      "MeanPredictedDeltaWeightKg": -4.15178
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "moderate-deficit",
+      "Weeks": 24,
+      "Count": 731,
+      "WeightKg": {
+        "Mae": 0.867077,
+        "Bias": 0.493554,
+        "P95": 1.85918,
+        "Maximum": 2.486125
+      },
+      "FatKg": {
+        "Mae": 0.310094,
+        "Bias": -0.268512,
+        "P95": 0.889547,
+        "Maximum": 1.606989
+      },
+      "LeanKg": {
+        "Mae": 0.827354,
+        "Bias": 0.600992,
+        "P95": 2.279198,
+        "Maximum": 3.166302
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.318326,
+        "Bias": 0.161074,
+        "P95": 0.777691,
+        "Maximum": 0.855261
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.118251,
+        "Bias": 0.86554,
+        "P95": 2.655846,
+        "Maximum": 3.341222
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.033457,
+        "Bias": 0.010201,
+        "P95": 0.062865,
+        "Maximum": 0.125709
+      },
+      "MeanPredictedWeightKg": 77.870491,
+      "MeanPredictedDeltaWeightKg": -7.357208
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "no-strength",
+      "Weeks": 1,
+      "Count": 2730,
+      "WeightKg": {
+        "Mae": 0.254949,
+        "Bias": 0.10467,
+        "P95": 0.695416,
+        "Maximum": 0.761978
+      },
+      "FatKg": {
+        "Mae": 0.040007,
+        "Bias": -0.010858,
+        "P95": 0.095483,
+        "Maximum": 0.114881
+      },
+      "LeanKg": {
+        "Mae": 0.046096,
+        "Bias": -0.044175,
+        "P95": 0.159127,
+        "Maximum": 0.39956
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.301978,
+        "Bias": 0.159703,
+        "P95": 0.831971,
+        "Maximum": 0.935507
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.713501,
+        "Bias": 0.372972,
+        "P95": 1.750868,
+        "Maximum": 2.167424
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.254949,
+        "Bias": 0.10467,
+        "P95": 0.695416,
+        "Maximum": 0.761978
+      },
+      "MeanPredictedWeightKg": 86.188445,
+      "MeanPredictedDeltaWeightKg": -0.200959
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "no-strength",
+      "Weeks": 2,
+      "Count": 2730,
+      "WeightKg": {
+        "Mae": 0.264812,
+        "Bias": 0.058817,
+        "P95": 0.697813,
+        "Maximum": 0.776642
+      },
+      "FatKg": {
+        "Mae": 0.048832,
+        "Bias": 0.000891,
+        "P95": 0.10776,
+        "Maximum": 0.185882
+      },
+      "LeanKg": {
+        "Mae": 0.080396,
+        "Bias": -0.077163,
+        "P95": 0.301487,
+        "Maximum": 0.68626
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.309779,
+        "Bias": 0.135089,
+        "P95": 0.8552,
+        "Maximum": 0.99028
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.693622,
+        "Bias": 0.325495,
+        "P95": 1.676271,
+        "Maximum": 2.124119
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.049222,
+        "Bias": -0.045853,
+        "P95": 0.110856,
+        "Maximum": 0.176535
+      },
+      "MeanPredictedWeightKg": 86.046023,
+      "MeanPredictedDeltaWeightKg": -0.343381
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "no-strength",
+      "Weeks": 4,
+      "Count": 2730,
+      "WeightKg": {
+        "Mae": 0.275499,
+        "Bias": 0.012832,
+        "P95": 0.687331,
+        "Maximum": 1.054549
+      },
+      "FatKg": {
+        "Mae": 0.075961,
+        "Bias": 0.022694,
+        "P95": 0.178326,
+        "Maximum": 0.331523
+      },
+      "LeanKg": {
+        "Mae": 0.144302,
+        "Bias": -0.139111,
+        "P95": 0.564242,
+        "Maximum": 1.195201
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.312438,
+        "Bias": 0.129249,
+        "P95": 0.863497,
+        "Maximum": 1.005928
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.680917,
+        "Bias": 0.275541,
+        "P95": 1.6632,
+        "Maximum": 2.134348
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.024839,
+        "Bias": -0.018983,
+        "P95": 0.086094,
+        "Maximum": 0.171525
+      },
+      "MeanPredictedWeightKg": 85.818391,
+      "MeanPredictedDeltaWeightKg": -0.571013
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "no-strength",
+      "Weeks": 8,
+      "Count": 2730,
+      "WeightKg": {
+        "Mae": 0.300731,
+        "Bias": -0.04442,
+        "P95": 0.759203,
+        "Maximum": 1.604023
+      },
+      "FatKg": {
+        "Mae": 0.144118,
+        "Bias": 0.066664,
+        "P95": 0.363984,
+        "Maximum": 0.633932
+      },
+      "LeanKg": {
+        "Mae": 0.261456,
+        "Bias": -0.25164,
+        "P95": 1.021968,
+        "Maximum": 2.059143
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.308733,
+        "Bias": 0.140556,
+        "P95": 0.856777,
+        "Maximum": 0.99129
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.680077,
+        "Bias": 0.210644,
+        "P95": 1.682713,
+        "Maximum": 2.436865
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.022267,
+        "Bias": -0.013279,
+        "P95": 0.070397,
+        "Maximum": 0.125591
+      },
+      "MeanPredictedWeightKg": 85.41533,
+      "MeanPredictedDeltaWeightKg": -0.974074
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "no-strength",
+      "Weeks": 12,
+      "Count": 2730,
+      "WeightKg": {
+        "Mae": 0.343771,
+        "Bias": -0.094132,
+        "P95": 0.962321,
+        "Maximum": 2.024929
+      },
+      "FatKg": {
+        "Mae": 0.214865,
+        "Bias": 0.110993,
+        "P95": 0.553843,
+        "Maximum": 0.952193
+      },
+      "LeanKg": {
+        "Mae": 0.369759,
+        "Bias": -0.35502,
+        "P95": 1.430993,
+        "Maximum": 2.786976
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.306645,
+        "Bias": 0.149895,
+        "P95": 0.850103,
+        "Maximum": 0.979526
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.688852,
+        "Bias": 0.153686,
+        "P95": 1.725784,
+        "Maximum": 2.842772
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.020824,
+        "Bias": -0.011969,
+        "P95": 0.058729,
+        "Maximum": 0.13849
+      },
+      "MeanPredictedWeightKg": 85.03718,
+      "MeanPredictedDeltaWeightKg": -1.352223
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "no-strength",
+      "Weeks": 24,
+      "Count": 2730,
+      "WeightKg": {
+        "Mae": 0.518645,
+        "Bias": -0.221454,
+        "P95": 1.431941,
+        "Maximum": 3.323304
+      },
+      "FatKg": {
+        "Mae": 0.428933,
+        "Bias": 0.239582,
+        "P95": 1.14287,
+        "Maximum": 2.006385
+      },
+      "LeanKg": {
+        "Mae": 0.663776,
+        "Bias": -0.633504,
+        "P95": 2.44097,
+        "Maximum": 4.439141
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.305675,
+        "Bias": 0.172468,
+        "P95": 0.840966,
+        "Maximum": 0.951065
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.756138,
+        "Bias": 0.007027,
+        "P95": 1.930572,
+        "Maximum": 3.551379
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.019777,
+        "Bias": -0.009801,
+        "P95": 0.052775,
+        "Maximum": 0.228423
+      },
+      "MeanPredictedWeightKg": 84.026599,
+      "MeanPredictedDeltaWeightKg": -2.362804
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "short-horizon",
+      "Weeks": 1,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.253575,
+        "Bias": 0.125588,
+        "P95": 0.702913,
+        "Maximum": 0.867623
+      },
+      "FatKg": {
+        "Mae": 0.039139,
+        "Bias": -0.012738,
+        "P95": 0.095486,
+        "Maximum": 0.120125
+      },
+      "LeanKg": {
+        "Mae": 0.046859,
+        "Bias": -0.016175,
+        "P95": 0.137795,
+        "Maximum": 0.39956
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.301625,
+        "Bias": 0.1545,
+        "P95": 0.826762,
+        "Maximum": 0.935507
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.702426,
+        "Bias": 0.383751,
+        "P95": 1.756244,
+        "Maximum": 2.167424
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.253575,
+        "Bias": 0.125588,
+        "P95": 0.702913,
+        "Maximum": 0.867623
+      },
+      "MeanPredictedWeightKg": 86.246474,
+      "MeanPredictedDeltaWeightKg": -0.176676
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "short-horizon",
+      "Weeks": 2,
+      "Count": 4096,
+      "WeightKg": {
+        "Mae": 0.266213,
+        "Bias": 0.106666,
+        "P95": 0.71677,
+        "Maximum": 1.012005
+      },
+      "FatKg": {
+        "Mae": 0.04702,
+        "Bias": -0.002957,
+        "P95": 0.106389,
+        "Maximum": 0.185882
+      },
+      "LeanKg": {
+        "Mae": 0.08589,
+        "Bias": -0.021784,
+        "P95": 0.265204,
+        "Maximum": 0.68626
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.307914,
+        "Bias": 0.131406,
+        "P95": 0.838882,
+        "Maximum": 0.99028
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.689827,
+        "Bias": 0.363174,
+        "P95": 1.735684,
+        "Maximum": 2.269807
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.045884,
+        "Bias": -0.018922,
+        "P95": 0.110332,
+        "Maximum": 0.176535
+      },
+      "MeanPredictedWeightKg": 86.124458,
+      "MeanPredictedDeltaWeightKg": -0.298691
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "small-deficit",
+      "Weeks": 1,
+      "Count": 708,
+      "WeightKg": {
+        "Mae": 0.195064,
+        "Bias": 0.147866,
+        "P95": 0.668378,
+        "Maximum": 0.697924
+      },
+      "FatKg": {
+        "Mae": 0.031601,
+        "Bias": -0.017207,
+        "P95": 0.095393,
+        "Maximum": 0.098916
+      },
+      "LeanKg": {
+        "Mae": 0.031955,
+        "Bias": 0.020852,
+        "P95": 0.099959,
+        "Maximum": 0.147052
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.244664,
+        "Bias": 0.14422,
+        "P95": 0.786682,
+        "Maximum": 0.80878
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.605926,
+        "Bias": 0.451873,
+        "P95": 1.875228,
+        "Maximum": 2.085905
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.195064,
+        "Bias": 0.147866,
+        "P95": 0.668378,
+        "Maximum": 0.697924
+      },
+      "MeanPredictedWeightKg": 84.885438,
+      "MeanPredictedDeltaWeightKg": -0.283368
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "small-deficit",
+      "Weeks": 2,
+      "Count": 708,
+      "WeightKg": {
+        "Mae": 0.204559,
+        "Bias": 0.153371,
+        "P95": 0.705066,
+        "Maximum": 0.784295
+      },
+      "FatKg": {
+        "Mae": 0.038395,
+        "Bias": -0.00987,
+        "P95": 0.10186,
+        "Maximum": 0.11601
+      },
+      "LeanKg": {
+        "Mae": 0.06346,
+        "Bias": 0.051383,
+        "P95": 0.197974,
+        "Maximum": 0.292955
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.256811,
+        "Bias": 0.111858,
+        "P95": 0.772116,
+        "Maximum": 0.838095
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.603431,
+        "Bias": 0.455358,
+        "P95": 1.884068,
+        "Maximum": 2.086674
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.038356,
+        "Bias": 0.005505,
+        "P95": 0.069443,
+        "Maximum": 0.099928
+      },
+      "MeanPredictedWeightKg": 84.679023,
+      "MeanPredictedDeltaWeightKg": -0.489784
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "small-deficit",
+      "Weeks": 4,
+      "Count": 708,
+      "WeightKg": {
+        "Mae": 0.265629,
+        "Bias": 0.21899,
+        "P95": 0.841907,
+        "Maximum": 0.973771
+      },
+      "FatKg": {
+        "Mae": 0.057019,
+        "Bias": 0.00548,
+        "P95": 0.158615,
+        "Maximum": 0.224124
+      },
+      "LeanKg": {
+        "Mae": 0.125991,
+        "Bias": 0.110747,
+        "P95": 0.389133,
+        "Maximum": 0.568497
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.260157,
+        "Bias": 0.102762,
+        "P95": 0.763788,
+        "Maximum": 0.839662
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.623083,
+        "Bias": 0.516153,
+        "P95": 1.951628,
+        "Maximum": 2.205293
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.043157,
+        "Bias": 0.037125,
+        "P95": 0.096083,
+        "Maximum": 0.114612
+      },
+      "MeanPredictedWeightKg": 84.343067,
+      "MeanPredictedDeltaWeightKg": -0.82574
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "small-deficit",
+      "Weeks": 8,
+      "Count": 708,
+      "WeightKg": {
+        "Mae": 0.428122,
+        "Bias": 0.375431,
+        "P95": 1.155909,
+        "Maximum": 1.335803
+      },
+      "FatKg": {
+        "Mae": 0.108066,
+        "Bias": 0.037469,
+        "P95": 0.336857,
+        "Maximum": 0.478196
+      },
+      "LeanKg": {
+        "Mae": 0.246473,
+        "Bias": 0.223984,
+        "P95": 0.760027,
+        "Maximum": 1.0664
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.256378,
+        "Bias": 0.113978,
+        "P95": 0.77448,
+        "Maximum": 0.844873
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.728589,
+        "Bias": 0.663406,
+        "P95": 2.203253,
+        "Maximum": 2.467546
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.041621,
+        "Bias": 0.038122,
+        "P95": 0.092709,
+        "Maximum": 0.10271
+      },
+      "MeanPredictedWeightKg": 83.745119,
+      "MeanPredictedDeltaWeightKg": -1.423688
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "small-deficit",
+      "Weeks": 12,
+      "Count": 708,
+      "WeightKg": {
+        "Mae": 0.57744,
+        "Bias": 0.518234,
+        "P95": 1.465536,
+        "Maximum": 1.637495
+      },
+      "FatKg": {
+        "Mae": 0.15867,
+        "Bias": 0.065221,
+        "P95": 0.506396,
+        "Maximum": 0.733684
+      },
+      "LeanKg": {
+        "Mae": 0.35983,
+        "Bias": 0.329966,
+        "P95": 1.090901,
+        "Maximum": 1.500931
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.253704,
+        "Bias": 0.123047,
+        "P95": 0.783384,
+        "Maximum": 0.849128
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.864391,
+        "Bias": 0.797617,
+        "P95": 2.447934,
+        "Maximum": 2.77001
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.038167,
+        "Bias": 0.034284,
+        "P95": 0.084889,
+        "Maximum": 0.099982
+      },
+      "MeanPredictedWeightKg": 83.184327,
+      "MeanPredictedDeltaWeightKg": -1.98448
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "small-deficit",
+      "Weeks": 24,
+      "Count": 708,
+      "WeightKg": {
+        "Mae": 0.944729,
+        "Bias": 0.864236,
+        "P95": 2.240273,
+        "Maximum": 2.480475
+      },
+      "FatKg": {
+        "Mae": 0.295389,
+        "Bias": 0.114306,
+        "P95": 0.963325,
+        "Maximum": 1.456917
+      },
+      "LeanKg": {
+        "Mae": 0.65874,
+        "Bias": 0.605018,
+        "P95": 1.903296,
+        "Maximum": 2.545933
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.24867,
+        "Bias": 0.144912,
+        "P95": 0.802351,
+        "Maximum": 0.859949
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.198239,
+        "Bias": 1.121173,
+        "P95": 3.035207,
+        "Maximum": 3.557402
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.029076,
+        "Bias": 0.024581,
+        "P95": 0.07048,
+        "Maximum": 0.091041
+      },
+      "MeanPredictedWeightKg": 81.680249,
+      "MeanPredictedDeltaWeightKg": -3.488557
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "strength",
+      "Weeks": 1,
+      "Count": 1366,
+      "WeightKg": {
+        "Mae": 0.25083,
+        "Bias": 0.167392,
+        "P95": 0.710776,
+        "Maximum": 0.867623
+      },
+      "FatKg": {
+        "Mae": 0.037404,
+        "Bias": -0.016494,
+        "P95": 0.095586,
+        "Maximum": 0.120125
+      },
+      "LeanKg": {
+        "Mae": 0.048384,
+        "Bias": 0.039783,
+        "P95": 0.11262,
+        "Maximum": 0.165779
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.300922,
+        "Bias": 0.144103,
+        "P95": 0.814134,
+        "Maximum": 0.862851
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.680292,
+        "Bias": 0.405292,
+        "P95": 1.759297,
+        "Maximum": 2.141141
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.25083,
+        "Bias": 0.167392,
+        "P95": 0.710776,
+        "Maximum": 0.867623
+      },
+      "MeanPredictedWeightKg": 86.362446,
+      "MeanPredictedDeltaWeightKg": -0.128145
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "strength",
+      "Weeks": 2,
+      "Count": 1366,
+      "WeightKg": {
+        "Mae": 0.269013,
+        "Bias": 0.202293,
+        "P95": 0.763405,
+        "Maximum": 1.012005
+      },
+      "FatKg": {
+        "Mae": 0.043397,
+        "Bias": -0.010646,
+        "P95": 0.102615,
+        "Maximum": 0.15638
+      },
+      "LeanKg": {
+        "Mae": 0.096871,
+        "Bias": 0.088893,
+        "P95": 0.225243,
+        "Maximum": 0.34001
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.304186,
+        "Bias": 0.124046,
+        "P95": 0.821456,
+        "Maximum": 0.887857
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.682243,
+        "Bias": 0.438476,
+        "P95": 1.803582,
+        "Maximum": 2.269807
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.039214,
+        "Bias": 0.034901,
+        "P95": 0.108555,
+        "Maximum": 0.153245
+      },
+      "MeanPredictedWeightKg": 86.281213,
+      "MeanPredictedDeltaWeightKg": -0.209378
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "strength",
+      "Weeks": 4,
+      "Count": 1366,
+      "WeightKg": {
+        "Mae": 0.345794,
+        "Bias": 0.308429,
+        "P95": 0.894132,
+        "Maximum": 1.265318
+      },
+      "FatKg": {
+        "Mae": 0.059541,
+        "Bias": 0.002853,
+        "P95": 0.15513,
+        "Maximum": 0.230204
+      },
+      "LeanKg": {
+        "Mae": 0.194098,
+        "Bias": 0.187576,
+        "P95": 0.451041,
+        "Maximum": 0.666931
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.304688,
+        "Bias": 0.118,
+        "P95": 0.822131,
+        "Maximum": 0.892951
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.713471,
+        "Bias": 0.540573,
+        "P95": 1.917033,
+        "Maximum": 2.489626
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.05606,
+        "Bias": 0.056049,
+        "P95": 0.101947,
+        "Maximum": 0.134619
+      },
+      "MeanPredictedWeightKg": 86.16328,
+      "MeanPredictedDeltaWeightKg": -0.327311
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "strength",
+      "Weeks": 8,
+      "Count": 1366,
+      "WeightKg": {
+        "Mae": 0.551486,
+        "Bias": 0.537887,
+        "P95": 1.185113,
+        "Maximum": 1.74875
+      },
+      "FatKg": {
+        "Mae": 0.104919,
+        "Bias": 0.029318,
+        "P95": 0.297725,
+        "Maximum": 0.478196
+      },
+      "LeanKg": {
+        "Mae": 0.388686,
+        "Bias": 0.384158,
+        "P95": 0.875384,
+        "Maximum": 1.268271
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.304241,
+        "Bias": 0.124411,
+        "P95": 0.821612,
+        "Maximum": 0.881295
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.854621,
+        "Bias": 0.762347,
+        "P95": 2.1669,
+        "Maximum": 2.909739
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.056533,
+        "Bias": 0.056533,
+        "P95": 0.096445,
+        "Maximum": 0.129661
+      },
+      "MeanPredictedWeightKg": 85.963537,
+      "MeanPredictedDeltaWeightKg": -0.527054
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "strength",
+      "Weeks": 12,
+      "Count": 1366,
+      "WeightKg": {
+        "Mae": 0.759085,
+        "Bias": 0.755361,
+        "P95": 1.488854,
+        "Maximum": 2.215182
+      },
+      "FatKg": {
+        "Mae": 0.156452,
+        "Bias": 0.047663,
+        "P95": 0.452419,
+        "Maximum": 0.733684
+      },
+      "LeanKg": {
+        "Mae": 0.580975,
+        "Bias": 0.578215,
+        "P95": 1.302679,
+        "Maximum": 1.817439
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.304028,
+        "Bias": 0.129483,
+        "P95": 0.821157,
+        "Maximum": 0.871079
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.036212,
+        "Bias": 0.972639,
+        "P95": 2.412831,
+        "Maximum": 3.31669
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.053057,
+        "Bias": 0.053057,
+        "P95": 0.091202,
+        "Maximum": 0.124547
+      },
+      "MeanPredictedWeightKg": 85.777217,
+      "MeanPredictedDeltaWeightKg": -0.713374
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "strength",
+      "Weeks": 24,
+      "Count": 1366,
+      "WeightKg": {
+        "Mae": 1.326957,
+        "Bias": 1.326957,
+        "P95": 2.324798,
+        "Maximum": 3.494514
+      },
+      "FatKg": {
+        "Mae": 0.331751,
+        "Bias": 0.04455,
+        "P95": 0.944138,
+        "Maximum": 1.606989
+      },
+      "LeanKg": {
+        "Mae": 1.14145,
+        "Bias": 1.140874,
+        "P95": 2.552228,
+        "Maximum": 3.488057
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.303879,
+        "Bias": 0.141533,
+        "P95": 0.819121,
+        "Maximum": 0.844342
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.551095,
+        "Bias": 1.525452,
+        "P95": 3.037008,
+        "Maximum": 4.439227
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.04323,
+        "Bias": 0.04323,
+        "P95": 0.080372,
+        "Maximum": 0.108709
+      },
+      "MeanPredictedWeightKg": 85.280838,
+      "MeanPredictedDeltaWeightKg": -1.209753
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "surplus",
+      "Weeks": 1,
+      "Count": 1364,
+      "WeightKg": {
+        "Mae": 0.274919,
+        "Bias": 0.101202,
+        "P95": 0.729298,
+        "Maximum": 0.867623
+      },
+      "FatKg": {
+        "Mae": 0.04372,
+        "Bias": 0.010116,
+        "P95": 0.086836,
+        "Maximum": 0.114881
+      },
+      "LeanKg": {
+        "Mae": 0.088349,
+        "Bias": -0.063175,
+        "P95": 0.199834,
+        "Maximum": 0.39956
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.323898,
+        "Bias": 0.15426,
+        "P95": 0.862079,
+        "Maximum": 0.935507
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.738196,
+        "Bias": 0.138555,
+        "P95": 1.694505,
+        "Maximum": 2.141141
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.274919,
+        "Bias": 0.101202,
+        "P95": 0.729298,
+        "Maximum": 0.867623
+      },
+      "MeanPredictedWeightKg": 87.013577,
+      "MeanPredictedDeltaWeightKg": 0.3363
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "surplus",
+      "Weeks": 2,
+      "Count": 1364,
+      "WeightKg": {
+        "Mae": 0.291149,
+        "Bias": 0.10024,
+        "P95": 0.754236,
+        "Maximum": 1.012005
+      },
+      "FatKg": {
+        "Mae": 0.05731,
+        "Bias": 0.03342,
+        "P95": 0.114015,
+        "Maximum": 0.185882
+      },
+      "LeanKg": {
+        "Mae": 0.168726,
+        "Bias": -0.116208,
+        "P95": 0.369145,
+        "Maximum": 0.68626
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.322592,
+        "Bias": 0.183029,
+        "P95": 0.903265,
+        "Maximum": 0.99028
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.73661,
+        "Bias": 0.13735,
+        "P95": 1.724338,
+        "Maximum": 2.269807
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.044533,
+        "Bias": -0.000961,
+        "P95": 0.117885,
+        "Maximum": 0.176535
+      },
+      "MeanPredictedWeightKg": 87.284862,
+      "MeanPredictedDeltaWeightKg": 0.607585
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "surplus",
+      "Weeks": 4,
+      "Count": 1364,
+      "WeightKg": {
+        "Mae": 0.340519,
+        "Bias": 0.067986,
+        "P95": 0.822059,
+        "Maximum": 1.265318
+      },
+      "FatKg": {
+        "Mae": 0.098841,
+        "Bias": 0.085272,
+        "P95": 0.203803,
+        "Maximum": 0.331523
+      },
+      "LeanKg": {
+        "Mae": 0.319767,
+        "Bias": -0.208244,
+        "P95": 0.684877,
+        "Maximum": 1.195201
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.322468,
+        "Bias": 0.190957,
+        "P95": 0.914563,
+        "Maximum": 1.005928
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.743329,
+        "Bias": 0.104514,
+        "P95": 1.777944,
+        "Maximum": 2.489626
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.052196,
+        "Bias": -0.017367,
+        "P95": 0.111073,
+        "Maximum": 0.171525
+      },
+      "MeanPredictedWeightKg": 87.757071,
+      "MeanPredictedDeltaWeightKg": 1.079794
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "surplus",
+      "Weeks": 8,
+      "Count": 1364,
+      "WeightKg": {
+        "Mae": 0.466272,
+        "Bias": 0.013228,
+        "P95": 1.095375,
+        "Maximum": 1.74875
+      },
+      "FatKg": {
+        "Mae": 0.202908,
+        "Bias": 0.190625,
+        "P95": 0.404599,
+        "Maximum": 0.633932
+      },
+      "LeanKg": {
+        "Mae": 0.599438,
+        "Bias": -0.36075,
+        "P95": 1.226114,
+        "Maximum": 2.059143
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.322942,
+        "Bias": 0.183353,
+        "P95": 0.904831,
+        "Maximum": 0.99129
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.801182,
+        "Bias": 0.048656,
+        "P95": 1.934962,
+        "Maximum": 2.909739
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.047179,
+        "Bias": -0.010988,
+        "P95": 0.097005,
+        "Maximum": 0.129661
+      },
+      "MeanPredictedWeightKg": 88.621369,
+      "MeanPredictedDeltaWeightKg": 1.944092
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "surplus",
+      "Weeks": 12,
+      "Count": 1364,
+      "WeightKg": {
+        "Mae": 0.602831,
+        "Bias": -0.016774,
+        "P95": 1.423009,
+        "Maximum": 2.215182
+      },
+      "FatKg": {
+        "Mae": 0.312389,
+        "Bias": 0.292733,
+        "P95": 0.621172,
+        "Maximum": 0.952193
+      },
+      "LeanKg": {
+        "Mae": 0.86008,
+        "Bias": -0.486643,
+        "P95": 1.707587,
+        "Maximum": 2.786976
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.323579,
+        "Bias": 0.177137,
+        "P95": 0.897602,
+        "Maximum": 0.979526
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.884731,
+        "Bias": 0.017632,
+        "P95": 2.144357,
+        "Maximum": 3.31669
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.042313,
+        "Bias": -0.005672,
+        "P95": 0.089543,
+        "Maximum": 0.124547
+      },
+      "MeanPredictedWeightKg": 89.439228,
+      "MeanPredictedDeltaWeightKg": 2.761951
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "surplus",
+      "Weeks": 24,
+      "Count": 1364,
+      "WeightKg": {
+        "Mae": 0.99574,
+        "Bias": -0.016802,
+        "P95": 2.261479,
+        "Maximum": 3.494514
+      },
+      "FatKg": {
+        "Mae": 0.65505,
+        "Bias": 0.571495,
+        "P95": 1.328525,
+        "Maximum": 2.006385
+      },
+      "LeanKg": {
+        "Mae": 1.566037,
+        "Bias": -0.750198,
+        "P95": 2.97648,
+        "Maximum": 4.439141
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.325738,
+        "Bias": 0.161901,
+        "P95": 0.879093,
+        "Maximum": 0.951065
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 1.159136,
+        "Bias": 0.014923,
+        "P95": 2.728312,
+        "Maximum": 4.439227
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.03286,
+        "Bias": 0.003876,
+        "P95": 0.07925,
+        "Maximum": 0.108709
+      },
+      "MeanPredictedWeightKg": 91.672673,
+      "MeanPredictedDeltaWeightKg": 4.995396
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "unknown-carbs",
+      "Weeks": 1,
+      "Count": 1024,
+      "WeightKg": {
+        "Mae": 0.068972,
+        "Bias": -0.046838,
+        "P95": 0.182771,
+        "Maximum": 0.31817
+      },
+      "FatKg": {
+        "Mae": 0.019813,
+        "Bias": 0.009139,
+        "P95": 0.045826,
+        "Maximum": 0.055255
+      },
+      "LeanKg": {
+        "Mae": 0.032497,
+        "Bias": 0.010954,
+        "P95": 0.102308,
+        "Maximum": 0.142143
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.090893,
+        "Bias": -0.066931,
+        "P95": 0.209317,
+        "Maximum": 0.371817
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.316846,
+        "Bias": 0.022398,
+        "P95": 0.715298,
+        "Maximum": 1.056003
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.068972,
+        "Bias": -0.046838,
+        "P95": 0.182771,
+        "Maximum": 0.31817
+      },
+      "MeanPredictedWeightKg": 85.878884,
+      "MeanPredictedDeltaWeightKg": -0.303225
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "unknown-carbs",
+      "Weeks": 2,
+      "Count": 1024,
+      "WeightKg": {
+        "Mae": 0.102707,
+        "Bias": -0.062076,
+        "P95": 0.285443,
+        "Maximum": 0.427511
+      },
+      "FatKg": {
+        "Mae": 0.033197,
+        "Bias": 0.02063,
+        "P95": 0.083988,
+        "Maximum": 0.102859
+      },
+      "LeanKg": {
+        "Mae": 0.063587,
+        "Bias": 0.023896,
+        "P95": 0.20404,
+        "Maximum": 0.28283
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.115315,
+        "Bias": -0.106602,
+        "P95": 0.319495,
+        "Maximum": 0.528337
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.297938,
+        "Bias": 0.006724,
+        "P95": 0.678173,
+        "Maximum": 0.964322
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.06045,
+        "Bias": -0.015238,
+        "P95": 0.117901,
+        "Maximum": 0.152393
+      },
+      "MeanPredictedWeightKg": 85.662393,
+      "MeanPredictedDeltaWeightKg": -0.519717
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "unknown-carbs",
+      "Weeks": 4,
+      "Count": 1024,
+      "WeightKg": {
+        "Mae": 0.154224,
+        "Bias": -0.022923,
+        "P95": 0.352186,
+        "Maximum": 0.540529
+      },
+      "FatKg": {
+        "Mae": 0.064472,
+        "Bias": 0.042152,
+        "P95": 0.170978,
+        "Maximum": 0.215572
+      },
+      "LeanKg": {
+        "Mae": 0.125134,
+        "Bias": 0.050955,
+        "P95": 0.404049,
+        "Maximum": 0.556944
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.122789,
+        "Bias": -0.11603,
+        "P95": 0.351516,
+        "Maximum": 0.564221
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.294956,
+        "Bias": 0.044804,
+        "P95": 0.683571,
+        "Maximum": 0.909011
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.034484,
+        "Bias": 0.024911,
+        "P95": 0.097486,
+        "Maximum": 0.134619
+      },
+      "MeanPredictedWeightKg": 85.315169,
+      "MeanPredictedDeltaWeightKg": -0.86694
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "unknown-carbs",
+      "Weeks": 8,
+      "Count": 1024,
+      "WeightKg": {
+        "Mae": 0.251171,
+        "Bias": 0.092508,
+        "P95": 0.676981,
+        "Maximum": 1.053533
+      },
+      "FatKg": {
+        "Mae": 0.130905,
+        "Bias": 0.084859,
+        "P95": 0.361633,
+        "Maximum": 0.461176
+      },
+      "LeanKg": {
+        "Mae": 0.246161,
+        "Bias": 0.108851,
+        "P95": 0.788808,
+        "Maximum": 1.128625
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.111298,
+        "Bias": -0.101202,
+        "P95": 0.307654,
+        "Maximum": 0.506487
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.347602,
+        "Bias": 0.158124,
+        "P95": 0.841968,
+        "Maximum": 1.263112
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.034414,
+        "Bias": 0.028669,
+        "P95": 0.093617,
+        "Maximum": 0.129661
+      },
+      "MeanPredictedWeightKg": 84.700462,
+      "MeanPredictedDeltaWeightKg": -1.481647
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "unknown-carbs",
+      "Weeks": 12,
+      "Count": 1024,
+      "WeightKg": {
+        "Mae": 0.363862,
+        "Bias": 0.201613,
+        "P95": 1.022688,
+        "Maximum": 1.547586
+      },
+      "FatKg": {
+        "Mae": 0.196702,
+        "Bias": 0.122773,
+        "P95": 0.549108,
+        "Maximum": 0.707026
+      },
+      "LeanKg": {
+        "Mae": 0.365671,
+        "Bias": 0.167907,
+        "P95": 1.160274,
+        "Maximum": 1.708556
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.103222,
+        "Bias": -0.089067,
+        "P95": 0.271293,
+        "Maximum": 0.45998
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.43727,
+        "Bias": 0.265182,
+        "P95": 1.121465,
+        "Maximum": 1.727435
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.033385,
+        "Bias": 0.026431,
+        "P95": 0.088008,
+        "Maximum": 0.13849
+      },
+      "MeanPredictedWeightKg": 84.123605,
+      "MeanPredictedDeltaWeightKg": -2.058504
+    },
+    {
+      "Engine": "legacy",
+      "Stratum": "unknown-carbs",
+      "Weeks": 24,
+      "Count": 1024,
+      "WeightKg": {
+        "Mae": 0.721959,
+        "Bias": 0.475992,
+        "P95": 1.906973,
+        "Maximum": 3.323304
+      },
+      "FatKg": {
+        "Mae": 0.398722,
+        "Bias": 0.197589,
+        "P95": 1.066318,
+        "Maximum": 1.396749
+      },
+      "LeanKg": {
+        "Mae": 0.723633,
+        "Bias": 0.33831,
+        "P95": 2.263646,
+        "Maximum": 3.488057
+      },
+      "GlycogenWaterKg": {
+        "Mae": 0.089756,
+        "Bias": -0.059907,
+        "P95": 0.207552,
+        "Maximum": 0.348317
+      },
+      "EcfInclusiveWeightKg": {
+        "Mae": 0.748436,
+        "Bias": 0.534,
+        "P95": 1.919253,
+        "Maximum": 3.0013
+      },
+      "LastWeekChangeKg": {
+        "Mae": 0.032332,
+        "Bias": 0.019902,
+        "P95": 0.080708,
+        "Maximum": 0.228423
+      },
+      "MeanPredictedWeightKg": 82.576242,
+      "MeanPredictedDeltaWeightKg": -3.605868
+    }
+  ]
+}

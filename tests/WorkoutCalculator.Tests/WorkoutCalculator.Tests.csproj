@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\tools\WorkoutCalculator.CompositionBenchmark\WorkoutCalculator.CompositionBenchmark.csproj" />
     <ProjectReference Include="..\..\src\WorkoutCalculator.Core\WorkoutCalculator.Core.csproj" />
     <ProjectReference Include="..\..\src\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj" />
   </ItemGroup>
