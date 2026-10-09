@@ -41,3 +41,7 @@ Avatar domain проверяется `BackupValidation` до мутаций: sch
 Для анализа используйте отдельный [validation-package.zip](VALIDATION.md): явный выбор разделов, без фото по умолчанию, без PIN/ключей, локальных идентификаторов и свободных заметок.
 
 Проверки покрывают round trip всех основных stores, точное совпадение бинарных фото и настроек шифрования, restore в чистый browser context, три точки искусственного сбоя, закрытие вкладки в середине commit, защиту от устаревшей вкладки, неверный ZIP, пропавший файл, неверный хеш, будущую схему и повреждённые фото-метаданные.
+
+## Phase 6 — Current Avatar check-ins (2026-10-09)
+
+Current implementation: [CHECKIN_LIFECYCLE](CHECKIN_LIFECYCLE.md). Baseline #25 was merged with ordinary merge commit `106efdaf28cdb7fdebb91b8b8bf2c98dd254f2a7`; full [main CI](https://github.com/branch-danya-dev/trening/actions/runs/37899920321) passed before `codex/avatar-checkins` was created. Separate factual observations update the current avatar automatically after the versioned gate while preserving the cycle origin and every issued forecast. Manual recalibration remains separate. Partial/photo-only facts, prior/correction merge, source quality/conflicts, idempotency, recovery and target-hypothesis integration are specified in the contract. Phase 7/8 are deferred. Validation results and limitations: [Check-in evidence](evidence/checkin/README.md). The implementation PR is not auto-merged.

@@ -1,6 +1,6 @@
 # Канонический lifecycle продукта
 
-**Phase 5 реализована в отдельной ветке, 2026-10-09:** observed Hypothesis 14/30, frozen evidence/origin/snapshot/endpoint, basic factual outcome, expiry и recalibration archive. [Точный контракт и ограничения](HYPOTHESIS_LIFECYCLE.md). Phase 6+ остаётся планом. Исторические статусы ниже описывают предыдущие срезы; финальный GO определяется evidence/CI implementation PR.
+**Phase 6 реализована в отдельной ветке, 2026-10-09:** повторяемый Check-in с частичными фактами и локальными фото автоматически обновляет current Avatar после проверки качества, сохраняя origin/cycle и ранее выданные гипотезы. [Точный контракт и ограничения](CHECKIN_LIFECYCLE.md). Phase 5 смержена, Phase 7+ остаётся планом. Исторические статусы ниже описывают предыдущие срезы; финальный GO определяется evidence/CI implementation PR.
 
 **Статус реализации Phase 1 (2026-10-09):** в отдельном implementation PR добавлены Profile/Avatar, immutable revisions, corrections/AvatarDerived, lock/recalibration, automatic-photo API, additive migration и backup. Контракты и ограничения — [AVATAR_DOMAIN](AVATAR_DOMAIN.md). TrackingCycle пока представлен origin/cycle IDs и событиями, RecalibrationSession — AvatarDraft. Phase 2 также реализована: initial creation/correction/review/lock, local photo-derived inputs, explainable quality и отдельная recalibration. Phase 3 ActivityDay и Phase 4 Nutrition v1 реализованы; полноценный Hypothesis lifecycle и post-lock photo check-in UI остаются целевой спецификацией.
 
@@ -274,3 +274,7 @@ AI path: **future mesh → depth/normals/mask/keypoints → managed renderer →
 ## Phase 5 — prospective Hypothesis (2026-10-09)
 
 Implemented after #24 merge and green main CI: explicit observed 14/30-day issuance, frozen evidence/Avatar/calibration/ForecastSnapshot, exact endpoint, basic factual outcome, expiry and recalibration archival. Manual scenarios remain separate. Policies, storage and limitations: [HYPOTHESIS_LIFECYCLE](HYPOTHESIS_LIFECYCLE.md). Phase 6+ remains deferred; final GO requires the PR validation evidence.
+
+## Phase 6 — Current Avatar check-ins (2026-10-09)
+
+Current implementation: [CHECKIN_LIFECYCLE](CHECKIN_LIFECYCLE.md). Baseline #25 was merged with ordinary merge commit `106efdaf28cdb7fdebb91b8b8bf2c98dd254f2a7`; full [main CI](https://github.com/branch-danya-dev/trening/actions/runs/37899920321) passed before `codex/avatar-checkins` was created. Separate factual observations update the current avatar automatically after the versioned gate while preserving the cycle origin and every issued forecast. Manual recalibration remains separate. Partial/photo-only facts, prior/correction merge, source quality/conflicts, idempotency, recovery and target-hypothesis integration are specified in the contract. Phase 7/8 are deferred. Validation results and limitations: [Check-in evidence](evidence/checkin/README.md). The implementation PR is not auto-merged.

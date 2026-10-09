@@ -56,7 +56,8 @@ public sealed class AvatarBuilder(MakeHumanModel model)
             p.Posture.Kyphosis + c.PostureOffset.Kyphosis, p.Posture.ShouldersForward + c.PostureOffset.ShouldersForward).Clamped();
         // These targets are geometry inputs only. The frozen base/facts remain unchanged.
         void Fullness(Girth g, double value) {
-            if (!v2 || inputs.Fields.Single(f => f.Field == g.ToString()).Source is AvatarFieldSource.VisualEstimate or AvatarFieldSource.LegacyVisualEstimate)
+            if ((!v2 || inputs.Fields.Single(f => f.Field == g.ToString()).Source is AvatarFieldSource.VisualEstimate or AvatarFieldSource.LegacyVisualEstimate)
+                && inputs.CorrectionProtectedPriors?.Contains(g) != true)
                 p.SetGirth(g, p.GetGirth(g) * (1 + .08 * value));
         }
         Fullness(Girth.Chest, c.ChestFullness); Fullness(Girth.Waist, c.WaistFullness);

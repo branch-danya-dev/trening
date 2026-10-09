@@ -9,7 +9,7 @@ const DB_NAME = 'body3d-photos';
 const DB_VERSION = 2; // 2 — хранилище settings (PIN)
 const MAX_SIDE = 2048;
 const THUMB_SIDE = 320;
-const VIEWS = ['front', 'side'];
+const VIEWS = ['front', 'side', 'back'];
 const ARCHIVE_FORMAT = 1;
 
 let dbPromise = null;
@@ -302,6 +302,15 @@ export async function saveFromInputs(metaJson, frontInputId, sideInputId) {
     }
     await requestPersist();
     return JSON.stringify(session);
+}
+
+export async function saveCheckInInputs(metaJson,frontInputId,sideInputId,backInputId) {
+    const images=filesFromInputs({front:frontInputId,side:sideInputId,back:backInputId});
+    const meta=JSON.parse(metaJson);
+    if(meta.sourceKind!=='OriginalObservation')throw Error('Нужны реальные фото наблюдения.');
+    const session=await saveSession(meta,images);
+    for(const id of [frontInputId,sideInputId,backInputId]){const input=document.getElementById(id);if(input)input.value='';}
+    await requestPersist();return JSON.stringify(session);
 }
 
 // ---------- Список, превью, удаление ----------

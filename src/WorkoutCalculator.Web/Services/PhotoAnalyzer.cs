@@ -33,6 +33,7 @@ public static partial class PhotoAnalyzer
         var inputs = new Dictionary<PhotoView, PhotoInput>();
         foreach (string view in session.Views)
         {
+            if(view is not ("front" or "side")) continue; // Back is a progress reference, never an inferred front view.
             var prepared = JsonSerializer.Deserialize(await Prepare(session.Id, view), PhotoJson.Default.PreparedPhoto)!;
             int n = prepared.Width * prepared.Height;
             var mask = new byte[n];

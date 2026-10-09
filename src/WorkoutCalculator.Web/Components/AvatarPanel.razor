@@ -36,7 +36,7 @@
         }
         <details><summary>История ревизий и диагностика</summary>
             @foreach (var r in State.Revisions.Reverse()) {
-                <p><span class="avatar-id">@r.Id</span> · @(r.Id == State.ActiveRevisionId ? "текущая" : "архив") · @r.EffectiveDate</p>
+                <p>@(r.Source switch { AvatarRevisionSource.FactualUpdate => "Фактический замер", AvatarRevisionSource.PhotoCheckIn => "Замер по фото", AvatarRevisionSource.ManualRecalibration => "Ручная коррекция", _ => "Исходный аватар" }) · @(r.Id == State.ActiveRevisionId ? "текущая" : "архив") · @r.EffectiveDate.ToString("dd.MM.yyyy")</p>
                 <p class="note">@r.BuilderVersion · @r.Corrections.CorrectionModelVersion · @r.DerivedMetrics.Source</p>
                 <AvatarReview Inputs="r.Inputs" Corrections="r.Corrections" Quality="r.Quality" Detailed="true" />
             }

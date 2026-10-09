@@ -1,6 +1,6 @@
 # Roadmap реализации продуктового lifecycle
 
-**Текущая Phase 5 (2026-10-09):** реализация Hypothesis lifecycle от merge #24 `f5244d7`, после [успешного main CI](https://github.com/branch-danya-dev/trening/actions/runs/37892933840). Политики и scope — [HYPOTHESIS_LIFECYCLE](HYPOTHESIS_LIFECYCLE.md); проверки — [evidence](evidence/hypothesis/README.md). Phase 6–9 не реализуются этим PR. Записи Phase 1–4 ниже сохранены как исторические.
+**Текущая Phase 6 (2026-10-09):** Current Avatar check-ins реализованы от merge #25 `106efdaf`, после [успешного main CI](https://github.com/branch-danya-dev/trening/actions/runs/37899920321). Контракт — [CHECKIN_LIFECYCLE](CHECKIN_LIFECYCLE.md), проверки и ограничения — [evidence](evidence/checkin/README.md). Phase 7–9 остаются планом. Записи Phase 1–5 ниже сохранены как исторические.
 
 **Phase 4, 2026-10-09:** Nutrition v1 реализована от `main 0f943cc4fdd637d30d71f7d7519bb0aaf0d8e05c` после merge #23 и #19. Ручные КБЖУ/граммы, отдельные meal plan/actual, явная полнота, frozen nutrition, schema-2 migration, protected edit/delete/move, Forecast v3 adapter без Hypothesis. Контракт — [NUTRITION_V1](NUTRITION_V1.md). Phase 5–9 остаются планом; новый PR не мержится автоматически. Исторические статусы ниже сохранены по фазам.
 
@@ -145,6 +145,8 @@ flowchart LR
 
 ## Phase 6 — Current Avatar check-ins
 
+**Статус:** реализована в `codex/avatar-checkins`; GO определяется полным CI и [отчётом проверок](evidence/checkin/README.md). Физический слабый телефон и эмпирическая точность фото остаются открытыми проверками.
+
 **Результат:** новые реальные наблюдения обновляют current model автоматически и сохраняют прошлое.
 
 **Domain/API.** IngestCheckIn → factual observation → photo quality/fit → AvatarRevision `FactualUpdate` → current pointer CAS. Same cycle origin, frozen Hypothesis unchanged. Изолировать measured/PhotoDerived/AvatarDerived. Low-confidence/противоречивый fit удерживает последнюю valid mesh; failed attempt имеет provenance. Идемпотентность photo session и защита от out-of-order завершения jobs. Calibration consumes только пригодные outcome без manual-reset leakage.
@@ -222,3 +224,7 @@ flowchart LR
 ## Phase 5 implementation update — 2026-10-09
 
 Phase 5 implemented on codex/hypothesis-lifecycle from main f5244d735defaa3ead97d7c5bd356ed5b93c64b4 after #24 and complete baseline CI. [Contract and deliberate limits](HYPOTHESIS_LIFECYCLE.md): 3 factual + 3 positive Complete nutrition gate; 14-day recent window; Preliminary 3–6, ObservedRoutine ≥7 eligible days; exact 14/30 targets; one active; frozen snapshot and endpoint; factual outcome −1/+3; no-outcome expiry; future-only same-cycle calibration. No Phase 6 photo CheckIn, Phase 7 warp or Phase 8 managed renderer. Regional detailed-program selection is limited to composition-only v1. The implementation PR is not auto-merged.
+
+## Phase 6 — Current Avatar check-ins (2026-10-09)
+
+Current implementation: [CHECKIN_LIFECYCLE](CHECKIN_LIFECYCLE.md). Baseline #25 was merged with ordinary merge commit `106efdaf28cdb7fdebb91b8b8bf2c98dd254f2a7`; full [main CI](https://github.com/branch-danya-dev/trening/actions/runs/37899920321) passed before `codex/avatar-checkins` was created. Separate factual observations update the current avatar automatically after the versioned gate while preserving the cycle origin and every issued forecast. Manual recalibration remains separate. Partial/photo-only facts, prior/correction merge, source quality/conflicts, idempotency, recovery and target-hypothesis integration are specified in the contract. Phase 7/8 are deferred. Validation results and limitations: [Check-in evidence](evidence/checkin/README.md). The implementation PR is not auto-merged.

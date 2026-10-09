@@ -1,7 +1,7 @@
 // Мелочи браузера для C#: localStorage, HTTPS, буфер обмена, сведения для отчёта о проверке.
 // localStorage может быть недоступен (приватный режим, запрет сайта) — тогда просто не сохраняем.
 
-import { assertWritable } from './data-guard.js';
+import { assertWritable, assertReadable } from './data-guard.js';
 import { assertActivitySourceWrite, activityKey, sourceKeys } from './activity-guard.js';
 const observedSources = new Map();
 function guardSource(key, value) {
@@ -20,6 +20,7 @@ export function reportStorageError(message) {
 }
 export function getItem(key) {
     try {
+        assertReadable();
         const value = localStorage.getItem(key);
         if (sourceKeys.includes(key) && !observedSources.has(key)) observedSources.set(key, value);
         if (value !== null && key !== 'workoutcalc.model.v1') {
@@ -48,6 +49,7 @@ export function setItem(key, value) {
 
 // Journals must distinguish unavailable storage from an empty journal and must report write failures.
 export function getItemStrict(key) {
+    assertReadable();
     return localStorage.getItem(key);
 }
 

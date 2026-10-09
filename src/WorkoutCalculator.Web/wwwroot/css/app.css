@@ -1297,3 +1297,16 @@ table.changes tr.dim td { opacity: 0.5; }
 .observed-hypothesis .note { color: #adbdca; }
 .observed-hypothesis .table-scroll { max-width: 100%; overflow-x: auto; }
 .hypothesis-outcome { border-top: 1px solid var(--line, #ddd); margin-top: 16px; padding-top: 12px; }
+
+/* The observation form keeps labels, provenance and touch targets readable on narrow screens. */
+.checkin-panel { min-width: 0; overflow-wrap: anywhere; }
+.checkin-panel fieldset { min-width: 0; margin: 16px 0; padding: 12px; border: 1px solid var(--border); border-radius: 8px; }
+.checkin-panel label { display: flex; flex-direction: column; gap: 6px; margin: 14px 0; }
+.checkin-panel input:not([type=checkbox]), .checkin-panel select { width: 100%; max-width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface, #0f1922); color: inherit; font: inherit; }
+.checkin-panel .check { flex-direction: row; align-items: start; }
+.checkin-panel input[type=checkbox] { flex: 0 0 auto; margin-top: 4px; }
+.checkin-panel .btn, .checkin-panel .btn-link, .checkin-panel summary { min-height: 44px; white-space: normal; }
+.checkin-panel .btn, .checkin-panel .btn-link { margin: 6px 4px 6px 0; }
+.checkin-panel summary { align-content: center; cursor: pointer; }
+.checkin-panel .note { color: #adbdca; }
+.checkin-history { padding: 12px 0; border-top: 1px solid var(--border); }

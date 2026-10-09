@@ -1,0 +1,16 @@
+{
+  "fixture": "800x1000 blank synthetic image; no-person rejection only",
+  "measurements": [
+    {
+      "mode": "cold",
+      "milliseconds": 3882.4000000059605,
+      "reason": "На снимке не найден человек. Нужен весь рост на однотонном фоне."
+    },
+    {
+      "mode": "warm",
+      "milliseconds": 15.199999988079071,
+      "reason": "На снимке не найден человек. Нужен весь рост на однотонном фоне."
+    }
+  ],
+  "checkInCreated": false
+}

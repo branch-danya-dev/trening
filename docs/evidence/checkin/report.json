@@ -1,0 +1,75 @@
+{
+  "suite": "checkin-smoke",
+  "layout": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "panel": 320,
+      "panelScroll": 320
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "panel": 390,
+      "panelScroll": 390
+    },
+    {
+      "width": 1400,
+      "scroll": 1400,
+      "panel": 479,
+      "panelScroll": 479
+    }
+  ],
+  "performance": [
+    "CheckIn open: 66,00 ms",
+    "CheckIn reconstruction prepare: 260,00 ms",
+    "CheckIn avatar transaction commit: 79,00 ms",
+    "CheckIn reconstruction and commit: 340,00 ms",
+    "CheckIn save total: 1008,00 ms",
+    "CheckIn open: 157,00 ms",
+    "CheckIn photo quality and measurements: 77,00 ms",
+    "CheckIn reconstruction prepare: 236,00 ms",
+    "CheckIn avatar transaction commit: 173,00 ms",
+    "CheckIn reconstruction and commit: 410,00 ms",
+    "CheckIn save total: 1220,00 ms",
+    "CheckIn open: 233,00 ms",
+    "CheckIn photo quality and measurements: 108,00 ms",
+    "CheckIn reconstruction prepare: 279,00 ms",
+    "CheckIn avatar transaction commit: 243,00 ms",
+    "CheckIn reconstruction and commit: 522,00 ms",
+    "CheckIn save total: 2172,00 ms",
+    "CheckIn open: 251,00 ms",
+    "CheckIn photo quality and measurements: 107,00 ms",
+    "CheckIn reconstruction prepare: 253,00 ms",
+    "CheckIn avatar transaction commit: 242,00 ms",
+    "CheckIn reconstruction and commit: 496,00 ms",
+    "CheckIn save total: 1654,00 ms",
+    "CheckIn open: 260,00 ms",
+    "CheckIn reconstruction prepare: 128,00 ms",
+    "CheckIn avatar transaction commit: 310,00 ms",
+    "CheckIn reconstruction and commit: 440,00 ms",
+    "CheckIn save total: 1318,00 ms",
+    "CheckIn open: 596,00 ms",
+    "CheckIn reconstruction prepare: 681,00 ms",
+    "CheckIn avatar transaction commit: 770,00 ms",
+    "CheckIn reconstruction and commit: 1451,00 ms",
+    "CheckIn save total: 6000,00 ms",
+    "CheckIn open: 1241,00 ms",
+    "CheckIn hypothesis evaluation: 1492,00 ms",
+    "CheckIn clean restore: 3541 ms"
+  ],
+  "browserErrors": 0,
+  "checks": [
+    "partial-manual",
+    "same-cycle",
+    "exact-reload",
+    "good-photo-derived",
+    "bad-photo-last-known-good",
+    "manual-photo-conflict",
+    "back-only-reference",
+    "target-checkin-outcome",
+    "frozen-hypothesis-endpoint",
+    "exact-clean-restore",
+    "opt-in-private-export"
+  ]
+}

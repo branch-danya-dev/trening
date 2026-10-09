@@ -13,13 +13,15 @@ public partial class Home
     private PhotoPrivacy _privacy = new();
     private string? _appliedFact;
     private string? _productError;
+    private Dictionary<string,DateTimeOffset> _checkInFactTimes = [];
     private BodySnapshot? CurrentFact => _history.Timeline.Items.Where(s => s.Date <= DateOnly.FromDateTime(DateTime.Now))
-        .OrderBy(s => s.Date).ThenBy(s => s.Id, StringComparer.Ordinal).LastOrDefault();
+        .OrderBy(s => s.Date).ThenBy(s => _checkInFactTimes.GetValueOrDefault(s.Id)).ThenBy(s => s.Id, StringComparer.Ordinal).LastOrDefault();
     private string CurrentFactCaption => (Avatar is not null ? "Текущая форма — сохранённая ревизия аватара. " : "") + (CurrentFact is { } fact
         ? $"Факты за {fact.Date:dd.MM.yyyy}. Для 3D условно заполнены: {string.Join(", ", SnapshotVisuals.Build(fact).EstimatedFields)}."
         : "Измерений пока нет. Параметры внешнего вида ещё не подтверждены как факты.");
     private void InitializeProduct()
     {
+        LoadCheckInFactTimes();
         _preferences = ProductStorage.Preferences(); _privacy = ProfileStorage.LoadPrivacy();
         var draft = ProductStorage.LoadDraft();
         if (draft is { Completed: false }) _onboarding = draft;
