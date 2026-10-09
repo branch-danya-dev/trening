@@ -126,6 +126,37 @@ public class AnatomicalMuscleTests(MakeHumanFixture fx,ITestOutputHelper output)
         Assert.Throws<InvalidDataException>(()=>AnatomicalMuscleFields.Read(AnatomicalMuscleFields.Write(f.Header,f.Entries.Append(f.Entries[0])),fx.Data));
     }
     private const string Obj="v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n";
+    [Fact] public void SmallSyntheticSourceBuildIsDeterministicWithoutRemoteAnatomy()
+    {
+        // Artificial boxes exercise the complete registration/projection pipeline, not anatomical accuracy.
+        var p=fx.Data.Positions.Select(x=>(double)x).ToArray();var sk=fx.Data.Skeleton!;var atlas=Atlas();
+        Vec3 Head(string name)=>sk.Joint(p,sk.Bones[sk.Bone(name)].Head);
+        Vec3 Tail(string name)=>sk.Joint(p,sk.Bones[sk.Bone(name)].Tail);
+        AnatomyMesh Box(Vec3 a,Vec3 b,double radius)
+        {
+            var points=new[]{a,b}.SelectMany(c=>new[]{new Vec3(-radius,0,-radius),new Vec3(radius,0,-radius),new Vec3(radius,0,radius),new Vec3(-radius,0,radius)}.Select(d=>c+d)).Select(v=>new Vec3(v.X*1000,-v.Z*1000,v.Y*1000)).ToArray();
+            return new(points,[0,1,2,0,2,3,4,6,5,4,7,6,0,4,5,0,5,1,1,5,6,1,6,2,2,6,7,2,7,3,3,7,4,3,4,0],1,0);
+        }
+        var meshes=new Dictionary<string,AnatomyMesh>();var bones=new List<object>();
+        void Bone(string name,Vec3 a,Vec3 b){string id="FJ"+(meshes.Count+1);meshes.Add(id,Box(a,b,.003));bones.Add(new{name,objectId=id});}
+        foreach(var side in new[]{("left",".L"),("right",".R")})
+        {
+            Bone(side.Item1+" humerus",Head("upperarm01"+side.Item2),Head("lowerarm01"+side.Item2));
+            Bone(side.Item1+" radius",Head("lowerarm01"+side.Item2),Tail("lowerarm02"+side.Item2));
+            Bone(side.Item1+" femur",Head("upperleg01"+side.Item2),Head("lowerleg01"+side.Item2));
+            Bone(side.Item1+" tibia",Head("lowerleg01"+side.Item2),Tail("lowerleg02"+side.Item2));
+        }
+        Bone("sacrum",Head("spine05"),Head("spine05")+new Vec3(0,.01,0));
+        Bone("first thoracic vertebra",Head("spine01"),Head("spine01")+new Vec3(0,.01,0));
+        var candidates=Enumerable.Range(0,fx.Data.BodyVertexCount).Where(v=>p[v*3]>0 && Enumerable.Range(0,MuscleAtlas.Influences).Any(k=>MuscleDefinitions.Regions[atlas.RegionIndices[v*MuscleAtlas.Influences+k]].GroupId=="biceps" && atlas.Weights[v*MuscleAtlas.Influences+k]>100)).ToArray();
+        var center=new Vec3(candidates.Average(v=>p[v*3]),candidates.Average(v=>p[v*3+1]),candidates.Average(v=>p[v*3+2])-.02);
+        meshes.Add("FJ100",Box(center+new Vec3(0,.09,0),center-new Vec3(0,.09,0),.018));
+        var mapping=JsonSerializer.SerializeToUtf8Bytes(new{groups=new[]{new{id="biceps",status="direct",segment="upperarm",objects=new[]{new{objectId="FJ100"}}}},bones});
+        var first=FieldBuilder.Build(fx.Data,atlas,meshes,mapping,new string('A',64));
+        var second=FieldBuilder.Build(fx.Data,atlas,meshes.Reverse().ToDictionary(x=>x.Key,x=>x.Value),mapping,new string('A',64));
+        Assert.Equal(first.Bytes,second.Bytes);
+        Assert.NotEmpty(AnatomicalMuscleFields.Read(first.Bytes,fx.Data).Entries);
+    }
     private static byte[] Zip(params (string Name,string Body)[] rows){using var m=new MemoryStream();using(var z=new ZipArchive(m,ZipArchiveMode.Create,true))foreach(var row in rows){using var w=new StreamWriter(z.CreateEntry(row.Name).Open());w.Write(row.Body);}return m.ToArray();}
     [Fact] public void ArchiveIsPinnedAndRejectsPathsDuplicatesMissingIds()
     {
