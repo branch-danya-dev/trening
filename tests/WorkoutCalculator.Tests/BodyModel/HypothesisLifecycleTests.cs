@@ -122,4 +122,14 @@ public class HypothesisLifecycleTests(MakeHumanFixture fx):IClassFixture<MakeHum
         var(m,s,_)=Store();Assert.Null(s.Issue(s.Preview(Now,14,TrainingExperience.Beginner),Now));Assert.Null(s.Synchronize(Now.AddDays(18)));var raw=m.Read(ObservedHypothesisStore.Key);
         Assert.Null(s.Synchronize(Now.AddDays(19)));Assert.Equal(raw,m.Read(ObservedHypothesisStore.Key));var read=new ObservedHypothesisStore(m).Load();Assert.Null(read.Error);Assert.Equal(HypothesisState.ExpiredWithoutOutcome,read.Data.Items[0].State);
     }
+    [Fact]public void RecalibrationWithSameTimestampArchivesAndSurvivesReload()
+    {
+        var(m,s,a)=Store();Assert.Null(s.Issue(s.Preview(Now,14,TrainingExperience.Beginner),Now));var original=s.Current.Data.Items[0];
+        var avatars=new AvatarDomainStore(m);Assert.Null(avatars.StartRecalibration("Independent correction",Now));
+        Assert.Null(avatars.Confirm(new AvatarLifecycle(new AvatarBuilder(fx.Model)),Now,Today));
+        Assert.Null(s.Synchronize(Now));var read=new ObservedHypothesisStore(m).Load();Assert.Null(read.Error);
+        var archived=Assert.Single(read.Data.Items);Assert.Equal(HypothesisState.ArchivedByRecalibration,archived.State);
+        Assert.Equal(original.CoreHash,archived.CoreHash);Assert.Null(archived.Outcome);
+        Assert.Null(HypothesisService.Calibration([archived],a.TrackingCycleId!,Now.AddDays(1)));
+    }
 }

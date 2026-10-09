@@ -99,13 +99,16 @@ public static class HypothesisService
         if (!h.IsOpen) return h;
         if (h.Core.AvatarId != avatar.Id) throw new ArgumentException("Чужой аватар.");
         // Durable cycle events survive reload/restore; lazy reconciliation never loses a recalibration boundary.
-        if (avatar.CycleEvents.Any(c => c.CreatedAt <= now && c.CreatedAt > h.Core.CreatedAt && c.CycleId != h.Core.TrackingCycleId))
+        if (HasRecalibrationBoundary(h.Core, avatar, now))
             return Transition(h, HypothesisState.ArchivedByRecalibration, now, "Manual recalibration changed tracking cycle; not a model failure");
         var today = DateOnly.FromDateTime(now.Date);
         if (today > h.Core.TargetDate.AddDays(h.Core.OutcomePolicy.GraceDays)) return Transition(h, HypothesisState.ExpiredWithoutOutcome, now, "No eligible outcome recorded in policy window; no accuracy sample");
         if (h.State == HypothesisState.Active && today >= h.Core.TargetDate) return Transition(h, HypothesisState.AwaitingOutcome, now, "Target date reached");
         return h;
     }
+    // The validated append-only cycle chain defines order even when successive actions share a clock tick.
+    public static bool HasRecalibrationBoundary(HypothesisCore core, AvatarState avatar, DateTimeOffset now) =>
+        avatar.CycleEvents.SkipWhile(e => e.CycleId != core.TrackingCycleId).Skip(1).Any(e => e.CreatedAt <= now);
     public static Hypothesis Cancel(Hypothesis h, DateTimeOffset now)
     {
         if (h.State != HypothesisState.Active || DateOnly.FromDateTime(now.Date) >= h.Core.TargetDate) throw new ArgumentException("Отменить можно только до целевой даты.");

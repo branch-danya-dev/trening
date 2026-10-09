@@ -83,7 +83,7 @@ public sealed class ObservedHypothesisStore(IJournalStorage storage)
                 if(fact is null || HypothesisHash.Of(fact,HypothesisJson.Default.BodySnapshot)!=outcome.FactHash)throw new ArgumentException("Фактический результат отсутствует или изменён.");
             }
             foreach(var e in h.Events.Where(e=>e.State==HypothesisState.ArchivedByRecalibration))
-                if(!avatar.CycleEvents.Any(x=>x.CreatedAt>c.CreatedAt && x.CreatedAt<=e.RecordedAt && x.CycleId!=c.TrackingCycleId))throw new ArgumentException("Нет подтверждённой границы recalibration.");
+                if(!HypothesisService.HasRecalibrationBoundary(c,avatar,e.RecordedAt))throw new ArgumentException("Нет подтверждённой границы recalibration.");
         }
     }
     public ObservedHypothesisReview Preview(DateTimeOffset cutoff,int horizon,TrainingExperience experience)

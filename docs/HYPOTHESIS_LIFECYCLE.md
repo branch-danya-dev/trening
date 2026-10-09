@@ -86,7 +86,7 @@ AwaitingOutcome → ExpiredWithoutOutcome (calendar date > target + 3)
 AwaitingOutcome → ArchivedByRecalibration
 ```
 
-One Active/AwaitingOutcome per cycle. Terminal hypotheses remain visible in Progress/history; later hypotheses use a new recent window. Calendar transitions reconcile when the panel is opened/refreshed; no background timer is needed. Manual recalibration immediately attempts archival and leaves a durable Avatar cycle event for idempotent reconciliation after interruption. Same-cycle factual/photo revisions preserve the issued origin.
+One Active/AwaitingOutcome per cycle. Terminal hypotheses remain visible in Progress/history; later hypotheses use a new recent window. Calendar transitions reconcile when the panel is opened/refreshed; no background timer is needed. Manual recalibration immediately attempts archival and leaves a durable Avatar cycle event for idempotent reconciliation after interruption. The validated append-only cycle order handles actions sharing a timestamp. Same-cycle factual/photo revisions preserve the issued origin.
 
 Preferred observation is exact target date; accepted observation and recording window is target−1 through target+3 inclusive. Weight is mandatory. The user creates a manual BodySnapshot through existing Progress UI, or chooses an existing factual record and confirms independence. Optional BF/girths are compared only when recorded, without zeros or profile-filled estimates. Early observations compare at their actual elapsed day. Late observations compare to the frozen target endpoint, carry LateOutcome and are ineligible for automatic calibration. Comparison shows baseline/personalized prediction, actual, signed/absolute errors, timing, source and exclusions; no causal attribution is made.
 

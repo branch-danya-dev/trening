@@ -2,7 +2,7 @@
 
 Baseline/#24 merge: `f5244d735defaa3ead97d7c5bd356ed5b93c64b4`. [Baseline CI](https://github.com/branch-danya-dev/trening/actions/runs/37892933840) green before branching. Policies: [HYPOTHESIS_LIFECYCLE](../../HYPOTHESIS_LIFECYCLE.md).
 
-Local Release build: **0 warnings/errors**. **575 .NET tests**, including 44 new hypothesis domain/storage cases; **61 JavaScript tests**, including export privacy, exact backup and stale-writer rejection even when restored bytes are identical. Both existing Hall reports (4096 scenarios each) reproduce without physiology changes.
+Local Release build: **0 warnings/errors**. **576 .NET tests**, including 45 new hypothesis domain/storage cases; **61 JavaScript tests**, including export privacy, exact backup and stale-writer rejection even when restored bytes are identical. Both existing Hall reports (4096 scenarios each) reproduce without physiology changes. Recalibration uses the ordered cycle chain, including equal-timestamp actions, with a durable archive/reload test.
 
 The new [hypothesis smoke report](report.json) verifies genuine UI nutrition/day closure → Preliminary review → explicit save, exact +14/+30, unchanged core after another closed day and reload, one-active/stale-review guards, 3D endpoint, target-date AwaitingOutcome, manual weight-only outcome/Evaluated, expiry, recalibration archival, byte-exact full-backup clean restore and private opt-in export. Fixtures are synthetic. No user data was exported for testing.
 
