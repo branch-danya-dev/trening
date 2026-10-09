@@ -81,7 +81,9 @@ public partial class Home
         _onboarding = null; OpenModel();
     }
     private void OpenModel() { _tab = Tab.Params; if (IsHistory || _mode != ViewMode.Current) SetMode(ViewMode.Current); }
-    private void OpenActivity() { _tab = Tab.Workout; }
+    private bool _activityEditable = true;
+    private int _activityVisit;
+    private void OpenActivity() { _tab = Tab.Workout; _activityVisit++; ActivityDate(DateOnly.FromDateTime(DateTime.Now)); }
     private void OpenProfile() { _tab = Tab.Profile; }
     private void NewMeasurement()
     {
@@ -95,6 +97,9 @@ public partial class Home
         _tab = Tab.History;
     }
     private void ActivityDate(DateOnly date) {
+        var days = new ActivityDayStore(new BrowserJournalStorage());
+        _activityEditable = date <= DateOnly.FromDateTime(DateTime.Now) && days.Current.Error is null &&
+            (Avatar is null || days.Find(Avatar.ProfileId, date)?.State is null or WorkoutCalculator.Activity.ActivityDayState.Open);
         if (_workout.SavedId is null) _workout.Date = date;
         if (_strength.Draft.Exercises.Count == 0) _strength.Draft.Date = date.ToString("yyyy-MM-dd");
     }

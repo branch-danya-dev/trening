@@ -1,13 +1,20 @@
 @using WorkoutCalculator.Strength
 @using WorkoutCalculator.Exercises
+@using WorkoutCalculator.Activity
+@using WorkoutCalculator.BodyModel.Avatars
 <section class="card activity-calendar" aria-label="Календарь активности">
     <h2>Активность</h2>
+    @if (_dayError is not null) { <p role="status">@_dayError</p> }
+    @if (Avatar?.ActiveRevision is not null && _days.Find(Avatar.ProfileId, Today.AddDays(-1))?.State is null or ActivityDayState.Open) {
+        <p class="previous-day">Вчерашний день не завершён. <button class="btn" @onclick="() => Select(Today.AddDays(-1))">Проверить вчера</button></p>
+    }
     <div class="calendar-header">
         <button class="btn" aria-label="Предыдущий месяц" @onclick="() => _month = _month.AddMonths(-1)">←</button>
         <strong>@_month.ToString("MM.yyyy")</strong>
         <button class="btn" aria-label="Следующий месяц" @onclick="() => _month = _month.AddMonths(1)">→</button>
     </div>
-    <p class="note">● кардио · ◆ силовая · минуты / активные ккал / выполненные подходы</p>
+    <button class="btn" @onclick="() => Select(Today)">Сегодня</button>
+    <p class="note">✓ завершён · ○ отдых · ? нет данных · · не завершён · — будущий. ● кардио · ◆ силовая</p>
     <div class="calendar-grid">
         @foreach (var label in new[] { "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс" }) { <span>@label</span> }
         @for (int i = 0; i < 42; i++)
@@ -16,11 +23,12 @@
             var c = Cardio.Where(w => w.Date == day).ToArray();
             var s = Strength.Where(w => w.Session.Date == day).ToArray();
             <button class="calendar-day @Css.On(day == _selected) @(day.Month != _month.Month ? "muted" : "")" aria-label="День @day.ToString("yyyy-MM-dd")" aria-pressed="@(day == _selected)" @onclick="() => Select(day)">
-                <b>@day.Day</b><span>@(c.Length > 0 ? "●" : "")@(s.Any(x => x.Volume.CompletedSets > 0) ? "◆" : "")</span>
+                <b>@day.Day</b><span class="calendar-state" title="@DayCaption(day)">@DayMark(day)</span><span>@(c.Length > 0 ? "●" : "")@(s.Any(x => x.Volume.CompletedSets > 0) ? "◆" : "")</span>
                 @if (c.Length + s.Length > 0) { <small>@Fmt.N(c.Sum(w => w.DurationMin) + s.Sum(w => w.Session.DurationMinutes ?? 0))м<br />@Fmt.N(c.Sum(w => w.ActiveKcal))к<br />@s.Sum(w => w.Volume.CompletedSets)п</small> }
             </button>
         }
     </div>
+    <ActivityDayPanel Store="_days" Avatar="Avatar" Profile="Profile" Date="_selected" SourceVersion="_sourceVersion" OnChanged="DayChanged" OnShowDailyLoad="OnShowDailyLoad" />
     @{
         var cardio = Cardio.Where(w => w.Date == _selected).ToArray();
         var strength = Strength.Where(w => w.Session.Date == _selected).ToArray();
@@ -28,19 +36,19 @@
         var weekCardio = Cardio.Where(w => w.Date >= monday && w.Date < monday.AddDays(7)).ToArray();
         var week = StrengthAggregation.Week(Strength.Select(s => s.Session), _selected);
     }
-    <h3>@_selected.ToString("dd.MM.yyyy")</h3>
+    <h3>Тренировки за @_selected.ToString("dd.MM.yyyy")</h3>
     <p data-testid="day-totals">Всего @Fmt.N(cardio.Sum(w => w.DurationMin) + strength.Sum(w => w.Session.DurationMinutes ?? 0)) мин · кардио @Fmt.N(cardio.Sum(w => w.ActiveKcal)) активных ккал · @strength.Sum(w => w.Volume.CompletedSets) подходов · @strength.Sum(w => w.Volume.Reps) повторений · @Fmt.N(strength.Sum(w => w.Volume.ExternalVolumeKg)) кг тоннажа</p>
     @if (cardio.Length + strength.Length == 0) { <p class="note">На эту дату тренировок пока нет. Добавьте их ниже.</p> }
     @foreach (var w in cardio) {
         <article class="calendar-entry"><b>@Display.WorkoutTitle(w.Activity, w.Setting)</b> · @Fmt.N(w.DurationMin) мин · @Fmt.N(w.ActiveKcal) ккал
-            <button class="btn" @onclick="() => Edit(w)">Изменить кардио</button>
-            <button class="btn" @onclick="() => _delete = w.Id">Удалить кардио</button>
+            <button class="btn" disabled="@Locked" @onclick="() => Edit(w)">Изменить кардио</button>
+            <button class="btn" disabled="@Locked" @onclick="() => _delete = w.Id">Удалить кардио</button>
             @if (_delete == w.Id) { <button class="btn" @onclick="() => Remove(w.Id)">Подтвердить удаление кардио</button> }
         </article>
     }
     @foreach (var s in strength) {
         <article class="calendar-entry">Силовая · @s.Volume.CompletedSets подходов · @string.Join(", ", s.Exercises.Select(e => ExerciseCatalog.Get(e.ExerciseId).Name))
-            <button class="btn" @onclick="() => OnEditStrength.InvokeAsync(s.Session)">Изменить силовую</button>
+            <button class="btn" disabled="@Locked" @onclick="() => OnEditStrength.InvokeAsync(s.Session)">Изменить силовую</button>
             <button class="btn" @onclick="() => OnShowLoad.InvokeAsync(s.Session.Id)">Нагрузка в 3D</button>
         </article>
     }
@@ -60,6 +68,9 @@
     <MuscleLoadList Load="week.Load" />
 </section>
 @code {
+    [Parameter] public AvatarState? Avatar { get; set; }
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    [Parameter] public EventCallback<MuscleLoadResult> OnShowDailyLoad { get; set; }
     [Parameter] public IReadOnlyList<LoggedWorkout> Cardio { get; set; } = [];
     [Parameter] public IReadOnlyList<SessionSummary> Strength { get; set; } = [];
     [Parameter] public EventCallback<DateOnly> OnDate { get; set; }
@@ -73,7 +84,22 @@
     private string _editDate = "";
     private double _minutes, _kcal;
     private string? _error, _delete;
-    private async Task Select(DateOnly day) { _selected = day; await OnDate.InvokeAsync(day); }
+    private readonly ActivityDayStore _days = new(new BrowserJournalStorage());
+    private string? _dayError;
+    private int _sourceVersion;
+    private IReadOnlyList<LoggedWorkout>? _seenCardio;
+    private IReadOnlyList<SessionSummary>? _seenStrength;
+    private DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+    private bool Locked => _selected > Today || Avatar is not null && _days.Find(Avatar.ProfileId, _selected)?.State is ActivityDayState.Completed or ActivityDayState.RestDay or ActivityDayState.MissingData;
+    protected override void OnParametersSet() {
+        if (Avatar?.ActiveRevision is not null && (!ReferenceEquals(_seenCardio, Cardio) || !ReferenceEquals(_seenStrength, Strength))) {
+            _dayError = _days.Index(Avatar, Today, DateTimeOffset.Now); _seenCardio = Cardio; _seenStrength = Strength; _sourceVersion++;
+        }
+    }
+    private string DayMark(DateOnly date) => date > Today ? "—" : Avatar is null ? "·" : _days.Find(Avatar.ProfileId, date)?.State switch { ActivityDayState.Completed => "✓", ActivityDayState.RestDay => "○", ActivityDayState.MissingData => "?", _ => date == Today ? "сег." : "·" };
+    private string DayCaption(DateOnly date) => date > Today ? "Будущий день" : Avatar is null ? "Не завершён" : _days.Find(Avatar.ProfileId, date)?.State switch { ActivityDayState.Completed => "Завершён", ActivityDayState.RestDay => "День отдыха", ActivityDayState.MissingData => "Нет данных", _ => date == Today ? "Сегодня · открыт" : "Не завершён" };
+    private async Task DayChanged() { _edit = null; _delete = null; await OnDate.InvokeAsync(_selected); StateHasChanged(); }
+    private async Task Select(DateOnly day) { _selected = day; _month = new(day.Year, day.Month, 1); _edit = null; _delete = null; await OnDate.InvokeAsync(day); }
     private void Edit(LoggedWorkout w) { _edit = w; _editDate = w.Date.ToString("yyyy-MM-dd"); _minutes = w.DurationMin; _kcal = w.ActiveKcal; }
     private async Task Remove(string id) { await OnRemove.InvokeAsync(id); _delete = null; }
     private void SaveEdit() {

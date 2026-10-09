@@ -108,6 +108,8 @@ Photo-only check-in допускается как наблюдение со сс
 
 ## 5. Непрерывный ActivityDay
 
+**Phase 3 реализована:** точный контракт — [ACTIVITY_DAY](ACTIVITY_DAY.md). В этой версии единый `Open` обозначает planned/editable день. Только явные Completed/RestDay создают frozen fact. Future/empty dates не создают факт. Reopen/amend и питание ниже остаются будущими расширениями.
+
 После Confirm стартовый рабочий экран — **Активность / сегодня**. Day 9 означает 9-е число текущего месяца, а ключ хранит полную дату. Пропущенные даты остаются в календаре. Часовой пояс дня фиксируется при создании; смена timezone не передвигает закрытую историю. UTC timestamp и local date сохраняются вместе, включая переходы через полночь.
 
 `Planned/Open` означает рабочую группу: `Planned` — создана копия шаблона, `Open` — идёт заполнение. Оба состояния исключены из behavioral forecast evidence.
@@ -116,31 +118,26 @@ Photo-only check-in допускается как наблюдение со сс
 |---|---|---|
 | Planned / Open | План и все фактические записи пока draft | Нет |
 | Completed | Пользователь прошёл review и Close Day | Только связанная подтверждённая ClosedActivityDay revision, с coverage |
-| RestDay | Пользователь явно подтвердил отдых, прошёл Close Day; питание и бытовая активность могут быть | ClosedActivityDay с rest outcome; отдых не означает нулевой расход или нулевую еду |
-| MissingData | День не закрыт, данных нет или статус ещё не выяснен | Нет fabricated behavior; gaps учитываются в uncertainty/confidence |
+| RestDay | Явный review/confirm отдыха; Phase 3 требует отсутствия записанных событий | ClosedActivityDay с rest outcome; не оценка полного суточного расхода |
+| MissingData | Пользователь явно подтвердил отсутствие достоверного итога за прошлый день | Closure отсутствует; в будущем gap должен повышать uncertainty |
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Planned
-    Planned --> Open: first draft event
-    Planned --> MissingData: day elapsed without Close Day
-    Open --> MissingData: day elapsed without Close Day
-    MissingData --> Open: restore partial records
+    [*] --> Open: today or historical journal index
+    Open --> MissingData: explicit confirmation for past day
     Open --> Review: Close Day
-    Planned --> Review: confirm rest
-    MissingData --> Review: confirm rest with coverage
     Review --> Open: fix or cancel
     Review --> Completed: confirm activity summary
     Review --> RestDay: confirm rest summary
 ```
 
-Review — состояние процесса, не пятый завершённый day outcome. Утром/при следующем входе незакрытый день запрашивает: «День отдыха», «Активность была — заполнить», «Данных нет». Неотвеченный запрос оставляет MissingData; он не блокирует ввод сегодня. Draft записи сохраняются для восстановления.
+Review — состояние процесса, не пятый завершённый day outcome. Утром/при следующем входе незакрытый день предлагает: заполнить, «День отдыха», «Нет данных». Неотвеченный запрос оставляет день незавершённым; он не блокирует ввод сегодня. Draft записи сохраняются. В Phase 3 все три подтверждённых исхода терминальны: исправление запрещено до отдельного audit/amend workflow.
 
 ### Plan и ActivityEvent
 
 Template копируется в DailyPlan; изменения настроек влияют на будущие дни. Сегодняшний draft можно перестроить явно; закрытый план сохраняется для сравнения. Пропущенный слот не превращается в выполненное событие, а поздняя еда не становится нарушением состава тела.
 
-ActivityEvent v1 поддерживает `CardioWalking`, `Strength`, `MobilityStretching`, `SpontaneousExercise`, `Nutrition`. Примеры: растяжка 8 минут, ходьба 10 км, мини-сессии приседаний/отжиманий, вечерняя силовая, реальные meals. Existing cardio/TrainingSession — источник workout payload; общий слой связывает их с днём, не создаёт второй журнал тренировок. Стабильные source IDs и revision предотвращают двойной учёт одной прогулки/силовой, включая импорт и мини-сессии. Классифицированное как strength событие не учитывается ещё раз как spontaneous.
+ActivityEvent v1 поддерживает Walking, Cardio, Strength, Mobility, Spontaneous и Other physical note. Питание — Phase 4. Existing cardio/TrainingSession остаются владельцами workout payload; слой дня хранит ссылки. Стабильный source ID не индексируется дважды. Отдельно вручную внесённые одинаковые занятия автоматически не распознаются: форма предупреждает не дублировать кардио.
 
 Future kinds meditation/journal/sleep/mental training допустимы через schema/capability extension. Сейчас нет их UI, inference, scoring или отдельных production моделей; неизвестный future kind сохраняется при backup, но не передаётся молча в body forecast.
 
@@ -162,6 +159,8 @@ Basis должен быть положительным и finite; actual grams �
 Meal time — организационный параметр. Перенос завтрака с 06:00 на 09:00 при тех же totals не должен сам менять body composition, ставить штраф или общий `food quality 73/100`. Показывать конкретные kcal, P/F/C, полноту данных и сравнение с планом. Позже: saved dishes, ingredients/recipes, food DB/barcodes через адаптер; внешняя nutrition API не нужна v1.
 
 ## 7. Close Day и исправления
+
+**Реализованный срез Phase 3:** один frozen closure на день, без amendment, nutrition, balance, advisory или forecast mutation. Защищены также linked source journals. Summary содержит только physical actual events, partial active kcal, coverage, adherence и muscle load. Описанные далее питание и superseding revisions — целевой контракт следующих фаз; детали текущей реализации в [ACTIVITY_DAY](ACTIVITY_DAY.md).
 
 Процесс: **review → исправления → расчёт summary → явное подтверждение → атомарная ClosedActivityDay revision**. До последнего шага записи редактируемы. Повтор клика/перезагрузка/повтор запроса с тем же idempotency key не создают второй факт. CAS по draft revision не допускает закрытия устаревшей вкладки.
 

@@ -9,6 +9,8 @@ public interface IJournalStorage
     string? Read(string key);
     /// <summary>Atomic within the browser task; reject stale snapshots from another tab.</summary>
     bool CompareExchange(string key, string? expected, string value);
+    bool CompareExchangeChecked(string key, string? expected, string value, IReadOnlyDictionary<string, string?> guards) =>
+        guards.All(p => Read(p.Key) == p.Value) && CompareExchange(key, expected, value);
 }
 
 public sealed record StrengthJournalData(int SchemaVersion, TrainingSession[] Sessions);

@@ -2,6 +2,15 @@
 // localStorage может быть недоступен (приватный режим, запрет сайта) — тогда просто не сохраняем.
 
 import { assertWritable } from './data-guard.js';
+import { assertActivitySourceWrite, activityKey, sourceKeys } from './activity-guard.js';
+const observedSources = new Map();
+function guardSource(key, value) {
+    if (!sourceKeys.includes(key)) return;
+    const previous = localStorage.getItem(key);
+    if (observedSources.has(key) && observedSources.get(key) !== previous) throw Error('Журнал изменён в другой вкладке. Перезагрузите страницу.');
+    const now = new Date(), today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    assertActivitySourceWrite(key, previous, value, localStorage.getItem(activityKey), today);
+}
 const blocked = new Set();
 export function blockKey(key, message) { blocked.add(key); reportStorageError(message); }
 export function reportStorageError(message) {
@@ -12,6 +21,7 @@ export function reportStorageError(message) {
 export function getItem(key) {
     try {
         const value = localStorage.getItem(key);
+        if (sourceKeys.includes(key) && !observedSources.has(key)) observedSources.set(key, value);
         if (value !== null && key !== 'workoutcalc.model.v1') {
             try { JSON.parse(value); } catch { blocked.add(key); reportStorageError('Повреждены сохранённые данные. Запись заблокирована; сохраните backup в разделе «Профиль».'); return null; }
         }
@@ -26,10 +36,12 @@ export function setItem(key, value) {
     try {
         assertWritable();
         if (blocked.has(key)) throw Error("Повреждённые данные защищены от перезаписи.");
+        guardSource(key, value);
         localStorage.setItem(key, value);
+        if (sourceKeys.includes(key)) observedSources.set(key, value);
         return true;
-    } catch {
-        reportStorageError("Изменения не сохранены: хранилище недоступно, заполнено или изменено в другой вкладке. Сделайте backup и перезагрузите страницу.");
+    } catch (e) {
+        reportStorageError(e.message || "Изменения не сохранены. Сделайте backup и перезагрузите страницу.");
         return false;
     }
 }
@@ -43,8 +55,16 @@ export function compareExchange(key, expected, value) {
     assertWritable();
     if (blocked.has(key)) throw Error("Повреждённая запись защищена от изменений.");
     if (localStorage.getItem(key) !== expected) return false;
+    guardSource(key, value);
     localStorage.setItem(key, value);
+    if (sourceKeys.includes(key)) observedSources.set(key, value);
     return true;
+}
+
+export function compareExchangeChecked(key, expected, value, guardsJson) {
+    assertWritable();
+    for (const [k,v] of Object.entries(JSON.parse(guardsJson))) if (localStorage.getItem(k) !== v) return false;
+    return compareExchange(key, expected, value);
 }
 
 /** Copy borrowed WASM memory synchronously, then hash in native Web Crypto (no network). */
