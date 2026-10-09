@@ -1,0 +1,69 @@
+@using WorkoutCalculator.BodyModel.History
+@using Microsoft.JSInterop
+@using System.Text.Json.Nodes
+@inject IJSRuntime JS
+<section class="card validation-panel" aria-label="Ручная проверка">
+    <h2>Ручная проверка</h2>
+    <h3>Замеры и 3D</h3>
+    <div class="table-scroll"><table class="changes"><thead><tr><th>Обхват</th><th>Введено</th><th>3D</th><th>Разница</th><th>Источник</th></tr></thead><tbody>
+    @foreach (var g in Enum.GetValues<Girth>()) {
+        var observation = Fact?.Measurements.GetValueOrDefault(g); var calculated = Body?.MeasureGirthCm(g);
+        <tr><td>@BodyProfile.GirthName(g)</td><td>@Num(observation?.Cm)</td><td>@Num(calculated)</td><td>@Num(observation is not null && calculated is not null ? calculated - observation.Cm : null)</td><td>@(observation is null ? "Оценка для 3D" : observation.Method == MeasurementMethod.Manual ? "Лента" : "Фото")</td></tr>
+    }
+    </tbody></table></div>
+    <h3>Фото и контрольная лента</h3>
+    <p class="note">Введите независимые значения в сантиметрах. Фото зависит от ракурса, одежды и положения ленты; сравнивайте один и тот же уровень.</p>
+    <label>Лента, см<input type="number" aria-label="Контрольная лента" @bind="_manual.Tape" /></label>
+    <label>Оценка по фото, см<input type="number" aria-label="Контрольная оценка фото" @bind="_manual.Photo" /></label>
+    <p>Абсолютная ошибка: @Num(_manual.Tape.HasValue && _manual.Photo.HasValue ? Math.Abs(_manual.Tape.Value - _manual.Photo.Value) : null) см.</p>
+    <h3>Расход на тренировке</h3>
+    <div class="table-scroll"><table class="changes"><thead><tr><th>Дата</th><th>Модель, ккал</th><th>Часы, ккал</th><th>Разница</th></tr></thead><tbody>
+        @foreach (var w in Cardio) { <tr><td>@w.Date.ToString("dd.MM.yyyy")</td><td>@Num(w.ActiveKcal)</td><td>@Num(w.WatchActiveKcal)</td><td>@Num(w.WatchActiveKcal is { } watch ? w.ActiveKcal-watch : null)</td></tr> }
+    </tbody></table></div>
+    <label>Дата контрольной тренировки<input type="date" value="@_manual.Date" @onchange="e => _manual.Date = e.Value?.ToString() ?? string.Empty" /></label>
+    <label>Внешняя оценка активных ккал (необязательно)<input type="number" aria-label="Внешние ккал" @bind="_manual.ExternalKcal" /></label>
+    <button class="btn" @onclick="SaveManual">Сохранить контрольные значения</button>
+    <h3>Прогноз и последующие измерения</h3>
+    @if (Calibration.Archive.Forecasts.Length == 0) { <p>Сначала сохраните прогноз в разделе «План», затем добавляйте реальные замеры.</p> }
+    else { <ForecastAccuracy State="Calibration" OnNew="NoOp" OnSave="NoOp" OnSelect="SelectForecast" /> }
+    <p class="note">Проверка изменения формы: сравнивайте обхваты, выполненные подходы и программу с сохранённой проекцией. Это косвенные наблюдения; килограммы отдельной мышцы не являются измеряемым результатом этой проверки.</p>
+    <h3>Пакет для анализа</h3>
+    <p>Выберите данные для файла validation-package.zip. Имена, заметки, локальные ID, PIN и ключи не экспортируются. Даты и параметры тела остаются чувствительными данными.</p>
+    @foreach (var item in Choices) { <label class="check"><input type="checkbox" @bind="_selected[item.Key]" /> @item.Value</label> }
+    <label class="check"><input type="checkbox" @bind="_photos" /> Явно включить фотографии (нужна разблокировка PIN)</label>
+    <button class="btn" @onclick="Export" disabled="@_busy">Экспортировать validation package</button>
+    @if (_message is not null) { <p role="status">@_message</p> }
+</section>
+@code {
+    [Parameter] public BodySnapshot? Fact { get; set; }
+    [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
+    [Parameter] public IBodyShape? Body { get; set; }
+    [Parameter] public IReadOnlyList<BodySnapshot> Facts { get; set; } = [];
+    [Parameter] public IReadOnlyList<LoggedWorkout> Cardio { get; set; } = [];
+    [Parameter, EditorRequired] public PersonalizedForecastState Calibration { get; set; } = default!;
+    private static readonly Dictionary<string,string> Choices = new() { ["profile"]="Параметры профиля без идентификаторов", ["facts"]="История фактических замеров", ["forecasts"]="Версии прогнозов", ["workouts"]="Сводки тренировок", ["validation"]="Метрики и контрольные значения" };
+    private Dictionary<string,bool> _selected = Choices.Keys.ToDictionary(k => k, _ => false);
+    private ManualValidation _manual = new();
+    private bool _photos, _busy;
+    private string? _message;
+    protected override void OnInitialized() { try { var raw=BrowserStorage.GetItem("workoutcalc.validation.v1"); if(raw is not null) _manual=System.Text.Json.JsonSerializer.Deserialize(raw,ValidationJson.Default.ManualValidation) ?? new(); } catch { _message="Контрольные значения не прочитаны; исходная запись сохранена."; } }
+    private static string Num(double? n) => n is { } v ? Fmt.N(v,1) : "—";
+    private void SaveManual() {
+        try { _manual.Validate(); }
+        catch (ArgumentException e) { _message=e.Message; return; }
+        _message=BrowserStorage.SetItem("workoutcalc.validation.v1",System.Text.Json.JsonSerializer.Serialize(_manual,ValidationJson.Default.ManualValidation))
+            ? "Контрольные значения сохранены на устройстве." : "Контрольные значения не сохранены. Проверьте хранилище браузера.";
+    }
+    private void NoOp() { _message="Создание прогноза доступно в разделе «План»."; }
+    private void SelectForecast(string? id) { Calibration.Select(id); Calibration.Evaluate(Facts, DateOnly.FromDateTime(DateTime.Now)); }
+    private async Task Export() {
+        _busy=true;
+        try {
+            var options=new JsonObject(); foreach(var (key,value) in _selected) options[key]=value; options["photos"]=_photos;
+            var report=new JsonObject { ["body"] = new JsonArray(Enum.GetValues<Girth>().Select(g => (JsonNode)new JsonObject { ["girth"]=g.ToString(),["entered"]=Fact?.Measurements.GetValueOrDefault(g)?.Cm,["calculated"]=Body?.MeasureGirthCm(g),["source"]=Fact?.Measurements.GetValueOrDefault(g)?.Method.ToString() ?? "visual-estimate" }).ToArray()),
+                ["evaluation"] = System.Text.Json.JsonSerializer.SerializeToNode(Calibration.Evaluation, ValidationJson.Default.ImmutableArrayForecastObservation),
+                ["manual"] = System.Text.Json.JsonSerializer.SerializeToNode(_manual, ValidationJson.Default.ManualValidation) };
+            var m=await JS.InvokeAsync<IJSObjectReference>("import","./js/validation.js"); await m.InvokeVoidAsync("exportValidation", options.ToJsonString(), report.ToJsonString(), AppInfo.Build); _message="Пакет подготовлен для скачивания.";
+        } catch(Exception e) { _message="Экспорт не выполнен. "+e.Message.Split('\n')[0]; } finally { _busy=false; }
+    }
+}

@@ -19,11 +19,12 @@ const assert = require('node:assert/strict');
                 '\nexport function smokeState() { return {meshes, rigs, muscleLoads, heatmapEnabled}; }' });
         });
         const url = process.env.APP_URL || 'http://127.0.0.1:5256';
+        await page.addInitScript(() => { if (!localStorage.getItem('workoutcalc.body.v1')) localStorage.setItem('workoutcalc.body.v1', JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57})); });
         await page.goto(url);
         const ready = async () => {
             await page.getByLabel('Нагрузка мышц', { exact: true }).waitFor({ timeout: 60000 });
             await page.waitForFunction(() => !document.querySelector('input[type=checkbox][disabled]') &&
-                document.querySelector('.view-stats')?.textContent.includes('MakeHuman'), null, { timeout: 60000 });
+                document.querySelector('[data-model-ready]')?.dataset.modelReady === 'true', null, { timeout: 60000 });
             await page.evaluate(async () => { window.viewer = await import(new URL('js/viewer.js', document.baseURI)); });
         };
         await ready();
@@ -33,7 +34,7 @@ const assert = require('node:assert/strict');
         await page.evaluate(payload => localStorage.setItem('workoutcalc.workouts.v1', payload), cardio);
         await page.reload(); await ready();
         const openJournal = async () => {
-            await page.getByRole('tab', { name: 'Тренировка', exact: true }).click();
+            await page.getByRole('tab', { name: 'Активность', exact: true }).click();
             await page.getByRole('button', { name: 'Силовая', exact: true }).click();
         };
         await openJournal();
@@ -157,7 +158,7 @@ const assert = require('node:assert/strict');
         await page.route('**/data/makehuman-muscle-atlas-v1.bin', route => route.fulfill({
             status: 200, contentType: 'application/octet-stream', body: Buffer.alloc(128) }));
         await page.reload();
-        await page.waitForFunction(() => document.querySelector('.view-stats')?.textContent.includes('MakeHuman'), null, { timeout: 60000 });
+        await page.waitForFunction(() => document.querySelector('[data-model-ready]')?.dataset.modelReady === 'true', null, { timeout: 60000 });
         assert.ok(await page.getByLabel('Нагрузка мышц', { exact: true }).isDisabled());
         assert.ok(await page.getByText('Карта мышц несовместима с моделью. Обновите приложение; анимация доступна.', { exact: true }).isVisible());
         await page.getByRole('button', { name: '▶ Упражнение', exact: true }).click();

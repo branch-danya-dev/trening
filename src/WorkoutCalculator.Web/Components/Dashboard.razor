@@ -1,0 +1,33 @@
+@using WorkoutCalculator.BodyModel.History
+@using WorkoutCalculator.Strength
+<section class="card dashboard" aria-label="Обзор">
+    <p class="eyebrow">Ваше тело сегодня</p><h1>Модель и прогресс</h1>
+    <div class="dashboard-grid">
+        <div><small>Последний измеренный вес</small><strong>@(Fact?.WeightKg is { } kg ? Fmt.N(kg, 1) + " кг" : "Нет данных")</strong></div>
+        <div><small>Изменение за 30 дней</small><strong>@Delta</strong></div>
+        <div><small>Тренировки недели</small><strong>@(Cardio.Count(w => w.Date >= Monday && w.Date < Monday.AddDays(7)) + Strength.Week.SessionCount)</strong></div>
+        <div><small>Последняя тренировка</small><strong>@LastWorkout</strong></div>
+    </div>
+    <p>Цель: <b>@Goal</b></p>
+    <p>Следующий план: @(Plan.Plan.StrengthProgram is { } program && program.Sessions.Length > 0 ? Plan.Name + " · " + WorkoutCalculator.Exercises.ExerciseCatalog.Get(program.Sessions[0].Exercises[0].ExerciseId).Name : "Добавьте программу в разделе «План»")</p>
+    <p>Настройка прогноза по вашей истории: @(Calibration.CurrentRevision is null ? "нужны повторные измерения" : "история учтена; подробности в разделе «План»").</p>
+</section>
+@code {
+    [Parameter] public BodySnapshot? Fact { get; set; }
+    [Parameter] public IReadOnlyList<BodySnapshot> Facts { get; set; } = [];
+    [Parameter] public IReadOnlyList<LoggedWorkout> Cardio { get; set; } = [];
+    [Parameter, EditorRequired] public StrengthJournalState Strength { get; set; } = default!;
+    [Parameter] public string Goal { get; set; } = "";
+    [Parameter, EditorRequired] public SavedHypothesis Plan { get; set; } = default!;
+    [Parameter, EditorRequired] public PersonalizedForecastState Calibration { get; set; } = default!;
+    private DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
+    private DateOnly Monday => StrengthAggregation.MondayOf(Today);
+    private string LastWorkout => Cardio.Select(w => w.Date).Concat(Strength.Sessions.Select(s => s.Date)).Where(d => d <= Today).OrderDescending().Select(d => d.ToString("dd.MM.yyyy")).FirstOrDefault() ?? "Пока нет";
+    private string Delta {
+        get {
+            if (Fact?.WeightKg is not { } now) return "Нет пары замеров";
+            var old = Facts.Where(f => f.Date <= Fact.Date.AddDays(-30) && f.WeightKg.HasValue).OrderBy(f => f.Date).LastOrDefault();
+            return old?.WeightKg is { } kg && old.Date >= Fact.Date.AddDays(-37) ? Fmt.N(now - kg, 1) + " кг" : "Нет пары замеров";
+        }
+    }
+}

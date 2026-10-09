@@ -1,0 +1,40 @@
+@using Microsoft.JSInterop
+@using System.Text.Json
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+<section class="card backup-panel" aria-label="Резервная копия">
+    <h2>Резервная копия</h2>
+    <p>Один ZIP: профиль, планы, журналы, история тела, сохранённые прогнозы, фотографии и настройки. Храните его в надёжном месте. Защищённые фото останутся зашифрованными и потребуют прежний PIN.</p>
+    <button class="btn" disabled="@_busy" @onclick="Export">Скачать полный backup</button>
+    <h3>Восстановить</h3>
+    <input id="@_inputId" aria-label="Архив резервной копии" type="file" accept=".zip" @onchange="Inspect" disabled="@_busy" />
+    @if (_summary is not null)
+    {
+        <p>@_summary</p>
+        <p>Будут заменены все локальные данные приложения, включая записи, которых нет в архиве. Перед заменой скачается копия текущих данных.</p>
+        <label class="check"><input type="checkbox" @bind="_confirm" /> Подтверждаю замену всех данных</label>
+        <button class="btn primary" disabled="@(!_confirm || _busy)" @onclick="Restore">Восстановить данные</button>
+    }
+    @if (_status is not null) { <p role="status">@_status</p> }
+    @if (_error is not null) { <p role="alert">@_error</p> }
+</section>
+@code {
+    private readonly string _inputId = "backup-" + Guid.NewGuid().ToString("N");
+    private bool _busy, _confirm;
+    private string? _summary, _error, _status;
+    private async Task<IJSObjectReference> Module() => await JS.InvokeAsync<IJSObjectReference>("import", "./js/backup.js");
+    private async Task Run(Func<IJSObjectReference, Task> action) {
+        _busy = true; _error = null;
+        try { var m = await Module(); await action(m); }
+        catch (Exception e) { _error = e is JSException ? e.Message.Split('\n')[0] : "Архив не прошёл проверку. Прежние данные сохранены."; }
+        finally { _busy = false; }
+    }
+    private Task Export() => Run(async m => { await m.InvokeVoidAsync("exportBackup", AppInfo.Build); _status = "Архив подготовлен для скачивания."; });
+    private Task Inspect() { _summary = null; _confirm = false; return Run(async m => {
+        var raw = await m.InvokeAsync<string>("inspectInput", _inputId);
+        var local = await m.InvokeAsync<string>("preparedLocal"); BackupValidation.Validate(local);
+        using var doc = JsonDocument.Parse(raw); var r = doc.RootElement;
+        _summary = $"Архив от {r.GetProperty("createdAt").GetString()}, сборка {r.GetProperty("build").GetString()}. Разделов: {r.GetProperty("sections").GetArrayLength()}, фотосессий: {r.GetProperty("photos").GetInt32()}, файлов изображений: {r.GetProperty("images").GetInt32()}.";
+    }); }
+    private Task Restore() => Run(async m => { if (!_confirm) return; await m.InvokeVoidAsync("restorePrepared", AppInfo.Build); Navigation.NavigateTo(Navigation.Uri, forceLoad: true); });
+}

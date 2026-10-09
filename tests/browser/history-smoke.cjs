@@ -19,10 +19,11 @@ const assert = require('node:assert/strict');
         const url = process.env.APP_URL || 'http://127.0.0.1:5256';
         const key = 'workoutcalc.bodySnapshots.v1';
         const ready = async p => {
-            await p.waitForFunction(() => document.querySelector('.view-stats')?.textContent.includes('MakeHuman'), null, { timeout: 60000 });
+            await p.waitForFunction(() => document.querySelector('[data-model-ready]')?.dataset.modelReady === 'true', null, { timeout: 60000 });
             await p.evaluate(async () => { window.viewer = await import(new URL('js/viewer.js', document.baseURI)); });
         };
-        const open = p => p.getByRole('tab', { name: 'История', exact: true }).click();
+        const open = p => p.getByRole('tab', { name: 'Прогресс', exact: true }).click();
+        await page.addInitScript(() => { if (!localStorage.getItem('workoutcalc.body.v1')) localStorage.setItem('workoutcalc.body.v1', JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57})); });
         await page.goto(url); await ready(page);
         const legacy = await page.evaluate(async () => {
             const weights = JSON.stringify([{ Date: '2026-10-02', WeightKg: 89 }]);
@@ -147,9 +148,9 @@ const assert = require('node:assert/strict');
         await modes.getByRole('button', { name: 'Сейчас', exact: true }).click();
         await page.getByLabel('Нагрузка мышц', { exact: true }).check();
         assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material.vertexColors), true);
-        await page.getByRole('tab', { name: 'Фото', exact: true }).click();
+        await page.getByRole('tab', { name: 'Модель', exact: true }).click(); await page.getByRole('button', { name: 'Фото', exact: true }).click();
         await page.locator('.session').first().waitFor({ timeout: 10000 });
-        await page.getByRole('tab', { name: 'Тренировка', exact: true }).click();
+        await page.getByRole('tab', { name: 'Активность', exact: true }).click();
         assert.match(await page.locator('.panel-body').innerText(), /123/);
         await open(page);
 

@@ -17,8 +17,9 @@ const assert = require('node:assert/strict');
             await route.fulfill({ response, body: await response.text() +
                 '\nexport function smokeState() { return {meshes, rigs, ghostDepth, ghostRim, tapes, renderer, camera, muscleAtlas, muscleLoads, heatmapEnabled}; }' });
         });
+        await page.addInitScript(() => { if (!localStorage.getItem('workoutcalc.body.v1')) localStorage.setItem('workoutcalc.body.v1', JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57})); });
         await page.goto(process.env.APP_URL || 'http://127.0.0.1:5256');
-        await page.waitForFunction(() => document.querySelector('.view-stats')?.textContent.includes('MakeHuman'), null, { timeout: 60000 });
+        await page.waitForFunction(() => document.querySelector('[data-model-ready]')?.dataset.modelReady === 'true', null, { timeout: 60000 });
         await page.evaluate(async () => {
             window.viewer = await import(new URL('js/viewer.js', document.baseURI));
             window.three = await import(new URL('lib/three/three.module.js', document.baseURI));
@@ -83,6 +84,7 @@ const assert = require('node:assert/strict');
 
         // A profile rebuild must discard the old animation and bind to the newly fitted posture.
         await page.evaluate(() => viewer.playAnimation('current', 'biceps-curl'));
+        await page.locator('.model-adjustments > summary').click();
         await page.getByRole('textbox', { name: 'Сутулость', exact: true }).fill('20');
         await page.getByRole('textbox', { name: 'Сутулость', exact: true }).press('Tab');
         await page.waitForFunction(() => viewer.smokeState().meshes.current !== originalCurrent);
@@ -105,7 +107,7 @@ const assert = require('node:assert/strict');
         await page.getByRole('button', { name: 'Сейчас', exact: true }).click();
         assert.equal(await page.evaluate(() => viewer.smokeState().meshes.current.material.vertexColors), true);
 
-        await page.getByRole('tab', { name: 'Гипотеза', exact: true }).click();
+        await page.getByRole('tab', { name: 'План', exact: true }).click();
         await page.getByRole('button', { name: 'Сравнение', exact: true }).click();
         await page.getByLabel('ленты замеров', { exact: false }).check();
         await page.waitForFunction(() => viewer.smokeState().tapes.forecast?.children.length > 0);

@@ -2,7 +2,7 @@
 @if (Snapshot?.Muscle is { } muscle)
 {
     <section class="card muscle-forecast" aria-label="Изменение мышц">
-        <div class="card-title">Изменение мышц · @Snapshot.HorizonWeeks нед.</div>
+        <div class="card-title">Прогноз изменения формы · @Snapshot.HorizonWeeks нед.</div>
         <p>@muscle.Stimulus.Planned.Sessions занятий / @muscle.Stimulus.Planned.Sets подходов в неделю.</p>
         <p class="note">Относительная адаптация и форма — модель, не измерение мышечной массы, не медицинская оценка. Стимул не равен EMG.</p>
         <div class="table-scroll"><table class="changes">

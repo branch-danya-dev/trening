@@ -4,6 +4,7 @@
 // не сохраняются. Для списка хранятся превью. Экспорт и импорт — обычный zip: его можно открыть на компьютере.
 // С PIN-кодом снимки и превью хранятся зашифрованными (AES-GCM, ключ из PIN через PBKDF2) — см. «Защита».
 
+import { assertWritable } from './data-guard.js';
 const DB_NAME = 'body3d-photos';
 const DB_VERSION = 2; // 2 — хранилище settings (PIN)
 const MAX_SIDE = 2048;
@@ -32,6 +33,7 @@ function openDb() {
 async function transact(mode, work) {
     const db = await openDb();
     return new Promise((resolve, reject) => {
+        if (mode === 'readwrite') assertWritable();
         const tx = db.transaction(['sessions', 'images'], mode);
         let result;
         tx.oncomplete = () => resolve(result);
@@ -116,6 +118,15 @@ async function unseal(record) {
     return new Blob([await decryptBytes(cryptoKey, record.iv, record.data)], { type: record.type });
 }
 
+/** Explicit analysis export only. Excludes thumbnails, PIN settings, local keys and photo metadata. */
+export async function analysisImages() {
+    const db = await openDb();
+    const records = await req(db.transaction('images', 'readonly').objectStore('images').getAll());
+    const result = [];
+    for (const row of records) if (!row.key.endsWith('/thumb')) result.push(await unseal(row));
+    return result;
+}
+
 /** Ключ для новых снимков: null — защита выключена; включена, но закрыта — исключение. */
 async function writeKey() {
     if (!(await pinSettings())) return null;
@@ -143,6 +154,7 @@ async function rewriteImages(rewrite, pin) {
     const next = [];
     for (const r of records) next.push({ key: r.key, ...(await rewrite(r)) });
     await new Promise((resolve, reject) => {
+        assertWritable();
         const tx = db.transaction(['images', 'settings'], 'readwrite');
         tx.oncomplete = resolve;
         tx.onerror = () => reject(tx.error ?? new Error('Ошибка хранилища'));
@@ -181,20 +193,21 @@ export async function unlock(pin) {
 }
 
 /** Закрывает снимки: ключ забывается, расшифрованные адреса освобождаются, интерфейс получает onLock. */
-export function lock() {
+export function lock(notify = true) {
     if (!cryptoKey) return;
     cryptoKey = null;
     for (const url of openUrls) URL.revokeObjectURL(url);
     openUrls.clear();
     thumbUrls.forEach(URL.revokeObjectURL);
     thumbUrls = [];
-    lockListener?.();
+    if (notify) lockListener?.();
 }
 
 /** Кого известить о блокировке (в том числе автоматической); null — никого. */
 export function onLock(callback) {
     lockListener = callback ?? null;
 }
+export function clearLockListener() { lockListener = null; }
 
 /** Снимает защиту: проверка PIN, все снимки расшифровываются, соль и проверка удаляются. */
 export async function disablePin(pin) {

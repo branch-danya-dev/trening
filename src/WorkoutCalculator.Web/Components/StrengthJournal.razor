@@ -47,6 +47,7 @@
                             <label>@set.EffortKind.ToUpperInvariant()<input class="text-input" inputmode="decimal" placeholder="не указан" @bind="set.Effort" /></label>
                         </div>
                         <div class="strength-set-actions">
+                            <label>Сторона<select class="select" aria-label="Сторона" @bind="set.Side"><option value="Bilateral">Обе одновременно</option><option value="Left">Левая</option><option value="Right">Правая</option><option value="Alternating">Поочерёдно</option></select></label>
                             <label class="check"><input type="checkbox" @bind="set.Completed" /> Выполнен</label>
                             <label class="check"><input type="checkbox" @bind="set.Bodyweight" /> Собственный вес</label>
                             <button class="btn-link" aria-label="Удалить подход @setNumber" @onclick="() => RemoveSet(exercise, set)">Удалить подход</button>
@@ -58,6 +59,7 @@
         }
         <button class="btn" disabled="@(State.Draft.Exercises.Count >= 100)" @onclick="AddExercise">+ Упражнение</button>
         <label class="form-field strength-notes">Заметки<textarea class="text-input" maxlength="4000" @bind="State.Draft.Notes"></textarea></label>
+        <p class="note">Повторения — общее число движений: при поочерёдном выполнении делятся между сторонами, нечётное повторение — слева. Прогноз изменения формы пока симметричный.</p>
         <p class="note">RIR — сколько повторений осталось в запасе (0–10); RPE — усилие (1–10). Можно оставить пустым: для нагрузки используется RIR 2. Пока нет личного опорного веса, килограммы не меняют подсветку. Тоннаж учитывает только выполненные подходы с внешним весом; подходы «собственный вес» исключены.</p>
         @if (State.Migrating)
         {

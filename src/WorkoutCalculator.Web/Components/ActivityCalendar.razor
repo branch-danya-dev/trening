@@ -1,0 +1,86 @@
+@using WorkoutCalculator.Strength
+@using WorkoutCalculator.Exercises
+<section class="card activity-calendar" aria-label="Календарь активности">
+    <h2>Активность</h2>
+    <div class="calendar-header">
+        <button class="btn" aria-label="Предыдущий месяц" @onclick="() => _month = _month.AddMonths(-1)">←</button>
+        <strong>@_month.ToString("MM.yyyy")</strong>
+        <button class="btn" aria-label="Следующий месяц" @onclick="() => _month = _month.AddMonths(1)">→</button>
+    </div>
+    <p class="note">● кардио · ◆ силовая · минуты / активные ккал / выполненные подходы</p>
+    <div class="calendar-grid">
+        @foreach (var label in new[] { "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс" }) { <span>@label</span> }
+        @for (int i = 0; i < 42; i++)
+        {
+            var day = StrengthAggregation.MondayOf(_month).AddDays(i);
+            var c = Cardio.Where(w => w.Date == day).ToArray();
+            var s = Strength.Where(w => w.Session.Date == day).ToArray();
+            <button class="calendar-day @Css.On(day == _selected) @(day.Month != _month.Month ? "muted" : "")" aria-label="День @day.ToString("yyyy-MM-dd")" aria-pressed="@(day == _selected)" @onclick="() => Select(day)">
+                <b>@day.Day</b><span>@(c.Length > 0 ? "●" : "")@(s.Any(x => x.Volume.CompletedSets > 0) ? "◆" : "")</span>
+                @if (c.Length + s.Length > 0) { <small>@Fmt.N(c.Sum(w => w.DurationMin) + s.Sum(w => w.Session.DurationMinutes ?? 0))м<br />@Fmt.N(c.Sum(w => w.ActiveKcal))к<br />@s.Sum(w => w.Volume.CompletedSets)п</small> }
+            </button>
+        }
+    </div>
+    @{
+        var cardio = Cardio.Where(w => w.Date == _selected).ToArray();
+        var strength = Strength.Where(w => w.Session.Date == _selected).ToArray();
+        var monday = StrengthAggregation.MondayOf(_selected);
+        var weekCardio = Cardio.Where(w => w.Date >= monday && w.Date < monday.AddDays(7)).ToArray();
+        var week = StrengthAggregation.Week(Strength.Select(s => s.Session), _selected);
+    }
+    <h3>@_selected.ToString("dd.MM.yyyy")</h3>
+    <p data-testid="day-totals">Всего @Fmt.N(cardio.Sum(w => w.DurationMin) + strength.Sum(w => w.Session.DurationMinutes ?? 0)) мин · кардио @Fmt.N(cardio.Sum(w => w.ActiveKcal)) активных ккал · @strength.Sum(w => w.Volume.CompletedSets) подходов · @strength.Sum(w => w.Volume.Reps) повторений · @Fmt.N(strength.Sum(w => w.Volume.ExternalVolumeKg)) кг тоннажа</p>
+    @if (cardio.Length + strength.Length == 0) { <p class="note">На эту дату тренировок пока нет. Добавьте их ниже.</p> }
+    @foreach (var w in cardio) {
+        <article class="calendar-entry"><b>@Display.WorkoutTitle(w.Activity, w.Setting)</b> · @Fmt.N(w.DurationMin) мин · @Fmt.N(w.ActiveKcal) ккал
+            <button class="btn" @onclick="() => Edit(w)">Изменить кардио</button>
+            <button class="btn" @onclick="() => _delete = w.Id">Удалить кардио</button>
+            @if (_delete == w.Id) { <button class="btn" @onclick="() => Remove(w.Id)">Подтвердить удаление кардио</button> }
+        </article>
+    }
+    @foreach (var s in strength) {
+        <article class="calendar-entry">Силовая · @s.Volume.CompletedSets подходов · @string.Join(", ", s.Exercises.Select(e => ExerciseCatalog.Get(e.ExerciseId).Name))
+            <button class="btn" @onclick="() => OnEditStrength.InvokeAsync(s.Session)">Изменить силовую</button>
+            <button class="btn" @onclick="() => OnShowLoad.InvokeAsync(s.Session.Id)">Нагрузка в 3D</button>
+        </article>
+    }
+    <MuscleLoadList Load="MuscleLoadEngine.Aggregate(strength.Select(s => s.Load))" />
+    @if (_edit is not null) {
+        <div class="card">
+            <h3>Уточнение записи кардио</h3><p class="note">Исправление журнала; расчёт модели не запускается повторно.</p>
+            <label>Дата<input type="date" aria-label="Исправленная дата кардио" value="@_editDate" @onchange="e => _editDate = e.Value?.ToString() ?? string.Empty" /></label>
+            <label>Минуты<input type="number" aria-label="Исправленные минуты" @bind="_minutes" min="1" max="1440" /></label>
+            <label>Активные ккал<input type="number" aria-label="Исправленные ккал" @bind="_kcal" min="0" max="20000" /></label>
+            <button class="btn" @onclick="SaveEdit">Сохранить исправление</button><button class="btn" @onclick="() => _edit = null">Отмена</button>
+            @if (_error is not null) { <p role="alert">@_error</p> }
+        </div>
+    }
+    <h3>Неделя с @monday.ToString("dd.MM")</h3>
+    <p data-testid="week-totals">Кардио: @weekCardio.Length тренировок · @Fmt.N(weekCardio.Sum(w => w.DurationMin)) мин · @Fmt.N(weekCardio.Sum(w => w.ActiveKcal)) ккал. Силовые: @week.SessionCount тренировок · @week.Volume.CompletedSets подходов.</p>
+    <MuscleLoadList Load="week.Load" />
+</section>
+@code {
+    [Parameter] public IReadOnlyList<LoggedWorkout> Cardio { get; set; } = [];
+    [Parameter] public IReadOnlyList<SessionSummary> Strength { get; set; } = [];
+    [Parameter] public EventCallback<DateOnly> OnDate { get; set; }
+    [Parameter] public Func<LoggedWorkout, bool>? OnSave { get; set; }
+    [Parameter] public EventCallback<string> OnRemove { get; set; }
+    [Parameter] public EventCallback<TrainingSession> OnEditStrength { get; set; }
+    [Parameter] public EventCallback<string?> OnShowLoad { get; set; }
+    private DateOnly _selected = DateOnly.FromDateTime(DateTime.Now);
+    private DateOnly _month = new(DateTime.Now.Year, DateTime.Now.Month, 1);
+    private LoggedWorkout? _edit;
+    private string _editDate = "";
+    private double _minutes, _kcal;
+    private string? _error, _delete;
+    private async Task Select(DateOnly day) { _selected = day; await OnDate.InvokeAsync(day); }
+    private void Edit(LoggedWorkout w) { _edit = w; _editDate = w.Date.ToString("yyyy-MM-dd"); _minutes = w.DurationMin; _kcal = w.ActiveKcal; }
+    private async Task Remove(string id) { await OnRemove.InvokeAsync(id); _delete = null; }
+    private void SaveEdit() {
+        if (!DateOnly.TryParse(_editDate, out var date) || !double.IsFinite(_minutes) || _minutes is < 1 or > 1440 || !double.IsFinite(_kcal) || _kcal is < 0 or > 20000) { _error = "Проверьте дату, длительность и калории."; return; }
+        var w = _edit!;
+        var saved = OnSave?.Invoke(new LoggedWorkout { Id=w.Id, Date=date, Activity=w.Activity, Setting=w.Setting, DurationMin=_minutes, ActiveKcal=_kcal,
+            TotalKcal=_kcal + Math.Max(0,w.TotalKcal-w.ActiveKcal), DistanceKm=w.DistanceKm, ElevationGainM=w.ElevationGainM, AvgHr=w.AvgHr, WatchActiveKcal=w.WatchActiveKcal, WatchTotalKcal=w.WatchTotalKcal });
+        if (saved == true) { _edit = null; _selected = date; } else _error = "Изменения не сохранены. Проверьте хранилище браузера.";
+    }
+}

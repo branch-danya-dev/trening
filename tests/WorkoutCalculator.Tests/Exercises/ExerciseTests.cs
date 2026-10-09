@@ -7,12 +7,13 @@ public class ExerciseTests
     [Fact]
     public void Catalog_HasUniqueCompleteDefinitionsAndValidMuscles()
     {
-        Assert.Equal(5, ExerciseCatalog.All.Count);
-        Assert.Equal(5, ExerciseCatalog.All.Select(e => e.Id).Distinct().Count());
+        Assert.InRange(ExerciseCatalog.All.Count, 40, 60);
+        Assert.Equal(ExerciseCatalog.All.Count, ExerciseCatalog.All.Select(e => e.Id).Distinct().Count());
         ExerciseCatalog.Validate(ExerciseCatalog.All);
         Assert.All(ExerciseCatalog.All, e => {
             Assert.NotEmpty(e.Equipment);
-            Assert.NotEmpty(e.AnimationId);
+            if (e.AnimationId is not null) Assert.NotEmpty(e.AnimationId);
+            Assert.All(MuscleLoadEngine.Calculate(e).ToRegionLoads(), load => Assert.InRange(load, 0, 1));
             Assert.Same(e, ExerciseCatalog.Get(e.Id));
         });
         Assert.Throws<ArgumentException>(() => ExerciseCatalog.Get("unknown"));

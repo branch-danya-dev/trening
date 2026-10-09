@@ -1,4 +1,4 @@
-/* Тёмная тема прототипа: 3D-вид слева, панель параметров справа. */
+/* Local product shell; shared existing feature panels remain below. */
 
 :root {
     --bg: #0a0e13;
@@ -1163,3 +1163,64 @@ table.changes tr.dim td { opacity: 0.5; }
 .forecast-accuracy summary { cursor: pointer; }
 .forecast-accuracy .select { min-width: 0; max-width: 100%; }
 .forecast-diagnostics { overflow-wrap: anywhere; }
+
+/* Product navigation and compact, accessible forms. */
+.product-app { grid-template-rows: auto auto minmax(0, 1fr); }
+.product-app .panel { min-width: 0; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); }
+.product-app .panel-body { min-width: 0; max-width: 100%; }
+.product-nav { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 4px; padding: 8px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }
+.product-nav button { min-width: 0; border: 0; border-radius: 10px; padding: 12px 4px; background: transparent; color: var(--muted); cursor: pointer; }
+.product-nav button.on, .product-nav button[aria-selected="True"], .product-nav button[aria-selected="true"] { background: var(--accent-dim); color: var(--accent); }
+.product-app .main { grid-template-columns: minmax(0,1fr) minmax(360px, 480px); }
+.product-app.panel-only .main { display: block; overflow: auto; }
+.product-app.panel-only .panel { max-width: 1000px; margin: 0 auto; overflow: visible; }
+.product-app.panel-only .panel-body { overflow: visible; }
+.product-app label:not(.check) { min-width: 0; }
+.product-app input:not([type=checkbox]):not([type=range]), .product-app textarea, .product-app select { max-width: 100%; min-width: 0; }
+.onboarding input:not([type=checkbox]), .validation-panel input, .backup-panel input, .calendar-entry input { display: block; width: 100%; border: 1px solid var(--border-strong); background: var(--card-2); border-radius: 8px; padding: 10px; margin: 5px 0 12px; }
+.onboarding h1, .dashboard h1 { font-size: 25px; line-height: 1.2; }
+.eyebrow { color: var(--accent); font-size: 12px; letter-spacing: .05em; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.dashboard-grid div { padding: 12px; background: var(--card-2); border-radius: 9px; }
+.dashboard-grid small, .dashboard-grid strong { display: block; }
+.dashboard-grid small { color: var(--muted); margin-bottom: 7px; }
+.dashboard-grid strong { font-size: 18px; }
+.model-adjustments { margin-top: 16px; }
+.model-adjustments summary, details.card summary { cursor: pointer; padding: 12px 0; }
+.calendar-header { display: flex; align-items: center; justify-content: space-between; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 3px; }
+.calendar-grid > span { text-align: center; color: var(--muted); padding: 8px 0; }
+.calendar-day { border: 1px solid var(--border); border-radius: 7px; background: var(--card-2); padding: 6px 1px; min-height: 80px; min-width: 0; cursor: pointer; }
+.calendar-day span, .calendar-day small { display: block; line-height: 1.25; }
+.calendar-day span { color: var(--accent); }
+.calendar-day small { font-size: 10px; color: var(--muted); }
+.calendar-day.on { border-color: var(--accent); background: var(--accent-dim); }
+.calendar-entry { padding: 12px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.validation-panel .check { display: flex; margin: 10px 0; }
+#storage-warning { position: fixed; z-index: 9999; top: 0; left: 0; right: 0; padding: 12px; background: #543614; color: white; font-size: 13px; }
+.product-app .note, .product-app p, .product-app summary { overflow-wrap: anywhere; }
+.product-app.is-onboarding { grid-template-rows: auto minmax(0,1fr); }
+.is-onboarding .product-nav, .is-onboarding .mode-bar, .is-onboarding .view-toolbar, .is-onboarding .view-tapes, .is-onboarding .topbar-right { display: none; }
+@media(max-width:700px) {
+    .product-app { height: auto; min-height: 100dvh; display: flex; flex-direction: column; padding-bottom: 66px; }
+    .product-app .topbar { flex-wrap: wrap; padding: 10px 12px; }
+    .product-app .topbar-right { margin-left: 0; max-width: 100%; flex-wrap: wrap; }
+    .product-app .main { display: flex; flex-direction: column; overflow: visible; }
+    .product-app .viewport { flex: none; height: 480px; min-height: 480px; }
+    .product-app.is-onboarding .viewport { height: 220px; min-height: 220px; }
+    .product-app.is-onboarding[data-onboarding-step="1"] .viewport { height: 340px; min-height: 340px; }
+    .product-app .panel { width: 100%; min-width: 0; overflow: visible; }
+    .product-app .panel-body { overflow: visible; padding: 12px; }
+    .product-app .product-nav { position: fixed; z-index: 100; bottom: 0; left: 0; right: 0; padding: 4px 3px max(4px,env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
+    .product-nav button { font-size: 11px; padding: 16px 0; }
+    .product-app .form-grid.two { grid-template-columns: 1fr; }
+    .product-app .mode-bar { max-width: 100%; }
+    .product-app .mode-bar:has(.exercise-preview) > .seg { grid-column: 1 / -1; }
+    .product-app .mode-bar:has(.exercise-preview) .view-cycle { grid-row: 2; grid-column: 1; }
+    .product-app .mode-bar:has(.exercise-preview) > button:not(.view-cycle) { grid-row: 2; grid-column: 2; }
+    .product-app .exercise-controls { flex-wrap: wrap; }
+    .product-app .select { max-width: 100%; }
+    .product-app .view-toolbar { flex-wrap: wrap; right: 10px; }
+    .dashboard-grid strong { font-size: 16px; }
+    .calendar-day { min-height: 78px; }
+}

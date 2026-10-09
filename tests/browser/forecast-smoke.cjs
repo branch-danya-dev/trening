@@ -19,13 +19,13 @@ const fs = require('node:fs');
         const url = process.env.APP_URL || 'http://127.0.0.1:5256';
         const key = 'workoutcalc.forecasts.v1';
         const ready = async p => {
-            await p.waitForFunction(() => document.querySelector('.view-stats')?.textContent.includes('MakeHuman'), null, { timeout: 60000 });
+            await p.waitForFunction(() => document.querySelector('[data-model-ready]')?.dataset.modelReady === 'true', null, { timeout: 60000 });
             await p.evaluate(async () => { window.viewer = await import(new URL('js/viewer.js', document.baseURI)); });
         };
-        const open = p => p.getByRole('tab', { name: 'Гипотеза', exact: true }).click();
+        const open = p => p.getByRole('tab', { name: 'План', exact: true }).click();
         const read = () => page.evaluate(k => JSON.parse(JSON.parse(localStorage.getItem(k)).payload), key);
         const saveFact = async (date, kg, waist, fat) => {
-            await page.getByRole('tab', { name: 'История', exact: true }).click();
+            await page.getByRole('tab', { name: 'Прогресс', exact: true }).click();
             await page.getByRole('button', { name: 'Новая запись', exact: true }).click();
             await page.getByLabel('Дата состояния', { exact: true }).fill(date);
             if (kg !== undefined) await page.getByLabel('Вес состояния', { exact: true }).fill(String(kg));
@@ -35,6 +35,7 @@ const fs = require('node:fs');
             await page.getByText('Состояние тела сохранено ✓', { exact: true }).waitFor();
         };
         await page.clock.setFixedTime(new Date('2026-06-01T09:00:00Z'));
+        await page.addInitScript(() => { if (!localStorage.getItem('workoutcalc.body.v1')) localStorage.setItem('workoutcalc.body.v1', JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57})); });
         await page.goto(url); await ready(page);
         await page.evaluate(() => {
             localStorage.setItem('workoutcalc.body.v1', JSON.stringify({ Sex: 0, Age: 35, HeightCm: 180, WeightKg: 100, BodyFatPercent: 30,
@@ -70,7 +71,7 @@ const fs = require('node:fs');
         const second = (await read()).forecasts[1];
         assert.notEqual(second.expected.at(-1).body.weightKg, second.baseline.at(-1).body.weightKg);
         assert.equal(second.calibrationRevisionId, calibrated.revisions.at(-1).id);
-        assert.equal(second.expected[0].body.weightKg, 100, 'facts do not silently overwrite current profile');
+        assert.ok(second.expected[0].body.weightKg < 100, 'current body derives from latest factual snapshot');
         assert.ok(second.expected.at(-1).weightRange.upper > second.expected.at(-1).weightRange.expected);
         await page.locator('.forecast-band').waitFor({ state: 'attached' });
         await page.getByLabel('Показать базовый прогноз', { exact: true }).uncheck();

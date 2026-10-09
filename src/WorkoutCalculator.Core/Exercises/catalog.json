@@ -1,32 +1,1117 @@
 [
   {
-    "id": "squat", "name": "Присед", "movementPattern": "squat", "equipment": ["barbell"], "animationId": "squat",
-    "primaryMuscles": ["quadriceps", "glute-max"], "secondaryMuscles": ["adductors"],
-    "stabilizers": ["erectors", "rectus-abdominis", "obliques", "glute-med", "calves"],
-    "variant": "bilateral-back-squat", "notes": "Базовый двусторонний присед. Роли мышц — first-pass heuristics; глубина и техника не моделируются."
+    "id": "squat",
+    "name": "Присед",
+    "movementPattern": "squat",
+    "equipment": [
+      "barbell"
+    ],
+    "animationId": "squat",
+    "unilateral": false,
+    "primaryMuscles": [
+      "quadriceps",
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "adductors"
+    ],
+    "stabilizers": [
+      "erectors",
+      "rectus-abdominis",
+      "obliques",
+      "glute-med",
+      "calves"
+    ],
+    "variant": "bilateral-back-squat",
+    "notes": "Базовый двусторонний присед. Роли мышц — first-pass heuristics; глубина и техника не моделируются."
   },
   {
-    "id": "bench-press", "name": "Жим лёжа", "movementPattern": "horizontal-push", "equipment": ["barbell", "bench"], "animationId": "bench-press",
-    "primaryMuscles": ["pectoralis"], "secondaryMuscles": ["triceps", "anterior-deltoid"],
-    "stabilizers": ["rhomboids", "traps", "forearms"], "variant": "flat-bilateral",
+    "id": "bench-press",
+    "name": "Жим лёжа",
+    "movementPattern": "horizontal-push",
+    "equipment": [
+      "barbell",
+      "bench"
+    ],
+    "animationId": "bench-press",
+    "unilateral": false,
+    "primaryMuscles": [
+      "pectoralis"
+    ],
+    "secondaryMuscles": [
+      "triceps",
+      "anterior-deltoid"
+    ],
+    "stabilizers": [
+      "rhomboids",
+      "traps",
+      "forearms"
+    ],
+    "variant": "flat-bilateral",
     "notes": "Горизонтальная скамья, обычный хват. Угол скамьи, ширина хвата и leg drive не моделируются."
   },
   {
-    "id": "biceps-curl", "name": "Сгибание рук", "movementPattern": "elbow-flexion", "equipment": ["dumbbells"], "animationId": "biceps-curl",
-    "primaryMuscles": ["biceps"], "secondaryMuscles": ["forearms"],
-    "stabilizers": ["anterior-deltoid", "rectus-abdominis"], "variant": "standing-supinated",
+    "id": "biceps-curl",
+    "name": "Сгибание рук",
+    "movementPattern": "elbow-flexion",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": "biceps-curl",
+    "unilateral": false,
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "stabilizers": [
+      "anterior-deltoid",
+      "rectus-abdominis"
+    ],
+    "variant": "standing-supinated",
     "notes": "Двустороннее сгибание с супинированным хватом; без раскачки."
   },
   {
-    "id": "lat-pulldown", "name": "Тяга верхнего блока", "movementPattern": "vertical-pull", "equipment": ["cable-machine"], "animationId": "lat-pulldown",
-    "primaryMuscles": ["lats"], "secondaryMuscles": ["biceps", "rhomboids", "posterior-deltoid"],
-    "stabilizers": ["traps", "forearms", "rectus-abdominis"], "variant": "front-bilateral",
+    "id": "lat-pulldown",
+    "name": "Тяга верхнего блока",
+    "movementPattern": "vertical-pull",
+    "equipment": [
+      "cable-machine"
+    ],
+    "animationId": "lat-pulldown",
+    "unilateral": false,
+    "primaryMuscles": [
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "rhomboids",
+      "posterior-deltoid"
+    ],
+    "stabilizers": [
+      "traps",
+      "forearms",
+      "rectus-abdominis"
+    ],
+    "variant": "front-bilateral",
     "notes": "Тяга перед собой. Ширина хвата и положение корпуса не учитываются."
   },
   {
-    "id": "romanian-deadlift", "name": "Румынская тяга", "movementPattern": "hip-hinge", "equipment": ["barbell"], "animationId": "romanian-deadlift",
-    "primaryMuscles": ["hamstrings", "glute-max"], "secondaryMuscles": ["adductors"],
-    "stabilizers": ["erectors", "lats", "forearms", "rectus-abdominis", "obliques", "glute-med"], "variant": "bilateral-soft-knees",
+    "id": "romanian-deadlift",
+    "name": "Румынская тяга",
+    "movementPattern": "hip-hinge",
+    "equipment": [
+      "barbell"
+    ],
+    "animationId": "romanian-deadlift",
+    "unilateral": false,
+    "primaryMuscles": [
+      "hamstrings",
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "adductors"
+    ],
+    "stabilizers": [
+      "erectors",
+      "lats",
+      "forearms",
+      "rectus-abdominis",
+      "obliques",
+      "glute-med"
+    ],
+    "variant": "bilateral-soft-knees",
     "notes": "Наклон в тазобедренных суставах с небольшим сгибанием коленей; разгибатели спины отмечены как стабилизаторы."
+  },
+  {
+    "id": "incline-press",
+    "name": "Жим на наклонной скамье",
+    "movementPattern": "horizontal-push",
+    "equipment": [
+      "dumbbells",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "pectoralis"
+    ],
+    "secondaryMuscles": [
+      "anterior-deltoid",
+      "triceps"
+    ],
+    "stabilizers": [
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "dumbbell-press",
+    "name": "Жим гантелей лёжа",
+    "movementPattern": "horizontal-push",
+    "equipment": [
+      "dumbbells",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "pectoralis"
+    ],
+    "secondaryMuscles": [
+      "triceps",
+      "anterior-deltoid"
+    ],
+    "stabilizers": [
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "push-up",
+    "name": "Отжимания",
+    "movementPattern": "horizontal-push",
+    "equipment": [
+      "bodyweight"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "pectoralis"
+    ],
+    "secondaryMuscles": [
+      "triceps",
+      "anterior-deltoid"
+    ],
+    "stabilizers": [
+      "rectus-abdominis",
+      "obliques"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "cable-fly",
+    "name": "Сведение рук в блоках",
+    "movementPattern": "horizontal-adduction",
+    "equipment": [
+      "cable-machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "pectoralis"
+    ],
+    "secondaryMuscles": [
+      "anterior-deltoid"
+    ],
+    "stabilizers": [
+      "rectus-abdominis"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "pec-deck",
+    "name": "Сведение рук в тренажёре",
+    "movementPattern": "horizontal-adduction",
+    "equipment": [
+      "machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "pectoralis"
+    ],
+    "secondaryMuscles": [
+      "anterior-deltoid"
+    ],
+    "stabilizers": [
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "dips",
+    "name": "Отжимания на брусьях",
+    "movementPattern": "vertical-push",
+    "equipment": [
+      "parallel-bars"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "triceps",
+      "pectoralis"
+    ],
+    "secondaryMuscles": [
+      "anterior-deltoid"
+    ],
+    "stabilizers": [
+      "rectus-abdominis"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "pull-up",
+    "name": "Подтягивания",
+    "movementPattern": "vertical-pull",
+    "equipment": [
+      "pull-up-bar"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "rhomboids"
+    ],
+    "stabilizers": [
+      "forearms",
+      "rectus-abdominis"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "chin-up",
+    "name": "Подтягивания обратным хватом",
+    "movementPattern": "vertical-pull",
+    "equipment": [
+      "pull-up-bar"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "lats",
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "rhomboids"
+    ],
+    "stabilizers": [
+      "forearms",
+      "rectus-abdominis"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "barbell-row",
+    "name": "Тяга штанги в наклоне",
+    "movementPattern": "horizontal-pull",
+    "equipment": [
+      "barbell"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "lats",
+      "rhomboids"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "posterior-deltoid"
+    ],
+    "stabilizers": [
+      "erectors",
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "cable-row",
+    "name": "Тяга нижнего блока",
+    "movementPattern": "horizontal-pull",
+    "equipment": [
+      "cable-machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "lats",
+      "rhomboids"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "posterior-deltoid"
+    ],
+    "stabilizers": [
+      "erectors",
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "one-arm-row",
+    "name": "Тяга гантели одной рукой",
+    "movementPattern": "horizontal-pull",
+    "equipment": [
+      "dumbbells",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "rhomboids",
+      "posterior-deltoid"
+    ],
+    "stabilizers": [
+      "obliques",
+      "forearms"
+    ],
+    "unilateral": true,
+    "variant": "single-side",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "chest-supported-row",
+    "name": "Тяга с опорой грудью",
+    "movementPattern": "horizontal-pull",
+    "equipment": [
+      "dumbbells",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "rhomboids",
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "posterior-deltoid"
+    ],
+    "stabilizers": [
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "straight-arm-pulldown",
+    "name": "Пуловер на блоке",
+    "movementPattern": "shoulder-extension",
+    "equipment": [
+      "cable-machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "pectoralis"
+    ],
+    "stabilizers": [
+      "rectus-abdominis",
+      "triceps"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "overhead-press",
+    "name": "Жим над головой",
+    "movementPattern": "vertical-push",
+    "equipment": [
+      "barbell"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "anterior-deltoid",
+      "lateral-deltoid"
+    ],
+    "secondaryMuscles": [
+      "triceps"
+    ],
+    "stabilizers": [
+      "rectus-abdominis",
+      "erectors"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "dumbbell-shoulder-press",
+    "name": "Жим гантелей сидя",
+    "movementPattern": "vertical-push",
+    "equipment": [
+      "dumbbells",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "anterior-deltoid",
+      "lateral-deltoid"
+    ],
+    "secondaryMuscles": [
+      "triceps"
+    ],
+    "stabilizers": [
+      "traps",
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "lateral-raise",
+    "name": "Подъём гантелей в стороны",
+    "movementPattern": "shoulder-abduction",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "lateral-deltoid"
+    ],
+    "secondaryMuscles": [
+      "traps"
+    ],
+    "stabilizers": [
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "front-raise",
+    "name": "Подъём гантелей перед собой",
+    "movementPattern": "shoulder-flexion",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "anterior-deltoid"
+    ],
+    "secondaryMuscles": [
+      "pectoralis"
+    ],
+    "stabilizers": [
+      "rectus-abdominis"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "reverse-fly",
+    "name": "Разведение рук в наклоне",
+    "movementPattern": "horizontal-abduction",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "posterior-deltoid"
+    ],
+    "secondaryMuscles": [
+      "rhomboids",
+      "traps"
+    ],
+    "stabilizers": [
+      "erectors"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "face-pull",
+    "name": "Тяга к лицу",
+    "movementPattern": "horizontal-pull",
+    "equipment": [
+      "cable-machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "posterior-deltoid",
+      "rhomboids"
+    ],
+    "secondaryMuscles": [
+      "traps"
+    ],
+    "stabilizers": [
+      "biceps",
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "shrug",
+    "name": "Шраги",
+    "movementPattern": "scapular-elevation",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "traps"
+    ],
+    "secondaryMuscles": [],
+    "stabilizers": [
+      "forearms",
+      "erectors"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "hammer-curl",
+    "name": "Молотковые сгибания",
+    "movementPattern": "elbow-flexion",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "biceps",
+      "forearms"
+    ],
+    "secondaryMuscles": [],
+    "stabilizers": [
+      "anterior-deltoid"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "preacher-curl",
+    "name": "Сгибания на скамье Скотта",
+    "movementPattern": "elbow-flexion",
+    "equipment": [
+      "barbell",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "stabilizers": [
+      "anterior-deltoid"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "cable-curl",
+    "name": "Сгибания на блоке",
+    "movementPattern": "elbow-flexion",
+    "equipment": [
+      "cable-machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "stabilizers": [
+      "rectus-abdominis"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "concentration-curl",
+    "name": "Концентрированное сгибание",
+    "movementPattern": "elbow-flexion",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "stabilizers": [
+      "anterior-deltoid"
+    ],
+    "unilateral": true,
+    "variant": "single-side",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "triceps-pushdown",
+    "name": "Разгибания на блоке",
+    "movementPattern": "elbow-extension",
+    "equipment": [
+      "cable-machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "triceps"
+    ],
+    "secondaryMuscles": [],
+    "stabilizers": [
+      "rectus-abdominis",
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "overhead-extension",
+    "name": "Разгибание рук над головой",
+    "movementPattern": "elbow-extension",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "triceps"
+    ],
+    "secondaryMuscles": [],
+    "stabilizers": [
+      "anterior-deltoid",
+      "rectus-abdominis"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "lying-extension",
+    "name": "Французский жим лёжа",
+    "movementPattern": "elbow-extension",
+    "equipment": [
+      "barbell",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "triceps"
+    ],
+    "secondaryMuscles": [],
+    "stabilizers": [
+      "anterior-deltoid",
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "close-grip-press",
+    "name": "Жим узким хватом",
+    "movementPattern": "horizontal-push",
+    "equipment": [
+      "barbell",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "triceps"
+    ],
+    "secondaryMuscles": [
+      "pectoralis",
+      "anterior-deltoid"
+    ],
+    "stabilizers": [
+      "forearms"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "goblet-squat",
+    "name": "Присед с гантелью у груди",
+    "movementPattern": "squat",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "quadriceps",
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "adductors"
+    ],
+    "stabilizers": [
+      "erectors",
+      "rectus-abdominis"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "front-squat",
+    "name": "Фронтальный присед",
+    "movementPattern": "squat",
+    "equipment": [
+      "barbell"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "quadriceps",
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "adductors"
+    ],
+    "stabilizers": [
+      "erectors",
+      "rectus-abdominis"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "leg-press",
+    "name": "Жим ногами",
+    "movementPattern": "squat",
+    "equipment": [
+      "machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "quadriceps",
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "adductors"
+    ],
+    "stabilizers": [
+      "calves"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "leg-extension",
+    "name": "Разгибание ног",
+    "movementPattern": "knee-extension",
+    "equipment": [
+      "machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "secondaryMuscles": [],
+    "stabilizers": [
+      "hip-flexors"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "split-squat",
+    "name": "Болгарский сплит-присед",
+    "movementPattern": "lunge",
+    "equipment": [
+      "dumbbells",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "quadriceps",
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "adductors"
+    ],
+    "stabilizers": [
+      "glute-med",
+      "obliques"
+    ],
+    "unilateral": true,
+    "variant": "single-side",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "reverse-lunge",
+    "name": "Выпады назад",
+    "movementPattern": "lunge",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "quadriceps",
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "hamstrings"
+    ],
+    "stabilizers": [
+      "glute-med",
+      "obliques"
+    ],
+    "unilateral": true,
+    "variant": "single-side",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "step-up",
+    "name": "Зашагивания на платформу",
+    "movementPattern": "step",
+    "equipment": [
+      "box",
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "quadriceps",
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "hamstrings"
+    ],
+    "stabilizers": [
+      "glute-med",
+      "calves"
+    ],
+    "unilateral": true,
+    "variant": "single-side",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "deadlift",
+    "name": "Становая тяга",
+    "movementPattern": "hip-hinge",
+    "equipment": [
+      "barbell"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "glute-max",
+      "hamstrings"
+    ],
+    "secondaryMuscles": [
+      "quadriceps"
+    ],
+    "stabilizers": [
+      "erectors",
+      "forearms",
+      "lats"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "hip-thrust",
+    "name": "Ягодичный мост с опорой",
+    "movementPattern": "hip-extension",
+    "equipment": [
+      "barbell",
+      "bench"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "hamstrings"
+    ],
+    "stabilizers": [
+      "rectus-abdominis",
+      "glute-med"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "leg-curl",
+    "name": "Сгибания ног в тренажёре",
+    "movementPattern": "knee-flexion",
+    "equipment": [
+      "machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "hamstrings"
+    ],
+    "secondaryMuscles": [
+      "calves"
+    ],
+    "stabilizers": [
+      "glute-max"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "single-leg-rdl",
+    "name": "Румынская тяга на одной ноге",
+    "movementPattern": "hip-hinge",
+    "equipment": [
+      "dumbbells"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "hamstrings",
+      "glute-max"
+    ],
+    "secondaryMuscles": [
+      "adductors"
+    ],
+    "stabilizers": [
+      "glute-med",
+      "erectors",
+      "obliques"
+    ],
+    "unilateral": true,
+    "variant": "single-side",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "hip-abduction",
+    "name": "Отведение бедра",
+    "movementPattern": "hip-abduction",
+    "equipment": [
+      "machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "glute-med"
+    ],
+    "secondaryMuscles": [
+      "glute-max"
+    ],
+    "stabilizers": [
+      "obliques"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "standing-calf-raise",
+    "name": "Подъём на носки стоя",
+    "movementPattern": "plantar-flexion",
+    "equipment": [
+      "machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "calves"
+    ],
+    "secondaryMuscles": [],
+    "stabilizers": [
+      "quadriceps"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "seated-calf-raise",
+    "name": "Подъём на носки сидя",
+    "movementPattern": "plantar-flexion",
+    "equipment": [
+      "machine"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "calves"
+    ],
+    "secondaryMuscles": [],
+    "stabilizers": [],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "single-calf-raise",
+    "name": "Подъём на носок одной ноги",
+    "movementPattern": "plantar-flexion",
+    "equipment": [
+      "bodyweight"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "calves"
+    ],
+    "secondaryMuscles": [],
+    "stabilizers": [
+      "glute-med"
+    ],
+    "unilateral": true,
+    "variant": "single-side",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "crunch",
+    "name": "Скручивания",
+    "movementPattern": "trunk-flexion",
+    "equipment": [
+      "bodyweight"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "rectus-abdominis"
+    ],
+    "secondaryMuscles": [
+      "obliques"
+    ],
+    "stabilizers": [
+      "hip-flexors"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
+  },
+  {
+    "id": "hanging-knee-raise",
+    "name": "Подъём коленей в висе",
+    "movementPattern": "hip-flexion",
+    "equipment": [
+      "pull-up-bar"
+    ],
+    "animationId": null,
+    "primaryMuscles": [
+      "rectus-abdominis",
+      "hip-flexors"
+    ],
+    "secondaryMuscles": [
+      "obliques"
+    ],
+    "stabilizers": [
+      "forearms",
+      "lats"
+    ],
+    "unilateral": false,
+    "variant": "bilateral",
+    "notes": "Базовый вариант. Роли мышц приблизительные; техника и индивидуальная анатомия не моделируются."
   }
 ]

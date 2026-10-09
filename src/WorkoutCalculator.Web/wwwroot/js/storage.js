@@ -1,19 +1,36 @@
 // Мелочи браузера для C#: localStorage, HTTPS, буфер обмена, сведения для отчёта о проверке.
 // localStorage может быть недоступен (приватный режим, запрет сайта) — тогда просто не сохраняем.
 
+import { assertWritable } from './data-guard.js';
+const blocked = new Set();
+export function blockKey(key, message) { blocked.add(key); reportStorageError(message); }
+export function reportStorageError(message) {
+    let el = document.getElementById('storage-warning');
+    if (!el) { el = document.createElement('div'); el.id = 'storage-warning'; el.setAttribute('role', 'alert'); document.body.prepend(el); }
+    el.textContent = message;
+}
 export function getItem(key) {
     try {
-        return localStorage.getItem(key);
+        const value = localStorage.getItem(key);
+        if (value !== null && key !== 'workoutcalc.model.v1') {
+            try { JSON.parse(value); } catch { blocked.add(key); reportStorageError('Повреждены сохранённые данные. Запись заблокирована; сохраните backup в разделе «Профиль».'); return null; }
+        }
+        return value;
     } catch {
+        reportStorageError("Хранилище недоступно. Изменения не сохраняются между запусками.");
         return null;
     }
 }
 
 export function setItem(key, value) {
     try {
+        assertWritable();
+        if (blocked.has(key)) throw Error("Повреждённые данные защищены от перезаписи.");
         localStorage.setItem(key, value);
+        return true;
     } catch {
-        // нет места или запрещено — профиль останется только на время сессии
+        reportStorageError("Изменения не сохранены: хранилище недоступно, заполнено или изменено в другой вкладке. Сделайте backup и перезагрузите страницу.");
+        return false;
     }
 }
 
@@ -23,6 +40,8 @@ export function getItemStrict(key) {
 }
 
 export function compareExchange(key, expected, value) {
+    assertWritable();
+    if (blocked.has(key)) throw Error("Повреждённая запись защищена от изменений.");
     if (localStorage.getItem(key) !== expected) return false;
     localStorage.setItem(key, value);
     return true;

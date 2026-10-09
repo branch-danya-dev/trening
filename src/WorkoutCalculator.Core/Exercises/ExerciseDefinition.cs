@@ -4,9 +4,9 @@ namespace WorkoutCalculator.Exercises;
 
 /// <summary>Domain definition; muscles reference group IDs, animationId references the runtime clip.</summary>
 public sealed record ExerciseDefinition(string Id, string Name, string MovementPattern,
-    IReadOnlyList<string> Equipment, string AnimationId, IReadOnlyList<string> PrimaryMuscles,
+    IReadOnlyList<string> Equipment, string? AnimationId, IReadOnlyList<string> PrimaryMuscles,
     IReadOnlyList<string> SecondaryMuscles, IReadOnlyList<string> Stabilizers,
-    string? Notes = null, string? Variant = null);
+    string? Notes = null, string? Variant = null, bool Unilateral = false);
 
 public static class ExerciseCatalog
 {
@@ -36,7 +36,7 @@ public static class ExerciseCatalog
         foreach (var e in definitions)
         {
             if (string.IsNullOrWhiteSpace(e.Id) || !ids.Add(e.Id) || string.IsNullOrWhiteSpace(e.Name) ||
-                string.IsNullOrWhiteSpace(e.AnimationId) || string.IsNullOrWhiteSpace(e.MovementPattern) ||
+                (e.AnimationId is not null && !AnimationIds.Contains(e.AnimationId)) || string.IsNullOrWhiteSpace(e.MovementPattern) ||
                 e.Equipment is null || e.PrimaryMuscles is null || e.PrimaryMuscles.Count == 0 ||
                 e.SecondaryMuscles is null || e.Stabilizers is null)
                 throw new ArgumentException("Incomplete or duplicate exercise definition.");
@@ -48,4 +48,6 @@ public static class ExerciseCatalog
             }
         }
     }
+
+    private static string[] AnimationIds => ["squat", "bench-press", "biceps-curl", "lat-pulldown", "romanian-deadlift"];
 }

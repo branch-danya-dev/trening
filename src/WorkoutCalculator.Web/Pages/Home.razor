@@ -5,11 +5,11 @@
 @using WorkoutCalculator.BodyModel.Photos
 @inject HttpClient Http
 
-<div class="app @(_tab == Tab.Workout ? "panel-only" : null)">
+<div data-section="@_tab" data-onboarding-step="@_onboarding?.Step" data-build-ms="@_buildMs.ToString(CultureInfo.InvariantCulture)" data-forecast-ms="@_forecastMs.ToString(CultureInfo.InvariantCulture)" data-model-ready="@(_mh is not null ? "true" : "false")" class="app product-app @(_onboarding is not null ? "is-onboarding" : null) @(_tab is Tab.Workout or Tab.Profile ? "panel-only" : null)">
     <header class="topbar">
         <span class="brand-dot"></span>
         <span class="brand">Тренировки и тело</span>
-        <span class="brand-sub">расход на тренировках, модель тела по замерам и прогноз</span>
+        <span class="brand-sub">ваше тело, движение и прогресс</span>
         <div class="topbar-right">
             <span class="brand-sub model-label">Модель</span>
             <div class="seg" role="group" aria-label="Модель тела">
@@ -23,6 +23,13 @@
         </div>
     </header>
 
+    <nav class="product-nav" aria-label="Разделы приложения">
+        <button role="tab" aria-selected="@(_tab is Tab.Params or Tab.Photos)" class="@Css.On(_tab is Tab.Params or Tab.Photos)" @onclick="OpenModel">Модель</button>
+        <button role="tab" aria-selected="@(_tab == Tab.Workout)" class="@Css.On(_tab == Tab.Workout)" @onclick="OpenActivity">Активность</button>
+        <button role="tab" aria-selected="@(_tab == Tab.History)" class="@Css.On(_tab == Tab.History)" @onclick="OpenHistory">Прогресс</button>
+        <button role="tab" aria-selected="@(_tab == Tab.Hypothesis)" class="@Css.On(_tab == Tab.Hypothesis)" @onclick="OpenHypothesis">План</button>
+        <button role="tab" aria-selected="@(_tab == Tab.Profile)" class="@Css.On(_tab == Tab.Profile)" @onclick="OpenProfile">Профиль</button>
+    </nav>
     <div class="main">
         <section class="viewport" aria-label="3D-модель">
             <canvas id="body-canvas" tabindex="0"></canvas>
@@ -110,38 +117,27 @@
                 <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
             </label>
 
-            @if (_current is not null && !IsHistory)
-            {
-                <div class="view-stats">
-                    @(_current is MakeHumanBody mhb ? $"MakeHuman, сечений {mhb.Measurements}" : $"Манекен, {Mannequin.Segments} точек на сечение") ·
-                    @Fmt.N(_current.Mesh.VertexCount) вершин · сетка @Fmt.N(_buildMs) мс + передача @Fmt.N(_uploadMs) мс ·
-                    проверка @Fmt.N(_checkMs) мс
-                </div>
-            }
         </section>
 
         <aside class="panel">
-            <nav class="tabs" role="tablist">
-                <button role="tab" aria-selected="@(_tab == Tab.Params ? "true" : "false")" class="@Css.On(_tab == Tab.Params)"
-                        @onclick="() => _tab = Tab.Params">Параметры</button>
-                <button role="tab" aria-selected="@(_tab == Tab.Workout ? "true" : "false")" class="@Css.On(_tab == Tab.Workout)"
-                        @onclick="() => _tab = Tab.Workout">Тренировка</button>
-                <button role="tab" aria-selected="@(_tab == Tab.Hypothesis ? "true" : "false")" class="@Css.On(_tab == Tab.Hypothesis)"
-                        @onclick="OpenHypothesis">Гипотеза</button>
-                <button role="tab" aria-selected="@(_tab == Tab.Photos ? "true" : "false")" class="@Css.On(_tab == Tab.Photos)"
-                        @onclick="() => _tab = Tab.Photos">Фото</button>
-                <button role="tab" aria-selected="@(_tab == Tab.History ? "true" : "false")" class="@Css.On(_tab == Tab.History)"
-                        @onclick="OpenHistory">История</button>
-            </nav>
-
             <div class="panel-body">
-                @if (_tab == Tab.Params)
+                @if (_onboarding is not null)
                 {
+                    <Onboarding Draft="_onboarding" Model="_mh" OnHighlight="SetHighlight" OnPreview="PreviewOnboarding" OnFinish="FinishOnboarding" />
+                }
+                else if (_tab == Tab.Params)
+                {
+                    <Dashboard Fact="CurrentFact" Facts="_history.Timeline.Items" Cardio="_workouts" Strength="_strength" Goal="@_preferences.Goal" Plan="_hypotheses.Current" Calibration="_personalized" />
+                    <p class="note">@CurrentFactCaption</p>
+                    <div class="history-actions"><button class="btn primary" @onclick="NewMeasurement">Записать замеры</button><button class="btn" @onclick="() => _tab = Tab.Photos">Фото</button></div>
+                    <details class="model-adjustments"><summary>Настроить внешний вид 3D</summary><p class="note">Это настройки изображения. Для сохранения измерений используйте «Записать замеры». Пропуски заполнены условными оценками.</p>
                     <ProfilePanel Profile="_profile" Report="_report" ModelHints="ModelHints()" ModelNote="@ModelNote()" OnHighlight="SetHighlight" PostureApplies="UseMakeHuman"
                                   OnChange="ChangeProfile" />
+                    </details>
                 }
                 else if (_tab == Tab.Workout)
                 {
+                    <ActivityCalendar Cardio="_workouts" Strength="_strength.Summaries" OnDate="ActivityDate" OnSave="SaveWorkout" OnRemove="RemoveWorkout" OnEditStrength="EditStrength" OnShowLoad="ShowStrengthLoad" />
                     <TrainingPanel Profile="_profile" Draft="_workout" OnChange="ChangeProfile" Log="_workouts" Plan="CardioPlan()"
                                   OnSave="SaveWorkout" OnRemove="RemoveWorkout" Strength="_strength"
                                   OnStrengthChanged="_exercise.RefreshJournal" OnShowLoad="ShowStrengthLoad" />
@@ -154,6 +150,25 @@
                 else if (_tab == Tab.History)
                 {
                     <BodyHistory State="_history" Profile="_profile" Strength="_strength" Cardio="_workouts" OnView="ShowHistory" />
+                    <details class="card"><summary>Фото-прогресс</summary><PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End" ForecastLabel="@ForecastLabel" /></details>
+                }
+                else if (_tab == Tab.Profile)
+                {
+                    <section class="card"><h1>Профиль</h1><p>@(_profile.Sex == Sex.Male ? "Мужской" : "Женский") · @_profile.HeightCm см · @_profile.Age лет</p>
+                    <label>Дата рождения<input type="date" value="@_preferences.BirthDate" @onchange="ChangeBirthDate" /></label>
+                    <label>Цель<select class="select" @bind="_preferences.Goal" @bind:after="SavePreferences">@foreach (var goal in Onboarding.Goals) { <option>@goal</option> }</select></label>
+                    @if (_productError is not null) { <p role="alert">@_productError</p> }
+                    <p>@CurrentFactCaption</p><button class="btn" @onclick="NewMeasurement">Обновить фактические параметры</button>
+                    <label class="check"><input type="checkbox" @bind="_privacy.Blur" @bind:after="SavePrivacy" /> Размывать фото до нажатия</label>
+                    <label class="check"><input type="checkbox" @bind="_privacy.Watermark" @bind:after="SavePrivacy" /> Водяной знак на фото</label>
+                    <button class="btn" @onclick="() => _tab = Tab.Photos">Фото и защита PIN</button></section>
+                    <BackupPanel />
+                    <ValidationPanel Fact="CurrentFact" Profile="_profile" Body="_current" Facts="_history.Timeline.Items" Cardio="_workouts" Calibration="_personalized" />
+                    <details class="card"><summary>Диагностика и версия</summary>
+                        <p>Сборка @AppInfo.Build. Каталог: @WorkoutCalculator.Exercises.ExerciseCatalog.All.Count упражнений.</p>
+                        <p>Геометрия @Fmt.N(_buildMs) мс · передача @Fmt.N(_uploadMs) мс · проверка @Fmt.N(_checkMs) мс · вершин @_current?.Mesh.VertexCount</p>
+                        <p>@_history.StorageError @_strength.StorageError @_personalized.StorageError</p>
+                    </details>
                 }
                 else
                 {
@@ -167,7 +182,7 @@
 </div>
 
 @code {
-    private enum Tab { Params, Workout, Hypothesis, Photos, History }
+    private enum Tab { Params, Workout, Hypothesis, Photos, History, Profile }
     private enum ViewMode { Current, Forecast, Compare, History }
     private enum BodyKind { MakeHuman, Mannequin }
 
@@ -209,17 +224,17 @@
     /// <summary>Журнал тренировок, от новых к старым.</summary>
     private List<LoggedWorkout> _workouts = ProfileStorage.LoadWorkouts();
 
-    private void SaveWorkout(LoggedWorkout entry)
+    private bool SaveWorkout(LoggedWorkout entry)
     {
-        _workouts.Add(entry);
-        _workouts = [.. _workouts.OrderByDescending(w => w.Date)];
-        ProfileStorage.SaveWorkouts(_workouts);
+        var next = _workouts.Where(w => w.Id != entry.Id).Append(entry).OrderByDescending(w => w.Date).ToList();
+        if (!ProfileStorage.SaveWorkouts(next)) return false;
+        _workouts = next; StateHasChanged(); return true;
     }
 
     private void RemoveWorkout(string id)
     {
-        _workouts.RemoveAll(w => w.Id == id);
-        ProfileStorage.SaveWorkouts(_workouts);
+        var next = _workouts.Where(w => w.Id != id).ToList();
+        if (ProfileStorage.SaveWorkouts(next)) _workouts = next;
     }
 
     /// <summary>Кардио по плану выбранной гипотезы — с ним журнал сравнивает неделю.</summary>
@@ -238,6 +253,7 @@
     private bool _dirty;
     private bool _rebuilding;
     private double _buildMs;
+    private double _forecastMs;
     private double _uploadMs;
     private double _checkMs;
 
@@ -300,6 +316,7 @@
         _strength.Load();
         _history.Load();
         _personalized.Load();
+        InitializeProduct();
         RefreshCalibration();
         _exercise.Journal = _strength;
         _exercise.RefreshJournal();
@@ -620,6 +637,7 @@
     /// </summary>
     private ForecastResult RunForecasts()
     {
+        var timing = Stopwatch.StartNew();
         var now = DateTimeOffset.Now;
         var today = DateOnly.FromDateTime(now.Date);
         var startFact = _history.Timeline.Selected is { } selected && selected.Date == today ? selected :
@@ -641,6 +659,8 @@
                         : ForecastEngine.Run(commonStart, h.Plan.ToInput(), _personalized.CurrentRevision?.Profile)))
             .ToList();
         _personalized.Evaluate(_history.Timeline.Items, today);
+        _forecastMs = timing.Elapsed.TotalMilliseconds;
+        Console.WriteLine($"Product timing: forecast {_forecastMs:F2} ms, muscle={_personalized.Display?.Muscle is not null}");
         return _forecast = (_forecasts.FirstOrDefault(f => f.Hypothesis.Slot == _hypotheses.Selected) ?? _forecasts[0]).Forecast;
     }
 }

@@ -56,12 +56,13 @@ public sealed class ExercisePreviewState
     {
         Selected = ExerciseCatalog.Get(id);
         RefreshJournal();
-        if (Playing && Source == MuscleLoadSource.Exercise) ViewerInterop.PlayAnimation("current", Selected.AnimationId);
+        if (Selected.AnimationId is null) Stop();
+        else if (Playing && Source == MuscleLoadSource.Exercise) ViewerInterop.PlayAnimation("current", Selected.AnimationId);
     }
 
     public void ToggleAnimation()
     {
-        if (!Available || Source != MuscleLoadSource.Exercise) return;
+        if (!Available || Selected.AnimationId is null || Source != MuscleLoadSource.Exercise) return;
         if (Playing) Stop();
         else { ViewerInterop.PlayAnimation("current", Selected.AnimationId); Playing = true; }
     }

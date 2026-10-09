@@ -1,15 +1,19 @@
 namespace WorkoutCalculator.Exercises;
 
+public enum ExerciseSide { Bilateral, Left, Right, Alternating }
+
 /// <summary>Weight only scales exposure when an explicit same-exercise reference is provided.</summary>
 public sealed record ExerciseSetParameters(int Sets = 3, int Reps = 10, double? WeightKg = null,
-    double? Rir = null, double? Rpe = null, double? ReferenceWeightKg = null);
+    double? Rir = null, double? Rpe = null, double? ReferenceWeightKg = null, ExerciseSide Side = ExerciseSide.Bilateral);
 
 public sealed record MuscleLoadResult(IReadOnlyDictionary<string, double> Raw,
     IReadOnlyDictionary<string, double> Normalized)
 {
+    public IReadOnlyDictionary<string, double>? RegionRaw { get; init; }
     /// <summary>Region 0 stays zero. Bilateral exercise roles apply equally to both sides, without halving.</summary>
     public float[] ToRegionLoads() => MuscleDefinitions.Regions
-        .Select(r => (float)Normalized.GetValueOrDefault(r.GroupId)).ToArray();
+        .Select(r => RegionRaw is null ? (float)Normalized.GetValueOrDefault(r.GroupId)
+            : (float)(RegionRaw.GetValueOrDefault(r.Id) / (1 + RegionRaw.GetValueOrDefault(r.Id)))).ToArray();
 }
 
 /// <summary>Relative training load, not EMG or a growth model. All coefficients are first-pass heuristics.</summary>
@@ -27,7 +31,7 @@ public static class MuscleLoadEngine
     {
         ExerciseCatalog.Validate([exercise]);
         var p = parameters ?? new();
-        if (p.Sets is < 0 or > 100 || p.Reps is < 1 or > 1000 ||
+        if (!Enum.IsDefined(p.Side) || p.Sets is < 0 or > 100 || p.Reps is < 1 or > 1000 ||
             p.Rir is { } rir && (!double.IsFinite(rir) || rir < 0 || rir > 10) ||
             p.Rpe is { } rpe && (!double.IsFinite(rpe) || rpe < 1 || rpe > 10) ||
             p.Rir.HasValue && p.Rpe.HasValue ||
@@ -48,7 +52,19 @@ public static class MuscleLoadEngine
         Add(exercise.PrimaryMuscles, PrimaryWeight);
         Add(exercise.SecondaryMuscles, SecondaryWeight);
         Add(exercise.Stabilizers, StabilizerWeight);
-        return FromRaw(raw);
+        // Reps are total movements. Alternating splits exposure (odd rep goes left).
+        var regions = MuscleDefinitions.Regions.ToDictionary(r => r.Id, r => raw.GetValueOrDefault(r.GroupId) * (r.Side switch
+        {
+            "L" when p.Side == ExerciseSide.Right => 0,
+            "R" when p.Side == ExerciseSide.Left => 0,
+            "L" when p.Side == ExerciseSide.Alternating => Math.Ceiling(p.Reps / 2.0) / p.Reps,
+            "R" when p.Side == ExerciseSide.Alternating => Math.Floor(p.Reps / 2.0) / p.Reps,
+            _ => 1.0
+        }));
+        // Group values are the bilateral mean used by the symmetric growth proxy.
+        if (p.Side != ExerciseSide.Bilateral)
+            foreach (var group in MuscleDefinitions.Groups.Where(g => g.Bilateral)) raw[group.Id] *= .5;
+        return FromRaw(raw) with { RegionRaw = regions };
 
         void Add(IEnumerable<string> muscles, double role)
         {
@@ -60,7 +76,11 @@ public static class MuscleLoadEngine
     public static MuscleLoadResult Aggregate(IEnumerable<MuscleLoadResult> results)
     {
         var raw = MuscleDefinitions.Groups.ToDictionary(g => g.Id, _ => 0.0);
+        var regions = MuscleDefinitions.Regions.ToDictionary(r => r.Id, _ => 0.0);
         foreach (var result in results)
+        {
+            foreach (var r in MuscleDefinitions.Regions)
+                regions[r.Id] += result.RegionRaw?.GetValueOrDefault(r.Id) ?? result.Raw.GetValueOrDefault(r.GroupId);
             foreach (var (id, value) in result.Raw)
             {
                 MuscleDefinitions.Get(id);
@@ -68,7 +88,8 @@ public static class MuscleLoadEngine
                 raw[id] += value;
                 if (!double.IsFinite(raw[id])) throw new ArgumentException("Cumulative raw load overflow.");
             }
-        return FromRaw(raw);
+        }
+        return FromRaw(raw) with { RegionRaw = regions };
     }
 
     // Fixed reference, not per-exercise max: reduced volume remains visible; raw 1 maps to 0.5.

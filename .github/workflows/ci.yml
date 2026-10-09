@@ -45,3 +45,16 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/history-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/forecast-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/muscle-forecast-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/product-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/errors-smoke.cjs
+      - name: Published PWA offline smoke from /trening/
+        run: |
+          dotnet publish src/WorkoutCalculator.Web -c Release --no-restore -o "$RUNNER_TEMP/offline"
+          node tests/browser/static-server.cjs "$RUNNER_TEMP/offline/wwwroot" 5257 > "$RUNNER_TEMP/offline.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:5257/trening/ > /dev/null; then break; fi
+            sleep 1
+          done
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/offline-smoke.cjs

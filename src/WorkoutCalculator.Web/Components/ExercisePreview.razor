@@ -26,12 +26,13 @@
                 <option value="@exercise.Id">@exercise.Name</option>
             }
         </select>
-        <button class="btn" disabled="@(!State.Available)" @onclick="State.ToggleAnimation">@(State.Playing ? "■ Стоп" : "▶ Упражнение")</button>
+        <button class="btn" disabled="@(!State.Available || State.Selected.AnimationId is null)" @onclick="State.ToggleAnimation">@(State.Playing ? "■ Стоп" : "▶ Упражнение")</button>
         }
         <label class="check"><input type="checkbox" checked="@State.Heatmap" disabled="@(!State.HeatmapAvailable)"
             @onchange="e => State.SetHeatmap(e.Value is true)" /> Нагрузка мышц</label>
         <button class="btn" aria-label="Сброс упражнения" title="Сброс упражнения и подсветки" @onclick="State.Reset">Сброс</button>
     </div>
+    @if (State.Selected.AnimationId is null) { <small>3D-анимация пока недоступна</small> }
     @if (!State.Available)
     {
         <small>Анимация и подсветка доступны для MakeHuman после загрузки.</small>

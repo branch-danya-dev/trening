@@ -316,7 +316,7 @@ else
                         </tbody>
                     </table>
                     <div class="confirm">
-                        <span>Применено к модели — ползунки «Осанка и форма» на вкладке «Параметры».</span>
+                        <span>Применено к модели — ползунки «Осанка и форма» внутри «Настроить внешний вид 3D».</span>
                         @if (_undo is not null)
                         {
                             <button class="btn-link" @onclick="Undo">Вернуть как было</button>
@@ -691,7 +691,7 @@ else
 
     public void Dispose()
     {
-        PhotoStore.OnLock(null);
+        PhotoStore.ClearLockListener();
         Close();
     }
 
