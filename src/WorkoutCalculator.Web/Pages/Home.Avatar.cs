@@ -10,8 +10,12 @@ public partial class Home
     private readonly AvatarDomainStore _avatars = new(new BrowserJournalStorage());
     private AvatarRepresentation? _avatarRepresentation;
     private string? _avatarError;
+    private bool _avatarBusy;
+    private int _avatarEditVersion;
+    private double _avatarRebuildMs;
     private AvatarState? Avatar => _avatars.Avatar;
-    private AvatarBuilder? AvatarBuilder => _mh is null ? null : new(_mh);
+    private AvatarBuilder? _avatarBuilder;
+    private AvatarBuilder? AvatarBuilder => _mh is null ? null : _avatarBuilder ??= new(_mh);
     private BodyProfile AvatarFallbackProfile()
     {
         if (Avatar?.Draft is { } draft) return WorkoutCalculator.BodyModel.Avatars.AvatarBuilder.GeometryProfile(draft.Inputs, draft.Corrections);
@@ -21,7 +25,7 @@ public partial class Home
 
     private void InitializeAvatar(bool fresh = false)
     {
-        if (_mh is null || _onboarding is not null) return;
+        if (_mh is null || (_onboarding is not null && Avatar is null)) return;
         try
         {
             var read = _avatars.Current;
@@ -57,7 +61,9 @@ public partial class Home
                 if (CurrentFact is null && Avatar?.ActiveRevision is { } r) _profile = r.Inputs.BaseProfile();
                 _profile.RestingHr = stored.RestingHr; _profile.Vo2Max = stored.Vo2Max;
             }
+            if (Avatar?.Draft is not null) _kind = BodyKind.MakeHuman;
             RebuildAvatar();
+            if (_onboarding is not null) { _onboarding.Step = Math.Max(6, _onboarding.Step); ProductStorage.Save(_onboarding); CompleteAvatarOnboarding(); }
             _avatarError = null;
         }
         catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = e.Message; }
@@ -66,7 +72,9 @@ public partial class Home
     private void RebuildAvatar()
     {
         if (AvatarBuilder is not { } builder || Avatar is not { } avatar) return;
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         _avatarRepresentation = avatar.Draft is { } draft ? builder.Build(draft.Inputs, draft.Corrections) : builder.Rebuild(avatar.ActiveRevision!);
+        _avatarRebuildMs = watch.Elapsed.TotalMilliseconds;
         _fitCurrent = null;
         RequestRebuild();
     }
@@ -75,10 +83,52 @@ public partial class Home
         try { _avatarError = action(); if (_avatarError is null) { RebuildAvatar(); Refresh(); } }
         catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = e.Message; }
     }
-    private void StartAvatarRecalibration() => AvatarCommand(() => _avatars.StartRecalibration("Ручная коррекция внешнего вида", DateTimeOffset.Now));
-    private void EditAvatarCorrections(AvatarShapeCorrectionProfile corrections) => AvatarCommand(() => _avatars.EditDraft(corrections));
+    private void StartAvatarRecalibration()
+    {
+        AvatarCommand(() => _avatars.StartRecalibration("Ручная коррекция внешнего вида", DateTimeOffset.Now));
+        if (_avatarError is null) { _kind = BodyKind.MakeHuman; OpenModel(); }
+    }
+    private async Task EditAvatarCorrections(AvatarShapeCorrectionProfile corrections)
+    {
+        var version = ++_avatarEditVersion;
+        _avatarError = _avatars.EditDraft(corrections);
+        if (_avatarError is not null) return;
+        _avatarBusy = true;
+        StateHasChanged();
+        await Task.Delay(180);
+        if (version != _avatarEditVersion) return;
+        try { RebuildAvatar(); }
+        catch (Exception e) when (e is not OutOfMemoryException) { _avatarRepresentation = null; _avatarError = e.Message; }
+        finally { _avatarBusy = false; }
+    }
     private void CancelAvatarRecalibration() => AvatarCommand(_avatars.CancelRecalibration);
-    private void ConfirmAvatar() => AvatarCommand(() => _avatars.Confirm(new AvatarLifecycle(AvatarBuilder!), DateTimeOffset.Now, DateOnly.FromDateTime(DateTime.Now)));
+    private async Task ConfirmAvatar()
+    {
+        if (_avatarBusy || _avatarRepresentation is null) return;
+        _avatarBusy = true; StateHasChanged(); await Task.Delay(1);
+        try {
+            AvatarCommand(() => _avatars.Confirm(new AvatarLifecycle(AvatarBuilder!), DateTimeOffset.Now, DateOnly.FromDateTime(DateTime.Now)));
+            if (_avatarError is null) CompleteAvatarOnboarding();
+        } catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = e.Message; }
+        finally { _avatarBusy = false; }
+    }
+    private void ApplyInitialPhoto(PhotoSession photo)
+    {
+        if (_onboarding is not { } onboarding) return;
+        try {
+            var fact = onboarding.Build(); var now = DateTimeOffset.Now;
+            var p = _avatars.Profile ?? new Profile(Guid.NewGuid().ToString(), now, fact.Sex!.Value, fact.HeightCm!.Value, fact.Age!.Value,
+                DateOnly.Parse(onboarding.Preferences.BirthDate), onboarding.Preferences.Goal, Guid.NewGuid().ToString());
+            var inputs = Avatar?.Draft?.Inputs ?? WorkoutCalculator.BodyModel.Avatars.AvatarBuilder.Capture(p, fact);
+            var result = AvatarPhotoReconstruction.Apply(inputs, photo.Id, photo.Sex, photo.HeightCm, photo.Analysis?.Front, photo.Analysis?.Side);
+            onboarding.PhotoNotice = string.Join(" ", result.Warnings);
+            if (result.Accepted) {
+                onboarding.PhotoSessionId = photo.Id;
+                if (Avatar?.Draft is { } draft) AvatarCommand(() => _avatars.EditDraft(draft.Corrections, result.Inputs));
+            }
+            ProductStorage.Save(onboarding);
+        } catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = e.Message; }
+    }
     private void UseCurrentAvatarFact() => AvatarCommand(() =>
     {
         if (CurrentFact is not { } fact || Avatar?.Draft is not { } draft) return "Нет факта или черновика.";

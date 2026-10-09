@@ -1,0 +1,59 @@
+{
+  "suite": "avatar-creation-smoke",
+  "matrix": [
+    {
+      "width": 320,
+      "page": 320,
+      "panel": 320,
+      "scroll": 320
+    },
+    {
+      "width": 390,
+      "page": 390,
+      "panel": 390,
+      "scroll": 390
+    },
+    {
+      "width": 1400,
+      "page": 1400,
+      "panel": 479,
+      "scroll": 479
+    }
+  ],
+  "performance": {
+    "warm": [
+      {
+        "control": "Ширина плеч",
+        "ms": 199.4
+      },
+      {
+        "control": "Выступ живота",
+        "ms": 220.9
+      },
+      {
+        "control": "Бока",
+        "ms": 225.6
+      }
+    ],
+    "cold": 150.2999
+  },
+  "checks": [
+    "reload-every-step",
+    "close-reopen-draft",
+    "draft-backup-clean-restore",
+    "front-side-fixture",
+    "low-quality-rejected",
+    "photo-skip",
+    "partial-facts-only",
+    "semantic-geometry",
+    "reset-identity",
+    "facts-unchanged",
+    "review-provenance",
+    "lock-no-sliders",
+    "recalibration-immutable-history",
+    "new-origin",
+    "full-backup-clean-restore",
+    "photo-blobs-restored"
+  ],
+  "browserErrors": 0
+}

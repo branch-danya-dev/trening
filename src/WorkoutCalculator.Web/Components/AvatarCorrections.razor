@@ -1,0 +1,23 @@
+@using WorkoutCalculator.BodyModel.Avatars
+<section class="avatar-corrections" aria-label="Визуальная коррекция">
+    <h2>Уточните форму</h2>
+    <p>Аватар может отличаться от вашей реальной фигуры. Чем точнее исходная форма, тем точнее сравнение прогресса и будущие прогнозы. Исправьте форму, если она заметно отличается.</p>
+    <p class="note">Это визуальная оценка. Ползунки не меняют вес, процент жира и введённые обхваты. Ноль — исходная форма. Известные обхваты ограничивают изменение объёма; меняется также распределение формы.</p>
+    <details class="correction-controls" open><summary>Форма и осанка</summary>
+        @foreach (var control in AvatarControls.All)
+        {
+            var d = control;
+            <div class="correction-row" data-correction="@d.Key">
+                <ParamSlider Label="@d.Label" Hint="@(d.Ends + (d.Get(Value) == 0 ? " · 0 — исходная форма" : " · Исправлено визуально"))"
+                    Min="d.Min" Max="d.Max" Step="d.Step" Value="d.Get(Value)" ValueChanged="v => Change(d.Set(Value, v))" />
+                <button class="btn" aria-label="@("Сбросить: " + d.Label)" disabled="@(d.Get(Value) == 0)" @onclick="() => Change(d.Set(Value, 0))">Сбросить</button>
+            </div>
+        }
+        <button class="btn" @onclick="() => Change(new() { CorrectionModelVersion = AvatarShapeCorrectionProfile.CurrentVersion })">Сбросить все коррекции</button>
+    </details>
+</section>
+@code {
+    [Parameter, EditorRequired] public AvatarShapeCorrectionProfile Value { get; set; } = new();
+    [Parameter] public EventCallback<AvatarShapeCorrectionProfile> ValueChanged { get; set; }
+    private Task Change(AvatarShapeCorrectionProfile value) => ValueChanged.InvokeAsync(value with { CorrectionModelVersion = AvatarShapeCorrectionProfile.CurrentVersion });
+}

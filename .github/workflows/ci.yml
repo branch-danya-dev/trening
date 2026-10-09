@@ -47,6 +47,7 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/muscle-forecast-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/product-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/avatar-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/avatar-creation-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/errors-smoke.cjs
       - name: Published PWA offline smoke from /trening/
         run: |

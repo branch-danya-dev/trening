@@ -1,6 +1,6 @@
 # Канонический lifecycle продукта
 
-**Статус реализации Phase 1 (2026-10-09):** в отдельном implementation PR добавлены Profile/Avatar, immutable revisions, corrections/AvatarDerived, lock/recalibration, automatic-photo API, additive migration и backup. Контракты и ограничения — [AVATAR_DOMAIN](AVATAR_DOMAIN.md). TrackingCycle пока представлен origin/cycle IDs и событиями, RecalibrationSession — AvatarDraft. Остальные фазы ниже остаются целевой спецификацией; полноценный Hypothesis lifecycle и photo UI wiring не реализованы.
+**Статус реализации Phase 1 (2026-10-09):** в отдельном implementation PR добавлены Profile/Avatar, immutable revisions, corrections/AvatarDerived, lock/recalibration, automatic-photo API, additive migration и backup. Контракты и ограничения — [AVATAR_DOMAIN](AVATAR_DOMAIN.md). TrackingCycle пока представлен origin/cycle IDs и событиями, RecalibrationSession — AvatarDraft. Phase 2 также реализована: initial creation/correction/review/lock, local photo-derived inputs, explainable quality и отдельная recalibration. Полноценный Hypothesis lifecycle, post-lock photo check-in UI и Phase 3+ остаются целевой спецификацией.
 
 Статус: **целевая продуктовая спецификация**, 2026-10-09; не описание уже реализованных функций. Этот документ имеет приоритет при определении поведения продукта. [Roadmap](PRODUCT_LIFECYCLE_ROADMAP.md) задаёт порядок реализации, [технологические решения](PRODUCT_TECHNOLOGY_DECISIONS.md) — инструменты, [PRODUCT_STRUCTURE](PRODUCT_STRUCTURE.md) — карту текущего приложения и перехода, [VALIDATION](VALIDATION.md) — проверки. Формулы и исследовательские gates остаются в [Forecast v3 R&D](FORECAST_V3_RND_PLAN.md).
 
@@ -48,6 +48,8 @@
 Каждая оценка должна различать `observedAt`, `recordedAt`, `computedAt` и версии источника. Для origin доступны только записи, уже известные на момент его создания: поздно внесённый вчерашний день не существовал во вчерашнем прогнозе. Не считать несколько признаков из одного фото независимыми подтверждениями; больше качественных данных может повышать confidence, но дубликаты и противоречия — нет.
 
 ## 3. Создание Avatar
+
+**Текущая Phase 2:** существующий onboarding проходит восемь шагов до обязательного review и `Зафиксировать аватар`. Фактический starting snapshot остаётся частичным; фотооценки талии/бёдер хранятся отдельно, визуальные corrections не меняют факты. Доступны плечи/грудь/живот/бока/талия/ягодицы/руки/ноги/глубина корпуса/сутулость. Допуск известных обхватов 0.5 см; превышения отображаются перед confirm. Category quality — coverage policy v1. Back и общий muscularity control пока не поддерживаются. См. точный контракт [AVATAR_DOMAIN](AVATAR_DOMAIN.md).
 
 После создания системного Profile отдельно создаётся Avatar. Входы: пол, возраст/дата рождения, рост, вес; optional известный % жира и ручные обхваты; optional front/side/back photos, photo-derived параметры. Неизвестные значения остаются null. Текущий MakeHuman/skeleton/atlas/fitter строит базовую геометрию, маркируя completion estimates.
 

@@ -1,0 +1,40 @@
+@using WorkoutCalculator.BodyModel.Avatars
+@if (Inputs is not null && Corrections is not null && Quality is not null)
+{
+    var summary = AvatarQualitySummary.Create(Inputs, Corrections, Quality);
+    <section class="avatar-review" aria-label="Качество и источники аватара" data-quality="@summary.Category" data-estimated="@summary.EstimatedFields">
+        <h3>@summary.Category</h3>
+        <p>Подтверждено: @summary.FactualFields полей · по фото: @summary.PhotoFields · оценено: @summary.EstimatedFields.</p>
+        <p class="note">Категория описывает полноту данных по правилам v1, а не вероятность точности. Модель не предназначена для медицинских измерений.</p>
+        @foreach (var warning in summary.Warnings) { <p class="hint">@warning</p> }
+        @if (Detailed)
+        {
+            <h3>Что использовано</h3>
+            <dl class="avatar-sources">
+                @foreach (var f in Inputs.Fields)
+                {
+                    <div><dt>@AvatarQualitySummary.FieldName(f.Field)</dt><dd><span class="badge">@AvatarQualitySummary.SourceName(f.Source)</span> @Value(f.Field)</dd></div>
+                }
+            </dl>
+            <h3>Исправлено визуально</h3>
+            @if (AvatarControls.All.All(d => d.Get(Corrections) == 0)) { <p>Без коррекций — исходная реконструкция.</p> }
+            @foreach (var d in AvatarControls.All.Where(d => d.Get(Corrections) != 0)) { <p>@d.Label: @Fmt.Signed(d.Get(Corrections), 1)</p> }
+            <details><summary>Отклонения от известных обхватов</summary>
+                <p>Допуск политики: @Fmt.N(AvatarQualitySummary.GirthToleranceCm, 1) см. Фактические значения не переписываются.</p>
+                <p>Максимальное отклонение подгонки по всем целям: @Fmt.N(Quality.MaximumGirthResidualCm, 2) см.</p>
+                @foreach (var (g, residual) in Quality.KnownGirthResidualsCm) { <p>@BodyProfile.GirthName(g): @Fmt.Signed(residual, 2) см</p> }
+            </details>
+        }
+    </section>
+}
+@code {
+    [Parameter] public AvatarReconstructionInputs? Inputs { get; set; }
+    [Parameter] public AvatarShapeCorrectionProfile? Corrections { get; set; }
+    [Parameter] public AvatarGeometryQuality? Quality { get; set; }
+    [Parameter] public bool Detailed { get; set; }
+    private string Value(string field) {
+        var p = Inputs!.BaseProfile();
+        if (Enum.TryParse<Girth>(field, out var g)) return Fmt.N(p.GetGirth(g),1) + " см";
+        return field switch { "heightCm" => Fmt.N(p.HeightCm,1)+" см", "weightKg" => Fmt.N(p.WeightKg,1)+" кг", "bodyFatPercent" => Fmt.N(p.BodyFatPercent,1)+" %", "age" => p.Age+" лет", "sex" => p.Sex == Sex.Male ? "Мужской" : "Женский", _ => "" };
+    }
+}

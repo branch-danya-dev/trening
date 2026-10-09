@@ -5,7 +5,7 @@
 @using WorkoutCalculator.BodyModel.Photos
 @inject HttpClient Http
 
-<div data-section="@_tab" data-onboarding-step="@_onboarding?.Step" data-build-ms="@_buildMs.ToString(CultureInfo.InvariantCulture)" data-forecast-ms="@_forecastMs.ToString(CultureInfo.InvariantCulture)" data-model-ready="@(_mh is not null ? "true" : "false")" class="app product-app @(_onboarding is not null ? "is-onboarding" : null) @(_tab is Tab.Workout or Tab.Profile ? "panel-only" : null)">
+<div data-section="@_tab" data-onboarding-step="@_onboarding?.Step" data-build-ms="@_buildMs.ToString(CultureInfo.InvariantCulture)" data-forecast-ms="@_forecastMs.ToString(CultureInfo.InvariantCulture)" data-avatar-build-ms="@_avatarRebuildMs.ToString(CultureInfo.InvariantCulture)" data-avatar-busy="@(_avatarBusy ? "true" : "false")" data-model-ready="@(_mh is not null ? "true" : "false")" class="app product-app @(_onboarding is not null ? "is-onboarding" : null) @(_tab is Tab.Workout or Tab.Profile ? "panel-only" : null)">
     <header class="topbar">
         <span class="brand-dot"></span>
         <span class="brand">Тренировки и тело</span>
@@ -14,7 +14,7 @@
             <span class="brand-sub model-label">Модель</span>
             <div class="seg" role="group" aria-label="Модель тела">
                 <button class="@Css.On(_kind == BodyKind.MakeHuman)" @onclick="() => SetKind(BodyKind.MakeHuman)">MakeHuman</button>
-                <button class="@Css.On(_kind == BodyKind.Mannequin)" @onclick="() => SetKind(BodyKind.Mannequin)">Манекен</button>
+                <button class="@Css.On(_kind == BodyKind.Mannequin)" disabled="@(Avatar?.Draft is not null)" @onclick="() => SetKind(BodyKind.Mannequin)">Манекен</button>
             </div>
         </div>
         @if (_kind == BodyKind.MakeHuman && _mhStatus is not null)
@@ -117,6 +117,10 @@
             {
                 <div class="view-error" role="alert">@_videoError</div>
             }
+            @if (!UseMakeHuman && Avatar is not null)
+            {
+                <div class="view-error" role="status">Упрощённый манекен. Точная форма и визуальные коррекции аватара доступны в MakeHuman.</div>
+            }
 
             <label class="check view-tapes" title="Где меряется каждый обхват. Лента обхвата подсвечивается и при наведении на его поле">
                 <input type="checkbox" checked="@_showTapes" @onchange="ToggleTapes" /> ленты замеров
@@ -128,16 +132,18 @@
             <div class="panel-body">
                 @if (_onboarding is not null)
                 {
-                    <Onboarding Draft="_onboarding" Model="_mh" OnHighlight="SetHighlight" OnPreview="PreviewOnboarding" OnFinish="FinishOnboarding" />
+                    <Onboarding Draft="_onboarding" Model="_mh" OnHighlight="SetHighlight" OnPreview="PreviewOnboarding" OnFinish="FinishOnboarding" OnPhoto="ApplyInitialPhoto" Busy="_avatarBusy">
+                        <AvatarPanel State="Avatar" Representation="_avatarRepresentation" Busy="_avatarBusy" ReviewOnly="@(_onboarding.Step == 7)" ShowConfirm="@(_onboarding.Step == 7)" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" />
+                    </Onboarding>
                 }
                 else if (_tab == Tab.Params)
                 {
                     <Dashboard Fact="CurrentFact" Facts="_history.Timeline.Items" Cardio="_workouts" Strength="_strength" Goal="@_preferences.Goal" Plan="_hypotheses.Current" Calibration="_personalized" />
                     <p class="note">@CurrentFactCaption</p>
                     <div class="history-actions"><button class="btn primary" @onclick="NewMeasurement">Записать замеры</button><button class="btn" @onclick="() => _tab = Tab.Photos">Фото</button></div>
-                    <details class="model-adjustments"><summary>Настроить внешний вид 3D</summary>
-                    <AvatarPanel State="Avatar" OnStart="StartAvatarRecalibration" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" OnCancel="CancelAvatarRecalibration" OnUseFact="UseCurrentAvatarFact" OnNewCycle="BeginAvatarForecastCycle" />
-                    </details>
+                    <div class="model-adjustments">
+                    <AvatarPanel State="Avatar" Representation="_avatarRepresentation" Busy="_avatarBusy" OnMeasure="NewMeasurement" OnStart="StartAvatarRecalibration" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" OnCancel="CancelAvatarRecalibration" OnUseFact="UseCurrentAvatarFact" OnNewCycle="BeginAvatarForecastCycle" />
+                    </div>
                 }
                 else if (_tab == Tab.Workout)
                 {
@@ -167,8 +173,8 @@
                     <label class="check"><input type="checkbox" @bind="_privacy.Watermark" @bind:after="SavePrivacy" /> Водяной знак на фото</label>
                     <button class="btn" @onclick="() => _tab = Tab.Photos">Фото и защита PIN</button></section>
                     <BackupPanel />
-                    <AvatarPanel State="Avatar" OnStart="StartAvatarRecalibration" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" OnCancel="CancelAvatarRecalibration" OnUseFact="UseCurrentAvatarFact" OnNewCycle="BeginAvatarForecastCycle" />
-                    <ValidationPanel Fact="CurrentFact" Profile="_profile" Body="_current" Facts="_history.Timeline.Items" Cardio="_workouts" Calibration="_personalized" />
+                    <AvatarPanel State="Avatar" Representation="_avatarRepresentation" Busy="_avatarBusy" OnMeasure="NewMeasurement" OnStart="StartAvatarRecalibration" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" OnCancel="CancelAvatarRecalibration" OnUseFact="UseCurrentAvatarFact" OnNewCycle="BeginAvatarForecastCycle" />
+                    <ValidationPanel Fact="@(Avatar?.Draft?.Inputs.Fact ?? Avatar?.ActiveRevision?.Inputs.Fact ?? CurrentFact)" Profile="_profile" Body="_current" Facts="_history.Timeline.Items" Cardio="_workouts" Calibration="_personalized" Avatar="Avatar" Representation="_avatarRepresentation" />
                     <details class="card"><summary>Диагностика и версия</summary>
                         <p>Сборка @AppInfo.Build. Каталог: @WorkoutCalculator.Exercises.ExerciseCatalog.All.Count упражнений.</p>
                         <p>Геометрия @Fmt.N(_buildMs) мс · передача @Fmt.N(_uploadMs) мс · проверка @Fmt.N(_checkMs) мс · вершин @_current?.Mesh.VertexCount</p>

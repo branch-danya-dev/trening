@@ -1,7 +1,7 @@
 @using WorkoutCalculator.BodyModel.History
 <section class="onboarding" aria-label="Первый запуск">
-    <p class="eyebrow">Тренировки и тело · шаг @(Draft.Step + 1) из 6</p>
-    <h1>@Titles[Math.Clamp(Draft.Step, 0, 5)]</h1>
+    <p class="eyebrow">@(Draft.Step == 0 ? "Профиль" : "Создать аватар") · шаг @(Draft.Step + 1) из 8</p>
+    <h1>@Titles[Math.Clamp(Draft.Step, 0, 7)]</h1>
     <p>Данные остаются на устройстве. Заполните известное; необязательные поля можно пропустить.</p>
     @if (_error is not null) { <p role="alert">@_error</p> }
     @if (Draft.Step == 0)
@@ -32,8 +32,9 @@
     }
     else if (Draft.Step == 3)
     {
-        <p>Фото спереди и сбоку необязательны. Можно добавить их позднее в разделе «Модель».</p>
-        <details><summary>Добавить фото сейчас</summary><PhotosPanel Profile="Preview" Model="Model" OnChange="IgnorePhotoEstimate" /></details>
+        <p>Фото спереди и сбоку необязательны. Фото — источник оценки формы, а не измерение тела. Фото со спины пока не используется: текущий анализ поддерживает два ракурса.</p>
+        @if (Draft.PhotoNotice is not null) { <p role="status">@Draft.PhotoNotice</p> }
+        <details><summary>Добавить фото сейчас</summary><PhotosPanel Profile="Preview" Model="Model" RevisionManaged="true" OnAvatarPhoto="OnPhoto" /></details>
         <button class="btn" @onclick="Next">Пропустить фото</button>
     }
     else if (Draft.Step == 4)
@@ -43,18 +44,20 @@
         </select></label>
         <p>Цель задаёт начальные настройки плана. Их можно изменить в разделе «План».</p>
     }
-    else
+    else if (Draft.Step == 5)
     {
         <p>Будет создана первая запись за @Draft.Facts.Date: вес @Draft.Facts.Weight кг, рост @Draft.Facts.Height см, обхватов @Draft.Facts.Girths.Count(x => !string.IsNullOrWhiteSpace(x.Value)).</p>
         <p>Жир: @(string.IsNullOrWhiteSpace(Draft.Facts.BodyFat) ? "не измерен" : Draft.Facts.BodyFat + " %"). Пустые поля останутся пустыми.</p>
         <label class="check"><input type="checkbox" @bind="_confirmed" /> Подтверждаю введённые факты</label>
     }
+    else { @if (Draft.PhotoNotice is not null) { <p role="status">@Draft.PhotoNotice</p> } @ChildContent }
     <div class="history-actions">
-        @if (Draft.Step > 0) { <button class="btn" @onclick="Back">Назад</button> }
-        @if (Draft.Step < 5) { <button class="btn primary" @onclick="Next">Далее</button> }
-        else { <button class="btn primary" disabled="@(!_confirmed)" @onclick="Finish">Завершить настройку</button> }
+        @if (Draft.Step > 0 && Draft.Step != 6) { <button class="btn" @onclick="Back">Назад</button> }
+        @if (Draft.Step < 5 || Draft.Step == 6) { <button class="btn primary" disabled="@Busy" @onclick="Next">@(Draft.Step == 6 ? "Проверить аватар" : "Далее")</button> }
+        else if (Draft.Step == 5) { <button class="btn primary" disabled="@(!_confirmed || Busy || Model is null)" @onclick="Finish">Создать 3D аватар</button> }
     </div>
     <small>Черновик сохраняется после изменения поля и каждого шага.</small>
+    @if (Draft.Step >= 6) { <details><summary>Резервная копия настройки</summary><BackupPanel /></details> }
 </section>
 
 @code {
@@ -63,16 +66,18 @@
     [Parameter] public EventCallback<BodyProfile> OnPreview { get; set; }
     [Parameter] public EventCallback<Girth?> OnHighlight { get; set; }
     [Parameter] public EventCallback OnFinish { get; set; }
+    [Parameter] public EventCallback<PhotoSession> OnPhoto { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Busy { get; set; }
     private string? _error;
     private bool _confirmed;
-    private static readonly string[] Titles = ["Познакомимся", "Замеры тела", "Процент жира", "Фото", "Ваша цель", "Всё готово"];
+    private static readonly string[] Titles = ["Познакомимся", "Замеры тела", "Процент жира", "Фото", "Ваша цель", "Подтвердите факты", "Ваша форма", "Проверка и фиксация"];
     public static readonly string[] Goals = ["Похудение", "Поддержание", "Набор", "Улучшение формы и силы"];
     private BodyProfile Preview { get { try { return SnapshotVisuals.Build(Draft.Build()).Profile; } catch { return BodyDefaults.Default(); } } }
-    private async Task Persist() { try { ProductStorage.Save(Draft); _error = null; if (Draft.Step > 0) await OnPreview.InvokeAsync(Preview); } catch { _error = "Не удалось сохранить черновик. Проверьте доступ и свободное место в хранилище браузера."; } }
+    private async Task Persist() { try { ProductStorage.Save(Draft); _error = null; if (Draft.Step > 0 && Draft.Step < 6) await OnPreview.InvokeAsync(Preview); } catch { _error = "Не удалось сохранить черновик. Проверьте доступ и свободное место в хранилище браузера."; } }
     private async Task BirthChanged(ChangeEventArgs e) { Draft.Preferences.BirthDate = e.Value?.ToString() ?? ""; await Persist(); }
-    private async Task Next() { try { Draft.Build(); Draft.Step = Math.Min(5, Draft.Step + 1); await Persist(); } catch (ArgumentException e) { _error = e.Message; } }
+    private async Task Next() { try { Draft.Build(); Draft.Step = Math.Min(7, Draft.Step + 1); await Persist(); } catch (ArgumentException e) { _error = e.Message; } }
     private async Task Back() { Draft.Step = Math.Max(0, Draft.Step - 1); await Persist(); }
     private async Task UnknownFat() { Draft.Facts.BodyFat = ""; await Persist(); }
-    private Task IgnorePhotoEstimate(Action<BodyProfile> _) => Task.CompletedTask;
     private async Task Finish() { try { Draft.Build(); await OnFinish.InvokeAsync(); } catch (Exception e) { _error = "Настройка не завершена. " + e.Message; } }
 }

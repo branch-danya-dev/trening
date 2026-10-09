@@ -1,6 +1,6 @@
 # Roadmap реализации продуктового lifecycle
 
-**Обновление Phase 1, 2026-10-09:** domain foundation реализована в отдельном implementation PR от `main 9878994f4a0766f8ea8599c3fbb2b12e355a2701` после merge #20. Phase 2–9 остаются планом. Исходный docs-only статус ниже сохранён как контекст первоначального roadmap.
+**Обновление Phase 1, 2026-10-09:** domain foundation реализована в отдельном implementation PR от `main 9878994f4a0766f8ea8599c3fbb2b12e355a2701` после merge #20. Phase 2 реализована ниже; Phase 3–9 остаются планом. Исходный docs-only статус ниже сохранён как контекст первоначального roadmap.
 
 Статус: план, 2026-10-09. Ни одна фаза не считается выполненной этим docs PR. Канон — [PRODUCT_LIFECYCLE](PRODUCT_LIFECYCLE.md); инструменты — [PRODUCT_TECHNOLOGY_DECISIONS](PRODUCT_TECHNOLOGY_DECISIONS.md); критерии — [VALIDATION](VALIDATION.md). Каждая фаза — отдельная implementation task/PR с явным GO/NO-GO, без автоматического merge.
 
@@ -62,6 +62,8 @@ flowchart LR
 **Dependencies.** Актуальные main/#18, аудит #19 и storage ADR. Не требует renderer, backend или BodyParts3D.
 
 ## Phase 2 — Avatar creation/reconstruction
+
+**Реализовано (2026-10-09):** единый восьмишаговый onboarding с отдельной стадией Avatar, optional local front/side reconstruction, 10 semantic controls с reset/live preview, provenance/quality review, Confirm/Lock, отдельная recalibration и clean backup/restore. Контракт, bounds, v1 replay и ограничения — [AVATAR_DOMAIN](AVATAR_DOMAIN.md#phase-2--создание-коррекция-и-фиксация-2026-10-09). Независимое сравнение точности на людях остаётся manual gate; готовность UX не доказывает accuracy. Back и muscularity/BF proxy не добавлены. Исходный acceptance ниже сохранён для трассировки.
 
 **Результат:** пользователь видит и корректирует исходное тело, затем подтверждает и блокирует его.
 

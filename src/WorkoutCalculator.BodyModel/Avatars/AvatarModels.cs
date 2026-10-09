@@ -39,6 +39,7 @@ public sealed record AvatarPhotoReference(string SessionId, string PipelineVersi
 public sealed record AvatarShapeCorrectionProfile
 {
     public const string Version = "shape-corrections-1";
+    public const string CurrentVersion = "shape-corrections-2";
     public string CorrectionModelVersion { get; init; } = Version;
     public double ShoulderWaistShape { get; init; }
     public double AbdomenProminence { get; init; }
@@ -48,11 +49,13 @@ public sealed record AvatarShapeCorrectionProfile
     public double WaistFullness { get; init; }
     public double ArmFullness { get; init; }
     public double LegFullness { get; init; }
+    public double FlankFullness { get; init; }
     public Posture PostureOffset { get; init; } = Posture.Neutral;
     public void Validate()
     {
-        if (CorrectionModelVersion != Version || new[] { ShoulderWaistShape, AbdomenProminence, GluteShape, TorsoDepth,
-            ChestFullness, WaistFullness, ArmFullness, LegFullness }.Any(n => !AvatarRules.In(n, -1, 1)) ||
+        if (CorrectionModelVersion is not (Version or CurrentVersion) ||
+            (CorrectionModelVersion == Version && FlankFullness != 0) || new[] { ShoulderWaistShape, AbdomenProminence, GluteShape, TorsoDepth,
+            ChestFullness, WaistFullness, ArmFullness, LegFullness, FlankFullness }.Any(n => !AvatarRules.In(n, -1, 1)) ||
             PostureOffset is null || PostureOffset != PostureOffset.Clamped() ||
             new[] { PostureOffset.PelvicTilt, PostureOffset.Lordosis, PostureOffset.Kyphosis, PostureOffset.ShouldersForward }.Any(n => !double.IsFinite(n)))
             throw new ArgumentException("Недопустимая версия или диапазон визуальной коррекции.");
@@ -63,11 +66,12 @@ public sealed record AvatarShapeCorrectionProfile
 public sealed record AvatarReconstructionInputs(string BaseProfileJson, BodySnapshot? Fact,
     ImmutableArray<AvatarFieldOrigin> Fields, ImmutableArray<AvatarPhotoReference> Photos)
 {
+    public ImmutableDictionary<Girth, AvatarPhotoMeasurement> PhotoEstimates { get; init; } = ImmutableDictionary<Girth, AvatarPhotoMeasurement>.Empty;
     public BodyProfile BaseProfile() => JsonSerializer.Deserialize(BaseProfileJson, ForecastJson.Default.BodyProfile)
         ?? throw new ArgumentException("Нет исходной формы.");
     public void Validate()
     {
-        if (BaseProfileJson is null || BaseProfileJson.Length > 16000 || Fields.IsDefaultOrEmpty || Photos.IsDefault ||
+        if (BaseProfileJson is null || BaseProfileJson.Length > 16000 || PhotoEstimates is null || Fields.IsDefaultOrEmpty || Photos.IsDefault ||
             Fields.Any(f => f is null || string.IsNullOrWhiteSpace(f.Field) || f.Field.Length > 100 || !Enum.IsDefined(f.Source)) ||
             Fields.Select(f => f.Field).Distinct().Count() != Fields.Length)
             throw new ArgumentException("Повреждены исходные данные аватара.");
@@ -104,8 +108,10 @@ public sealed record AvatarReconstructionInputs(string BaseProfileJson, BodySnap
                 "bodyFatPercent" => Fact?.BodyFatPercent is not null ? AvatarFieldSource.Factual : null,
                 "posture" => Fact?.Posture is not null ? AvatarFieldSource.Factual : null,
                 "form" => Fact?.BodyForm is not null ? AvatarFieldSource.Factual : null,
-                _ => Enum.TryParse<Girth>(field.Field, out var g) && Fact?.Measurements.GetValueOrDefault(g) is { } value
-                    ? value.Method == MeasurementMethod.Manual ? AvatarFieldSource.Factual : AvatarFieldSource.PhotoDerived : null
+                _ => Enum.TryParse<Girth>(field.Field, out var g)
+                    ? Fact?.Measurements.GetValueOrDefault(g) is { } value
+                        ? value.Method == MeasurementMethod.Manual ? AvatarFieldSource.Factual : AvatarFieldSource.PhotoDerived
+                        : PhotoEstimates.ContainsKey(g) ? AvatarFieldSource.PhotoDerived : null : null
             };
             if (observed is { } source ? field.Source != source : field.Source is not (AvatarFieldSource.VisualEstimate or AvatarFieldSource.LegacyVisualEstimate))
                 throw new ArgumentException("Источник поля не совпадает с замороженным фактом.");
@@ -115,8 +121,15 @@ public sealed record AvatarReconstructionInputs(string BaseProfileJson, BodySnap
             p.PipelineVersion.Length > 100 || !AvatarRules.In(p.Confidence, 0, 1))) throw new ArgumentException("Некорректное происхождение фото.");
         if (Fact?.PhotoSessionId is { } session && !Photos.Any(p => p.SessionId == session))
             throw new ArgumentException("Нет происхождения исходного фото.");
+        if (PhotoEstimates is null || PhotoEstimates.Any(e => !Enum.IsDefined(e.Key) || e.Value is null ||
+            !AvatarRules.In(e.Value.Cm, BodySnapshot.Limits(e.Key).Min, BodySnapshot.Limits(e.Key).Max) ||
+            !AvatarRules.In(e.Value.RmseCm, 0, 50) || Fact?.Measurements.ContainsKey(e.Key) == true ||
+            p.GetGirth(e.Key) != e.Value.Cm || !Photos.Any(photo => photo.SessionId == e.Value.SessionId && photo.Confidence >= .8)))
+            throw new ArgumentException("Повреждены оценки по фото; измеренные обхваты имеют приоритет.");
     }
 }
+
+public sealed record AvatarPhotoMeasurement(double Cm, double RmseCm, string SessionId);
 
 public sealed record AvatarDerivedValue(double Value, string Unit, double? Confidence, string ModelVersion);
 public sealed record AvatarDerivedMetrics(ImmutableDictionary<string, AvatarDerivedValue> Values)
@@ -136,7 +149,10 @@ public sealed record AvatarRevision(string Id, string AvatarId, DateTimeOffset C
     AvatarRevisionSource Source, AvatarReconstructionInputs Inputs, AvatarShapeCorrectionProfile Corrections,
     AvatarDerivedMetrics DerivedMetrics, string BuilderVersion, string FitterVersion, string AssetVersion,
     double? Confidence, string? PredecessorRevisionId, string? Reason, AvatarGeometryQuality Quality);
-public sealed record AvatarGeometryQuality(bool SoftTissueLimitReached, ImmutableArray<Girth> MissingGirths, double MaximumGirthResidualCm);
+public sealed record AvatarGeometryQuality(bool SoftTissueLimitReached, ImmutableArray<Girth> MissingGirths, double MaximumGirthResidualCm)
+{
+    public ImmutableDictionary<Girth, double> KnownGirthResidualsCm { get; init; } = ImmutableDictionary<Girth, double>.Empty;
+}
 public sealed record AvatarDraft(string Id, string? PredecessorRevisionId, DateTimeOffset CreatedAt,
     AvatarReconstructionInputs Inputs, AvatarShapeCorrectionProfile Corrections, string Reason);
 /// <summary>Durable integration event. Photo updates preserve the origin/cycle; manual confirmation starts a new one.</summary>

@@ -21,11 +21,13 @@ public sealed class OnboardingDraft
 {
     public int Step { get; set; }
     public bool Completed { get; set; }
+    public string? PhotoSessionId { get; set; }
+    public string? PhotoNotice { get; set; }
     public ProductPreferences Preferences { get; set; } = new();
     public SnapshotDraft Facts { get; set; } = new();
     public void ValidateStructure()
     {
-        if (Step is < 0 or > 5 || Preferences is null || Facts is null || Facts.Girths is null ||
+        if (Step is < 0 or > 7 || PhotoSessionId?.Length > 200 || PhotoNotice?.Length > 2000 || Preferences is null || Facts is null || Facts.Girths is null ||
             !Guid.TryParse(Facts.Id, out var id) || id == Guid.Empty ||
             Enum.GetValues<Girth>().Any(g => !Facts.Girths.ContainsKey(g)))
             throw new ArgumentException("Черновик первого запуска повреждён.");
