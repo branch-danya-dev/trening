@@ -8,6 +8,7 @@
   "shaderFailure": true,
   "unavailable": true,
   "identityShaderHoles": 0,
+  "identityShaderHoleSamples": [],
   "identityShaderMaxByteError": 0,
   "repeatMaxByteError": 0
 }

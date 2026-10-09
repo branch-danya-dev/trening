@@ -24,7 +24,7 @@ async function create(p){await button(p,'Создать визуализацию
 async function artifacts(p){return p.evaluate(async()=>{const m=await import(new URL('js/render-store.js',document.baseURI));return m.listArtifacts();});}
 (async()=>{
  const fixture=JSON.parse(await fs.readFile(process.env.GEOMETRY_FIXTURES||'work/geometry-fixtures.json','utf8')),out=process.env.GEOMETRY_OUTPUT||'work/geometry-evidence';await fs.mkdir(out,{recursive:true});
- const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,args:['--enable-unsafe-swiftshader']});let p;const errors=[],network=[],layout=[];
+ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,args:['--enable-unsafe-swiftshader','--use-angle=swiftshader']});let p;const errors=[],network=[],layout=[];
  try{const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'});p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));await seed(p,fixture);
   await button(p,'Показать будущую форму в 3D');p.on('request',r=>network.push({method:r.method(),url:r.url(),body:r.postData()}));
   await create(p);let saved=await artifacts(p);assert.equal(saved.length,1);assert.equal(saved[0].result.quality,'Accepted');assert.equal(saved[0].synthetic,true);const first=saved[0];

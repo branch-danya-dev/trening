@@ -2,6 +2,8 @@
 
 Local structural/integration gates passed on Windows, headless Edge 154.0.4258.62, WebGL2/SwiftShader. The implementation PR's complete CI is the final merge gate. Baseline #26 was merged normally as `7eb03abc2c1f36fe6f0ec78a72134b1a3802d962`; [full main CI](https://github.com/branch-danya-dev/trening/actions/runs/37942116786) was green before the implementation branch was created. No auto-merge.
 
+The three new browser scripts explicitly force SwiftShader. An initial Linux run exposed seven holes in the raw identity shader (the production identity copy and all 88 benchmark cases passed). The issue was reproduced locally with forced SwiftShader and traced to sample-center UV rounding being amplified by depth-slope correction. The fix retains the 2 mm visibility threshold and checks direct interpolated depth within 1/16 pixel of a sample center. Assertions remain zero holes and zero identity byte error; failed evidence is not treated as GO. The raw shader test writes its diagnostics before assertions so any future failure remains inspectable.
+
 ## Reproducible structural benchmark
 
 [benchmark.json](benchmark.json) records every case, including failures: NoWarp, the actual preserved legacy `PhotoWarp.Plan`/`warpRows` baseline, GeometryWarp metrics, state, runtime and estimated working bytes. The repository audit found this real row renderer, but no existing full-mesh renderer.
@@ -10,11 +12,11 @@ Four MakeHuman profiles (Male/Female, standard/large), front/side, eleven change
 
 | Check | Observed result |
 |---|---|
-| Total | 88 cases: 41 Accepted, 40 Limited, 7 Rejected |
+| Total | 88 cases: 40 Accepted, 41 Limited, 7 Rejected |
 | Identity | 8/8 Accepted; maximum RGBA byte difference 0; no repair; source/target masks identical |
 | Supported deltas | 72/72 Accepted or Limited; target silhouette IoU 1 |
-| Improvement against NoWarp | 67/72 strictly improve IoU; 5 small deltas have pixel-identical baseline silhouette (IoU already 1) |
-| NoWarp, supported deltas | IoU 0.973624… to 1 |
+| Improvement against NoWarp | 70/72 strictly improve IoU; 2 small deltas have pixel-identical baseline silhouette (IoU already 1) |
+| NoWarp, supported deltas | IoU 0.973623… to 1 |
 | Unsafe large growth | 7 Rejected; 1 Limited within the bounded repair/stretch gates |
 | Background outside transition band | 0 changed pixels in all 88 cases |
 | Holes in accepted/limited images | 0 |
@@ -32,7 +34,7 @@ The pure JS identity test also checks imperfect source/model alignment: unchange
 
 Additional assertions cover synthetic file re-entry rejection even with OriginalObservation claim, corrupt metadata/output bytes, changed source during render, stale restore-generation writes, PIN encrypt/lock/unlock, full-backup clean restore preserving exact metadata and bytes, source-delete cascade and pseudonymized diagnostics. Render transport requests during generation: **0**. Local `blob:` image display does not send a network payload.
 
-[pwa-smoke.json](pwa-smoke.json) repeats the complete flow on published `/trening/`, then uses the controlled Service Worker to reload the **entire app offline**, unlock the photo and generate a new artifact. The existing general offline smoke also passed. The full synthetic backup with two render PNGs and two original fixture images is about 608 KiB (exact `backupBytes` in each report); it is deliberately not committed. Original/generated image bytes are excluded from ordinary diagnostics.
+[pwa-smoke.json](pwa-smoke.json) repeats the complete flow on published `/trening/`, then uses the controlled Service Worker to reload the **entire app offline**, unlock the photo and generate a new artifact. The existing general offline smoke also passed. The full synthetic backup with two render PNGs and two original fixture images is about 607 KiB (exact `backupBytes` in each report); it is deliberately not committed. Original/generated image bytes are excluded from ordinary diagnostics.
 
 Per-render reports contain source decrypt/load, current/target rebuild, alignment, maps, warp, composite, encode and artifact preparation timings. They are local desktop observations, not phone latency promises. Transaction wall time is returned at runtime; persisted metadata records preparation before commit. Cached invocation preserves existing result/bytes and currently still reconstructs the two meshes before JS cache lookup.
 

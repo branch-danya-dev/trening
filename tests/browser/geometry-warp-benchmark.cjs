@@ -2,7 +2,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
 const {sourceFixture}=require('./geometry-fixture.cjs');
 (async()=>{
  const fixture=JSON.parse(await fs.readFile(process.env.GEOMETRY_FIXTURES||'work/geometry-fixtures.json','utf8')),out=process.env.GEOMETRY_OUTPUT||'work/geometry-evidence';await fs.mkdir(out,{recursive:true});
- const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,args:['--enable-unsafe-swiftshader']});
+ const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,args:['--enable-unsafe-swiftshader','--use-angle=swiftshader']});
  try{const page=await browser.newPage();await page.goto(process.env.APP_URL||'http://127.0.0.1:5256');await page.waitForSelector('[data-model-ready="true"]',{timeout:60000});
  await page.evaluate('window.sourceFixture='+sourceFixture.toString());const report=[];
  for(const f of fixture.cases)for(const view of ['Front','Side']){

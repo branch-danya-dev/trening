@@ -46,6 +46,9 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat "$RUNNER_TEMP/viewer.log"; exit 1; fi
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence" node tests/browser/geometry-warp-benchmark.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence" node tests/browser/geometry-warp-webgl.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence" node tests/browser/geometry-warp-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/skeletal-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/strength-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/history-smoke.cjs
@@ -59,9 +62,6 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" NUTRITION_OUTPUT="$RUNNER_TEMP/nutrition-evidence" node tests/browser/nutrition-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" HYPOTHESIS_OUTPUT="$RUNNER_TEMP/hypothesis-evidence" node tests/browser/hypothesis-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" CHECKIN_OUTPUT="$RUNNER_TEMP/checkin-evidence" node tests/browser/checkin-smoke.cjs
-          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence" node tests/browser/geometry-warp-benchmark.cjs
-          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence" node tests/browser/geometry-warp-webgl.cjs
-          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence" node tests/browser/geometry-warp-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/errors-smoke.cjs
       - name: ActivityDay browser evidence
         if: always()

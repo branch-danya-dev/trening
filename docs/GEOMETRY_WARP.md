@@ -49,6 +49,8 @@ Shared-topology source vertices проецируются в source photo coordin
 
 Цвет копируется из исходного RGB без lighting/color correction; нет UV unwrap или генерации деталей. Nearest valid sampling сохраняет identity и делает политику видимости явной, но может давать небольшую пикселизацию. Антиалиасинг, blending и dithering выключены.
 
+Если UV находится в пределах 1/16 пикселя от raster sample center, также проверяется его непосредственная интерполированная глубина с тем же допуском 2 mm. Это предотвращает усиление subpixel rounding поправкой наклона у почти касательных треугольников; маска, facing и depth rejection остаются обязательными. Identity проверяется принудительным SwiftShader, включая shader path без production shortcut. Общий vertex shader помечает position/varyings invariant для согласованности проходов ([GLSL invariance](https://registry.khronos.org/OpenGL/specs/es/3.2/GLSL_ES_Specification_3.20.html)).
+
 ## Фон, недостающая текстура и quality
 
 PhotoAnalyzer RLE mask задаёт source silhouette; target silhouette — raster target mesh. При уменьшении тела `source − target` заполняется ближайшим **исходным фоном** только в радиусе ≤0.025 роста. За пределами source/target transition zone исходные RGBA bytes остаются неизменны.

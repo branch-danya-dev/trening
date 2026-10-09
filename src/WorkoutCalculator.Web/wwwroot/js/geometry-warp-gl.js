@@ -1,10 +1,11 @@
 // Isolated WebGL2 offscreen context. No viewer globals, network, WebGPU, or inference.
 const vertex=`#version 300 es
 precision highp float;
+invariant gl_Position;
 layout(location=0) in vec3 position;
 layout(location=1) in vec3 sourcePosition;
-out vec3 sourceClip;
-out vec3 targetClip;
+invariant out vec3 sourceClip;
+invariant out vec3 targetClip;
 void main(){gl_Position=vec4(position,1.0);sourceClip=sourcePosition;targetClip=position;}`;
 const structural=`#version 300 es
 precision highp float;
@@ -43,7 +44,13 @@ void main(){
   ivec2 p=base+ivec2(x,y);if(any(lessThan(p,ivec2(0)))||any(greaterThanEqual(p,size)))continue;
   vec2 center=(vec2(p)+0.5)/vec2(size),delta=center-uv;
   float visible=texelFetch(sourceDepth,p,0).r;
-  if(visible>=1.0||abs(expected+dot(slope,delta)-visible)>0.0005||texelFetch(observedMask,p,0).r<0.5)continue;
+  // Raster subpixel quantization can move interpolated UV slightly off its own pixel center.
+  // At an effectively exact center, the interpolated depth is already the raster sample depth;
+  // slope correction would amplify this rounding on nearly edge-on triangles.
+  vec2 pixelDelta=abs(delta*vec2(size));
+  float residual=abs(expected+dot(slope,delta)-visible);
+  if(max(pixelDelta.x,pixelDelta.y)<=0.0625)residual=min(residual,abs(expected-visible));
+  if(visible>=1.0||residual>0.0005||texelFetch(observedMask,p,0).r<0.5)continue;
   float d=dot(delta,delta);if(d<best){best=d;chosen=p;}
  }
  if(chosen.x<0)discard;
