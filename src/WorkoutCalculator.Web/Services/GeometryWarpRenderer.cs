@@ -29,7 +29,7 @@ public sealed partial class GeometryWarpRenderer(AvatarBuilder builder):IForecas
         var clock=Stopwatch.StartNew();var current=builder.Rebuild(hypothesis.Core.CurrentAvatarRevisionAtIssue).Body;double currentMs=clock.Elapsed.TotalMilliseconds;
         clock.Restart();var g=hypothesis.Core.ExactEndpoint.Geometry;
         if(!HypothesisEndpointBuilder.CanBuildGeometry(g))throw new ArgumentException("Версия конечной формы не поддерживается.");
-        var target=builder.Build(HypothesisEndpointBuilder.GeometryInputs(g),g.Corrections).Body;double targetMs=clock.Elapsed.TotalMilliseconds;
+        var target=builder.BuildEndpoint(g).Body;double targetMs=clock.Elapsed.TotalMilliseconds;
         if(!current.Mesh.Indices.SequenceEqual(target.Mesh.Indices))throw new ArgumentException("Топология исходной и конечной формы различается.");
         Stage(request.Id,MemoryMarshal.AsBytes(current.Mesh.Positions.AsSpan()),MemoryMarshal.AsBytes(target.Mesh.Positions.AsSpan()),MemoryMarshal.AsBytes(current.Mesh.Indices.AsSpan()),
             JsonSerializer.Serialize(Landmarks(current),RenderInteropJson.Default.RenderLandmarkArray),JsonSerializer.Serialize(Landmarks(target),RenderInteropJson.Default.RenderLandmarkArray),currentMs,targetMs);

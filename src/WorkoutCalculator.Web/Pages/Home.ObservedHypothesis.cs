@@ -18,7 +18,7 @@ public partial class Home
         ApplyForecastHeatmap();
         if(_observedGeometryHash!=geometry.Sha256 || _observedBody is null)
         {
-            _observedBody=AvatarBuilder.Build(HypothesisEndpointBuilder.GeometryInputs(geometry),geometry.Corrections).Body;
+            _observedBody=AvatarBuilder.BuildEndpoint(geometry).Body;
             _observedGeometryHash=geometry.Sha256;
         }
         _forecastBody=_observedBody;

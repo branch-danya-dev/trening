@@ -1,0 +1,31 @@
+{
+  "suite": "anatomical-muscle-smoke",
+  "checks": [
+    "factual-identity",
+    "frozen-provider-switch",
+    "heatmap-separate",
+    "animation-rest-mesh",
+    "week-switch",
+    "320-390-1400",
+    "exact-backup-restore",
+    "missing-safe-fallback",
+    "corrupt-safe-fallback"
+  ],
+  "desktopSoftwareWebglFps": 63.38028169014085,
+  "logs": [
+    "Forecast MakeHuman rebuild: 13,0 ms, muscle=False",
+    "Anatomical fields: 27918 bytes, validation 271,0 ms, available=True; default=procedural.",
+    "Forecast MakeHuman rebuild: 166,0 ms, muscle=False",
+    "Forecast MakeHuman rebuild: 15,0 ms, muscle=True",
+    "Anatomical fields: 27918 bytes, validation 274,0 ms, available=True; default=procedural.",
+    "Forecast MakeHuman rebuild: 510,0 ms, muscle=True",
+    "Forecast MakeHuman rebuild: 282,0 ms, muscle=True",
+    "Forecast MakeHuman rebuild: 60,0 ms, muscle=True",
+    "Forecast MakeHuman rebuild: 282,0 ms, muscle=True",
+    "Forecast MakeHuman rebuild: 131,0 ms, muscle=True",
+    "Forecast MakeHuman rebuild: 27,0 ms, muscle=True",
+    "Forecast MakeHuman rebuild: 439,0 ms, muscle=True",
+    "Forecast MakeHuman rebuild: 290,0 ms, muscle=True"
+  ],
+  "browserErrors": []
+}

@@ -29,6 +29,8 @@ jobs:
         run: node --test tests/js/*.test.mjs
       - name: Frozen MakeHuman geometry fixtures
         run: dotnet run -c Release --project tools/WorkoutCalculator.GeometryWarpBenchmark -- . "$RUNNER_TEMP/geometry-fixtures.json"
+      - name: Anatomical muscle benchmark (bundled asset, no anatomy download)
+        run: dotnet run -c Release --no-build --project tools/WorkoutCalculator.AnatomicalMorphBenchmark -- . "$RUNNER_TEMP/anatomical-evidence"
       - name: Установка браузера для 3D smoke
         run: |
           npm install --prefix "$RUNNER_TEMP/muscle-smoke" playwright@1.62.1
@@ -46,9 +48,12 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat "$RUNNER_TEMP/viewer.log"; exit 1; fi
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" ANATOMY_OUTPUT="$RUNNER_TEMP/anatomical-evidence" node tests/browser/anatomical-muscle-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" ANATOMY_OUTPUT="$RUNNER_TEMP/anatomical-evidence" node tests/browser/anatomical-muscle-audit.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence" node tests/browser/geometry-warp-benchmark.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence" node tests/browser/geometry-warp-webgl.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence" node tests/browser/geometry-warp-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_ANATOMICAL=1 GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence/anatomical" node tests/browser/geometry-warp-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/skeletal-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/strength-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/history-smoke.cjs
@@ -110,4 +115,11 @@ jobs:
         with:
           name: geometry-warp-evidence
           path: ${{ runner.temp }}/geometry-evidence
+          if-no-files-found: ignore
+      - name: Anatomical muscle evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anatomical-muscle-evidence
+          path: ${{ runner.temp }}/anatomical-evidence
           if-no-files-found: ignore

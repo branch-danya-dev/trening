@@ -6,8 +6,10 @@ using WorkoutCalculator.Exercises;
 namespace WorkoutCalculator.BodyModel.Muscles;
 
 /// <summary>Curated directional lobes on a fixed atlas, cached once per topology. No vertex normals or per-frame work.</summary>
-public sealed class MuscleMorphFields
+public sealed class MuscleMorphFields : IMuscleMorphFieldProvider
 {
+    public string Version => MuscleGeometrySelection.ProceduralVersion;
+    public string? AssetHash => null;
     public const double MaxDisplacementM = .008;
     private readonly (int Vertex, string Group, Vec3 Delta)[] _fields;
     public int VertexCount { get; }

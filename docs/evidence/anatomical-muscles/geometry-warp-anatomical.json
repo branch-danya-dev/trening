@@ -1,0 +1,134 @@
+{
+  "suite": "geometry-warp-smoke",
+  "syntheticFixtures": true,
+  "publishedPwa": false,
+  "browser": "154.0.4258.62",
+  "backupBytes": 621557,
+  "cachedReadMs": 2,
+  "layout": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "panel": 320,
+      "panelScroll": 320
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "panel": 390,
+      "panelScroll": 390
+    },
+    {
+      "width": 1400,
+      "scroll": 1400,
+      "panel": 479,
+      "panelScroll": 479
+    }
+  ],
+  "networkDuringRender": 0,
+  "checks": [
+    "frozen-front",
+    "side",
+    "3d-preserved",
+    "later-checkin",
+    "synthetic-file-rejected",
+    "metadata-and-byte-corruption",
+    "stale-generation",
+    "source-changed-during-render",
+    "pin",
+    "full-backup-exact",
+    "offline-generation",
+    "source-delete-cascade",
+    "diagnostics"
+  ],
+  "results": [
+    {
+      "requestHash": "08950F685163565360B4342EB0786C22CB43103B977CD7B900DF384AB0AF4E07",
+      "rendererKind": "GeometryWarp",
+      "rendererVersion": "geometry-warp-1",
+      "photorealistic": false,
+      "artifactId": "render:08950F685163565360B4342EB0786C22CB43103B977CD7B900DF384AB0AF4E07",
+      "outputHash": "07B693E714C9C4E92D4F730F9FB9FE78F64AC5EE02AC4D13F5154186F926356F",
+      "sourceStructuralHash": "CDB03944641389DAA055841F14CA1F1C7C9E0D50E5A1A7F3EC0471B207A4E4B1",
+      "targetStructuralHash": "019E4C5F5EB629AF4143B753162F9EC428A2A65D38D5C2D2E6BE5FDC39F2C989",
+      "quality": "Accepted",
+      "metrics": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0000031006372350825947,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0017796506157182015,
+        "stretchedBodyFraction": 0.00030738334801942664,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "reasons": [],
+      "timings": {
+        "currentMesh": 210,
+        "targetMesh": 190,
+        "sourceLoadDecrypt": 6,
+        "alignment": 3,
+        "structuralMaps": 69,
+        "warp": 48,
+        "repairComposite": 47,
+        "encode": 19,
+        "artifactPreparation": 1
+      },
+      "width": 512,
+      "height": 768,
+      "maxTextureSize": 8192,
+      "workingBytes": 41569248,
+      "createdAt": "2026-10-09T09:00:00.000Z"
+    },
+    {
+      "requestHash": "EAAACBEA66DA02CF0C248CCFA7A87B4BBDEF35B30722FCC77560B102E1D55C93",
+      "rendererKind": "GeometryWarp",
+      "rendererVersion": "geometry-warp-1",
+      "photorealistic": false,
+      "artifactId": "render:EAAACBEA66DA02CF0C248CCFA7A87B4BBDEF35B30722FCC77560B102E1D55C93",
+      "outputHash": "575660DD3DFF16DD6B22FCE3DFFB14D64DC86E17ACA5603601078790330F077F",
+      "sourceStructuralHash": "A329034E027688020E61A1BB2F480563735562761BBF8B1C8F036074341B115A",
+      "targetStructuralHash": "A8BFCF0D58868F4818E30AD7BAF668DB8258AC98B8A13CDC723D36DB4BE71018",
+      "quality": "Accepted",
+      "metrics": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000005768640454060287,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0013448284143032108,
+        "stretchedBodyFraction": 0.000288565588553565,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "reasons": [],
+      "timings": {
+        "currentMesh": 209,
+        "targetMesh": 189,
+        "sourceLoadDecrypt": 8,
+        "alignment": 17,
+        "structuralMaps": 74,
+        "warp": 52,
+        "repairComposite": 58,
+        "encode": 16,
+        "artifactPreparation": 8
+      },
+      "width": 512,
+      "height": 768,
+      "maxTextureSize": 8192,
+      "workingBytes": 41569248,
+      "createdAt": "2026-10-09T09:00:00.000Z"
+    }
+  ]
+}

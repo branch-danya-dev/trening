@@ -3,6 +3,8 @@ using System.Text.Json;
 using WorkoutCalculator.BodyModel.Forecast;
 using WorkoutCalculator.BodyModel.History;
 using WorkoutCalculator.BodyModel.MakeHuman;
+using WorkoutCalculator.BodyModel.Muscles;
+using WorkoutCalculator.BodyModel.Hypotheses;
 
 namespace WorkoutCalculator.BodyModel.Avatars;
 
@@ -65,7 +67,15 @@ public sealed class AvatarBuilder(MakeHumanModel model)
         return p;
     }
 
-    public AvatarRepresentation Build(AvatarReconstructionInputs inputs, AvatarShapeCorrectionProfile corrections)
+    public AvatarRepresentation BuildEndpoint(EndpointGeometry geometry)
+    {
+        if(!HypothesisEndpointBuilder.CanBuildGeometry(geometry) || geometry.Sha256!=HypothesisHash.Of(geometry with { Sha256="" },HypothesisJson.Default.EndpointGeometry))
+            throw new ArgumentException("Конечная форма повреждена или её версия не поддерживается.");
+        if(!model.HasMuscleGeometry(geometry.MuscleGeometry))throw new ArgumentException("Закреплённая анатомическая карта недоступна; точный повтор конечной формы временно недоступен.");
+        return Build(HypothesisEndpointBuilder.GeometryInputs(geometry),geometry.Corrections,geometry.Muscle,geometry.MuscleGeometry);
+    }
+    public AvatarRepresentation Build(AvatarReconstructionInputs inputs, AvatarShapeCorrectionProfile corrections,
+        MuscleMorphState? muscle=null, MuscleGeometrySelection? muscleGeometry=null)
     {
         inputs.Validate(); corrections.Validate();
         bool v2 = corrections.CorrectionModelVersion == AvatarShapeCorrectionProfile.CurrentVersion;
@@ -75,9 +85,9 @@ public sealed class AvatarBuilder(MakeHumanModel model)
             : baseline;
         // Start every corrected solve from the same cold prior, never the previous slider value.
         // This deterministic warm start reuses the baseline and cached assets without history dependence.
-        var body = v2 && !AvatarShapeFields.HasShape(corrections) && corrections.PostureOffset == Posture.Neutral ? baseline! :
+        var body = v2 && !AvatarShapeFields.HasShape(corrections) && corrections.PostureOffset == Posture.Neutral && (muscle is null || !muscle.Groups.Values.Any(v=>v!=0)) ? baseline! :
             model.Build(GeometryProfile(inputs, corrections), warm: v2 && AvatarShapeFields.HasShape(corrections) ? protection?.Fit : null,
-                corrections: v2 ? corrections : null, correctionBaseline: protection);
+                corrections: v2 ? corrections : null, correctionBaseline: protection,muscle:muscle,muscleGeometry:muscleGeometry);
         if (body.Mesh.Positions.Any(n => !float.IsFinite(n)) || !AvatarRules.In(body.VolumeLiters, .01, 1000))
             throw new ArgumentException("Реконструкция не прошла проверку конечной геометрии; текущая ревизия сохранена.");
         var values = ImmutableDictionary.CreateBuilder<string, AvatarDerivedValue>();

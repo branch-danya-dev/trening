@@ -2136,3 +2136,8 @@ Forecast v3 должен двигаться от:
 > **Мы не улучшаем картинку ценой потери проверяемости прогноза.**
 
 Каждый слой должен оставаться отделимым, versioned, воспроизводимым и измеримым.
+
+
+## Anatomical muscle fields — Stage B
+
+Stage B research implementation (2026-10-09): pinned BodyParts3D IS-A 4.0, checked anatomical inventory, deterministic offline projection, compact sidecar, versioned replay and geometry safety are implemented in `rnd/anatomical-muscle-fields`. **NO-GO for default provider**: visual advantage is unproven and posterior torso coverage remains limited. Procedural default retained; Phase 8/photorealistic rendering remains deferred to the end of the project. See [contract and decision](ANATOMICAL_MUSCLE_FIELDS.md) and [488-case audit](evidence/anatomical-muscles/README.md).

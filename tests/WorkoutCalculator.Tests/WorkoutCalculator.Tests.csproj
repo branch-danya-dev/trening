@@ -37,6 +37,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="../../src/WorkoutCalculator.Web/wwwroot/data/makehuman-anatomical-muscle-fields-v1.bin" Link="data/makehuman-anatomical-muscle-fields-v1.bin" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../docs/assets/bodyparts3d/*.json" Link="anatomy/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <ProjectReference Include="../../tools/WorkoutCalculator.AnatomyBuild/WorkoutCalculator.AnatomyBuild.csproj" />
     <ProjectReference Include="..\..\tools\WorkoutCalculator.CompositionBenchmark\WorkoutCalculator.CompositionBenchmark.csproj" />
     <ProjectReference Include="..\..\src\WorkoutCalculator.Core\WorkoutCalculator.Core.csproj" />
     <ProjectReference Include="..\..\src\WorkoutCalculator.BodyModel\WorkoutCalculator.BodyModel.csproj" />

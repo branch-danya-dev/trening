@@ -1,0 +1,2 @@
+# Pinned input snapshots are hashed as bytes; never rewrite their line endings.
+docs/assets/bodyparts3d/* -text

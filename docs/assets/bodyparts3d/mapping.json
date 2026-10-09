@@ -1,0 +1,620 @@
+{
+  "version": "bodyparts3d-mapping-1",
+  "metadata": [
+    {
+      "filename": "isa_parts_list_e.txt",
+      "sha256": "ab7796deedd49205e77f3609a1cb8c53e2bbee14ecb5c9a6ca05227469780513"
+    },
+    {
+      "filename": "isa_element_parts.txt",
+      "sha256": "a3de74423f943b0d724ae8f59b3a817f87c423a544f8db98113b1980817cbeaf"
+    }
+  ],
+  "groups": [
+    {
+      "id": "pectoralis",
+      "segment": "torso",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA45874",
+          "name": "abdominal part of right pectoralis major",
+          "objectId": "FJ1446",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA45875",
+          "name": "abdominal part of left pectoralis major",
+          "objectId": "FJ1446M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA34690",
+          "name": "clavicular part of right pectoralis major",
+          "objectId": "FJ1447",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA34691",
+          "name": "clavicular part of left pectoralis major",
+          "objectId": "FJ1447M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA79979",
+          "name": "sternocostal part of right pectoralis major",
+          "objectId": "FJ1464",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA79980",
+          "name": "sternocostal part of left pectoralis major",
+          "objectId": "FJ1464M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "anterior-deltoid",
+      "segment": "upperarm",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA34680",
+          "name": "clavicular part of right deltoid",
+          "objectId": "FJ1468",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA34681",
+          "name": "clavicular part of left deltoid",
+          "objectId": "FJ1468M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "lateral-deltoid",
+      "segment": "upperarm",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA34682",
+          "name": "acromial part of right deltoid",
+          "objectId": "FJ1467",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA34683",
+          "name": "acromial part of left deltoid",
+          "objectId": "FJ1467M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "posterior-deltoid",
+      "segment": "upperarm",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA34684",
+          "name": "spinal part of right deltoid",
+          "objectId": "FJ1513",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA34685",
+          "name": "spinal part of left deltoid",
+          "objectId": "FJ1513M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "lats",
+      "segment": "torso",
+      "status": "procedural-fallback",
+      "note": "No exact latissimus dorsi concept found in pinned Release 4.0 IS-A metadata; do not substitute trapezius.",
+      "objects": []
+    },
+    {
+      "id": "traps",
+      "segment": "torso",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA33581",
+          "name": "ascending part of right trapezius",
+          "objectId": "FJ1520",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA33583",
+          "name": "ascending part of left trapezius",
+          "objectId": "FJ1520M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA33586",
+          "name": "descending part of right trapezius",
+          "objectId": "FJ1521",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA33587",
+          "name": "descending part of left trapezius",
+          "objectId": "FJ1521M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA33584",
+          "name": "transverse part of right trapezius",
+          "objectId": "FJ1554",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA33585",
+          "name": "transverse part of left trapezius",
+          "objectId": "FJ1554M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "rhomboids",
+      "segment": "torso",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA13381",
+          "name": "right rhomboid major",
+          "objectId": "FJ1536",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA13382",
+          "name": "left rhomboid major",
+          "objectId": "FJ1536M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA13383",
+          "name": "right rhomboid minor",
+          "objectId": "FJ1537",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA13384",
+          "name": "left rhomboid minor",
+          "objectId": "FJ1537M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "biceps",
+      "segment": "upperarm",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA37686",
+          "name": "long head of right biceps brachii",
+          "objectId": "FJ1478",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA37687",
+          "name": "long head of left biceps brachii",
+          "objectId": "FJ1478M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA37684",
+          "name": "short head of right biceps brachii",
+          "objectId": "FJ1512",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA37685",
+          "name": "short head of left biceps brachii",
+          "objectId": "FJ1512M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "triceps",
+      "segment": "upperarm",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA37697",
+          "name": "lateral head of right triceps brachii",
+          "objectId": "FJ1477",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA37698",
+          "name": "lateral head of left triceps brachii",
+          "objectId": "FJ1477M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA37699",
+          "name": "long head of right triceps brachii",
+          "objectId": "FJ1479",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA37700",
+          "name": "long head of left triceps brachii",
+          "objectId": "FJ1479M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA37695",
+          "name": "medial head of right triceps brachii",
+          "objectId": "FJ1480",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA37696",
+          "name": "medial head of left triceps brachii",
+          "objectId": "FJ1480M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "forearms",
+      "segment": "forearm",
+      "status": "procedural-fallback",
+      "note": "Secondary group deferred; existing procedural provider has no direct field.",
+      "objects": []
+    },
+    {
+      "id": "rectus-abdominis",
+      "segment": "torso",
+      "status": "procedural-fallback",
+      "note": "Secondary group deferred; existing procedural provider has no direct field.",
+      "objects": []
+    },
+    {
+      "id": "obliques",
+      "segment": "torso",
+      "status": "procedural-fallback",
+      "note": "Secondary group deferred; existing procedural provider has no direct field.",
+      "objects": []
+    },
+    {
+      "id": "erectors",
+      "segment": "torso",
+      "status": "procedural-fallback",
+      "note": "Secondary group deferred; existing procedural provider has no direct field.",
+      "objects": []
+    },
+    {
+      "id": "glute-max",
+      "segment": "pelvis",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA22328",
+          "name": "right gluteus maximus",
+          "objectId": "FJ1418",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA22329",
+          "name": "left gluteus maximus",
+          "objectId": "FJ1418M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "glute-med",
+      "segment": "pelvis",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA22330",
+          "name": "right gluteus medius",
+          "objectId": "FJ1419",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA22331",
+          "name": "left gluteus medius",
+          "objectId": "FJ1419M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "quadriceps",
+      "segment": "thigh",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA38928",
+          "name": "right rectus femoris",
+          "objectId": "FJ1433",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA38929",
+          "name": "left rectus femoris",
+          "objectId": "FJ1433M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA38934",
+          "name": "right vastus intermedius",
+          "objectId": "FJ1441",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA38935",
+          "name": "left vastus intermedius",
+          "objectId": "FJ1441M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA38930",
+          "name": "right vastus lateralis",
+          "objectId": "FJ1442",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA38931",
+          "name": "left vastus lateralis",
+          "objectId": "FJ1442M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA38932",
+          "name": "right vastus medialis",
+          "objectId": "FJ1443",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA38933",
+          "name": "left vastus medialis",
+          "objectId": "FJ1443M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "hamstrings",
+      "segment": "thigh",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA45888",
+          "name": "long head of right biceps femoris",
+          "objectId": "FJ1395",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA45889",
+          "name": "long head of left biceps femoris",
+          "objectId": "FJ1395M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA22448",
+          "name": "right semimembranosus",
+          "objectId": "FJ1435",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA22449",
+          "name": "left semimembranosus",
+          "objectId": "FJ1435M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA22358",
+          "name": "right semitendinosus",
+          "objectId": "FJ1436",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA22359",
+          "name": "left semitendinosus",
+          "objectId": "FJ1436M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA45891",
+          "name": "short head of right biceps femoris",
+          "objectId": "FJ1444",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA45892",
+          "name": "short head of left biceps femoris",
+          "objectId": "FJ1444M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "calves",
+      "segment": "calf",
+      "status": "direct",
+      "note": "Aggregate listed anatomical components; symmetric reference projection.",
+      "objects": [
+        {
+          "conceptId": "FMA45960",
+          "name": "lateral head of right gastrocnemius",
+          "objectId": "FJ1394",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA45961",
+          "name": "lateral head of left gastrocnemius",
+          "objectId": "FJ1394M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA45957",
+          "name": "medial head of right gastrocnemius",
+          "objectId": "FJ1397",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA45958",
+          "name": "medial head of left gastrocnemius",
+          "objectId": "FJ1397M",
+          "side": "L"
+        },
+        {
+          "conceptId": "FMA22558",
+          "name": "right soleus",
+          "objectId": "FJ1437",
+          "side": "R"
+        },
+        {
+          "conceptId": "FMA22559",
+          "name": "left soleus",
+          "objectId": "FJ1437M",
+          "side": "L"
+        }
+      ]
+    },
+    {
+      "id": "adductors",
+      "segment": "thigh",
+      "status": "procedural-fallback",
+      "note": "Secondary group deferred; existing procedural provider has no direct field.",
+      "objects": []
+    },
+    {
+      "id": "hip-flexors",
+      "segment": "pelvis",
+      "status": "procedural-fallback",
+      "note": "Secondary group deferred; existing procedural provider has no direct field.",
+      "objects": []
+    }
+  ],
+  "bones": [
+    {
+      "conceptId": "FMA23131",
+      "name": "left humerus",
+      "objectId": "FJ3262",
+      "side": "L"
+    },
+    {
+      "conceptId": "FMA23130",
+      "name": "right humerus",
+      "objectId": "FJ3368",
+      "side": "R"
+    },
+    {
+      "conceptId": "FMA23465",
+      "name": "left radius",
+      "objectId": "FJ3277",
+      "side": "L"
+    },
+    {
+      "conceptId": "FMA23464",
+      "name": "right radius",
+      "objectId": "FJ3349",
+      "side": "R"
+    },
+    {
+      "conceptId": "FMA24475",
+      "name": "left femur",
+      "objectId": "FJ3259",
+      "side": "L"
+    },
+    {
+      "conceptId": "FMA24474",
+      "name": "right femur",
+      "objectId": "FJ3365",
+      "side": "R"
+    },
+    {
+      "conceptId": "FMA24478",
+      "name": "left tibia",
+      "objectId": "FJ3282",
+      "side": "L"
+    },
+    {
+      "conceptId": "FMA24477",
+      "name": "right tibia",
+      "objectId": "FJ3387",
+      "side": "R"
+    },
+    {
+      "conceptId": "FMA13323",
+      "name": "left clavicle",
+      "objectId": "FJ3237",
+      "side": "L"
+    },
+    {
+      "conceptId": "FMA13322",
+      "name": "right clavicle",
+      "objectId": "FJ3362",
+      "side": "R"
+    },
+    {
+      "conceptId": "FMA16202",
+      "name": "sacrum",
+      "objectId": "FJ3393",
+      "side": "bilateral"
+    },
+    {
+      "conceptId": "FMA16587",
+      "name": "left hip bone",
+      "objectId": "FJ3288",
+      "side": "L"
+    },
+    {
+      "conceptId": "FMA16586",
+      "name": "right hip bone",
+      "objectId": "FJ3152",
+      "side": "R"
+    },
+    {
+      "conceptId": "FMA12525",
+      "name": "seventh cervical vertebra",
+      "objectId": "FJ3172",
+      "side": "bilateral"
+    },
+    {
+      "conceptId": "FMA9165",
+      "name": "first thoracic vertebra",
+      "objectId": "FJ3158",
+      "side": "bilateral"
+    },
+    {
+      "conceptId": "FMA10081",
+      "name": "twelfth thoracic vertebra",
+      "objectId": "FJ3156",
+      "side": "bilateral"
+    },
+    {
+      "conceptId": "FMA13076",
+      "name": "fifth lumbar vertebra",
+      "objectId": "FJ3168",
+      "side": "bilateral"
+    }
+  ]
+}
