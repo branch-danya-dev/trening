@@ -15,15 +15,15 @@ public partial class Home
     private string? _productError;
     private BodySnapshot? CurrentFact => _history.Timeline.Items.Where(s => s.Date <= DateOnly.FromDateTime(DateTime.Now))
         .OrderBy(s => s.Date).ThenBy(s => s.Id, StringComparer.Ordinal).LastOrDefault();
-    private string CurrentFactCaption => CurrentFact is { } fact
+    private string CurrentFactCaption => (Avatar is not null ? "Текущая форма — сохранённая ревизия аватара. " : "") + (CurrentFact is { } fact
         ? $"Факты за {fact.Date:dd.MM.yyyy}. Для 3D условно заполнены: {string.Join(", ", SnapshotVisuals.Build(fact).EstimatedFields)}."
-        : "Измерений пока нет. 3D показывает настройки профиля; они ещё не подтверждены как факты.";
+        : "Измерений пока нет. Параметры внешнего вида ещё не подтверждены как факты.");
     private void InitializeProduct()
     {
         _preferences = ProductStorage.Preferences(); _privacy = ProfileStorage.LoadPrivacy();
         var draft = ProductStorage.LoadDraft();
         if (draft is { Completed: false }) _onboarding = draft;
-        else if (draft is null && ProfileStorage.LoadProfile() is null && _history.Timeline.Items.Count == 0) _onboarding = new();
+        else if (draft is null && _avatars.Current.Data is null && _avatars.Current.OriginalPayload is null && ProfileStorage.LoadProfile() is null && _history.Timeline.Items.Count == 0) _onboarding = new();
         SyncCurrentFact();
     }
     private void SyncCurrentFact()
@@ -38,6 +38,7 @@ public partial class Home
     private void PreviewOnboarding(BodyProfile profile) { _profile = profile; RequestRebuild(); }
     private void FinishOnboarding()
     {
+        if (_avatars.Current.Error is { } avatarError) throw new InvalidOperationException(avatarError);
         var draft = _onboarding!; var fact = draft.Build();
         ProductStorage.Save(draft); // persist the stable ID before writing any facts
         var store = new BodySnapshotStore(new BrowserJournalStorage()); var read = store.Load();
@@ -58,7 +59,11 @@ public partial class Home
         _hypotheses.Current.Plan.IntakeKcalPerDay += _preferences.Goal switch { "Поддержание" => 400, "Набор" => 650, "Улучшение формы и силы" => 400, _ => 0 };
         if (!BrowserStorage.SetItem("workoutcalc.hypotheses.v1", System.Text.Json.JsonSerializer.Serialize(_hypotheses, StorageJson.Default.StoredHypotheses)))
             throw new InvalidOperationException("План не сохранён. Проверьте хранилище.");
-        draft.Completed = true; ProductStorage.Save(draft); _onboarding = null;
+        _history.Load(); _onboarding = null;
+        InitializeAvatar(fresh: true);
+        if (_avatars.Current.Data is null || _avatarError is not null)
+        { _onboarding = draft; throw new InvalidOperationException(_avatarError ?? "Дождитесь загрузки модели для создания аватара."); }
+        draft.Completed = true; ProductStorage.Save(draft);
         _history.Load(); SyncCurrentFact(); OpenModel(); Refresh();
     }
     private void OpenModel() { _tab = Tab.Params; if (IsHistory || _mode != ViewMode.Current) SetMode(ViewMode.Current); }
@@ -80,7 +85,14 @@ public partial class Home
         if (_strength.Draft.Exercises.Count == 0) _strength.Draft.Date = date.ToString("yyyy-MM-dd");
     }
     private void EditStrength(TrainingSession session) { _strength.IsStrength = true; _strength.Edit(session); }
-    private void SavePreferences() { try { ProductStorage.Save(_preferences); _productError = null; } catch (Exception e) { _productError = e.Message; } }
+    private void SavePreferences() {
+        try {
+            _preferences.Validate();
+            if (_avatars.Current.Data is not null || _avatars.Current.Error is not null)
+                _productError = _avatars.UpdatePreferences(DateOnly.TryParse(_preferences.BirthDate, out var birth) ? birth : null, _preferences.Goal);
+            else { ProductStorage.Save(_preferences); _productError = null; }
+        } catch (Exception e) { _productError = e.Message; }
+    }
     private void ChangeBirthDate(ChangeEventArgs e) { _preferences.BirthDate = e.Value?.ToString() ?? ""; SavePreferences(); }
     private void SavePrivacy() => ProfileStorage.SavePrivacy(_privacy);
 }

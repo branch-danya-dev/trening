@@ -9,7 +9,7 @@ public static class BackupValidation
         using var doc = JsonDocument.Parse(json);
         var values = doc.RootElement.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetString());
         var store = new ArchiveStorage(values);
-        foreach (var error in new[] { new BodySnapshotStore(store).Load().Error, new StrengthJournalStore(store).Load().Error, new ForecastStore(store).Load().Error })
+        foreach (var error in new[] { new BodySnapshotStore(store).Load().Error, new StrengthJournalStore(store).Load().Error, new ForecastStore(store).Load().Error, new AvatarDomainStore(store).Load().Error })
             if (error is not null) throw new ArgumentException(error);
         if (values.GetValueOrDefault("workoutcalc.body.v1") is { } profile)
         {

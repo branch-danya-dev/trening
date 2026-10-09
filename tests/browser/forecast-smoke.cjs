@@ -38,6 +38,8 @@ const fs = require('node:fs');
         await page.addInitScript(() => { if (!localStorage.getItem('workoutcalc.body.v1')) localStorage.setItem('workoutcalc.body.v1', JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57})); });
         await page.goto(url); await ready(page);
         await page.evaluate(() => {
+            // Prepare a new legacy migration fixture, rather than editing a retired writable truth after cutover.
+            localStorage.removeItem('workoutcalc.avatarDomain.v1');
             localStorage.setItem('workoutcalc.body.v1', JSON.stringify({ Sex: 0, Age: 35, HeightCm: 180, WeightKg: 100, BodyFatPercent: 30,
                 ChestCm: 110, WaistCm: 105, HipsCm: 108, BicepsCm: 35, ThighCm: 62, NeckCm: 42, CalfCm: 40, WristCm: 19 }));
             localStorage.setItem('workoutcalc.hypotheses.v1', JSON.stringify({ Selected: 0, Items: [{ Name: 'Smoke plan', Slot: 0,

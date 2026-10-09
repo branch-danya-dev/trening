@@ -35,7 +35,9 @@ public partial class Home
         RefreshCalibration();
         _personalized.NewPreview();
         RunForecasts();
-        if (_personalized.SavePreview()) Refresh();
+        if (_avatars.Current.Error is not null || _avatarError is not null)
+        { _personalized.ReportError(_avatars.Current.Error ?? _avatarError!); return; }
+        if (_personalized.SavePreview(Avatar)) Refresh();
     }
     private void NewForecast()
     {

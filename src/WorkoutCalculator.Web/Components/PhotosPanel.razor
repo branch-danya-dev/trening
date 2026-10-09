@@ -281,7 +281,11 @@ else
             }
 
             <div class="card-subtitle">Модель по фото</div>
-            @if (Model is null)
+            @if (RevisionManaged)
+            {
+                <div class="note">Форма аватара сохраняется отдельными ревизиями. Для ручной коррекции откройте «Исправить аватар» в разделе «Модель». Автоматическое обновление по фото появится в следующем этапе.</div>
+            }
+            else if (Model is null)
             {
                 <div class="note">Подгонка работает с моделью MakeHuman — она ещё загружается или не загрузилась.</div>
             }
@@ -523,6 +527,7 @@ else
     [Parameter] public string ForecastLabel { get; set; } = "";
     /// <summary>Изменение профиля (осанка и форма после подгонки): родитель применяет, сохраняет и перестраивает модель.</summary>
     [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
+    [Parameter] public bool RevisionManaged { get; set; }
 
     private const string FrontInput = "photo-front", SideInput = "photo-side", ImportInput = "photo-import";
 
@@ -965,7 +970,7 @@ else
 
     private async Task FitModel(PhotoSession s, PhotoAnalysis a)
     {
-        if (Model is null || a.Front is null || a.Side is null) return;
+        if (RevisionManaged || Model is null || a.Front is null || a.Side is null) return;
         _fitting = true;
         _fitBuilds = 0;
         _message = null;

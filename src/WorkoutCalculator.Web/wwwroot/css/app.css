@@ -1227,3 +1227,6 @@ table.changes tr.dim td { opacity: 0.5; }
     .dashboard-grid strong { font-size: 16px; }
     .calendar-day { min-height: 78px; }
 }
+
+.avatar-id, .avatar-panel .note, .avatar-error { overflow-wrap: anywhere; }
+.avatar-error { margin: 0; padding: 8px 16px; color: var(--danger, #c95454); }

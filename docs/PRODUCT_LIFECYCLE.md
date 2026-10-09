@@ -1,5 +1,7 @@
 # Канонический lifecycle продукта
 
+**Статус реализации Phase 1 (2026-10-09):** в отдельном implementation PR добавлены Profile/Avatar, immutable revisions, corrections/AvatarDerived, lock/recalibration, automatic-photo API, additive migration и backup. Контракты и ограничения — [AVATAR_DOMAIN](AVATAR_DOMAIN.md). TrackingCycle пока представлен origin/cycle IDs и событиями, RecalibrationSession — AvatarDraft. Остальные фазы ниже остаются целевой спецификацией; полноценный Hypothesis lifecycle и photo UI wiring не реализованы.
+
 Статус: **целевая продуктовая спецификация**, 2026-10-09; не описание уже реализованных функций. Этот документ имеет приоритет при определении поведения продукта. [Roadmap](PRODUCT_LIFECYCLE_ROADMAP.md) задаёт порядок реализации, [технологические решения](PRODUCT_TECHNOLOGY_DECISIONS.md) — инструменты, [PRODUCT_STRUCTURE](PRODUCT_STRUCTURE.md) — карту текущего приложения и перехода, [VALIDATION](VALIDATION.md) — проверки. Формулы и исследовательские gates остаются в [Forecast v3 R&D](FORECAST_V3_RND_PLAN.md).
 
 Канонический маршрут: **Profile → создание Avatar → визуальная коррекция → Confirm/Lock → ActivityDay → Close Day → явное создание Hypothesis на 14/30 дней → необязательный endpoint Render → CheckIn → Forecast vs Fact → следующая Hypothesis**.

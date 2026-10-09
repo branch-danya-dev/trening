@@ -8,6 +8,7 @@
 |---|---|
 | `local.json` | Все строки localStorage с префиксом `workoutcalc.` — исходные значения без переформатирования |
 | Профиль и планы | `body.v1`, `hypotheses.v1`, legacy `hypothesis.v1`, выбранный план, питание/кардио, strength program, исходные профили планов |
+| Profile/Avatar domain | `avatarDomain.v1`: Profile, Avatar, все revisions, corrections/AvatarDerived/quality, frozen facts/photo refs, draft, origin/cycle events и reset gate. `body.v1/preferences.v1` после migration — сохранённые legacy before-images. |
 | Журналы | `workouts.v1`, `strength.v1`, legacy `weights.v1` |
 | История и прогнозы | `bodySnapshots.v1`, `forecasts.v1`, все ForecastSnapshots, calibration revisions, evidence и backup перед прежними импортами/миграциями |
 | Настройки | `photoprivacy.v1`, `model.v1`, `preferences.v1`, `onboarding.v1` (включая незавершённый мастер), `validation.v1` |
@@ -21,6 +22,8 @@
 Формат — ZIP STORE (без сжатия), UTF-8 JSON. Поддерживается только этот формат приложения, не произвольный ZIP от стороннего архиватора. Ограничения чтения: 512 МиБ, 20 000 файлов; больших фотоархивов это может не вместить. Не переупаковывайте архив с deflate и не меняйте файлы вручную.
 
 ## Порядок restore
+
+Avatar domain проверяется `BackupValidation` до мутаций: schema/model versions, Profile links, duplicate IDs, predecessor/origin/cycle chain, corrections, frozen facts и `AvatarDerived` source. Envelope восстанавливается byte-for-byte, включая активную revision и незавершённый draft. Старые ZIP без `avatarDomain.v1` допустимы: после restore выполняется idempotent migration. Новый формат ZIP или копии photo blobs для Avatar не создаются. Детали cutover — [AVATAR_DOMAIN](AVATAR_DOMAIN.md).
 
 1. Выберите ZIP. До замены проверяются границы ZIP, имена/дубликаты, manifest/schema, наличие всех файлов, размеры и SHA-256, типы бинарных записей, связи фото и превью, параметры защиты PIN.
 2. Профиль, cardio, BodySnapshot, strength, forecast, preferences/draft и контрольные данные проверяются теми же доменными валидаторами, что при обычном чтении. Будущая неподдерживаемая схема отклоняется.
