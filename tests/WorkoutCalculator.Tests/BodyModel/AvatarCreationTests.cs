@@ -102,4 +102,17 @@ public class AvatarCreationTests(MakeHumanFixture fx) : IClassFixture<MakeHumanF
         Assert.Equal(raw,JsonSerializer.Serialize(old,AvatarDomainJson.Default.AvatarState));
         Assert.Equal(Builder.Rebuild(old.ActiveRevision!).Body.Mesh.Positions,Builder.Rebuild(next.Revisions[0]).Body.Mesh.Positions);
     }
+    [Fact] public void IdentityFastPathStillRejectsInputsContradictingFacts()
+    {
+        var input=Input(); var invalid=input with { Fact=input.Fact! with { WeightKg=20 } };
+        Assert.Throws<ArgumentException>(()=>Builder.Build(invalid,Identity));
+        Assert.Throws<ArgumentException>(()=>Builder.Build(input,Identity with { FlankFullness=double.NaN }));
+    }
+    [Fact] public void MixedReconstructionAndCorrectionVersionsCannotReplayOrRestore()
+    {
+        var lifecycle=new AvatarLifecycle(Builder);var state=lifecycle.Confirm(AvatarLifecycle.Create(Profile(),Input(),Now),Now,new(2026,10,9));
+        var bad=state.ActiveRevision! with { BuilderVersion=AvatarBuilder.Version };
+        Assert.Throws<ArgumentException>(()=>Builder.Rebuild(bad));
+        Assert.Throws<ArgumentException>(()=>AvatarLifecycle.Validate(state with { Revisions=[bad] }));
+    }
 }

@@ -120,6 +120,8 @@ public sealed class AvatarLifecycle(AvatarBuilder builder)
                 previous is not null && r.Source is not (AvatarRevisionSource.PhotoCheckIn or AvatarRevisionSource.ManualRecalibration))
                 throw new ArgumentException("Неверный источник ревизии.");
             r.Inputs.Validate(); r.Corrections.Validate(); r.DerivedMetrics.Validate();
+            if ((r.BuilderVersion == AvatarBuilder.CurrentVersion) != (r.Corrections.CorrectionModelVersion == AvatarShapeCorrectionProfile.CurrentVersion))
+                throw new ArgumentException("Версии коррекции и реконструкции не совпадают.");
             if (r.Source == AvatarRevisionSource.PhotoCheckIn && (r.Confidence is not >= MinimumPhotoConfidence ||
                 r.Inputs.Photos.IsDefaultOrEmpty || r.Inputs.Photos.Any(p => p.Confidence < MinimumPhotoConfidence) ||
                 r.Inputs.Fact?.Source != History.SnapshotSource.Photo || r.Inputs.Fact.Quality.Confidence is not >= MinimumPhotoConfidence))

@@ -66,6 +66,7 @@ public sealed class AvatarBuilder(MakeHumanModel model)
 
     public AvatarRepresentation Build(AvatarReconstructionInputs inputs, AvatarShapeCorrectionProfile corrections)
     {
+        inputs.Validate(); corrections.Validate();
         bool v2 = corrections.CorrectionModelVersion == AvatarShapeCorrectionProfile.CurrentVersion;
         var baseline = v2 ? Baseline(inputs) : null;
         var protection = v2 && corrections.PostureOffset != Posture.Neutral
@@ -121,6 +122,8 @@ public sealed class AvatarBuilder(MakeHumanModel model)
     {
         if (revision.BuilderVersion is not (Version or CurrentVersion) || revision.FitterVersion != FitterVersion || revision.AssetVersion != AssetVersion)
             throw new ArgumentException("Версия построения аватара не поддерживается; исходная ревизия сохранена.");
+        if ((revision.BuilderVersion == CurrentVersion) != (revision.Corrections.CorrectionModelVersion == AvatarShapeCorrectionProfile.CurrentVersion))
+            throw new ArgumentException("Версия коррекции не совпадает с версией реконструкции.");
         return Build(revision.Inputs, revision.Corrections);
     }
 }
