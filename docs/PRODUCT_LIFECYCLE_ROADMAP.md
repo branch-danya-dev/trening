@@ -1,5 +1,7 @@
 # Roadmap реализации продуктового lifecycle
 
+**Текущая Phase 5 (2026-10-09):** реализация Hypothesis lifecycle от merge #24 `f5244d7`, после [успешного main CI](https://github.com/branch-danya-dev/trening/actions/runs/37892933840). Политики и scope — [HYPOTHESIS_LIFECYCLE](HYPOTHESIS_LIFECYCLE.md); проверки — [evidence](evidence/hypothesis/README.md). Phase 6–9 не реализуются этим PR. Записи Phase 1–4 ниже сохранены как исторические.
+
 **Phase 4, 2026-10-09:** Nutrition v1 реализована от `main 0f943cc4fdd637d30d71f7d7519bb0aaf0d8e05c` после merge #23 и #19. Ручные КБЖУ/граммы, отдельные meal plan/actual, явная полнота, frozen nutrition, schema-2 migration, protected edit/delete/move, Forecast v3 adapter без Hypothesis. Контракт — [NUTRITION_V1](NUTRITION_V1.md). Phase 5–9 остаются планом; новый PR не мержится автоматически. Исторические статусы ниже сохранены по фазам.
 
 **Phase 3, 2026-10-09:** реализована от `main 6926da7330792eddf0bdbf56bfdc08035e92f06c` после обычного merge #22 и зелёного CI базы. DayPlan/actual, continuous calendar/today, explicit Completed/RestDay/MissingData, frozen Close Day, reference indexing, movement/spontaneous events, daily load, CAS/backup/export. Контракт и ограничения — [ACTIVITY_DAY](ACTIVITY_DAY.md), результаты — [browser report](evidence/activity-day/report.json). Phase 4–9 остаются планом; #19 не включён. Новый implementation PR не мержится автоматически.
@@ -216,3 +218,7 @@ flowchart LR
 ## Шаблон передачи отдельного этапа в реализацию
 
 Задача должна ссылаться на этот roadmap и канон, называть ровно одну фазу/ограниченный substage, актуальный main SHA и связанные open PR. Включить scope/non-goals, domain commands, migration/backup, UI states, tests/browser smoke, acceptance и rollback из соответствующего раздела. Исполнитель сначала проверяет изменение базы и unresolved ADR, затем делает отдельный PR без auto-merge. Не трактовать roadmap или прохождение CI как доказательство завершения следующих фаз.
+
+## Phase 5 implementation update — 2026-10-09
+
+Phase 5 implemented on codex/hypothesis-lifecycle from main f5244d735defaa3ead97d7c5bd356ed5b93c64b4 after #24 and complete baseline CI. [Contract and deliberate limits](HYPOTHESIS_LIFECYCLE.md): 3 factual + 3 positive Complete nutrition gate; 14-day recent window; Preliminary 3–6, ObservedRoutine ≥7 eligible days; exact 14/30 targets; one active; frozen snapshot and endpoint; factual outcome −1/+3; no-outcome expiry; future-only same-cycle calibration. No Phase 6 photo CheckIn, Phase 7 warp or Phase 8 managed renderer. Regional detailed-program selection is limited to composition-only v1. The implementation PR is not auto-merged.

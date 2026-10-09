@@ -1288,3 +1288,12 @@ table.changes tr.dim td { opacity: 0.5; }
 .food-numbers { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: .5rem; }
 .nutrition-summary p { overflow-wrap: anywhere; }
 .day-review .check { min-height: 44px; align-items: center; }
+/* Observed hypotheses share Plan/Progress; controls remain usable on 320px screens. */
+.observed-hypothesis { overflow-wrap: anywhere; min-width: 0; }
+.observed-hypothesis label { display: block; margin: 12px 0; }
+.observed-hypothesis select { max-width: 100%; width: 100%; min-height: 44px; }
+.observed-hypothesis .btn { min-height: 44px; white-space: normal; margin: 6px 4px 6px 0; }
+.observed-hypothesis details { margin: 12px 0; }
+.observed-hypothesis .note { color: #adbdca; }
+.observed-hypothesis .table-scroll { max-width: 100%; overflow-x: auto; }
+.hypothesis-outcome { border-top: 1px solid var(--line, #ddd); margin-top: 16px; padding-top: 12px; }

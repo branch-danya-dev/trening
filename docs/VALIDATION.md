@@ -211,3 +211,7 @@ Optional CPU performance rerun (not a deterministic CI artifact):
 ```sh
 dotnet run -c Release --project tools/WorkoutCalculator.CompositionBenchmark -- --performance
 ```
+
+## Phase 5 prospective Hypothesis protocol
+
+Save an observed hypothesis before the outcome, retaining the closed-data cutoff, policy/maturity, complete nutrition and activity coverage, immutable model/calibration/Avatar origin and exact 14/30 endpoint. Collect independently measured weight (optional measured BF/girths) at target, accepted target−1 through target+3, and explicitly link the factual BodySnapshot. Early facts use actual-day interpolation; late facts compare to the frozen endpoint and are excluded from calibration. Missing fields produce no rows. Expired/cancelled/recalibration-archived origins have no accuracy samples. Future origins alone may use eligible prior same-cycle outcomes; one outcome does not meet the existing four-week calibration minimum. Opt-in hypotheses export removes IDs, source hashes, free text and photos. Heuristic range widening is not empirical confidence coverage. [Protocol and policy versions](HYPOTHESIS_LIFECYCLE.md).

@@ -1,0 +1,107 @@
+@using WorkoutCalculator.BodyModel.Hypotheses
+@using WorkoutCalculator.BodyModel.History
+@using WorkoutCalculator.BodyModel.Avatars
+@using System.Diagnostics
+
+<section class="card observed-hypothesis" aria-label="Гипотеза по наблюдениям" data-testid="observed-hypothesis" data-hypothesis-state="@(Selected?.State.ToString() ?? "Preview")">
+    <h2>@(HistoryOnly ? "История гипотез" : "Гипотеза по наблюдениям")</h2>
+    @if (_error is not null) { <p role="alert">@_error</p> }
+    @if (_store.Current.Data.Items.Length > 0)
+    {
+        <label>Сохранённая гипотеза<select aria-label="Сохранённая гипотеза" value="@_selected" @onchange="Select">
+            @foreach(var h in _store.Current.Data.Items.OrderByDescending(h=>h.Core.CreatedAt)) { <option value="@h.Core.Id">@h.Core.LocalStartDate.ToString("dd.MM.yyyy") → @h.Core.TargetDate.ToString("dd.MM.yyyy") · @StateName(h.State)</option> }
+        </select></label>
+    }
+    @if (Selected is { } saved)
+    {
+        var c=saved.Core;
+        <h3>Гипотеза на @c.HorizonDays дней</h3>
+        <p><strong>@StateName(saved.State)</strong> · Целевая дата: <time data-testid="hypothesis-target" datetime="@c.TargetDate.ToString("yyyy-MM-dd")">@c.TargetDate.ToString("dd.MM.yyyy")</time></p>
+        <p>Прошло: @Math.Clamp(Today.DayNumber-c.LocalStartDate.DayNumber,0,c.HorizonDays) дней · До цели: @Math.Max(0,c.TargetDate.DayNumber-Today.DayNumber) дней</p>
+        <p class="note">Прогноз сохранён и не меняется после новых закрытых дней.</p>
+        <HypothesisReviewView Core="c" OnEndpoint="OnEndpoint" />
+        @if(saved.IsOpen && Today >= c.TargetDate.AddDays(-1) && Today <= c.TargetDate.AddDays(3))
+        {
+            <div class="hypothesis-outcome" data-testid="hypothesis-outcome">
+                <h3>Сравнить с результатом</h3>
+                <p>Измерьте вес самостоятельно. Другие поля сравниваются только при наличии фактического замера. Окно: @c.TargetDate.AddDays(-1).ToString("dd.MM") — @c.TargetDate.AddDays(3).ToString("dd.MM").</p>
+                <button class="btn" @onclick="OnMeasure">Записать фактические замеры</button>
+                <label>Фактическое измерение<select aria-label="Фактическое измерение" @bind="_factId"><option value="">Выберите замер</option>
+                    @foreach(var f in EligibleFacts(c)) { <option value="@f.Id">@f.Date.ToString("dd.MM.yyyy") · @Fmt.N(f.WeightKg!.Value,1) кг · @f.Source</option> }
+                </select></label>
+                <label class="check"><input type="checkbox" @bind="_confirmedFact" /> Подтверждаю: это независимый фактический замер</label>
+                <button class="btn primary" disabled="@(!_confirmedFact || string.IsNullOrEmpty(_factId))" @onclick="Evaluate">Сравнить с результатом</button>
+                <button class="btn-link" @onclick="ReloadFacts">Обновить список замеров</button>
+            </div>
+        }
+        @if(saved.Outcome is { } outcome)
+        {
+            <h3>Прогноз и факт</h3>
+            <p>@TimingName(outcome.Timing) · Измерено @outcome.ObservedAt.ToString("dd.MM.yyyy") · Записано @outcome.RecordedAt.ToString("dd.MM.yyyy HH:mm")</p>
+            <div class="table-scroll"><table class="changes" data-testid="hypothesis-comparison"><thead><tr><th>Показатель</th><th>Базовый</th><th>Прогноз</th><th>Факт</th><th>Разница</th><th>Модуль</th></tr></thead><tbody>
+                @foreach(var row in outcome.Rows) { <tr><th>@MetricName(row.Metric)</th><td>@Fmt.N(row.BaselinePredicted,2)</td><td>@Fmt.N(row.Predicted,2)</td><td>@Fmt.N(row.Actual,2)</td><td>@Fmt.N(row.SignedError,2)</td><td>@Fmt.N(row.AbsoluteError,2)</td></tr> }
+            </tbody></table></div>
+            <p>Источник: @outcome.FrozenFact.Source · @outcome.FrozenFact.Quality.Description</p>
+            <p class="note">@(outcome.EligibleForCalibration ? "Результат может использоваться только в будущих прогнозах; сохранённая гипотеза не изменяется." : "Результат исключён из автоматической калибровки.")</p>
+            @foreach(var warning in outcome.Warnings) { <p class="note">@warning</p> }
+            <details><summary>Происхождение и ограничения сравнения</summary>@foreach(var row in outcome.Rows) { <p>@MetricName(row.Metric): @row.Provenance · @(row.ExclusionReason ?? "допустимо для будущей калибровки")</p> }</details>
+        }
+        @if(saved.State is HypothesisState.ExpiredWithoutOutcome or HypothesisState.ArchivedByRecalibration or HypothesisState.Cancelled) { <p class="note">Оценка точности не начисляется. Это не ошибка модели и не источник калибровки.</p> }
+        @if(saved.State==HypothesisState.Active && Today<c.TargetDate)
+        {
+            @if(_cancel) { <p>Завершить эту гипотезу без оценки точности?</p><button class="btn" @onclick="Cancel">Подтвердить отмену гипотезы</button><button class="btn-link" @onclick="()=>_cancel=false">Продолжить наблюдение</button> }
+            else { <button class="btn-link" @onclick="()=>_cancel=true">Отменить гипотезу</button> }
+        }
+        @if(!HistoryOnly && !_store.Current.Data.Items.Any(h=>h.IsOpen)) { <button class="btn" @onclick="New">Новая гипотеза</button> }
+    }
+    else if (!HistoryOnly)
+    {
+        <p>Если режим последних закрытых дней продолжится, модель оценит состояние через ровно 14 или 30 календарных дней.</p>
+        <label>Срок гипотезы<select aria-label="Срок гипотезы" @bind="_horizon" @bind:after="Preview"><option value="14">14 дней</option><option value="30">30 дней</option></select></label>
+        <label>Опыт силовых тренировок<select aria-label="Опыт для гипотезы" @bind="_experience" @bind:after="Preview"><option value="Beginner">Начинающий</option><option value="Intermediate">Средний</option><option value="Advanced">Опытный</option></select></label>
+        @if (_review is { } review)
+        {
+            @if(review.Preview.Candidate is { } candidate)
+            {
+                <HypothesisReviewView Core="candidate" OnEndpoint="OnEndpoint" />
+                <p><strong>Прогноз не изменится после сохранения.</strong> Одновременно действует одна гипотеза на цикл.</p>
+                <button class="btn primary" @onclick="Issue">Сохранить гипотезу</button>
+            }
+            else
+            {
+                <p>Закрытых дней: @review.Preview.Summary.Activity.FactualDays · Питание полностью заполнено: @review.Preview.Summary.Nutrition.EligibleDayCount</p>
+                <h3>Данных пока недостаточно</h3>
+                <ul>@foreach(var missing in review.Preview.Capabilities.MissingRequirements) { <li>@missing</li> }</ul>
+                <p class="note">Ручной сценарий остаётся доступен ниже. Его параметры не считаются наблюдаемым поведением.</p>
+            }
+        }
+        <button class="btn-link" @onclick="Refresh">Обновить наблюдения</button>
+    }
+    else { <p>Сохранённых гипотез пока нет. Начните в разделе «План».</p> }
+</section>
+
+@code {
+    [Parameter] public bool HistoryOnly {get;set;}
+    [Parameter] public EventCallback<HypothesisEndpoint> OnEndpoint {get;set;}
+    [Parameter] public EventCallback OnMeasure {get;set;}
+    private readonly ObservedHypothesisStore _store=new(new BrowserJournalStorage());
+    private ObservedHypothesisReview? _review; private string? _error,_selected; private string _factId="";private bool _confirmedFact,_cancel;
+    private int _horizon=14;private TrainingExperience _experience=TrainingExperience.Beginner;
+    private IReadOnlyList<BodySnapshot> _facts=[];
+    private DateOnly Today=>DateOnly.FromDateTime(DateTime.Now);
+    private Hypothesis? Selected=>_store.Current.Data.Items.SingleOrDefault(h=>h.Core.Id==_selected);
+    protected override void OnInitialized()=>Refresh();
+    private void Refresh(){var watch=Stopwatch.StartNew();_store.Load();_error=_store.Current.Error ?? _store.Synchronize(DateTimeOffset.Now);_selected=_store.Current.Data.Items.LastOrDefault(h=>h.IsOpen)?.Core.Id ?? _store.Current.Data.Items.LastOrDefault()?.Core.Id;ReloadFacts();if(_selected is null&&!HistoryOnly)Preview();Console.WriteLine($"Hypothesis reload/aggregate: {watch.Elapsed.TotalMilliseconds:F2} ms");}
+    private void ReloadFacts(){if(_store.Current.Data.Items.IsEmpty){_facts=[];return;}var read=new BodySnapshotStore(new BrowserJournalStorage()).Load();_facts=read.Snapshots;if(read.Error is not null)_error=read.Error;}
+    private IEnumerable<BodySnapshot> EligibleFacts(HypothesisCore c)=>_facts.Where(f=>f.WeightKg.HasValue && f.Date>=c.TargetDate.AddDays(-1)&&f.Date<=c.TargetDate.AddDays(3)&&f.Date<=Today).OrderBy(f=>Math.Abs(f.Date.DayNumber-c.TargetDate.DayNumber));
+    private void Preview(){try{var watch=Stopwatch.StartNew();_review=_store.Preview(DateTimeOffset.Now,_horizon,_experience);_error=null;Console.WriteLine($"Hypothesis aggregation: {_review.Preview.AggregationMs:F2} ms; forecast: {_review.Preview.ForecastMs:F2} ms; endpoint: {_review.Preview.EndpointMs:F2} ms");Console.WriteLine($"Hypothesis preview forecast+endpoint: {watch.Elapsed.TotalMilliseconds:F2} ms");}catch(Exception e)when(e is not OutOfMemoryException){_error=e.Message;_review=null;}}
+    private void Issue(){if(_review is null)return;var watch=Stopwatch.StartNew();_error=_store.Issue(_review,DateTimeOffset.Now);if(_error is null)_selected=_review.Preview.Candidate!.Id;Console.WriteLine($"Hypothesis issue: {watch.Elapsed.TotalMilliseconds:F2} ms");}
+    private void Select(ChangeEventArgs e){_selected=e.Value?.ToString();_cancel=false;_confirmedFact=false;_factId="";}
+    private void New(){_selected=null;Preview();}
+    private void Cancel(){if(Selected is { } h)_error=_store.Cancel(h.Core.Id,DateTimeOffset.Now);_cancel=false;}
+    private void Evaluate(){if(Selected is not { } h||!_confirmedFact)return;var watch=Stopwatch.StartNew();_error=_store.Evaluate(h.Core.Id,_factId,DateTimeOffset.Now);Console.WriteLine($"Hypothesis outcome evaluation: {watch.Elapsed.TotalMilliseconds:F2} ms");}
+    internal static string MaturityName(HypothesisMaturity m)=>m switch{HypothesisMaturity.Preliminary=>"Предварительная",HypothesisMaturity.ObservedRoutine=>"По наблюдаемому режиму",_=>"Данных пока недостаточно"};
+    private static string StateName(HypothesisState s)=>s switch{HypothesisState.Active=>"Наблюдение продолжается",HypothesisState.AwaitingOutcome=>"Ожидает результата",HypothesisState.Evaluated=>"Сравнение сохранено",HypothesisState.ExpiredWithoutOutcome=>"Срок истёк без результата",HypothesisState.ArchivedByRecalibration=>"Архив после коррекции аватара",_=>"Отменена"};
+    private static string TimingName(OutcomeTiming t)=>t switch{OutcomeTiming.Early=>"За день до цели",OutcomeTiming.Late=>"После целевой даты",_=>"В целевую дату"};
+    private static string MetricName(string m)=>m switch{"WeightKg"=>"Вес, кг","BodyFatPercent"=>"Жир, %",_=>Enum.TryParse<Girth>(m.Replace("Girth:",""),out var g)?BodyProfile.GirthName(g)+", см":m};
+}

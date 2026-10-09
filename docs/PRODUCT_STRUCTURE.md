@@ -1,5 +1,7 @@
 # Структура продукта: целевой lifecycle и текущая реализация
 
+**Текущий слой Phase 5:** `ObservedHypothesisStore` / `workoutcalc.observedHypotheses.v1` — единственный owner наблюдаемых гипотез, embedded immutable ForecastSnapshots и outcome events. «План» содержит review/save, «Прогресс» — историю/результат. Legacy `workoutcalc.hypotheses.v1` остаётся owner ручных сценариев. [Полный source-of-truth контракт](HYPOTHESIS_LIFECYCLE.md).
+
 ## Источники истины Phase 3 / 4
 
 ActivityDay реализован поверх существующих журналов, без новых ForecastInput/ForecastSnapshot полей. `DayPlan is expectation; ClosedActivityDay is fact.` Полная [матрица и state machine](ACTIVITY_DAY.md).
@@ -102,3 +104,7 @@ Nutrition v1 — ручные КБЖУ и пропорциональный пе�
 Сохранены текущие strict stores/CAS для истории, силовых и прогнозов, legacy localStorage для профиля/планов/кардио и IndexedDB v2 для фото. Общая защита записей блокирует повреждённый store, конкурентный restore и устаревшую после restore вкладку. Продуктовое состояние вынесено в `Home.Product.cs`; календарь, обзор, мастер, backup и проверка — отдельные компоненты. Старую ветку не копировали и архитектуру не переписывали.
 
 Полный состав данных, восстановление и ограничения описаны в [BACKUP.md](BACKUP.md). Ручной протокол, offline/Pages, тестовая матрица и измерения — в [VALIDATION.md](VALIDATION.md). Сопоставление с #10 — в [PR10_AUDIT.md](PR10_AUDIT.md).
+
+## Phase 5 source of truth
+
+Plan hosts ObservedHypothesisPanel (review/save) above legacy manual Scenarios. Progress hosts historical hypotheses plus factual BodySnapshot editing. No sixth navigation item. WorkoutCalculator.BodyModel.Hypotheses owns lifecycle/policies; ObservedHypothesisStore owns workoutcalc.observedHypotheses.v1 with embedded immutable ForecastSnapshots, calibration and append-only events in one CAS. Existing workoutcalc.hypotheses.v1 remains the scenario store; no evidence migration. ActivityDay/Avatar/body facts retain their owners; linked outcome facts are protected. See [HYPOTHESIS_LIFECYCLE](HYPOTHESIS_LIFECYCLE.md).
