@@ -1,5 +1,7 @@
 # Forecast v3 R&D — правила повышения точности числового и визуального прогноза
 
+Current C0 update (2026-10-09): #28 merged as `c106bdf`, full main CI green. [DeltaShape infrastructure](DELTASHAPE.md), [official access audit and unsent dossiers](data-access/ACCESS_STATUS.md), and [prospective protocol](REAL_USER_VALIDATION_PROTOCOL.md) are prepared. C1 is `BLOCKED_PENDING_DATA_ACCESS`; [Pseudo-DXA](PSEUDO_DXA_RESEARCH.md) is blocked by prerequisite/rights. User has prohibited submission of applications for now. No external user testing or managed renderer work. Older stage/status entries below are historical planning context.
+
 Статус: roadmap / R&D rules.  
 Implementation update 2026-10-09: Stage A implemented for review in `rnd/composition-v3`; see [composition decisions](FORECAST_V3_COMPOSITION.md) and [reproducible benchmark](FORECAST_V3_COMPOSITION_BENCHMARK.md). Sodium/ECF remains research-only / NO-GO. The original roadmap and later-stage gates below are preserved; they are not marked complete by Stage A.
 Назначение: рабочий план последовательного развития прогнозного контура после текущих personalized forecast и training-aware muscle/body-shape forecast.

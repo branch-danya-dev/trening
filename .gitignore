@@ -5,3 +5,13 @@ obj/
 .idea/
 *.user
 *.suo
+__pycache__/
+*.pyc
+work/
+# Restricted research records, caches and prospective participant exports stay external.
+research-data/
+research-cache/
+registered-scans/
+validation-intake/
+*.research-private.json
+*.validation-package.zip

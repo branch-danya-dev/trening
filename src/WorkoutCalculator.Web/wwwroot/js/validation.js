@@ -11,6 +11,7 @@ const parseNested = value => typeof value === 'string' ? JSON.parse(value) : val
 // Allowlisted fields only. Free text, provenance links, hashes of local facts and local IDs never pass through.
 export function analysisData(options, stores, report={}) {
     const result={format:'trening-validation',schemaVersion:1,limitations:['Модель формы, не измерение мышечной массы.','Даты и физические параметры могут позволять косвенную идентификацию.']};
+    result.analysisVersion='prospective-export-1';
     const facts=stores.facts?.snapshots || [], forecasts=stores.forecasts?.forecasts || [];
     const factRefs=new Map(facts.map((f,i)=>[f.id,`fact-${i+1}`])), forecastRefs=new Map(forecasts.map((f,i)=>[f.id,`forecast-${i+1}`]));
     if(options.profile) {
