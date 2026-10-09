@@ -1,0 +1,77 @@
+{
+  "suite": "hypothesis-smoke",
+  "layout": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "panel": 320,
+      "panelScroll": 320
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "panel": 390,
+      "panelScroll": 390
+    },
+    {
+      "width": 1400,
+      "scroll": 1400,
+      "panel": 479,
+      "panelScroll": 479
+    }
+  ],
+  "performance": [
+    "Hypothesis aggregation: 11,00 ms; forecast: 0,00 ms; endpoint: 0,00 ms",
+    "Hypothesis preview forecast+endpoint: 18,00 ms",
+    "Hypothesis reload/aggregate: 25,00 ms",
+    "Hypothesis aggregation: 6,00 ms; forecast: 0,00 ms; endpoint: 0,00 ms",
+    "Hypothesis preview forecast+endpoint: 26,00 ms",
+    "Hypothesis reload/aggregate: 30,00 ms",
+    "Hypothesis aggregation: 6,00 ms; forecast: 49,00 ms; endpoint: 26,00 ms",
+    "Hypothesis preview forecast+endpoint: 132,00 ms",
+    "Hypothesis reload/aggregate: 137,00 ms",
+    "Hypothesis aggregation: 7,00 ms; forecast: 52,00 ms; endpoint: 4,00 ms",
+    "Hypothesis preview forecast+endpoint: 104,00 ms",
+    "Hypothesis endpoint geometry (cached by descriptor): 191,00 ms",
+    "Hypothesis endpoint geometry (cached by descriptor): 3,00 ms",
+    "Hypothesis aggregation: 13,00 ms; forecast: 51,00 ms; endpoint: 26,00 ms",
+    "Hypothesis preview forecast+endpoint: 146,00 ms",
+    "Hypothesis reload/aggregate: 154,00 ms",
+    "Hypothesis issue: 535,00 ms",
+    "Hypothesis issue: 728,00 ms",
+    "Hypothesis reload/aggregate: 270,00 ms",
+    "Hypothesis reload/aggregate: 243,00 ms",
+    "Hypothesis aggregation: 12,00 ms; forecast: 49,00 ms; endpoint: 28,00 ms",
+    "Hypothesis preview forecast+endpoint: 145,00 ms",
+    "Hypothesis reload/aggregate: 153,00 ms",
+    "Hypothesis aggregation: 6,00 ms; forecast: 82,00 ms; endpoint: 4,00 ms",
+    "Hypothesis preview forecast+endpoint: 135,00 ms",
+    "Hypothesis issue: 590,00 ms",
+    "Hypothesis reload/aggregate: 590,00 ms",
+    "Hypothesis reload/aggregate: 242,00 ms",
+    "Hypothesis reload/aggregate: 255,00 ms",
+    "Hypothesis reload/aggregate: 255,00 ms",
+    "Hypothesis outcome evaluation: 365,00 ms",
+    "Hypothesis reload/aggregate: 589,00 ms",
+    "Hypothesis reload/aggregate: 255,00 ms",
+    "Hypothesis reload/aggregate: 268,00 ms"
+  ],
+  "browserErrors": 0,
+  "checks": [
+    "0-2-insufficient",
+    "3-complete-preliminary",
+    "explicit-14-save",
+    "exact-30-not-28",
+    "endpoint-3d",
+    "stale-review",
+    "one-active",
+    "later-close-frozen",
+    "reload",
+    "target-awaiting",
+    "independent-weight-only-outcome",
+    "expiry-no-accuracy",
+    "recalibration-archive",
+    "byte-exact-backup-restore",
+    "private-opt-in-export"
+  ]
+}

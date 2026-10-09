@@ -31,3 +31,9 @@ The final implementation must retain green Release (zero warnings/errors), .NET/
 ## Remaining human actions
 
 Review the final hardening PR. Separately decide the pilot/UI-review scope and responsible data handling. If pursuing research data, complete the marked applicant fields and obtain eligibility/secondary-use/derived-weight/security decisions from each custodian before submission or training. The user has prohibited current application submission; the prepared dossiers are ready for that later step.
+
+## Executed structural gate
+
+Clean implementation `a3ff06039a226475dbcd7f37c92769503ef4e42f`: Release **0 warnings / 0 errors**, **667 .NET + 84 JS + 34 Python** tests passed locally. The full one-command reproduction passed all 16 required checks, including desktop Avatar/Hypothesis/CheckIn, anatomical audit, GeometryWarp benchmark/WebGL/lifecycle and the empty prospective analyser. [Frozen evidence and timings](evidence/model-hardening/README.md) link the exact reports and hashes. The final PR's full CI is additionally required before acceptance; local reproduction does not replace published offline regression.
+
+Measured on this Windows desktop: warmed native procedural endpoint median **3.22 ms**, full procedural muscle fit **10.32 ms**, anatomical research fit **16.15 ms**. Browser Hypothesis issue took **535–728 ms** across the synthetic smoke flow. CheckIn total save ranged **1.03–5.50 s** as history accumulated; observe this latency explicitly in the pilot and test physical low-end devices. These describe this desktop run only. No DeltaShape runtime is measured because no GO model exists. No phone performance, real-photo warp quality or human predictive accuracy has been validated.

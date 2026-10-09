@@ -1,0 +1,150 @@
+{
+  "version": "model-reproduction-1",
+  "started_utc": "2026-10-09T20:32:34.327133+00:00",
+  "evidence": "STRUCTURAL_BENCHMARKS_NOT_REAL_USER_ACCURACY",
+  "deltashape": "BLOCKED_PENDING_DATA_ACCESS",
+  "pseudo_dxa": "BLOCKED_PREREQUISITE_AND_RIGHTS",
+  "renderer": "DEFERRED",
+  "browser": "PASS_DESKTOP_ONLY",
+  "complete": true,
+  "requested_checks_complete": true,
+  "checks": [
+    {
+      "name": "release-build",
+      "exit_code": 0,
+      "seconds": 6.51500000001397
+    },
+    {
+      "name": "research-files",
+      "exit_code": 0,
+      "seconds": 0.07899999999790452
+    },
+    {
+      "name": "hall-legacy",
+      "exit_code": 0,
+      "seconds": 5.5
+    },
+    {
+      "name": "hall-v3",
+      "exit_code": 0,
+      "seconds": 6.98399999999674
+    },
+    {
+      "name": "anatomical",
+      "exit_code": 0,
+      "seconds": 15.062000000005355
+    },
+    {
+      "name": "geometry-fixtures",
+      "exit_code": 0,
+      "seconds": 2.60999999998603
+    },
+    {
+      "name": "performance",
+      "exit_code": 0,
+      "seconds": 2.859000000025844
+    },
+    {
+      "name": "prospective-empty",
+      "exit_code": 0,
+      "seconds": 0.0629999999946449
+    },
+    {
+      "name": "model-startup-benchmark",
+      "exit_code": 0,
+      "seconds": 5.4689999999827705
+    },
+    {
+      "name": "avatar-creation-smoke",
+      "exit_code": 0,
+      "seconds": 51.26500000001397
+    },
+    {
+      "name": "hypothesis-smoke",
+      "exit_code": 0,
+      "seconds": 54.03200000000652
+    },
+    {
+      "name": "checkin-smoke",
+      "exit_code": 0,
+      "seconds": 62.84299999999348
+    },
+    {
+      "name": "anatomical-muscle-audit",
+      "exit_code": 0,
+      "seconds": 16.5
+    },
+    {
+      "name": "geometry-warp-benchmark",
+      "exit_code": 0,
+      "seconds": 32.719000000011874
+    },
+    {
+      "name": "geometry-warp-webgl",
+      "exit_code": 0,
+      "seconds": 5.780999999988126
+    },
+    {
+      "name": "geometry-warp-smoke",
+      "exit_code": 0,
+      "seconds": 38.546999999991385
+    }
+  ],
+  "source_commit": "a3ff06039a226475dbcd7f37c92769503ef4e42f",
+  "source_dirty": false,
+  "published_subset": true,
+  "limitation": "Public synthetic structural/performance reports only. Large generated fixtures, photos, backups and raw logs are not vendored. Full CI artifacts are separately linked in the PR. No real participant data or predictive accuracy evidence.",
+  "files": [
+    {
+      "path": "anatomical-summary.json",
+      "sha256": "59681e3c8f8235e5f2bfa502d38d7145358edf5cb97626bfa5f1df1673501332",
+      "original_run_sha256": "bbfcddef970c1d2b708f2c53b8c35ecf06c0f653a53b460afbdb1f7dcb5140be"
+    },
+    {
+      "path": "avatar.json",
+      "sha256": "2b72bf2bcfbb89a0bfe26a262488b1f67e21ec276aae30400ded9d154b769bb0",
+      "original_run_sha256": "2b72bf2bcfbb89a0bfe26a262488b1f67e21ec276aae30400ded9d154b769bb0"
+    },
+    {
+      "path": "browser-startup.json",
+      "sha256": "b45304cbd2a5d19c88be7cd23e454c099cbf90db1a637040d34296eb89d29748",
+      "original_run_sha256": "b45304cbd2a5d19c88be7cd23e454c099cbf90db1a637040d34296eb89d29748"
+    },
+    {
+      "path": "checkin.json",
+      "sha256": "78d1344fac4f6f161b1a208c97cc425fd4b2c4fb7dc2a225ee15bdf9af54230a",
+      "original_run_sha256": "78d1344fac4f6f161b1a208c97cc425fd4b2c4fb7dc2a225ee15bdf9af54230a"
+    },
+    {
+      "path": "geometry-benchmark.json",
+      "sha256": "31215da634afbe7a95d63b010540cf40676b0c8e6a366423f9d7fa5575401dae",
+      "original_run_sha256": "31215da634afbe7a95d63b010540cf40676b0c8e6a366423f9d7fa5575401dae"
+    },
+    {
+      "path": "geometry-smoke.json",
+      "sha256": "0df321159288adce2fef7abed35230bab3ed17e958c999393a510885611fe2d3",
+      "original_run_sha256": "0df321159288adce2fef7abed35230bab3ed17e958c999393a510885611fe2d3"
+    },
+    {
+      "path": "geometry-webgl.json",
+      "sha256": "1655947122239d88a705db639109e10b577d64342ba0782aa1598bb7c34cf0bb",
+      "original_run_sha256": "1655947122239d88a705db639109e10b577d64342ba0782aa1598bb7c34cf0bb"
+    },
+    {
+      "path": "hypothesis.json",
+      "sha256": "42a506abe93f6920bb06163a37240d29ac4d84bda8c55fa205d359fbeb681c33",
+      "original_run_sha256": "42a506abe93f6920bb06163a37240d29ac4d84bda8c55fa205d359fbeb681c33"
+    },
+    {
+      "path": "performance.json",
+      "sha256": "807a713dcc752a661cd5b8f95be76dc13d67bc694620aeb216493c3d3e5e41ab",
+      "original_run_sha256": "3f132a30897afaad8952f18792fc08c117b673b8feed941522b0caac082f7835"
+    },
+    {
+      "path": "prospective-empty.json",
+      "sha256": "bdb22815e4ceaacfc46e38dd2bbdecca35490cf078148d487881b1e5b009b553",
+      "original_run_sha256": "cfa8e006b345cce730a83a0a0258447915b376b835f30f064bceb1f36898b4a3"
+    }
+  ],
+  "publication_transform": "CRLF to LF only; original_run_sha256 retains the unmodified report digest"
+}

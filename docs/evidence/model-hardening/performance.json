@@ -1,0 +1,137 @@
+{
+  "version": "model-performance-1",
+  "evidence": "SYNTHETIC_STRUCTURAL_DESKTOP_ONLY",
+  "runtime": ".NET 10.0.12",
+  "os": "Microsoft Windows 10.0.26200",
+  "architecture": "X64",
+  "logicalProcessors": 12,
+  "registry": {
+    "registryVersion": "forecast-model-registry-1",
+    "compositionVersion": "hall-forbes-2\u002Bresidual-1",
+    "shapeVersion": "body-shape-procedural-1",
+    "muscleVersion": "muscle-field-procedural-1",
+    "photoVersion": "front-side-avatar-policy-1",
+    "calibrationVersion": "conservative-weekly-1",
+    "uncertaintyVersion": "expected-range-1",
+    "evidenceRangeVersion": "evidence-range-1",
+    "endpointVersion": "composition-endpoint-1",
+    "geometryWarpVersion": "geometry-warp-1",
+    "shapeModelHash": null,
+    "makeHumanSha256": "C5ADEEBA3E84E647E2D0A4905E8D16AB51D4A8CE1C863A86361137349F7B310D",
+    "muscleAtlasSha256": "21D6BBF2002EE1D1E8611B312576A61F53B93FF5E4DFBBE2D6183DD767D7F7A4",
+    "anatomicalSha256": null,
+    "photoModelSha256": "5134A3AAD27A58B93DA0088D431F366DA362B44E3CCFBE3462B3827A839011B1",
+    "attributionReference": "docs/THIRD_PARTY_ASSETS.md;wwwroot/data/README.md;wwwroot/licenses/bodyparts3d.html;wwwroot/lib/mediapipe-1.1.0/LICENSE",
+    "sha256": "F8B005A978E7559F8F0ADAA5E6200124B0E138AA6A24810851BA13328C2ADAE4"
+  },
+  "assets": [
+    {
+      "file": "makehuman-anatomical-muscle-fields-v1.bin",
+      "bytes": 27918,
+      "sha256": "A27839A20F2FE1A67AADB9F85A2C608F64DB5512351F6331E9FD492F8FA30F0D"
+    },
+    {
+      "file": "makehuman-hm08.bin",
+      "bytes": 2394747,
+      "sha256": "C5ADEEBA3E84E647E2D0A4905E8D16AB51D4A8CE1C863A86361137349F7B310D"
+    },
+    {
+      "file": "makehuman-muscle-atlas-v1.bin",
+      "bytes": 107156,
+      "sha256": "21D6BBF2002EE1D1E8611B312576A61F53B93FF5E4DFBBE2D6183DD767D7F7A4"
+    }
+  ],
+  "phases": [
+    {
+      "phase": "assets-load-first-process",
+      "samples": 1,
+      "firstMs": 59.0845,
+      "warmMedianMs": null,
+      "warmP95Ms": null,
+      "allocatedBytesAllSamples": 13493472,
+      "managedHeapBytesAfter": 13804392,
+      "processWorkingSetBytesAfter": 47624192
+    },
+    {
+      "phase": "avatar-build-cold-adapter",
+      "samples": 21,
+      "firstMs": 65.7553,
+      "warmMedianMs": 14.2935,
+      "warmP95Ms": 16.7465,
+      "allocatedBytesAllSamples": 79704672,
+      "managedHeapBytesAfter": 10134712,
+      "processWorkingSetBytesAfter": 71581696
+    },
+    {
+      "phase": "avatar-rebuild-warm-adapter",
+      "samples": 21,
+      "firstMs": 3.1687,
+      "warmMedianMs": 2.9928,
+      "warmP95Ms": 3.2241,
+      "allocatedBytesAllSamples": 7064840,
+      "managedHeapBytesAfter": 9437192,
+      "processWorkingSetBytesAfter": 70557696
+    },
+    {
+      "phase": "hypothesis-preview-30-days",
+      "samples": 21,
+      "firstMs": 151.3232,
+      "warmMedianMs": 11.3953,
+      "warmP95Ms": 12.0073,
+      "allocatedBytesAllSamples": 32974384,
+      "managedHeapBytesAfter": 13557536,
+      "processWorkingSetBytesAfter": 76021760
+    },
+    {
+      "phase": "hypothesis-issue-domain-no-storage",
+      "samples": 21,
+      "firstMs": 111.2975,
+      "warmMedianMs": 6.6892,
+      "warmP95Ms": 7.3993,
+      "allocatedBytesAllSamples": 48849632,
+      "managedHeapBytesAfter": 25994008,
+      "processWorkingSetBytesAfter": 79134720
+    },
+    {
+      "phase": "future-endpoint-procedural",
+      "samples": 21,
+      "firstMs": 16.7888,
+      "warmMedianMs": 3.2168,
+      "warmP95Ms": 3.5864,
+      "allocatedBytesAllSamples": 11628624,
+      "managedHeapBytesAfter": 18184520,
+      "processWorkingSetBytesAfter": 82235392
+    },
+    {
+      "phase": "full-fit-procedural-muscle",
+      "samples": 21,
+      "firstMs": 12.4265,
+      "warmMedianMs": 10.3187,
+      "warmP95Ms": 14.5411,
+      "allocatedBytesAllSamples": 59515112,
+      "managedHeapBytesAfter": 17958512,
+      "processWorkingSetBytesAfter": 91082752
+    },
+    {
+      "phase": "full-fit-anatomical-research",
+      "samples": 21,
+      "firstMs": 26.1383,
+      "warmMedianMs": 16.1501,
+      "warmP95Ms": 20.2622,
+      "allocatedBytesAllSamples": 210914760,
+      "managedHeapBytesAfter": 11486920,
+      "processWorkingSetBytesAfter": 88064000
+    },
+    {
+      "phase": "checkin-process-domain-no-storage",
+      "samples": 21,
+      "firstMs": 29.3926,
+      "warmMedianMs": 0.7401,
+      "warmP95Ms": 0.9026,
+      "allocatedBytesAllSamples": 11686312,
+      "managedHeapBytesAfter": 11492928,
+      "processWorkingSetBytesAfter": 90808320
+    }
+  ],
+  "limitation": "First process/adapter calls, not OS disk-cache flush. Allocation totals and heap/working-set snapshots are not peak browser memory. Browser issue/storage and GeometryWarp measured separately. Physical low-end phone remains untested."
+}

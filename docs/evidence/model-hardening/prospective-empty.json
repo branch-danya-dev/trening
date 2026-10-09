@@ -1,0 +1,23 @@
+{
+  "version": "prospective-analysis-1",
+  "status": "NO_PROSPECTIVE_DATA",
+  "participants": 0,
+  "hypotheses": 0,
+  "outcomes": 0,
+  "missing_outcomes": 0,
+  "exclusions": {},
+  "metrics": [],
+  "coverage": {
+    "activity": {
+      "participants": 0,
+      "mean_days": null
+    },
+    "nutrition": {
+      "participants": 0,
+      "mean_days": null
+    }
+  },
+  "avatar_girth_diagnostics": [],
+  "geometry_limitation": "Target girths versus fitted Avatar-derived girths; no independent surface error or measured muscle mass.",
+  "claims": "Descriptive errors only. Heuristic range coverage is not a confidence interval; no accuracy percentage. No calibration fitted."
+}
