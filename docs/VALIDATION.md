@@ -129,6 +129,18 @@ Product smoke проверяет **320×844 и 390×844**: Модель/Акти
 
 В CI запускаются все восемь suites. Для локального запуска: `dotnet build` и `dotnet test` решения в Release, `node --test tests/js/*.test.mjs`, затем browser scripts при запущенном Web на `APP_URL` (по умолчанию 5256). Для offline: `dotnet publish src/WorkoutCalculator.Web -c Release -o <publish>`, `node tests/browser/static-server.cjs <publish>/wwwroot 5257`, `node tests/browser/offline-smoke.cjs`. Нужен Playwright/Chromium; при локальном Chrome можно задать `BROWSER_CHANNEL=chrome`.
 
+## Avatar Validation — Phase 2
+
+Проверяйте сходство отдельно от того, что controls работают. `Профиль → Ручная проверка → Avatar Validation` показывает frozen input provenance, известный обхват/финальный mesh/residual, shape correction summary и pre/post геометрические дельты. RMS/max vertex delta измеряет силу изменения модели, а не близость к человеку. `Хорошо подтверждена` — категория coverage policy, не клиническая точность.
+
+Протокол: подтвердить только реальные факты; зафиксировать одинаковые свет/позу/ракурсы; оценить neutral reconstruction; по одному изменять controls; повторно проверить независимой лентой; дать необязательную самооценку сходства 1–5 до/после. Хранить такую оценку только в validation store. При residual >0.5 см отмечать ограничение, а не исправлять факт ради сетки. Не использовать эти же контрольные замеры как независимый holdout после их передачи fitter.
+
+`avatar-creation-smoke.cjs` проверяет fresh Profile/Avatar, reload каждого шага, optional photo fixture и skip, partial BodySnapshot, geometry/reset, неизменность facts, mandatory review/lock, отсутствие sliders после lock, две revisions с сохранённым predecessor, backup/clean restore, фото blobs и 320/390/1400 px. Фото smoke использует известные synthetic analyzed silhouettes, не доказывает качество MediaPipe или сходство на людях. Domain tests отдельно используют rendered synthetic MakeHuman silhouettes, проверяют protected areas, каждый control, repeatability, girth tolerance/explicit warnings и legacy v1 replay.
+
+Validation export раздела Avatar содержит pseudonyms, source coverage, corrections, known girth residuals и финальные derived metrics. Самооценка включается только при выборе контрольных значений. Фото по умолчанию исключены. Полный backup сохраняет complete lifecycle и фото, не является validation package.
+
+Автоматические тесты можно считать gate для функционального UX. Empirical body accuracy, асимметрия и general visual muscularity пока не валидированы; BF%/muscle mass не выводятся из mesh как факты.
+
 ## Производительность
 
 Сравнение с `main` после #15/#16 (`1ddb66e3`), одна машина, Release dev-server WASM, Chrome headless/SwiftShader, viewport 1400×950, профиль 85 кг/180 см, 12 недель и программа 3×3×10 bench press. Три новых browser context на вариант, четыре повторных входа в план; ниже медианы. Baseline инструментирован только измерением `RunForecasts`; вычислительное поведение не менялось. [Исходные измерения](PRODUCT_PERFORMANCE.json).

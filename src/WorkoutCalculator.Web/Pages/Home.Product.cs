@@ -36,16 +36,19 @@ public partial class Home
         if (fact is not null) { _profile = SnapshotVisuals.Build(fact).Profile; if (_viewerReady) Refresh(); }
     }
     private void PreviewOnboarding(BodyProfile profile) { _profile = profile; RequestRebuild(); }
-    private void FinishOnboarding()
+    private async Task FinishOnboarding()
     {
+        if (_mh is null) throw new InvalidOperationException("Дождитесь загрузки модели.");
         if (_avatars.Current.Error is { } avatarError) throw new InvalidOperationException(avatarError);
         var draft = _onboarding!; var fact = draft.Build();
         ProductStorage.Save(draft); // persist the stable ID before writing any facts
         var store = new BodySnapshotStore(new BrowserJournalStorage()); var read = store.Load();
         if (read.Error is not null) throw new InvalidOperationException(read.Error);
-        if (!read.Snapshots.Any(s => s.Id == fact.Id))
+        if (Avatar is null)
         {
-            var error = store.Save(read.Snapshots.Append(fact).ToArray());
+            // An interrupted first creation can be corrected and retried, reusing the stable ID.
+            var error = store.Save(read.Snapshots.Any(s => s.Id == fact.Id)
+                ? read.Snapshots.Select(s => s.Id == fact.Id ? fact : s).ToArray() : read.Snapshots.Append(fact).ToArray());
             if (error is not null) throw new InvalidOperationException(error);
         }
         _profile = SnapshotVisuals.Build(fact).Profile;
@@ -63,8 +66,19 @@ public partial class Home
         InitializeAvatar(fresh: true);
         if (_avatars.Current.Data is null || _avatarError is not null)
         { _onboarding = draft; throw new InvalidOperationException(_avatarError ?? "Дождитесь загрузки модели для создания аватара."); }
-        draft.Completed = true; ProductStorage.Save(draft);
+        _onboarding = draft; draft.Step = 6; ProductStorage.Save(draft);
+        if (draft.PhotoSessionId is { } sessionId)
+        {
+            var photo = (await PhotoStore.ListMeta()).FirstOrDefault(p => p.Id == sessionId);
+            if (photo is not null) ApplyInitialPhoto(photo);
+        }
         _history.Load(); SyncCurrentFact(); OpenModel(); Refresh();
+    }
+    private void CompleteAvatarOnboarding()
+    {
+        if (_onboarding is not { } draft || Avatar?.Status != WorkoutCalculator.BodyModel.Avatars.AvatarStatus.Active) return;
+        draft.Completed = true; draft.Step = 7; ProductStorage.Save(draft);
+        _onboarding = null; OpenModel();
     }
     private void OpenModel() { _tab = Tab.Params; if (IsHistory || _mode != ViewMode.Current) SetMode(ViewMode.Current); }
     private void OpenActivity() { _tab = Tab.Workout; }

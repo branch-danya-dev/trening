@@ -19,12 +19,12 @@ export function analysisData(options, stores, report={}) {
     if(options.avatars) {
         const avatars=stores.avatars?.avatars || [], revisions=avatars.flatMap(a=>a.revisions || []);
         const refs=new Map(revisions.map((r,i)=>[r.id,`revision-${i+1}`]));
-        const controls=['correctionModelVersion','shoulderWaistShape','abdomenProminence','gluteShape','torsoDepth','chestFullness','waistFullness','armFullness','legFullness'];
-        const metricKeys=['volume','waistToHip','shoulderToWaist',...['Chest','Waist','Hips','Biceps','Thigh','Neck','Calf','Wrist'].map(g=>'girth.'+g)];
+        const controls=['correctionModelVersion','shoulderWaistShape','abdomenProminence','gluteShape','torsoDepth','chestFullness','waistFullness','armFullness','legFullness','flankFullness'];
+        const metricKeys=['shapeResidualRms','shapeResidualMax','volumeDelta','breadth.Chest','depth.Chest','breadth.Waist','depth.Waist',...['Chest','Waist','Hips','Biceps','Thigh','Neck','Calf','Wrist'].map(g=>'girthDelta.'+g),'volume','waistToHip','shoulderToWaist',...['Chest','Waist','Hips','Biceps','Thigh','Neck','Calf','Wrist'].map(g=>'girth.'+g)];
         result.avatars=avatars.map((a,i)=>({reference:`avatar-${i+1}`,status:a.status,activeRevision:refs.get(a.activeRevisionId),trackingOrigin:refs.get(a.trackingOriginRevisionId),
             revisions:(a.revisions || []).map(r=>({reference:refs.get(r.id),predecessor:refs.get(r.predecessorRevisionId),...pick(r,['createdAt','effectiveDate','source','confidence','builderVersion','fitterVersion','assetVersion']),
-                fact:options.facts?factRefs.get(r.inputs?.fact?.id):undefined,photoCount:r.inputs?.photos?.length || 0,
-                quality:pick(r.quality,['softTissueLimitReached','missingGirths','maximumGirthResidualCm']),
+                fact:options.facts?factRefs.get(r.inputs?.fact?.id):undefined,photoCount:r.inputs?.photos?.length || 0,coverage:{factual:(r.inputs?.fields||[]).filter(f=>['Factual','Profile'].includes(f.source)).length,photo:(r.inputs?.fields||[]).filter(f=>f.source==='PhotoDerived').length,estimated:(r.inputs?.fields||[]).filter(f=>['VisualEstimate','LegacyVisualEstimate'].includes(f.source)).length},
+                quality:{...pick(r.quality,['softTissueLimitReached','missingGirths','maximumGirthResidualCm']),knownGirthResidualsCm:Object.fromEntries(['Chest','Waist','Hips','Biceps','Thigh','Neck','Calf','Wrist'].filter(g=>Number.isFinite(r.quality?.knownGirthResidualsCm?.[g])).map(g=>[g,r.quality.knownGirthResidualsCm[g]]))},
                 corrections:{...pick(r.corrections,controls),postureOffset:pick(r.corrections?.postureOffset,['pelvicTilt','lordosis','kyphosis','shouldersForward'])},
                 derivedMetrics:{source:'AvatarDerived',values:Object.fromEntries(metricKeys.filter(k=>r.derivedMetrics?.values?.[k]).map(k=>[k,pick(r.derivedMetrics.values[k],['value','unit','confidence','modelVersion'])]))}
             }))}));
@@ -34,7 +34,7 @@ export function analysisData(options, stores, report={}) {
         result.cardio=(stores.cardio || []).map(w=>pick(w,['Date','Activity','Setting','DurationMin','DistanceKm','ActiveKcal','WatchActiveKcal']));
         result.strength=(stores.strength?.sessions || []).map(s=>({date:s.date,durationMinutes:s.durationMinutes,exercises:s.exercises.map(e=>({exerciseId:e.exerciseId,sets:e.sets.filter(s=>s.completed).map(s=>pick(s,['reps','weightKg','rir','rpe','bodyweight','side']))}))}));
     }
-    if(options.validation) result.validation={body:(report.body || []).map(o=>pick(o,['girth','entered','calculated','source'])),manual:pick(report.manual,['Tape','Photo','Date','ExternalKcal']),evaluation:(report.evaluation || []).map(o=>({forecast:forecastRefs.get(o.ForecastId),fact:factRefs.get(o.FactId),...pick(o,['Date','HorizonDays','Metric','Actual','Predicted','BaselinePredicted','SignedError','AbsoluteError','SourceQuality','ExclusionReason'])}))};
+    if(options.validation) result.validation={body:(report.body || []).map(o=>pick(o,['girth','entered','calculated','source'])),manual:pick(report.manual,['Tape','Photo','Date','ExternalKcal','AvatarSimilarity']),evaluation:(report.evaluation || []).map(o=>({forecast:forecastRefs.get(o.ForecastId),fact:factRefs.get(o.FactId),...pick(o,['Date','HorizonDays','Metric','Actual','Predicted','BaselinePredicted','SignedError','AbsoluteError','SourceQuality','ExclusionReason'])}))};
     return result;
 }
 export async function exportValidation(optionsJson, reportJson, build) {

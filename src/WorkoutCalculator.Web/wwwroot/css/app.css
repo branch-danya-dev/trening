@@ -1167,6 +1167,35 @@ table.changes tr.dim td { opacity: 0.5; }
 .forecast-accuracy .select { min-width: 0; max-width: 100%; }
 .forecast-diagnostics { overflow-wrap: anywhere; }
 
+/* Avatar creation: controls fit alongside the live viewport and retain usable touch targets. */
+.avatar-panel, .avatar-review, .avatar-corrections { min-width: 0; }
+.avatar-panel h2 { margin-top: 8px; }
+.avatar-panel .btn { min-height: 44px; margin: 5px 4px 5px 0; white-space: normal; }
+.avatar-panel .check { display: flex; align-items: flex-start; gap: 8px; margin: 16px 0; line-height: 1.5; }
+.avatar-panel .check input { flex-shrink: 0; margin-top: 4px; }
+.avatar-sources { display: grid; gap: 8px; }
+.avatar-sources > div { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.avatar-sources dt { font-weight: 600; }
+.avatar-sources dd { margin: 4px 0 0; font-size: 13px; }
+.avatar-id { overflow-wrap: anywhere; font-size: 12px; }
+.correction-row { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.correction-row .param { margin-bottom: 3px; }
+.correction-row input[type=range] { min-height: 36px; padding: 0; width: 100%; }
+.correction-row .param-value input { width: 70px; margin: 0; padding: 6px; }
+.correction-row .btn { padding: 8px 12px; }
+.avatar-review .hint { font-size: 13px; line-height: 1.5; }
+.is-onboarding .view-tapes { display: flex; }
+@media(max-width:700px) {
+ .product-app.is-onboarding[data-onboarding-step="6"] .viewport,
+ .product-app.is-onboarding[data-onboarding-step="7"] .viewport { height: 340px; min-height: 340px; }
+ .correction-controls > summary { padding: 16px 0; min-height: 44px; }
+ .avatar-panel { padding: 12px; }
+}
+@media(max-width:700px) {
+ .product-app.is-onboarding[data-onboarding-step="6"] .viewport { position: sticky; top: 0; z-index: 20; height: 260px; min-height: 260px; background: var(--bg); }
+}
+.avatar-panel .note, .avatar-panel .param-hint { color: #a3b0bf; }
+
 /* Product navigation and compact, accessible forms. */
 .product-app { grid-template-rows: auto auto minmax(0, 1fr); }
 .product-app .panel { min-width: 0; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); }

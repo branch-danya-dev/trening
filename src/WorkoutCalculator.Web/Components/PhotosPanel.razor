@@ -281,7 +281,12 @@ else
             }
 
             <div class="card-subtitle">Модель по фото</div>
-            @if (RevisionManaged)
+            @if (OnAvatarPhoto.HasDelegate)
+            {
+                <p class="note">Качественные фото могут уточнить отсутствующие обхваты талии и бёдер. Ручные замеры имеют приоритет. Результат остаётся оценкой «По фото».</p>
+                <button class="btn primary" disabled="@_busy" @onclick="() => OnAvatarPhoto.InvokeAsync(o)">Уточнить черновик по фото</button>
+            }
+            else if (RevisionManaged)
             {
                 <div class="note">Форма аватара сохраняется отдельными ревизиями. Для ручной коррекции откройте «Исправить аватар» в разделе «Модель». Автоматическое обновление по фото появится в следующем этапе.</div>
             }
@@ -528,6 +533,7 @@ else
     /// <summary>Изменение профиля (осанка и форма после подгонки): родитель применяет, сохраняет и перестраивает модель.</summary>
     [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
     [Parameter] public bool RevisionManaged { get; set; }
+    [Parameter] public EventCallback<PhotoSession> OnAvatarPhoto { get; set; }
 
     private const string FrontInput = "photo-front", SideInput = "photo-side", ImportInput = "photo-import";
 

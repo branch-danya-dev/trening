@@ -1,9 +1,24 @@
 @using WorkoutCalculator.BodyModel.History
 @using Microsoft.JSInterop
 @using System.Text.Json.Nodes
+@using WorkoutCalculator.BodyModel.Avatars
 @inject IJSRuntime JS
 <section class="card validation-panel" aria-label="Ручная проверка">
     <h2>Ручная проверка</h2>
+    @if (Avatar is not null)
+    {
+        var inputs = Avatar.Draft?.Inputs ?? Avatar.ActiveRevision?.Inputs;
+        var corrections = Avatar.Draft?.Corrections ?? Avatar.ActiveRevision?.Corrections;
+        <h3>Avatar Validation</h3>
+        <AvatarReview Inputs="inputs" Corrections="corrections" Quality="Representation?.Quality" Detailed="true" />
+        @if (Representation is not null) {
+            <details><summary>Финальные метрики и изменение геометрии</summary>
+                @foreach (var (key, metric) in Representation.Metrics.Values) { <p>@key: @Fmt.N(metric.Value, 3) @metric.Unit · AvatarDerived</p> }
+            </details>
+        }
+        <label>Сходство аватара с вами (1–5, необязательно)<input type="number" min="1" max="5" aria-label="Визуальное сходство аватара" @bind="_manual.AvatarSimilarity" /></label>
+        <p class="note">Самооценка только для проверки. Это не факт тела и не показатель точности модели. В экспорт входит лишь при выборе контрольных значений.</p>
+    }
     <h3>Замеры и 3D</h3>
     <p class="note">Колонка 3D — производные значения геометрии (AvatarDerived), а не измерения тела. При открытой коррекции она показывает черновик.</p>
     <div class="table-scroll"><table class="changes"><thead><tr><th>Обхват</th><th>Введено</th><th>3D</th><th>Разница</th><th>Источник</th></tr></thead><tbody>
@@ -39,6 +54,8 @@
     [Parameter] public BodySnapshot? Fact { get; set; }
     [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
     [Parameter] public IBodyShape? Body { get; set; }
+    [Parameter] public AvatarState? Avatar { get; set; }
+    [Parameter] public AvatarRepresentation? Representation { get; set; }
     [Parameter] public IReadOnlyList<BodySnapshot> Facts { get; set; } = [];
     [Parameter] public IReadOnlyList<LoggedWorkout> Cardio { get; set; } = [];
     [Parameter, EditorRequired] public PersonalizedForecastState Calibration { get; set; } = default!;

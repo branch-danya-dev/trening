@@ -3,6 +3,7 @@ using WorkoutCalculator.BodyModel.Consistency;
 using WorkoutCalculator.BodyModel.Geometry;
 using WorkoutCalculator.BodyModel.Forecast;
 using WorkoutCalculator.BodyModel.Muscles;
+using WorkoutCalculator.BodyModel.Avatars;
 
 namespace WorkoutCalculator.BodyModel.MakeHuman;
 
@@ -204,7 +205,8 @@ public sealed class MakeHumanModel
     /// Окончательная сборка: слой под вес и точная подгонка. false — быстрая сборка для движения ползунка:
     /// слой как в <paramref name="warm"/>, не больше двух проходов подгонки.
     /// </param>
-    public MakeHumanBody Build(BodyProfile profile, MakeHumanFit? warm = null, bool fitVolume = true, MuscleMorphState? muscle = null)
+    public MakeHumanBody Build(BodyProfile profile, MakeHumanFit? warm = null, bool fitVolume = true, MuscleMorphState? muscle = null,
+        AvatarShapeCorrectionProfile? corrections = null, MakeHumanBody? correctionBaseline = null)
     {
         var p = profile.Clone();
         var fit = warm?.Clone() ?? new MakeHumanFit();
@@ -227,6 +229,8 @@ public sealed class MakeHumanModel
         }
         _shapeCache.Add(cache); // в конце — самая свежая
         var pos = (double[])cache.Positions.Clone();
+        var fields = corrections is not null && AvatarShapeFields.HasShape(corrections) ? new AvatarShapeFields(Data) : null;
+        fields?.Apply(pos, corrections!, p.HeightCm);
         // Muscle fields live in canonical rest coordinates. Fit/volume reconciliation below has final authority.
         if (muscle is not null && muscle.Groups.Values.Any(v => v != 0))
         {
@@ -275,6 +279,18 @@ public sealed class MakeHumanModel
         }
 
         // Итог: обхваты по готовой сетке (перемеряются только устаревшие), вершины тела — в меш
+        if (fields is not null)
+        {
+            // The fitter/volume solve can have global effects. Freeze protected areas back to the
+            // same posed baseline and fade the transition; then measure the actual final geometry.
+            var baseline = correctionBaseline ?? Build(profile, warm, fitVolume);
+            for (int v = 0; v < Data.BodyVertexCount; v++)
+            {
+                double keep = fields.Keep(v);
+                for (int k = 0; k < 3; k++) { int i = v * 3 + k; posed[i] = baseline.Mesh.Positions[i] + keep * (posed[i] - baseline.Mesh.Positions[i]); }
+            }
+            state.Invalidate();
+        }
         var results = state.Results();
         var body = new float[Data.BodyVertexCount * 3];
         for (int i = 0; i < body.Length; i++) body[i] = (float)posed[i];
@@ -594,6 +610,7 @@ public sealed class MakeHumanModel
 
         /// <summary>Сколько сечений сделано — для диагностики скорости.</summary>
         public int Measurements { get; private set; }
+        public void Invalidate() => _version++;
 
         public double? Measure(FitLevel level)
         {
