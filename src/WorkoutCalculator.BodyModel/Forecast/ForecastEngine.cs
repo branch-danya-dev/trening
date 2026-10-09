@@ -17,16 +17,27 @@ namespace WorkoutCalculator.BodyModel.Forecast;
 /// </summary>
 public static class ForecastEngine
 {
-    public const string ModelVersion = "hall-forbes-1+residual-1";
+    public const string LegacyModelVersion = "hall-forbes-1+residual-1";
+    public const string ModelVersion = "hall-forbes-2+residual-1";
 
     public static ForecastResult Run(BodyProfile start, ForecastInput input, ForecastCalibrationProfile? calibration = null)
     {
-        var baseline = RunBaseline(start, input);
+        return RunVersion(start, input, ModelVersion, calibration);
+    }
+
+    public static ForecastResult RunVersion(BodyProfile start, ForecastInput input, string modelVersion, ForecastCalibrationProfile? calibration = null)
+    {
+        if (modelVersion != ModelVersion && modelVersion != LegacyModelVersion) throw new ArgumentException("Неизвестная версия composition engine.");
+        var baseline = RunBaseline(start, input, modelVersion == LegacyModelVersion);
         return calibration is null ? baseline : ForecastPersonalization.Apply(baseline, calibration);
     }
 
-    private static ForecastResult RunBaseline(BodyProfile start, ForecastInput input)
+    private static ForecastResult RunBaseline(BodyProfile start, ForecastInput input, bool legacy)
     {
+        var nutrition = legacy ? null : CompositionNutrition.Resolve(input);
+        if (!legacy && (input.Weeks is < 0 or > 52 || !double.IsFinite(start.WeightKg) || start.WeightKg <= 0 ||
+            !double.IsFinite(start.BodyFatPercent) || start.BodyFatPercent is <= 0 or >= 100 ||
+            !double.IsFinite(input.ActivityFactor) || input.ActivityFactor is < 1 or > 3)) throw new ArgumentException("Проверьте профиль и срок прогноза.");
         int weeks = Math.Max(0, input.Weeks);
         var warnings = new List<string>();
         double essentialFat = C.EssentialFatPercent(start.Sex) / 100;
@@ -36,6 +47,10 @@ public static class ForecastEngine
         double maxWeeklyLoss = 0;
         bool hitFatFloor = false;
         double cardioStart = 0, strengthStart = 0, maintenance = 0;
+        double baselineIntake = 0, baselineCarbs = 0, activityChange = 0;
+        double glycogen = CompositionNutrition.InitialGlycogenKg;
+        if (nutrition?.Normalized == true) warnings.Add("Макросы нормализованы к общей калорийности в пределах допуска 5 %.");
+        if (!legacy && input.SodiumMgPerDay.HasValue) warnings.Add("Натрий сохранён как экспериментальный input; ECF выключен и не влияет на прогноз.");
 
         // Адаптивный термогенез нарастает экспоненциально: за неделю остаётся e^(−7/τ) от разрыва
         // до своего уровня, а в среднем за неделю — доля τ/7 · (1 − e^(−7/τ))
@@ -52,19 +67,37 @@ public static class ForecastEngine
                 maintenance = baseExpenditure;
                 cardioStart = cardio;
                 strengthStart = strength;
+                baselineIntake = legacy ? maintenance : input.BaselineIntakeKcalPerDay ?? bmr * input.ActivityFactor;
+                baselineCarbs = input.BaselineCarbsGramsPerDay ?? baselineIntake * CompositionNutrition.BaselineCarbShare / 4;
+                activityChange = maintenance - baselineIntake;
+                if (!legacy)
+                {
+                    if (!double.IsFinite(maintenance) || baselineIntake <= 0 || !double.IsFinite(baselineIntake) ||
+                        baselineCarbs * 4 > baselineIntake * (1 + CompositionNutrition.MacroTolerance))
+                        throw new ArgumentException("Исходный рацион не согласуется с профилем или углеводами.");
+                    if (nutrition!.CarbsGrams / baselineCarbs > CompositionNutrition.MaximumCarbRatio)
+                        warnings.Add("Углеводный driver ограничен тройным исходным уровнем; выше этого модель не валидирована.");
+                }
             }
 
             // Адаптация: на сколько питание отличается от поддержания в начале плана
-            double intakeChange = input.IntakeKcalPerDay - maintenance;
+            double intakeChange = input.IntakeKcalPerDay - baselineIntake;
             double adaptiveTarget = C.AdaptiveThermogenesis * intakeChange;
-            double adaptation = C.ThermicEffectOfFood * intakeChange
-                              + adaptiveTarget + (adaptive - adaptiveTarget) * atWeekShare;
+            double tef = legacy ? C.ThermicEffectOfFood * intakeChange : nutrition!.TefKcal - C.ThermicEffectOfFood * baselineIntake;
+            double at = adaptiveTarget + (adaptive - adaptiveTarget) * atWeekShare;
+            double adaptation = legacy ? C.ThermicEffectOfFood * intakeChange + adaptiveTarget + (adaptive - adaptiveTarget) * atWeekShare : tef + at;
             double expenditure = baseExpenditure + adaptation;
             double balance = input.IntakeKcalPerDay - expenditure;
             history.Add(new ForecastWeek(week, weight, fat, lean, bmr, expenditure, balance)
             {
                 GlycogenWaterKg = water,
                 AdaptationKcalPerDay = adaptation,
+                GlycogenKg = !legacy && nutrition!.CarbsGrams.HasValue ? glycogen - CompositionNutrition.InitialGlycogenKg : null,
+                BoundWaterKg = !legacy && nutrition!.CarbsGrams.HasValue ? (glycogen - CompositionNutrition.InitialGlycogenKg) * CompositionNutrition.BoundWaterRatio : null,
+                DietEnergyChange = legacy ? 0 : intakeChange,
+                ActivityEnergyChange = legacy ? 0 : activityChange,
+                AdaptiveThermogenesisKcalPerDay = legacy ? 0 : at,
+                TefChangeKcalPerDay = legacy ? 0 : tef,
             });
             if (week == weeks) break;
             adaptive = adaptiveTarget + (adaptive - adaptiveTarget) * atDecay;
@@ -74,7 +107,15 @@ public static class ForecastEngine
             double pool = C.GlycogenWaterShareOfLean * lean;
             double waterTarget = effect < 0 ? effect * pool : effect * pool * C.GlycogenWaterGainFactor;
             double dWater = (waterTarget - water) * C.GlycogenWaterWeeklyRate;
-            double weekly = balance * 7 - dWater * C.GlycogenWaterKcalPerKg;
+            double glycogenEnergy = dWater * C.GlycogenWaterKcalPerKg;
+            if (!legacy && nutrition!.CarbsGrams is { } carbs)
+            {
+                double next = CompositionNutrition.GlycogenAfter(glycogen, carbs, baselineCarbs, 7);
+                dWater = (next - glycogen) * (1 + CompositionNutrition.BoundWaterRatio);
+                glycogenEnergy = (next - glycogen) * CompositionNutrition.GlycogenKcalPerKg;
+                glycogen = next;
+            }
+            double weekly = balance * 7 - glycogenEnergy;
             water += dWater;
 
             double dFat, dLean;
@@ -107,6 +148,15 @@ public static class ForecastEngine
             }
 
             maxWeeklyLoss = Math.Max(maxWeeklyLoss, -(dFat + dLean) / weight);
+            if (!legacy)
+            {
+                // Outside the tissue domain, stop instead of extrapolating negative masses. No fitted daily noise.
+                double minimumLean = Math.Min(start.LeanMassKg, Math.Max(CompositionNutrition.MinimumLeanKg, start.LeanMassKg * CompositionNutrition.MinimumLeanFraction));
+                if (lean + dLean < minimumLean || fat + dFat <= .01 || !double.IsFinite(dFat + dLean))
+                {
+                    throw new ArgumentException($"На неделе {week + 1} план выходит за границы допустимых тканей. Уменьшите срок или дефицит; прогноз не сохранён.");
+                }
+            }
             fat += dFat;
             lean += dLean;
         }
@@ -127,6 +177,10 @@ public static class ForecastEngine
             MaintenanceKcalPerDay = maintenance,
             CardioKcalPerSession = cardioStart,
             StrengthKcalPerSession = strengthStart,
+            Composition = legacy ? null : new(ModelVersion, nutrition!.TefMode,
+                nutrition.CarbsGrams.HasValue ? CompositionNutrition.GlycogenVersion : "balance-glycogen-1", CompositionNutrition.AtVersion,
+                nutrition.CarbsGrams.HasValue ? CompositionNutrition.WaterVersion : "balance-water-1-ecf-off", baselineIntake, baselineCarbs,
+                input.BaselineIntakeKcalPerDay is null, input.BaselineCarbsGramsPerDay is null),
         };
     }
 

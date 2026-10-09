@@ -1,6 +1,7 @@
 # Forecast v3 R&D — правила повышения точности числового и визуального прогноза
 
 Статус: roadmap / R&D rules.  
+Implementation update 2026-10-09: Stage A implemented for review in `rnd/composition-v3`; see [composition decisions](FORECAST_V3_COMPOSITION.md) and [reproducible benchmark](FORECAST_V3_COMPOSITION_BENCHMARK.md). Sodium/ECF remains research-only / NO-GO. The original roadmap and later-stage gates below are preserved; they are not marked complete by Stage A.
 Назначение: рабочий план последовательного развития прогнозного контура после текущих personalized forecast и training-aware muscle/body-shape forecast.
 
 Этот документ **не является реализацией**. Он фиксирует границы, архитектурные правила, порядок исследований, критерии качества и условия GO / NO-GO.

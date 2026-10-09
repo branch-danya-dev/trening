@@ -653,15 +653,22 @@
             if (startFact.BodyFatPercent is { } bf) commonStart.BodyFatPercent = bf;
             foreach (var (g, value) in startFact.Measurements) commonStart.SetGirth(g, value.Cm);
         }
-        _forecasts = _hypotheses.Items
-            .Select(h => new HypothesisForecast(h,
-                h.Slot == _hypotheses.Selected
-                    ? _personalized.Calculate(_profile, h.Plan.ToInput(), now, $"slot:{h.Slot}", h.Name, startFact, _strength.Sessions, _history.Timeline.Items)
-                    : h.Plan.Strength && h.Plan.StrengthProgram is not null
-                        ? ForecastSnapshot.Create(_profile, h.Plan.ToInput(), today, now, _personalized.CurrentRevision, startFact,
-                            strengthHistory: _strength.Sessions, bodyHistory: _history.Timeline.Items, previousForecasts: _personalized.Archive.Forecasts).Replay()
-                        : ForecastEngine.Run(commonStart, h.Plan.ToInput(), _personalized.CurrentRevision?.Profile)))
-            .ToList();
+        var chosen = _hypotheses.Current;
+        var chosenResult = _personalized.Calculate(_profile, chosen.Plan.ToInput(), now, $"slot:{chosen.Slot}", chosen.Name, startFact, _strength.Sessions, _history.Timeline.Items);
+        var forecasts = new List<HypothesisForecast>();
+        foreach (var h in _hypotheses.Items)
+        {
+            try
+            {
+                var result = h.Slot == _hypotheses.Selected ? chosenResult : h.Plan.Strength && h.Plan.StrengthProgram is not null
+                    ? ForecastSnapshot.Create(_profile, h.Plan.ToInput(), today, now, _personalized.CurrentRevision, startFact,
+                        strengthHistory: _strength.Sessions, bodyHistory: _history.Timeline.Items, previousForecasts: _personalized.Archive.Forecasts).Replay()
+                    : ForecastEngine.Run(commonStart, h.Plan.ToInput(), _personalized.CurrentRevision?.Profile);
+                forecasts.Add(new(h, result));
+            }
+            catch (ArgumentException e) { _personalized.ReportError($"План «{h.Name}» исключён из сравнения: {e.Message}"); }
+        }
+        _forecasts = forecasts;
         _personalized.Evaluate(_history.Timeline.Items, today);
         _forecastMs = timing.Elapsed.TotalMilliseconds;
         Console.WriteLine($"Product timing: forecast {_forecastMs:F2} ms, muscle={_personalized.Display?.Muscle is not null}");

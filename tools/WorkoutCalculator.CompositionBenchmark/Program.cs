@@ -6,16 +6,24 @@ using WorkoutCalculator.BodyModel.Forecast;
 using WorkoutCalculator.CompositionBenchmark;
 
 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-if (args.Contains("--capture-legacy"))
+if (args.Contains("--performance"))
 {
-    var snapshot = ForecastSnapshot.Create(BodyDefaults.Default(), new() { IntakeKcalPerDay = 1900, StrengthTraining = true, StrengthPerWeek = 3 },
-        new(2026, 1, 5), new DateTimeOffset(2026, 1, 5, 12, 0, 0, TimeSpan.Zero)) with { Id = "71abc111-b653-415a-830a-b87483f007f0" };
-    File.WriteAllText("tests/WorkoutCalculator.Tests/BodyModel/legacy-composition-snapshot.json", JsonSerializer.Serialize(snapshot, ForecastJson.Default.ForecastSnapshot) + "\n", new UTF8Encoding(false));
+    File.WriteAllText("docs/FORECAST_V3_COMPOSITION_PERFORMANCE.json", Performance.Measure(), new UTF8Encoding(false));
     return;
 }
-var engines = new Dictionary<string, Func<Scenario, ForecastResult>> { ["legacy"] = s => ForecastEngine.Run(s.Profile, s.Input) };
+if (args.Contains("--capture-legacy"))
+{
+    throw new InvalidOperationException("Legacy fixture was captured before formula changes (009a3eb); do not regenerate it.");
+}
+var engines = new Dictionary<string, Func<Scenario, ForecastResult>> { ["legacy"] = s => ForecastEngine.RunVersion(s.Profile, s.Input, ForecastEngine.LegacyModelVersion) };
+if (!args.Contains("--legacy-only"))
+{
+    engines["composition-v3"] = s => ForecastEngine.Run(s.Profile, s.RefinedInput());
+    // No synthetic response is fitted to the oracle. Zero evidence personalized v3 must equal its baseline.
+    engines["personalized-v3-zero-evidence"] = s => ForecastEngine.Run(s.Profile, s.RefinedInput(), new());
+}
 var report = Benchmark.Run(engines);
-string stem = "docs/FORECAST_V3_COMPOSITION_LEGACY";
+string stem = args.Contains("--legacy-only") ? "docs/FORECAST_V3_COMPOSITION_LEGACY" : "docs/FORECAST_V3_COMPOSITION_BENCHMARK";
 foreach (var (extension, content) in new[] { (".json", Benchmark.Json(report)), (".md", Benchmark.Markdown(report)) })
 {
     string path = stem + extension;

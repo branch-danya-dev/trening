@@ -7,6 +7,10 @@ public sealed record CalibrationRevision(string Id, DateTimeOffset CreatedAt, Da
     ForecastCalibrationProfile Profile, ImmutableArray<ForecastObservation> Observations, ImmutableArray<string> Diagnostics)
 {
     public string? PreviousRevisionId { get; init; }
+    // Missing in pre-v3 JSON means the legacy baseline; never infer today's model.
+    private readonly string? _compositionModelVersion;
+    // Source-generated record deserialization may assign null for an absent init member.
+    public string CompositionModelVersion { get => _compositionModelVersion ?? ForecastEngine.LegacyModelVersion; init => _compositionModelVersion = value; }
 }
 
 /// <summary>Weekly medians, bounded response, shrinkage to baseline. Never fits daily weight changes.</summary>
@@ -16,10 +20,12 @@ public static class ForecastCalibrationService
     private sealed record WeekSample(int Week, DateOnly First, DateOnly Last, double Ratio, double Quality, double Error);
 
     public static CalibrationRevision Build(IEnumerable<ForecastSnapshot> forecasts, IEnumerable<BodySnapshot> facts,
-        DateOnly through, DateTimeOffset now, string fingerprint, CalibrationRevision? previous = null)
+        DateOnly through, DateTimeOffset now, string fingerprint, CalibrationRevision? previous = null,
+        string modelVersion = ForecastEngine.ModelVersion)
     {
         if (through > DateOnly.FromDateTime(now.Date)) throw new ArgumentException("Будущие факты недоступны для калибровки.");
-        var archive = forecasts.Where(f => f.CreatedAt <= now && f.StartDate <= through).ToDictionary(f => f.Id);
+        var available = forecasts.Where(f => f.CreatedAt <= now && f.StartDate <= through).ToArray();
+        var archive = available.Where(f => f.ModelVersion == modelVersion).ToDictionary(f => f.Id);
         var factsArray = facts.Where(f => f.Date <= through).ToArray();
         var observations = archive.Values.SelectMany(f => ForecastEvaluationService.Evaluate(f, factsArray, through))
             // A single fact must not multiply evidence when the user saves many forecasts.
@@ -27,6 +33,7 @@ public static class ForecastCalibrationService
                 .ThenByDescending(o => archive[o.ForecastId].StartDate).ThenBy(o => o.ForecastId, StringComparer.Ordinal).First())
             .OrderBy(o => o.Date).ThenBy(o => o.FactId, StringComparer.Ordinal).ThenBy(o => o.Metric, StringComparer.Ordinal).ToArray();
         var diagnostics = ImmutableArray.CreateBuilder<string>();
+        diagnostics.Add($"Composition partition: {modelVersion}; other-model origins excluded: {available.Length - archive.Count}.");
         foreach (var fact in factsArray)
             try { fact.Validate(); } catch (ArgumentException e) { diagnostics.Add($"{fact.Id}: invalid snapshot — {e.Message}"); }
 
@@ -107,7 +114,7 @@ public static class ForecastCalibrationService
         diagnostics.Add($"BF partition: {partitionWeeks.Count} weekly groups; minimum 6 groups over 35 days; girth factors={girths.Count}.");
         foreach (var group in observations.Where(o => !o.UsedForCalibration).GroupBy(o => o.ExclusionReason)) diagnostics.Add($"{group.Key}: {group.Count()}");
         return new(Guid.NewGuid().ToString(), now, through, fingerprint, profile, observations.ToImmutableArray(), diagnostics.ToImmutable())
-        { PreviousRevisionId = previous?.Id };
+        { PreviousRevisionId = previous?.Id, CompositionModelVersion = modelVersion };
     }
 
     private static List<WeekSample> Weekly(IEnumerable<Sample> samples) => samples.GroupBy(s => s.Date.DayNumber / 7)

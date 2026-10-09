@@ -79,7 +79,14 @@ public static class ForecastEvaluationService
         var body = new ForecastWeek(i, L(a.Body.WeightKg, b.Body.WeightKg), L(a.Body.FatMassKg, b.Body.FatMassKg),
             L(a.Body.LeanMassKg, b.Body.LeanMassKg), L(a.Body.BmrKcal, b.Body.BmrKcal),
             L(a.Body.ExpenditureKcalPerDay, b.Body.ExpenditureKcalPerDay), L(a.Body.BalanceKcalPerDay, b.Body.BalanceKcalPerDay))
-        { GlycogenWaterKg = L(a.Body.GlycogenWaterKg, b.Body.GlycogenWaterKg), AdaptationKcalPerDay = L(a.Body.AdaptationKcalPerDay, b.Body.AdaptationKcalPerDay) };
+        {
+            GlycogenWaterKg = L(a.Body.GlycogenWaterKg, b.Body.GlycogenWaterKg), AdaptationKcalPerDay = L(a.Body.AdaptationKcalPerDay, b.Body.AdaptationKcalPerDay),
+            GlycogenKg = a.Body.GlycogenKg is { } ag && b.Body.GlycogenKg is { } bg ? L(ag, bg) : null,
+            BoundWaterKg = a.Body.BoundWaterKg is { } aw && b.Body.BoundWaterKg is { } bw ? L(aw, bw) : null,
+            DietEnergyChange = L(a.Body.DietEnergyChange, b.Body.DietEnergyChange), ActivityEnergyChange = L(a.Body.ActivityEnergyChange, b.Body.ActivityEnergyChange),
+            AdaptiveThermogenesisKcalPerDay = L(a.Body.AdaptiveThermogenesisKcalPerDay, b.Body.AdaptiveThermogenesisKcalPerDay),
+            TefChangeKcalPerDay = L(a.Body.TefChangeKcalPerDay, b.Body.TefChangeKcalPerDay)
+        };
         return new(body, a.Girths.ToImmutableDictionary(p => p.Key, p => L(p.Value, b.Girths[p.Key])),
             new(L(a.WeightRange.Lower, b.WeightRange.Lower), body.WeightKg, L(a.WeightRange.Upper, b.WeightRange.Upper)))
         { GirthRanges = a.GirthRanges.Where(p => b.GirthRanges.ContainsKey(p.Key)).ToImmutableDictionary(p => p.Key,

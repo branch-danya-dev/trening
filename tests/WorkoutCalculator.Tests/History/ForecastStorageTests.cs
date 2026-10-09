@@ -7,6 +7,43 @@ namespace WorkoutCalculator.Tests.History;
 
 public class ForecastStorageTests
 {
+    [Fact]
+    public void EngineUpgradeAppendsPartitionedRevisionAndKeepsOldForecastsFrozen()
+    {
+        var old = ForecastSnapshot.Create(Profile(), Input(), Start, Time(Start), modelVersion: ForecastEngine.LegacyModelVersion);
+        var facts = Enumerable.Range(2, 7).Select(w => Fact(Start.AddDays(w * 7), old.Baseline[w].Body.WeightKg + .4)).ToArray();
+        var revision = ForecastCalibrationService.Build([old], facts, Start.AddDays(56), Time(Start.AddDays(56)), Fingerprint, modelVersion: ForecastEngine.LegacyModelVersion);
+        var oldPersonalized = ForecastSnapshot.Create(Profile(), Input(), Start.AddDays(56), Time(Start.AddDays(56)), revision, modelVersion: ForecastEngine.LegacyModelVersion);
+        Assert.NotEqual(oldPersonalized.Baseline[^1].Body.WeightKg, oldPersonalized.Expected[^1].Body.WeightKg);
+        var archive = new ForecastArchive([old, oldPersonalized], [revision]);
+        var document = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(archive, ForecastStoreJson.Default.ForecastArchive))!;
+        document["revisions"]![0]!.AsObject().Remove("compositionModelVersion"); // actual pre-upgrade schema
+        string payload = document.ToJsonString();
+        var memory = new MemoryStorage();
+        memory.Data[ForecastStore.Key] = JsonSerializer.Serialize(new ForecastEnvelope(1, payload, ForecastStore.Hash(payload)), ForecastStoreJson.Default.ForecastEnvelope);
+        var state = new PersonalizedForecastState(new ForecastStore(memory)); state.Load(); Assert.True(state.Error is null, state.Error); Assert.Null(state.CurrentRevision);
+        var frozen = Json(state.Archive.Forecasts[0]);
+        state.RefreshFacts(facts, Time(Start.AddDays(70)));
+        Assert.Null(state.Error); Assert.Equal(2, state.Archive.Revisions.Length);
+        Assert.Equal(revision.Id, state.CurrentRevision!.PreviousRevisionId);
+        Assert.Empty(state.CurrentRevision.Observations); Assert.Equal(1, state.CurrentRevision.Profile.WeightResponseFactor);
+        state.NewPreview(); state.Calculate(Profile(), Input(), Time(Start.AddDays(70)), "v3", "new");
+        Assert.True(state.SavePreview());
+        var read = new ForecastStore(memory).Load(); Assert.Null(read.Error);
+        Assert.Equal(frozen, Json(read.Archive.Forecasts[0]));
+        Assert.Equal(oldPersonalized.Expected.Select(p => p.Body), read.Archive.Forecasts[1].Replay().Weeks);
+        Assert.Equal(ForecastEngine.ModelVersion, read.Archive.Forecasts[^1].ModelVersion);
+    }
+
+    [Fact]
+    public void LegacyLabelCannotHideMixedVersionCalibration()
+    {
+        var memory = new MemoryStorage(); var store = new ForecastStore(memory); var f = Snapshot(); Assert.Null(store.Append(f));
+        var r = ForecastCalibrationService.Build([f], [Fact(Start.AddDays(14), 98)], Start.AddDays(14), Time(Start.AddDays(14)), Fingerprint);
+        string frozen = memory.Data[ForecastStore.Key];
+        Assert.NotNull(store.Append(r with { CompositionModelVersion = ForecastEngine.LegacyModelVersion }));
+        Assert.Equal(frozen, memory.Data[ForecastStore.Key]);
+    }
     private sealed class MemoryStorage : IJournalStorage
     {
         public Dictionary<string, string> Data { get; } = [];

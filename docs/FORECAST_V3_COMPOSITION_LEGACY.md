@@ -3,7 +3,7 @@
 Reference `hall-2011-appendix-rk4-1`; baseline main `471449780756f091234849d3055bd1e149f9312e`.
 4096 scenarios; LCG seed 20261009; scenario SHA-256 `327CF83C2A7297554A6D8CA659A4B6F4ADF2DBD3CE76D34C47607861B8CCA955`.
 
-Reproduce: `dotnet run -c Release --project tools/WorkoutCalculator.CompositionBenchmark -- --check`. Use `--write` to regenerate. No network is used. See tools/WorkoutCalculator.CompositionBenchmark/REFERENCE.md for scope, equations and assumptions.
+Reproduce: `dotnet run -c Release --project tools/WorkoutCalculator.CompositionBenchmark -- --legacy-only --check`. Use `--write` to regenerate. No network is used. See tools/WorkoutCalculator.CompositionBenchmark/REFERENCE.md for scope, equations and assumptions.
 
 Errors = candidate minus reference. All masses in kg. Delta-weight error equals weight error because initial weight is shared. The primary reference disables ECF to compare tissue + glycogen. JSON also reports full Hall ECF-inclusive scale weight. Neither reference models resistance-training preservation/gain or macro-specific TEF. These are model-agreement scores, not human accuracy.
 

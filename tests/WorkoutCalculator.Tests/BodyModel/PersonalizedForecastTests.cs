@@ -211,7 +211,7 @@ public class PersonalizedForecastTests(ITestOutputHelper output)
     [Fact]
     public void BaselineReferencePointIsUnchanged()
     {
-        var f = ForecastEngine.Run(Profile(), Input());
+        var f = ForecastEngine.RunVersion(Profile(), Input(), ForecastEngine.LegacyModelVersion);
         Assert.Equal(98.92017167038289, f.Weeks[2].WeightKg, 10);
         Assert.Equal(-.4003154923925993, f.Weeks[2].GlycogenWaterKg, 10);
     }
@@ -281,7 +281,8 @@ public class PersonalizedForecastTests(ITestOutputHelper output)
         }
         var result = ForecastBacktestService.Run(forecasts, revisions, facts, Start.AddDays(224));
         Assert.Equal(4, result.Origins); Assert.Empty(result.Exclusions);
-        foreach (var c in result.Comparisons.Where(c => c.Metric == ForecastEvaluationService.Weight))
+        // This synthetic intervention is replaced every 8 weeks; its response guarantee covers that interval.
+        foreach (var c in result.Comparisons.Where(c => c.Metric == ForecastEvaluationService.Weight && c.HorizonWeeks <= 8))
         {
             Assert.Equal(4, c.Baseline.Count); Assert.Equal(c.Baseline.Count, c.Personalized.Count);
             output.WriteLine(FormattableString.Invariant($"response={response:0.0}; horizon={c.HorizonWeeks}; n={c.Baseline.Count}; baselineMAE={c.Baseline.Mae:0.000000}; personalMAE={c.Personalized.Mae:0.000000}; baselineBias={c.Baseline.Bias:0.000000}; personalBias={c.Personalized.Bias:0.000000}; coverage={c.Personalized.RangeCoverage:0.000000}"));

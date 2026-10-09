@@ -6,6 +6,14 @@ namespace WorkoutCalculator.CompositionBenchmark;
 public sealed record Scenario(int Id, BodyProfile Profile, ForecastInput Input, double BaselineIntake,
     double? Protein, double? Carbs, double? Fat, double? Sodium, double BaselineCarbs, double ActivityEnergy, string EnergyBand)
 {
+    public ForecastInput RefinedInput() => new()
+    {
+        Weeks = Input.Weeks, IntakeKcalPerDay = Input.IntakeKcalPerDay, ActivityFactor = Input.ActivityFactor,
+        StrengthTraining = Input.StrengthTraining, StrengthPerWeek = Input.StrengthPerWeek,
+        Cardio = Input.Cardio, CardioPerWeek = Input.CardioPerWeek,
+        ProteinGramsPerDay = Protein, CarbsGramsPerDay = Carbs, FatGramsPerDay = Fat, SodiumMgPerDay = Sodium,
+        BaselineIntakeKcalPerDay = BaselineIntake, BaselineCarbsGramsPerDay = BaselineCarbs
+    };
     public HallReference.Plan Reference => new(Profile.WeightKg, Profile.FatMassKg,
         10 * Profile.WeightKg + 6.25 * Profile.HeightCm - 5 * Profile.Age + (Profile.Sex == Sex.Male ? 5 : -161),
         Input.ActivityFactor, Input.IntakeKcalPerDay, ActivityEnergy, (Carbs ?? Input.IntakeKcalPerDay * .5 / 4) * 4, BaselineCarbs * 4,

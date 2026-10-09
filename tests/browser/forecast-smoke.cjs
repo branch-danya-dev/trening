@@ -50,7 +50,7 @@ const fs = require('node:fs');
         await page.getByRole('button', { name: 'Сохранить прогноз и начать план', exact: true }).click();
         await page.waitForFunction(k => JSON.parse(JSON.parse(localStorage.getItem(k)).payload).forecasts.length === 1, key);
         const first = (await read()).forecasts[0]; const frozen = JSON.stringify(first);
-        assert.equal(first.startDate, '2026-06-01'); assert.equal(first.modelVersion, 'hall-forbes-1+residual-1');
+        assert.equal(first.startDate, '2026-06-01'); assert.equal(first.modelVersion, 'hall-forbes-2+residual-1');
         assert.equal(first.startFact.weightKg, 100); assert.equal(first.expected.length, 13);
         await page.clock.setFixedTime(new Date('2026-08-10T09:00:00Z'));
         for (let week = 2; week <= 9; week++) {

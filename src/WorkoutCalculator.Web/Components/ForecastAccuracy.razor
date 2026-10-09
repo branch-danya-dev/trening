@@ -52,15 +52,16 @@
     }
     <details>
         <summary>Проверка на истории: baseline / персональный</summary>
-        <p class="note">Только прогнозы, сохранённые к дате начала, с калибровкой, доступной тогда. Факт — ближайший к 2/4/8 неделям (±3 дня).
+        <p class="note">Только прогнозы, сохранённые к дате начала, с калибровкой, доступной тогда. Факт — ближайший к 1/2/4/8/12/24 неделям (±3 дня).
             Ошибка — MAE, смещение — факт минус прогноз. Покрытие диапазона — для веса.</p>
         <div class="table-scroll">
             <table class="changes forecast-backtest">
                 <thead><tr><th>Срок / показатель</th><th>n</th><th>MAE баз. / перс.</th><th>Смещение баз. / перс.</th><th>Покрытие баз. / перс.</th></tr></thead>
                 <tbody>
-                    @foreach (var c in State.Backtest.Comparisons.Where(c => c.Metric == ForecastEvaluationService.Weight || c.Baseline.Count > 0))
+                    @foreach (var row in State.Backtest.ByModel.Where(c => c.Score.Metric == ForecastEvaluationService.Weight || c.Score.Baseline.Count > 0))
                     {
-                        <tr><td>@c.HorizonWeeks нед. · @Metric(c.Metric)</td><td>@c.Baseline.Count</td>
+                        var c = row.Score;
+                        <tr><td>@row.ModelVersion · @c.HorizonWeeks нед. · @Metric(c.Metric)</td><td>@c.Baseline.Count</td>
                             <td>@Number(c.Baseline.Mae) / @Number(c.Personalized.Mae)</td>
                             <td>@Number(c.Baseline.Bias) / @Number(c.Personalized.Bias)</td>
                             <td>@Percent(c.Baseline.RangeCoverage) / @Percent(c.Personalized.RangeCoverage)</td></tr>
@@ -101,6 +102,13 @@
     </details>
     <details class="forecast-diagnostics">
         <summary>Диагностика и история калибровки</summary>
+        @if (State.Display is { } shown)
+        {
+            <p class="note composition-diagnostics">Composition: @shown.ModelVersion.
+                TEF: @(shown.Composition?.TefMode ?? "fixed-10%-1"). Гликоген: @(shown.Composition?.GlycogenMode ?? "balance-glycogen-1").
+                AT: @(shown.Composition?.AtVersion ?? "total-deficit-at-1"). Вода: @(shown.Composition?.WaterMode ?? "balance-water-1-ecf-off").
+                Reference: @(shown.Composition?.ReferenceVersion ?? "legacy baseline"). Benchmark: @(shown.Composition?.BenchmarkStatus ?? "legacy archive").</p>
+        }
         <p>Энергетический баланс: @Number(Calibration.EnergyBalanceFactor); реакция веса: @Number(Calibration.WeightResponseFactor);
             поправка распределения жира / безжировой массы: @Number(Calibration.FatLeanPartitionCorrection).</p>
         <p class="note">Расход и реакцию веса нельзя определить раздельно по весам: энергетический коэффициент v1 зафиксирован на 1.
@@ -113,7 +121,7 @@
         {
             <details>
                 <summary>@revision.CreatedAt.ToString("dd.MM.yyyy HH:mm") · @revision.Profile.Status · реакция веса @Number(revision.Profile.WeightResponseFactor)</summary>
-                <p class="note">Ревизия @revision.Id; факты по @revision.ThroughDate.ToString("dd.MM.yyyy"); отпечаток @revision.EvidenceFingerprint[..12].</p>
+                <p class="note">Ревизия @revision.Id; модель @revision.CompositionModelVersion; факты по @revision.ThroughDate.ToString("dd.MM.yyyy"); отпечаток @revision.EvidenceFingerprint[..12].</p>
                 @foreach (var d in revision.Diagnostics) { <div class="note">@d</div> }
                 @foreach (var o in revision.Observations.Where(o => o.ExclusionReason is not null))
                 { <div class="note">@o.Date.ToString("dd.MM.yyyy") · @Metric(o.Metric): @Reason(o.ExclusionReason)</div> }

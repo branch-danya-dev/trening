@@ -1227,3 +1227,7 @@ table.changes tr.dim td { opacity: 0.5; }
     .dashboard-grid strong { font-size: 16px; }
     .calendar-day { min-height: 78px; }
 }
+/* Optional nutrition remains usable at 320 px; long model IDs wrap in diagnostics. */
+.advanced-nutrition input { max-width: 100%; min-width: 0; width: 120px; }
+.advanced-nutrition .field-row { flex-wrap: wrap; }
+.composition-diagnostics, .forecast-backtest td:first-child { overflow-wrap: anywhere; }

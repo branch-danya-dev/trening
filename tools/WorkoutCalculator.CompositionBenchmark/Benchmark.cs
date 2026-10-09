@@ -61,14 +61,15 @@ public static class Benchmark
         var a = v.Select(Math.Abs).Order().ToArray();
         return new(Round(a.Average()), Round(v.Average()), Round(a[(int)Math.Ceiling(a.Length * .95) - 1]), Round(a[^1]));
     }
-    public static string Json(BenchmarkReport report) => JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }) + "\n";
+    public static string Json(BenchmarkReport report) => JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true, NewLine = "\n" }) + "\n";
     public static string Markdown(BenchmarkReport report)
     {
         var sb = new StringBuilder();
         sb.AppendLine("# Forecast v3 composition benchmark (generated)");
         sb.AppendLine($"\nReference `{report.Reference}`; baseline main `{report.BaselineSha}`.");
         sb.AppendLine($"{report.Scenarios} scenarios; LCG seed {report.Seed}; scenario SHA-256 `{report.ScenarioSha256}`.");
-        sb.AppendLine("\nReproduce: `dotnet run -c Release --project tools/WorkoutCalculator.CompositionBenchmark -- --check`. " +
+        string legacyFlag = report.Summaries.All(s => s.Engine == "legacy") ? "--legacy-only " : "";
+        sb.AppendLine($"\nReproduce: `dotnet run -c Release --project tools/WorkoutCalculator.CompositionBenchmark -- {legacyFlag}--check`. " +
             "Use `--write` to regenerate. No network is used. See tools/WorkoutCalculator.CompositionBenchmark/REFERENCE.md for scope, equations and assumptions.");
         sb.AppendLine("\nErrors = candidate minus reference. All masses in kg. Delta-weight error equals weight error because initial weight is shared. " +
             "The primary reference disables ECF to compare tissue + glycogen. JSON also reports full Hall ECF-inclusive scale weight. " +
@@ -83,6 +84,26 @@ public static class Benchmark
         sb.AppendLine("\n## Stratification at 24 weeks\n\n| Stratum | Engine | n | Weight MAE | Bias | Fat MAE | Lean MAE |\n|---|---|---:|---:|---:|---:|---:|");
         foreach (var s in report.Summaries.Where(s => s.Weeks == 24 && s.Stratum != "all"))
             sb.AppendLine(FormattableString.Invariant($"| {s.Stratum} | {s.Engine} | {s.Count} | {s.WeightKg.Mae:F3} | {s.WeightKg.Bias:F3} | {s.FatKg.Mae:F3} | {s.LeanKg.Mae:F3} |"));
+        var refined = report.Summaries.Where(s => s.Engine == "composition-v3").ToArray();
+        if (refined.Length > 0)
+        {
+            sb.AppendLine("\n## Regressions and interpretation\n\nAll-horizon weight MAE can improve while tissue partition worsens. " +
+                "The fixed-TEF Hall oracle cannot independently validate macro TEF, and it has no strength hypertrophy mechanism. " +
+                "No parameters were fitted to these report outcomes. Positive differences below mean worse agreement (v3 minus legacy). " +
+                "Personalized v3 uses zero evidence here; nonzero response fitting is tested on strictly prior synthetic observations, not on this oracle.");
+            sb.AppendLine("\n| Weeks | Weight MAE difference | Fat MAE difference | Lean MAE difference |\n|---:|---:|---:|---:|");
+            foreach (var s in refined.Where(s => s.Stratum == "all"))
+            {
+                var old = report.Summaries.Single(x => x.Engine == "legacy" && x.Stratum == s.Stratum && x.Weeks == s.Weeks);
+                sb.AppendLine(FormattableString.Invariant($"| {s.Weeks} | {s.WeightKg.Mae-old.WeightKg.Mae:F3} | {s.FatKg.Mae-old.FatKg.Mae:F3} | {s.LeanKg.Mae-old.LeanKg.Mae:F3} |"));
+            }
+            sb.AppendLine("\n24-week weight regressions by stratum:");
+            foreach (var s in refined.Where(s => s.Weeks == 24))
+            {
+                var old = report.Summaries.Single(x => x.Engine == "legacy" && x.Stratum == s.Stratum && x.Weeks == s.Weeks);
+                if (s.WeightKg.Mae > old.WeightKg.Mae) sb.AppendLine(FormattableString.Invariant($"- {s.Stratum}: {old.WeightKg.Mae:F3} → {s.WeightKg.Mae:F3} kg MAE."));
+            }
+        }
         sb.AppendLine("\nFull per-horizon strata and maxima: `FORECAST_V3_COMPOSITION_BENCHMARK.json`. " +
             "Sodium/ECF: **NO-GO for production**. The isolated research overlay is tested, but absolute sodium without a measured baseline does not identify a change. " +
             "A comparison to another model is insufficient evidence to fit hydration or enable ECF.");

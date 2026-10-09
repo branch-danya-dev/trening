@@ -27,6 +27,8 @@ public class ForecastTests
             Experience = TrainingExperience.Beginner,
         };
         input.IntakeKcalPerDay = ForecastEngine.Expenditure(start ?? Start(), (start ?? Start()).WeightKg, input).Total + intakeOffset;
+        // These pinned scenarios describe a diet change with habitual, already-present training.
+        input.BaselineIntakeKcalPerDay = input.IntakeKcalPerDay - intakeOffset;
         return input;
     }
 

@@ -8,6 +8,16 @@ public sealed class ForecastInput
     /// <summary>Среднее потребление, ккал в день.</summary>
     public double IntakeKcalPerDay { get; set; }
 
+    public double? ProteinGramsPerDay { get; set; }
+    public double? CarbsGramsPerDay { get; set; }
+    public double? FatGramsPerDay { get; set; }
+    /// <summary>Research metadata only. ECF is not enabled in production.</summary>
+    public double? SodiumMgPerDay { get; set; }
+    /// <summary>Known habitual maintenance intake; absent = initial BMR × household activity, excluding planned training.</summary>
+    public double? BaselineIntakeKcalPerDay { get; set; }
+    /// <summary>Habitual carbs before the plan; absent = 50% of baseline intake / 4.</summary>
+    public double? BaselineCarbsGramsPerDay { get; set; }
+
     /// <summary>Коэффициент бытовой активности к БМР без учёта тренировок: 1,2 — сидячий образ жизни.</summary>
     public double ActivityFactor { get; set; } = 1.3;
 
@@ -39,6 +49,12 @@ public sealed record ForecastWeek(
 {
     /// <summary>Изменение запаса гликогена с водой от исходного, кг: на весах есть, на обхватах — нет.</summary>
     public double GlycogenWaterKg { get; init; }
+    public double? GlycogenKg { get; init; }
+    public double? BoundWaterKg { get; init; }
+    public double DietEnergyChange { get; init; }
+    public double ActivityEnergyChange { get; init; }
+    public double AdaptiveThermogenesisKcalPerDay { get; init; }
+    public double TefChangeKcalPerDay { get; init; }
 
     /// <summary>
     /// Адаптация обмена в среднем за неделю, ккал/день: термический эффект пищи и адаптивный термогенез.
@@ -51,6 +67,7 @@ public sealed record ForecastWeek(
 
 public sealed class ForecastResult
 {
+    public CompositionMetadata? Composition { get; init; }
     public required BodyProfile Start { get; init; }
     public required BodyProfile End { get; init; }
     public required IReadOnlyList<ForecastWeek> Weeks { get; init; }
