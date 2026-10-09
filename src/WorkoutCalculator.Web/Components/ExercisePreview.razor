@@ -37,7 +37,6 @@
     {
         <small>Анимация и подсветка доступны для MakeHuman после загрузки.</small>
     }
-    @if (State.AtlasError is not null) { <small role="status">@State.AtlasError</small> }
     @if (State.Source != MuscleLoadSource.Exercise && State.JournalError is not null) { <small role="alert">@State.JournalError</small> }
     <details class="exercise-details">
         <summary>Мышцы и относительная нагрузка</summary>

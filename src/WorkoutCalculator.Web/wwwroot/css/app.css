@@ -1199,6 +1199,7 @@ table.changes tr.dim td { opacity: 0.5; }
 .validation-panel .check { display: flex; margin: 10px 0; }
 #storage-warning { position: fixed; z-index: 9999; top: 0; left: 0; right: 0; padding: 12px; background: #543614; color: white; font-size: 13px; }
 .product-app .note, .product-app p, .product-app summary { overflow-wrap: anywhere; }
+.asset-status { color: var(--warn); font-size: 12px; overflow-wrap: anywhere; }
 .product-app.is-onboarding { grid-template-rows: auto minmax(0,1fr); }
 .is-onboarding .product-nav, .is-onboarding .mode-bar, .is-onboarding .view-toolbar, .is-onboarding .view-tapes, .is-onboarding .topbar-right { display: none; }
 @media(max-width:700px) {

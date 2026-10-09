@@ -16,11 +16,15 @@
                 <button class="@Css.On(_kind == BodyKind.MakeHuman)" @onclick="() => SetKind(BodyKind.MakeHuman)">MakeHuman</button>
                 <button class="@Css.On(_kind == BodyKind.Mannequin)" @onclick="() => SetKind(BodyKind.Mannequin)">Манекен</button>
             </div>
-            @if (_kind == BodyKind.MakeHuman && _mhStatus is not null)
-            {
-                <span class="brand-sub">@_mhStatus</span>
-            }
         </div>
+        @if (_kind == BodyKind.MakeHuman && _mhStatus is not null)
+        {
+            <span class="asset-status" role="status">@_mhStatus</span>
+        }
+        @if (_exercise.AtlasError is not null)
+        {
+            <span class="asset-status" role="status">@_exercise.AtlasError</span>
+        }
     </header>
 
     <nav class="product-nav" aria-label="Разделы приложения">
