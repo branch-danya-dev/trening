@@ -8,6 +8,8 @@ export function checkInAnalysis(c,i,revisions,hypotheses){
     return {reference:`checkin-${i+1}`,...pick(c,['observedDate','recordedAt','schemaVersion','modelVersion']),
         source:c.photo?'PhotoAndOptionalManual':'Manual',status:c.events?.at(-1)?.status,
         baseRevision:revisions.get(c.baseAvatarRevisionId),resultRevision:revisions.get(c.revision?.id),
+        avatarGeometry:c.revision?{method:'fitted-avatar-derived-not-independent-surface',builderVersion:c.revision.builderVersion,
+            metrics:Object.fromEntries(['volume',...girths.map(g=>'girth.'+g)].filter(k=>c.revision.derivedMetrics?.values?.[k]).map(k=>[k,pick(c.revision.derivedMetrics.values[k],['value','unit','modelVersion'])]))}:undefined,
         manual:{...pick(c.manual,['weightKg','bodyFatPercent']),girths:numericMap(c.manual?.girths)},
         photo:{...pick(photo,['source','confirmedOriginal','front','side','back','analysisVersion','confidence','frontUsableLevels','sideUsableLevels','frontHeightCm','sideHeightCm']),
             estimates:Object.fromEntries(girths.filter(g=>photo.estimates?.[g]).map(g=>[g,pick(photo.estimates[g],['cm','method','modelRmseCm'])]))},

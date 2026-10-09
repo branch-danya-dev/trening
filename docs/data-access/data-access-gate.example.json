@@ -1,0 +1,16 @@
+{
+  "version": "data-access-gate-1",
+  "dataset_obtained": false,
+  "analysis_permitted": false,
+  "derivative_rights_understood": false,
+  "secure_storage_approved": false,
+  "pseudonymized": false,
+  "ethics_determination_recorded": false,
+  "approval_reference": "TODO private agreement reference",
+  "steward_reference": "TODO responsible person",
+  "storage_country": "TODO custodian-approved location",
+  "derivative_rights_decision": "TODO separate training, commercial use and weight export decisions",
+  "retention_until": "2000-01-01",
+  "split_sha256": "",
+  "approved_releases": []
+}
