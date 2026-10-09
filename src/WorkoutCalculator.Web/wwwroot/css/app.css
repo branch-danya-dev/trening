@@ -1214,6 +1214,8 @@ table.changes tr.dim td { opacity: 0.5; }
     .product-app .product-nav { position: fixed; z-index: 100; bottom: 0; left: 0; right: 0; padding: 4px 3px max(4px,env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
     .product-nav button { font-size: 11px; padding: 16px 0; }
     .product-app .form-grid.two { grid-template-columns: 1fr; }
+    .product-app .panel .field-row { flex-wrap: wrap; }
+    .product-app .panel .seg { flex-wrap: wrap; min-width: 0; max-width: 100%; }
     .product-app .mode-bar { max-width: 100%; }
     .product-app .mode-bar:has(.exercise-preview) > .seg { grid-column: 1 / -1; }
     .product-app .mode-bar:has(.exercise-preview) .view-cycle { grid-row: 2; grid-column: 1; }

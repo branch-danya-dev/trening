@@ -100,7 +100,10 @@ const fs = require('node:fs');
                 panel.scrollTop += card.getBoundingClientRect().top - panel.getBoundingClientRect().top;
                 return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             });
-            assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), `horizontal overflow at ${width}`);
+            const layout = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth,
+                overflowing: [...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().right > innerWidth + 2 && !e.closest('.table-scroll'))
+                    .slice(0, 15).map(e => ({tag:e.tagName, css:e.className, right:e.getBoundingClientRect().right, text:e.textContent.slice(0,80)})) }));
+            assert.ok(layout.scroll <= width + 2, `horizontal overflow: ${JSON.stringify(layout)}`);
             if (process.env.SMOKE_OUTPUT) {
                 fs.mkdirSync(process.env.SMOKE_OUTPUT, { recursive: true });
                 await page.screenshot({ path: `${process.env.SMOKE_OUTPUT}/forecast-${width}.png`, fullPage: true });
