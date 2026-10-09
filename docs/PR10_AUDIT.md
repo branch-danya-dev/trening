@@ -1,5 +1,24 @@
 # PR #10 audit before personalized forecast
 
+## Follow-up: product consolidation after #15 / #16
+
+Compared #10 head `70bcb2d` again with the implementation built from `main` `1ddb66e3`:
+
+| Idea in #10 | Replacement in current architecture |
+|---|---|
+| `Onboarding` | Six steps, optional measurements/photos, reloadable draft, stable first Manual BodySnapshot ID, explicit confirmation, restore alternative. No estimated BF promoted to fact. |
+| `ActivitySection` month/day/week | `ActivityCalendar` over existing cardio and strength stores, separate indicators, duration/kcal/completed sets, reps/tonnage/load, edit/delete. No parallel Workout model or historical future-fallback. |
+| `BackupCard` | Complete versioned ZIP including strength, BodySnapshots, ForecastSnapshots/calibration, programs and encrypted photos. Hash/domain validation, explicit confirmation, backup-before-restore, durable rollback, interrupted-tab recovery and stale-tab protection. |
+| `ProfileSection` / main navigation | Five public sections, birthday/goal/privacy, diagnostics, main overview and mobile bottom navigation. Forecast/history remain directly accessible. |
+
+The useful product scope is superseded by this consolidation PR; **close #10 without merge**, with a link to the replacement in its conversation after integrated checks pass. No wholesale merge or old data migration is needed.
+
+Concrete optional ideas left for future work: time-of-day and free-text cardio notes, reconstructing/editing original cardio segments (legacy main only stored totals), independent comparison of #10's ANSUR/Deurenberg estimators, and decorative calorie-sized calendar dots. They are not prerequisites for this stage; the first two would need a deliberate journal schema change. Current estimators, photo components and tape focus already cover the required workflows. Do not revive `AtOrEarliest`, the v3 data migration, or classic/debug gating.
+
+See [PRODUCT_STRUCTURE](PRODUCT_STRUCTURE.md), [BACKUP](BACKUP.md), and [VALIDATION](VALIDATION.md) for implementation, recovery and evidence. The earlier audit below is retained as historical context; its decision to keep #10 open applied before this work.
+
+## Earlier forecast-stage audit
+
 Compared `origin/main` **379ba38** with PR #10 head **70bcb2d** (`claude/upbeat-thompson-ebbwjj`). Reviewed both the merge-base diff (60 files, +6687/-1196) and the head-to-head diff. The latter also exposes features subsequently added by merged PRs #9/#11/#12/#13/#14; these must survive.
 
 | Area / evidence in #10 | Classification | Decision |

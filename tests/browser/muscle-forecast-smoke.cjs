@@ -18,10 +18,10 @@ const fs = require('node:fs');
         page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); if (m.text().includes('Forecast MakeHuman rebuild')) timings.push(m.text()); });
         await page.clock.setFixedTime(new Date('2026-06-01T09:00:00Z'));
         const ready = async () => {
-            await page.waitForFunction(() => document.querySelector('.view-stats')?.textContent.includes('MakeHuman'), null, { timeout: 60000 });
+            await page.waitForFunction(() => document.querySelector('[data-model-ready]')?.dataset.modelReady === 'true', null, { timeout: 60000 });
             await page.evaluate(async () => { window.viewer = await import(new URL('js/viewer.js', document.baseURI)); });
         };
-        const open = () => page.getByRole('tab', { name: 'Гипотеза', exact: true }).click();
+        const open = () => page.getByRole('tab', { name: 'План', exact: true }).click();
         const read = () => page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem('workoutcalc.forecasts.v1')).payload));
         const geometry = () => page.evaluate(() => Array.from(viewer.smokeState().meshes.forecast.geometry.attributes.position.array));
         const changed = original => page.waitForFunction(old => viewer.smokeState().meshes.forecast.geometry.attributes.position.array.some((v, i) => Math.abs(v - old[i]) > .0002), original);
@@ -30,6 +30,7 @@ const fs = require('node:fs');
             await page.waitForFunction(n => JSON.parse(JSON.parse(localStorage.getItem('workoutcalc.forecasts.v1')).payload).forecasts.length === n, count);
             return (await read()).forecasts.at(-1);
         };
+        await page.addInitScript(() => { if (!localStorage.getItem('workoutcalc.body.v1')) localStorage.setItem('workoutcalc.body.v1', JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57})); });
         await page.goto(process.env.APP_URL || 'http://127.0.0.1:5256'); await ready();
         await page.evaluate(() => {
             localStorage.setItem('workoutcalc.hypotheses.v1', JSON.stringify({ Selected: 0, Items: [{ Name: 'Muscle smoke', Slot: 0,

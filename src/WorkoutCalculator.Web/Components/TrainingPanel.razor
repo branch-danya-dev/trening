@@ -17,7 +17,7 @@ else
     [Parameter, EditorRequired] public WorkoutDraft Draft { get; set; } = default!;
     [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
     [Parameter] public IReadOnlyList<LoggedWorkout> Log { get; set; } = [];
-    [Parameter] public EventCallback<LoggedWorkout> OnSave { get; set; }
+    [Parameter] public Func<LoggedWorkout, bool>? OnSave { get; set; }
     [Parameter] public EventCallback<string> OnRemove { get; set; }
     [Parameter] public CardioPlan? Plan { get; set; }
     [Parameter] public EventCallback OnStrengthChanged { get; set; }

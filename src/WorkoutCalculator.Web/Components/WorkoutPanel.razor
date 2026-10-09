@@ -33,7 +33,7 @@
             <div class="card-title">Профиль для расчёта</div>
             <div class="volume-line" style="margin-top: 0">
                 @(Profile.Sex == Sex.Female ? "Женщина" : "Мужчина"), @Profile.Age&nbsp;@Years(Profile.Age),
-                @Fmt.N(Profile.HeightCm, 0)&nbsp;см, @Fmt.N(Profile.WeightKg, 1)&nbsp;кг — с вкладки «Параметры».
+                @Fmt.N(Profile.HeightCm, 0)&nbsp;см, @Fmt.N(Profile.WeightKg, 1)&nbsp;кг — текущие параметры модели.
             </div>
             <div class="form-grid two" style="margin-top: 12px">
                 <div class="form-field">
@@ -259,7 +259,7 @@
     [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
     /// <summary>Журнал тренировок, от новых к старым.</summary>
     [Parameter] public IReadOnlyList<LoggedWorkout> Log { get; set; } = [];
-    [Parameter] public EventCallback<LoggedWorkout> OnSave { get; set; }
+    [Parameter] public Func<LoggedWorkout, bool>? OnSave { get; set; }
     [Parameter] public EventCallback<string> OnRemove { get; set; }
     /// <summary>Кардио по плану выбранной гипотезы; null — в плане кардио нет.</summary>
     [Parameter] public CardioPlan? Plan { get; set; }
@@ -366,12 +366,11 @@
             Draft.Date = date;
     }
 
-    private async Task Save()
+    private void Save()
     {
         if (Draft.Result is not CalculationResult r || Draft.Input is not WorkoutInput w || Draft.SavedId is not null) return;
         var entry = LoggedWorkout.From(Guid.NewGuid().ToString("N")[..12], Draft.Date, w, r);
-        Draft.SavedId = entry.Id;
-        await OnSave.InvokeAsync(entry);
+        if (OnSave?.Invoke(entry) == true) Draft.SavedId = entry.Id;
     }
 
     private async Task Remove(string id)

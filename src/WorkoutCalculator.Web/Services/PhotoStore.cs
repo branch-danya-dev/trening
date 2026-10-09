@@ -72,6 +72,10 @@ public static partial class PhotoStore
     [JSImport("onLock", Module)]
     public static partial void OnLock([JSMarshalAs<JSType.Function>] Action? callback);
 
+    // Passing a nullable Action through the WASM Function marshaller can leave a callable wrapper.
+    [JSImport("clearLockListener", Module)]
+    public static partial void ClearLockListener();
+
     public static async Task<PinStatus> Pin() =>
         JsonSerializer.Deserialize(await PinStatusJson(), PhotoJson.Default.PinStatus)!;
 

@@ -104,7 +104,7 @@ public sealed class StrengthDraft
             {
                 Reps = s.Reps.ToString(CultureInfo.InvariantCulture), Weight = Text(s.WeightKg),
                 EffortKind = s.Rpe.HasValue ? "rpe" : "rir", Effort = Text(s.Rpe ?? s.Rir),
-                Completed = s.Completed, Bodyweight = s.Bodyweight, Duration = Text(s.DurationSeconds)
+                Completed = s.Completed, Bodyweight = s.Bodyweight, Duration = Text(s.DurationSeconds), Side = s.Side
             }).ToList()
         }).ToList()
     };
@@ -128,6 +128,7 @@ public sealed class StrengthExerciseDraft
 
 public sealed class StrengthSetDraft
 {
+    public ExerciseSide Side { get; set; }
     public string Reps { get; set; } = "10";
     public string Weight { get; set; } = "";
     public string EffortKind { get; set; } = "rir";
@@ -142,6 +143,6 @@ public sealed class StrengthSetDraft
             throw new ArgumentException("Повторения: введите целое число.");
         var effort = StrengthDraft.Number(Effort, EffortKind.ToUpperInvariant());
         return new(reps, StrengthDraft.Number(Weight, "Вес"), EffortKind == "rir" ? effort : null,
-            EffortKind == "rpe" ? effort : null, Completed, StrengthDraft.Number(Duration, "Длительность подхода"), Bodyweight);
+            EffortKind == "rpe" ? effort : null, Completed, StrengthDraft.Number(Duration, "Длительность подхода"), Bodyweight, Side);
     }
 }

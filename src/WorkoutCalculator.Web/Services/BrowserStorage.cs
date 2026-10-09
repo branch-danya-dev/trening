@@ -13,11 +13,17 @@ public static partial class BrowserStorage
 {
     public const string Module = "storage";
 
+    [JSImport("initialize", "backup")]
+    public static partial Task InitializeRecovery();
+
     [JSImport("getItem", Module)]
     public static partial string? GetItem(string key);
 
     [JSImport("setItem", Module)]
-    public static partial void SetItem(string key, string value);
+    public static partial bool SetItem(string key, string value);
+
+    [JSImport("blockKey", Module)]
+    public static partial void BlockKey(string key, string message);
 
     [JSImport("getItemStrict", Module)]
     public static partial string? GetItemStrict(string key);
@@ -89,11 +95,14 @@ public static class ProfileStorage
         {
             string? json = BrowserStorage.GetItem(ProfileKey);
             var dto = json is null ? null : JsonSerializer.Deserialize(json, StorageJson.Default.StoredProfile);
-            return dto?.ToProfile();
+            var profile = dto?.ToProfile();
+            if (profile is not null) SnapshotDraft.FromProfile(profile).Build();
+            return profile;
         }
-        catch (JsonException)
+        catch (Exception e) when (e is JsonException or ArgumentException)
         {
-            return null; // повреждённая запись — начнём со значений по умолчанию
+            BrowserStorage.BlockKey(ProfileKey, "Профиль повреждён. Исходная запись сохранена; восстановите backup.");
+            return null;
         }
     }
 
@@ -111,8 +120,9 @@ public static class ProfileStorage
             var plan = single is null ? null : JsonSerializer.Deserialize(single, StorageJson.Default.StoredHypothesis);
             return plan is null ? null : StoredHypotheses.Of(plan);
         }
-        catch (JsonException)
+        catch (Exception e) when (e is JsonException or ArgumentException or NullReferenceException)
         {
+            BrowserStorage.BlockKey(HypothesesKey, "Планы повреждены. Исходные данные сохранены; восстановите backup.");
             return null;
         }
     }
@@ -128,8 +138,9 @@ public static class ProfileStorage
             string? json = BrowserStorage.GetItem(WeightsKey);
             return json is null ? [] : JsonSerializer.Deserialize(json, StorageJson.Default.ListWeightEntry) ?? [];
         }
-        catch (JsonException)
+        catch (Exception e) when (e is JsonException or ArgumentException or NullReferenceException)
         {
+            BrowserStorage.BlockKey(WeightsKey, "Журнал веса повреждён. Исходные данные сохранены; восстановите backup.");
             return [];
         }
     }
@@ -143,15 +154,26 @@ public static class ProfileStorage
         try
         {
             string? json = BrowserStorage.GetItem(WorkoutsKey);
-            return json is null ? [] : JsonSerializer.Deserialize(json, StorageJson.Default.ListLoggedWorkout) ?? [];
+            var rows = json is null ? [] : JsonSerializer.Deserialize(json, StorageJson.Default.ListLoggedWorkout) ?? throw new JsonException();
+            ValidateWorkouts(rows);
+            return rows;
         }
-        catch (JsonException)
+        catch (Exception e) when (e is JsonException or ArgumentException or NullReferenceException)
         {
+            BrowserStorage.BlockKey(WorkoutsKey, "Кардиожурнал повреждён. Исходные данные сохранены; восстановите backup.");
             return [];
         }
     }
 
-    public static void SaveWorkouts(List<LoggedWorkout> workouts) =>
+    public static void ValidateWorkouts(IReadOnlyList<LoggedWorkout> rows)
+    {
+        if (rows.Any(w => w is null || string.IsNullOrEmpty(w.Id) || w.Date == default || !Enum.IsDefined(w.Activity) || !Enum.IsDefined(w.Setting) ||
+            !double.IsFinite(w.DurationMin) || w.DurationMin < 0 || !double.IsFinite(w.ActiveKcal) || w.ActiveKcal < 0 ||
+            !double.IsFinite(w.TotalKcal) || w.TotalKcal < 0 || !double.IsFinite(w.DistanceKm) || w.DistanceKm < 0) ||
+            rows.Select(w => w.Id).Distinct().Count() != rows.Count) throw new ArgumentException("Некорректный кардиожурнал.");
+    }
+
+    public static bool SaveWorkouts(List<LoggedWorkout> workouts) =>
         BrowserStorage.SetItem(WorkoutsKey, JsonSerializer.Serialize(workouts, StorageJson.Default.ListLoggedWorkout));
 
     public static PhotoPrivacy LoadPrivacy()
@@ -163,6 +185,7 @@ public static class ProfileStorage
         }
         catch (JsonException)
         {
+            BrowserStorage.BlockKey(PrivacyKey, "Настройки приватности повреждены. Исходная запись сохранена; восстановите backup.");
             return new();
         }
     }

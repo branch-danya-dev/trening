@@ -1,1 +1,6 @@
-<WorkoutCalculator.Web.Pages.Home />
+<ErrorBoundary>
+    <ChildContent><WorkoutCalculator.Web.Pages.Home /></ChildContent>
+    <ErrorContent>
+        <section class="card"><h1>Не удалось открыть этот экран</h1><p>Сохранённые данные не удалены. Сделайте резервную копию и перезагрузите приложение.</p><a href=".">Перезагрузить</a><BackupPanel /></section>
+    </ErrorContent>
+</ErrorBoundary>

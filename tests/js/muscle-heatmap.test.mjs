@@ -12,7 +12,9 @@ const atlas = () => readMuscleAtlas(1, 4, bytes([1, 2, 0, 0, 0, 0, 0, 0]), bytes
 test('single-source domain catalog references real runtime animations', () => {
     const catalog = JSON.parse(readFileSync(new URL('../../src/WorkoutCalculator.Core/Exercises/catalog.json', import.meta.url)));
     assert.equal(new Set(catalog.map(e => e.id)).size, catalog.length);
-    for (const e of catalog) assert.equal(getExerciseAnimation(e.animationId).id, e.animationId);
+    assert.ok(catalog.length >= 40 && catalog.length <= 60);
+    assert.equal(catalog.filter(e => e.animationId).length, 5);
+    for (const e of catalog) if (e.animationId) assert.equal(getExerciseAnimation(e.animationId).id, e.animationId);
 });
 
 test('atlas copies borrowed memory and validates version, regions, normalization and lengths', () => {

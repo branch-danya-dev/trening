@@ -21,7 +21,7 @@ public static class StrengthAggregation
         // A reference must explicitly belong to this exercise. The journal supplies none in v1.
         double? reference = set.WeightKg.HasValue && !set.Bodyweight && referenceWeights is not null &&
             referenceWeights.TryGetValue(exerciseId, out var kg) ? kg : null;
-        return MuscleLoadEngine.Calculate(exercise, new(1, set.Reps, set.WeightKg, set.Rir, set.Rpe, reference));
+        return MuscleLoadEngine.Calculate(exercise, new(1, set.Reps, set.WeightKg, set.Rir, set.Rpe, reference, set.Side));
     }
 
     public static ExerciseSummary Exercise(PerformedExercise exercise,

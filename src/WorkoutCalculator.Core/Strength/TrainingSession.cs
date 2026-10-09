@@ -4,10 +4,11 @@ using WorkoutCalculator.Exercises;
 
 /// <summary>External weight only; body mass is never inferred. Duration is descriptive in v1.</summary>
 public sealed record TrainingSet(int Reps, double? WeightKg = null, double? Rir = null,
-    double? Rpe = null, bool Completed = false, double? DurationSeconds = null, bool Bodyweight = false)
+    double? Rpe = null, bool Completed = false, double? DurationSeconds = null, bool Bodyweight = false, ExerciseSide Side = ExerciseSide.Bilateral)
 {
     public void Validate()
     {
+        if (!Enum.IsDefined(Side)) throw new ArgumentException("Выберите сторону выполнения.");
         if (Reps is < 1 or > 1000) throw new ArgumentException("Повторения: от 1 до 1000.");
         Check(WeightKg, 0, 2000, "Вес: от 0 до 2000 кг.");
         Check(Rir, 0, 10, "RIR: от 0 до 10.");

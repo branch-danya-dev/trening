@@ -27,7 +27,7 @@
     }
     <p class="note">Фактических наблюдений: @State.Evaluation.Select(o => o.FactId).Distinct().Count().
         Калибровка: @Calibration.WeightObservations недельных групп.
-        Добавляйте измерения во вкладке «История»; старый журнал и фото можно импортировать там.</p>
+        Добавляйте измерения в разделе «Прогресс»; старый журнал и фото можно импортировать там.</p>
     @if (WeightScore is { } score)
     {
         <p class="note">Ошибка веса на истории, @score.HorizonWeeks нед.: базовый @Number(score.Baseline.Mae) / персональный @Number(score.Personalized.Mae) кг; n = @score.Baseline.Count.</p>

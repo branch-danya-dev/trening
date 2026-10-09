@@ -1,0 +1,200 @@
+[
+  {
+    "kind": "baseline",
+    "sample": 0,
+    "initial": 2186,
+    "resources": [
+      {
+        "name": "makehuman-hm08.bin?v=3",
+        "ms": 495.5,
+        "bytes": 2394747
+      },
+      {
+        "name": "makehuman-muscle-atlas-v1.bin",
+        "ms": 2.4000000059604645,
+        "bytes": 107156
+      }
+    ],
+    "rebuild": "MakeHuman, сечений 115 ·\n                    13 380 вершин · сетка 65 мс + передача 23 мс ·\n                    проверка 145 мс\n                ",
+    "logs": [
+      "Product timing: forecast 267,10 ms",
+      "Forecast MakeHuman rebuild: 10,5 ms, muscle=True",
+      "Muscle atlas: 107156 bytes, source hash 5,2 ms, read/validate 32,9 ms, assets ready 794,2 ms.",
+      "Product timing: forecast 194,40 ms",
+      "Forecast MakeHuman rebuild: 141,1 ms, muscle=True",
+      "Product timing: forecast 190,90 ms",
+      "Forecast MakeHuman rebuild: 28,9 ms, muscle=True",
+      "Product timing: forecast 195,20 ms",
+      "Forecast MakeHuman rebuild: 28,5 ms, muscle=True",
+      "Product timing: forecast 202,40 ms",
+      "Forecast MakeHuman rebuild: 30,0 ms, muscle=True",
+      "Product timing: forecast 187,20 ms",
+      "Forecast MakeHuman rebuild: 28,2 ms, muscle=True"
+    ]
+  },
+  {
+    "kind": "baseline",
+    "sample": 1,
+    "initial": 2092,
+    "resources": [
+      {
+        "name": "makehuman-hm08.bin?v=3",
+        "ms": 498.2999999821186,
+        "bytes": 2394747
+      },
+      {
+        "name": "makehuman-muscle-atlas-v1.bin",
+        "ms": 3.0999999940395355,
+        "bytes": 107156
+      }
+    ],
+    "rebuild": "MakeHuman, сечений 115 ·\n                    13 380 вершин · сетка 65 мс + передача 23 мс ·\n                    проверка 148 мс\n                ",
+    "logs": [
+      "Product timing: forecast 286,80 ms",
+      "Forecast MakeHuman rebuild: 10,7 ms, muscle=True",
+      "Muscle atlas: 107156 bytes, source hash 5,3 ms, read/validate 30,7 ms, assets ready 793,2 ms.",
+      "Product timing: forecast 196,90 ms",
+      "Forecast MakeHuman rebuild: 140,3 ms, muscle=True",
+      "Product timing: forecast 191,80 ms",
+      "Forecast MakeHuman rebuild: 30,2 ms, muscle=True",
+      "Product timing: forecast 186,00 ms",
+      "Forecast MakeHuman rebuild: 27,6 ms, muscle=True",
+      "Product timing: forecast 189,60 ms",
+      "Forecast MakeHuman rebuild: 29,1 ms, muscle=True",
+      "Product timing: forecast 199,80 ms",
+      "Forecast MakeHuman rebuild: 33,1 ms, muscle=True"
+    ]
+  },
+  {
+    "kind": "baseline",
+    "sample": 2,
+    "initial": 2146,
+    "resources": [
+      {
+        "name": "makehuman-hm08.bin?v=3",
+        "ms": 444.2000000178814,
+        "bytes": 2394747
+      },
+      {
+        "name": "makehuman-muscle-atlas-v1.bin",
+        "ms": 2.899999976158142,
+        "bytes": 107156
+      }
+    ],
+    "rebuild": "MakeHuman, сечений 115 ·\n                    13 380 вершин · сетка 70 мс + передача 26 мс ·\n                    проверка 157 мс\n                ",
+    "logs": [
+      "Product timing: forecast 251,70 ms",
+      "Forecast MakeHuman rebuild: 10,0 ms, muscle=True",
+      "Muscle atlas: 107156 bytes, source hash 5,8 ms, read/validate 34,6 ms, assets ready 770,3 ms.",
+      "Product timing: forecast 204,20 ms",
+      "Forecast MakeHuman rebuild: 145,3 ms, muscle=True",
+      "Product timing: forecast 192,40 ms",
+      "Forecast MakeHuman rebuild: 27,7 ms, muscle=True",
+      "Product timing: forecast 194,60 ms",
+      "Forecast MakeHuman rebuild: 32,0 ms, muscle=True",
+      "Product timing: forecast 197,40 ms",
+      "Forecast MakeHuman rebuild: 29,8 ms, muscle=True",
+      "Product timing: forecast 192,90 ms",
+      "Forecast MakeHuman rebuild: 30,0 ms, muscle=True"
+    ]
+  },
+  {
+    "kind": "candidate",
+    "sample": 0,
+    "initial": 2050,
+    "resources": [
+      {
+        "name": "makehuman-hm08.bin?v=3",
+        "ms": 449,
+        "bytes": 2394747
+      },
+      {
+        "name": "makehuman-muscle-atlas-v1.bin",
+        "ms": 1.399999976158142,
+        "bytes": 107156
+      }
+    ],
+    "rebuild": "66.8999",
+    "logs": [
+      "Product timing: forecast 254,20 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 9,9 ms, muscle=True",
+      "Muscle atlas: 107156 bytes, source hash 5,1 ms, read/validate 30,1 ms, assets ready 735,7 ms.",
+      "Product timing: forecast 194,20 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 147,2 ms, muscle=True",
+      "Product timing: forecast 195,40 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 28,7 ms, muscle=True",
+      "Product timing: forecast 199,80 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 28,8 ms, muscle=True",
+      "Product timing: forecast 204,80 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 27,8 ms, muscle=True",
+      "Product timing: forecast 199,90 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 29,9 ms, muscle=True"
+    ]
+  },
+  {
+    "kind": "candidate",
+    "sample": 1,
+    "initial": 2205,
+    "resources": [
+      {
+        "name": "makehuman-hm08.bin?v=3",
+        "ms": 509.40000000596046,
+        "bytes": 2394747
+      },
+      {
+        "name": "makehuman-muscle-atlas-v1.bin",
+        "ms": 1.2999999821186066,
+        "bytes": 107156
+      }
+    ],
+    "rebuild": "68.3",
+    "logs": [
+      "Product timing: forecast 280,70 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 11,0 ms, muscle=True",
+      "Muscle atlas: 107156 bytes, source hash 5,3 ms, read/validate 35,0 ms, assets ready 822,4 ms.",
+      "Product timing: forecast 192,80 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 138,9 ms, muscle=True",
+      "Product timing: forecast 189,70 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 28,8 ms, muscle=True",
+      "Product timing: forecast 192,60 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 28,6 ms, muscle=True",
+      "Product timing: forecast 196,60 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 30,0 ms, muscle=True",
+      "Product timing: forecast 203,40 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 27,5 ms, muscle=True"
+    ]
+  },
+  {
+    "kind": "candidate",
+    "sample": 2,
+    "initial": 2014,
+    "resources": [
+      {
+        "name": "makehuman-hm08.bin?v=3",
+        "ms": 438.69999998807907,
+        "bytes": 2394747
+      },
+      {
+        "name": "makehuman-muscle-atlas-v1.bin",
+        "ms": 1.600000023841858,
+        "bytes": 107156
+      }
+    ],
+    "rebuild": "65.3",
+    "logs": [
+      "Product timing: forecast 249,40 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 9,5 ms, muscle=True",
+      "Muscle atlas: 107156 bytes, source hash 4,6 ms, read/validate 32,7 ms, assets ready 729,3 ms.",
+      "Product timing: forecast 196,00 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 145,8 ms, muscle=True",
+      "Product timing: forecast 191,20 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 30,0 ms, muscle=True",
+      "Product timing: forecast 191,70 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 27,4 ms, muscle=True",
+      "Product timing: forecast 215,00 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 31,2 ms, muscle=True",
+      "Product timing: forecast 203,90 ms, muscle=True",
+      "Forecast MakeHuman rebuild: 28,9 ms, muscle=True"
+    ]
+  }
+]

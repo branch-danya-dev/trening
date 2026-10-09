@@ -23,6 +23,7 @@ public partial class Home
 
     private void ShowHistory()
     {
+        SyncCurrentFact();
         RefreshCalibration();
         if (_history.Timeline.Selected is null)
         {
