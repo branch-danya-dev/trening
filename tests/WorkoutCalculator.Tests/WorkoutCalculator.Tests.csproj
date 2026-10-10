@@ -33,6 +33,12 @@
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\BodyHistoryState.cs" Link="Services\BodyHistoryState.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\ForecastStore.cs" Link="Services\ForecastStore.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\ObservedHypothesisStore.cs" Link="Services\ObservedHypothesisStore.cs" />
+    <Compile Include="../../src/WorkoutCalculator.Web/Services/ProductReadModels.cs" Link="Services/ProductReadModels.cs" />
+    <Compile Include="../../src/WorkoutCalculator.Web/Services/UsabilityDiagnostics.cs" Link="Services/UsabilityDiagnostics.cs" />
+    <Compile Include="../../src/WorkoutCalculator.Web/Services/ApplicationOutcome.cs" Link="Services/ApplicationOutcome.cs" />
+    <Compile Include="../../src/WorkoutCalculator.Web/Services/CheckInApplication.cs" Link="Services/CheckInApplication.cs" />
+    <Compile Include="../../src/WorkoutCalculator.Web/Services/StorageJsonEncoding.cs" Link="Services/StorageJsonEncoding.cs" />
+    <Compile Include="../../src/WorkoutCalculator.Web/Services/ValidatedReadCache.cs" Link="Services/ValidatedReadCache.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\CheckInStore.cs" Link="Services\CheckInStore.cs" />
     <Compile Include="..\..\src\WorkoutCalculator.Web\Services\PersonalizedForecastState.cs" Link="Services\PersonalizedForecastState.cs" />
   </ItemGroup>

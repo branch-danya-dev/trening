@@ -34,9 +34,12 @@ jobs:
         run: |
           python -m pip install -r tools/requirements-shape-research.txt
           python tools/research_repository_guard.py
+          python tools/pre_ui_security_audit.py "$RUNNER_TEMP/pre-ui-security.json"
           python -m unittest discover -s tools -p 'test_*.py' -v
       - name: Frozen MakeHuman geometry fixtures
         run: dotnet run -c Release --project tools/WorkoutCalculator.GeometryWarpBenchmark -- . "$RUNNER_TEMP/geometry-fixtures.json"
+      - name: Synthetic pre-UI scenarios and native history audit
+        run: dotnet run -c Release --no-build --project tools/WorkoutCalculator.PreUiAudit -- . "$RUNNER_TEMP/pre-ui-fixtures"
       - name: Anatomical muscle benchmark (bundled asset, no anatomy download)
         run: dotnet run -c Release --no-build --project tools/WorkoutCalculator.AnatomicalMorphBenchmark -- . "$RUNNER_TEMP/anatomical-evidence"
       - name: Model provenance and desktop performance
@@ -79,6 +82,10 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" HYPOTHESIS_OUTPUT="$RUNNER_TEMP/hypothesis-evidence" node tests/browser/hypothesis-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" CHECKIN_OUTPUT="$RUNNER_TEMP/checkin-evidence" node tests/browser/checkin-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/errors-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-storage.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-fixtures.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-mixed.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-history.cjs
       - name: Model hardening evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -127,6 +134,16 @@ jobs:
           done
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/offline-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" APP_URL="http://127.0.0.1:5257/trening/" GEOMETRY_PWA=1 GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" GEOMETRY_OUTPUT="$RUNNER_TEMP/geometry-evidence/pwa" node tests/browser/geometry-warp-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PWA_ROOT="$RUNNER_TEMP/offline/wwwroot" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pwa-version-transition.cjs
+      - name: Pre-UI stabilization evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-ui-stabilization-evidence
+          path: |
+            ${{ runner.temp }}/pre-ui-evidence
+            ${{ runner.temp }}/pre-ui-fixtures/native.json
+          if-no-files-found: error
       - name: Geometry warp evidence
         if: always()
         uses: actions/upload-artifact@v4

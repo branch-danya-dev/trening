@@ -1,0 +1,87 @@
+# Pre-UI stabilization readiness
+
+PRE_UI_BASELINE = `355cebe21f69dda43a5548a2be6556e01e906312`
+
+PR #30 head `bfe195084be9a3d20f620295d2ef4dc5736337d4` was rechecked GREEN/mergeable and merged with an ordinary merge commit. [Full baseline main CI](https://github.com/branch-danya-dev/trening/actions/runs/38042605807) passed before `codex/pre-ui-stabilization` was created. No squash/rebase/history rewrite.
+
+FINAL_IMPLEMENTATION_SHA = pending final regression. The exact reviewed implementation commit will be recorded here; a reporting-only commit cannot contain its own SHA. The final PR/check run identifies its exact head independently.
+
+## Changes and boundaries
+
+- One typed runtime capability policy, driven by frozen model provenance plus validated asset availability and explicit session research opt-in. Asset presence alone cannot enable research.
+- Exact-raw validated caches, immutable record/hash reuse, dictionary reference joins, grouped activity sources/date lookup and no-photo CheckIn application orchestration. Canonical historical hash functions and semantic model versions unchanged.
+- Bounded browser read handles retain exact CAS semantics without echoing entire readonly histories through WASM. Compact JSON storage encoding; legacy encodings remain readable.
+- Authenticated compact recovery WAL; IndexedDB overflow journal when localStorage cannot hold a second full archive. Quota rollback and explicit photo/PIN/restore transaction aborts.
+- Typed error adapter/bridge codes, read models and StorageHealth; local diagnostics disabled until opt-in, a separate export opt-in, no remote analytics.
+- Semantic test hooks/helpers, targeted keyboard/focus/label assertions. PWA updates wait for all old clients to close.
+- Synthetic fixture loader outside production, mixed full-lifecycle backup, five pilot preparation drafts. [Frozen UI contract](PRE_UI_CONTRACT.md); [testing policy](TESTING.md).
+
+No UI redesign, navigation/layout/colors/typography decisions, recruitment, data-access submission, training, backend, accounts, cloud sync or AI renderer was performed. UI changes are limited to diagnostic opt-ins/capability output, safe update notice, accessibility and test hooks. No historical reader or explicit legacy flow was deleted. Removed only the unsafe forced service-worker activation/reload path; the version-transition suite covers its replacement.
+
+## Capability/default matrix
+
+| Capability | Runtime status | Default |
+|---|---|---|
+| Procedural global shape | Production, validated MakeHuman asset required | Yes |
+| Procedural muscle fields | Production, validated atlas required | Yes |
+| Composition v3 / avatar reconstruction | Existing structural/reference GO / controlled testing; semantic versions frozen | Existing behavior |
+| BodyParts3D | Research-only; explicit session flag plus validated sidecar/atlas/body required | NO-GO, off |
+| DeltaShape | BLOCKED_PENDING_DATA_ACCESS, no artifact/provider activated | Off |
+| Pseudo-DXA | BLOCKED_PREREQUISITE_AND_RIGHTS | Off |
+| GeometryWarp | Local production capability, existing per-request eligibility and WebGL gates | Available when eligible |
+| Managed/photorealistic AI renderer | DEFERRED; no implementation/network endpoint | Off |
+
+Research opt-in is sessionStorage `trening:research-mode=enabled`, explicitly set by research tests. It is not an ordinary setting, navigation choice or backup field. Runtime policy cannot change frozen historical provenance. Missing pinned research assets preserve the historical record and report replay unavailability.
+
+## Storage/version and recovery
+
+Full matrix: [PRE_UI_CONTRACT](PRE_UI_CONTRACT.md#storage-and-integrity-contract). Avatar/fact/check-in/hypothesis schemas remain 1; ActivityDay readers preserve schema 1 migration and write schema 2 only through explicit CAS. Photos remain IndexedDB 3. Recovery DB remains version 1 with separate restore/check-in keys. New check-in WAL payload version 2 retains version 1 recovery support. Nothing makes a derived cache/index a backup authority.
+
+The canonical `docs/evidence/pre-ui/pre-ui-full-lifecycle.zip` is **entirely synthetic**, with public fixture PIN `1234`. It covers profile, locked avatar/revisions/cycle, ActivityDays/nutrition, strength/cardio references, evaluated and expired hypotheses, check-in/fact, encrypted photos and GeometryWarp artifacts. Exact clean restore, repeated reload/no extra migration, navigation/index rebuild, old-tab generation rejection, frozen hypothesis core and disabled research are checked. [Mixed archive report](evidence/pre-ui/mixed-backup.json).
+
+Fault tests cover every inline/external WAL boundary, old journal compatibility, stale exact bytes/generation, failed staging, failed factual writes with complete rollback, corrupt journal blocking, synchronous photo blob quota after metadata enqueue, and export/delete after quota. Physical disk exhaustion or browser eviction is not simulated by these deterministic injected failures.
+
+## Performance findings
+
+Root cause: CheckIn repeatedly decoded/hashed/revalidated the same full stores; reference checks used nested searches and reserialized unchanged revisions; rendering each history row reloaded hypotheses; each WASM commit copied full readonly expected histories; inline recovery duplicated those histories again. Dense archives exposed large CPU and capacity costs.
+
+Matched dense stress archive, same original bytes/browser: initial CheckIn visible save was 1.152 / 6.419 / 87.959 s at 0 / 30 / 180 days. After the first cache/reference/bridge fixes the same archives measured 0.852 / 1.555 / 4.196 s; 365 days completed in 6.582 s. The original 365-day run did not complete within the configured timeout; no successful baseline timing is claimed. Subsequent immutable record reuse improves the final representative curve below. The dense 1000-day archive exceeds typical localStorage capacity and is not presented as a successful capacity test.
+
+Final representative synthetic archive: one closed day/meal and factual snapshot per day, CheckIn/revision every 28 days, hypotheses every 180 days plus a recent one. At 1000 days: 35 historical check-ins, six hypotheses, approximately 4.64 million stored characters. This is a declared bounded workload, not a promise that every 1000-day record density fits localStorage.
+
+Local Edge 154, desktop, mobile viewport, Release WASM; single-run observations in milliseconds (CI independently records its curve):
+
+| Operation | Fresh | 30d | 180d | 365d | 1000d |
+|---|---:|---:|---:|---:|---:|
+| Startup/model ready | 2790 | 3175 | 4074 | 5647 | 11289 |
+| Activity/calendar open | 128 | 216 | 645 | 1209 | 3260 |
+| Switch calendar day | 57 | 20 | 31 | 49 | 93 |
+| Hypothesis open/preview | 423 | 573 | 620 | 868 | 1876 |
+| CheckIn open after preview | 151 | 304 | 404 | 551 | 1073 |
+| CheckIn save, visible completion | 878 | 1204 | 1641 | 2180 | 3996 |
+| Expand check-in history | 8 | 15 | 17 | 29 | 175 |
+| Full backup creation/download | 143 | 84 | 94 | 100 | 142 |
+
+1000/fresh save = **4.55x**, 1000/365 = **1.83x**. Desired <=2x is **not met**. Exact blocker: versioned whole-envelope serialization/SHA and durable CAS/WAL still grow with factual archive size, and post-save calibration/current-fact projections process history. Achieving bounded independent persistence would require a separately versioned storage migration; it is not disguised as a cache change here. Current regression ceilings are 8x and 3.5x respectively, with the desired target reported separately. No integrity checks were dropped.
+
+An additional final-path breakdown at 1000 days: begin 308 ms, ready 265, avatar/fact validated reads 4/6, reconstruction 232, encoding 220, hypothesis checks 129, CAS bridge/WAL 335, reconstruction/commit 1750 end to end, visible save 4010. Photo analysis is absent from this no-photo path. Native timings include index, 100 date lookups, meal/event/close, preview/issue where eligible, progress projection and CheckIn stages; see machine-readable evidence. Backup validation is measured in-browser separately from the automation cost of transferring archive bytes.
+
+Cold startup and backup/restore must validate the complete archive and remain linear. Historical calibration cross-checks can still be quadratic in the number of issued hypotheses on a cold decode; the representative curve varies day/fact history, not arbitrarily many hypotheses. This cold correctness path was retained rather than replace calibration semantics. Full snapshot format capacity is a known engineering limitation; quota is a typed recoverable result, not silent loss.
+
+## Regression and dependency audit
+
+Local: Release build 0 warnings / 0 errors; **682 .NET**, **91 JS**, **34 Python** tests pass. New real-browser checks pass for storage failures, synthetic states/accessibility, mixed backup and two-version PWA transition. Full final CI is pending at this reporting point; the baseline full matrix already passed. Final decision below is deliberately NO until the exact PR head passes the full matrix.
+
+Retain all suites: avatar, creation, skeletal, strength, history, forecast, composition, muscle forecast, product, ActivityDay, Nutrition, Hypothesis, CheckIn, GeometryWarp/WebGL, anatomical research, errors/recovery, backup/restore and published offline PWA. Added history ratios, developer-loader isolation, local diagnostic privacy, typed errors/caches, storage health, quota and PWA version transition. Layout screenshots remain distinct from behavioral contracts.
+
+[Dependency/security/license audit](PRE_UI_DEPENDENCY_AUDIT.md) documents NuGet advisory results, pinned local libraries/assets, notices, restricted-file guard and source disclosure scan. No new package or heavyweight dependency. License notices are preserved; vendor bytes are protected against Windows line-ending conversion.
+
+## Next UI/user-test phase
+
+Safe changes and immutable semantics are listed in PRE_UI_CONTRACT. The next phase may redesign presentation against service/read-model APIs and reproducible fixtures, with behavioral regression protecting facts and transitions.
+
+Non-blocking external/empirical gaps: physical low-end-phone performance, real-photo quality, real-user predictive accuracy, formal privacy/legal review and named pilot owner, DeltaShape/Pseudo-DXA data/prerequisite/rights access. AI renderer remains deferred. No participant or application was contacted/submitted by this task.
+
+READY_FOR_UI_REDESIGN = NO
+
+Current blocker: final complete regression/CI on the stabilization PR has not yet been confirmed. This document will be updated after verification; performance target shortfall and capacity limits remain explicitly documented even if the engineering gate passes.

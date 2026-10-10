@@ -10,8 +10,15 @@ namespace WorkoutCalculator.Web.Services;
 
 public sealed record ActivityDayData(int SchemaVersion, DayPlan DefaultPlan, ImmutableArray<ActivityDay> Days, string IndexVersion = "journals-reference-1");
 public sealed record ActivityDayEnvelope(int SchemaVersion, string Payload, string Sha256);
-public sealed record ActivityDayRead(ActivityDayData Data, string? OriginalPayload, string? Error = null);
-public sealed record ActivitySources(LoggedWorkout[] Cardio, IReadOnlyList<TrainingSession> Strength, AvatarDomainData? Avatars, Dictionary<string, string?> Guards);
+public sealed record ActivityDayRead(ActivityDayData Data, string? OriginalPayload, string? Error = null, bool NeedsMigration = false);
+public sealed record ActivitySources(LoggedWorkout[] Cardio, IReadOnlyList<TrainingSession> Strength, AvatarDomainData? Avatars, Dictionary<string, string?> Guards)
+{
+    private ILookup<DateOnly,(ActivityEventType Type,string Id)>? _links;
+    public IEnumerable<(ActivityEventType Type,string Id)> Links(DateOnly date) => (_links ??=
+        Cardio.Select(w=>(w.Date,Type:ActivityEventType.Cardio,w.Id))
+            .Concat(Strength.Where(s=>StrengthAggregation.Session(s).Volume.CompletedSets>0).Select(s=>(s.Date,Type:ActivityEventType.Strength,s.Id)))
+            .ToLookup(x=>x.Date,x=>(x.Type,x.Id)))[date];
+}
 public sealed record ActivityDayReview(ActivityDay Day, DailyActivitySummary Summary, Dictionary<string, string?> Guards, ClosedNutritionSummary? Nutrition = null);
 
 /// <summary>One atomic envelope owns plans, lightweight facts, links, states and frozen closures. Source journals remain independent.</summary>
@@ -19,6 +26,10 @@ public sealed class ActivityDayStore(IJournalStorage storage)
 {
     public const string Key = "workoutcalc.activityDays.v1", CardioKey = "workoutcalc.workouts.v1";
     private ActivityDayRead? _read;
+    private static readonly ValidatedReadCache<ActivityDayRead> Cache = new();
+    private static readonly ImmutableRecordValidation<ActivityDay> Records = new();
+    private ActivityDayData? _indexed;
+    private Dictionary<(string,DateOnly),ActivityDay> _byDate = new();
     public ActivityDayRead Current => _read ?? Load();
     public ActivityDayRead Load()
     {
@@ -27,6 +38,7 @@ public sealed class ActivityDayStore(IJournalStorage storage)
         {
             raw = storage.Read(Key);
             if (raw is null) return _read = new(new(2, DayPlan.Default, []), null);
+            return _read = Cache.Read(raw, () => {
             var env = JsonSerializer.Deserialize(raw, ActivityDayJson.Default.ActivityDayEnvelope) ?? throw new JsonException("Пустой документ.");
             if (env.SchemaVersion is not (1 or 2) || env.Payload is null || ForecastStore.Hash(env.Payload) != env.Sha256) throw new JsonException("Версия или контрольная сумма дня не совпадает.");
             var data = JsonSerializer.Deserialize(env.Payload, ActivityDayJson.Default.ActivityDayData) ?? throw new JsonException("Нет дней.");
@@ -44,9 +56,10 @@ public sealed class ActivityDayStore(IJournalStorage storage)
             Validate(data);
             // Read-only migration; the next CAS write persists v2. Old closures remain unknown and unchanged.
             if (data.SchemaVersion == 1) data = data with { SchemaVersion = 2, DefaultPlan = data.DefaultPlan! with { MealSlots = MealPlanSlot.Defaults }, Days = data.Days.Select(d => d.State == ActivityDayState.Open ? d with { Plan = d.Plan with { MealSlots = MealPlanSlot.Defaults } } : d).ToImmutableArray() };
-            return _read = new(data, raw);
+            return new(data, raw,NeedsMigration:env.SchemaVersion==1);
+            });
         }
-        catch (Exception e) when (e is not OutOfMemoryException) { return _read = new(new(1, DayPlan.Default, []), raw, $"Дни недоступны; исходные данные сохранены, запись заблокирована. {e.Message}"); }
+        catch (Exception e) when (e is not OutOfMemoryException) { return _read = new(new(1, DayPlan.Default, []), raw,ApplicationCommand.Capture(e,$"Дни недоступны; исходные данные сохранены, запись заблокирована. {e.Message}",ApplicationErrorCode.CorruptOrFutureSchema)); }
     }
     public ActivitySources Sources()
     {
@@ -64,26 +77,30 @@ public sealed class ActivityDayStore(IJournalStorage storage)
             !double.IsFinite(w.DurationMin) || w.DurationMin is < 0 or > 1440 || !double.IsFinite(w.ActiveKcal) || w.ActiveKcal is < 0 or > 50000 ||
             !double.IsFinite(w.DistanceKm) || w.DistanceKm is < 0 or > 3000) || rows.Select(w => w.Id).Distinct().Count() != rows.Count) throw new ArgumentException("Некорректный кардиожурнал.");
     }
-    public ActivityDay? Find(string profile, DateOnly date) => Current.Data.Days.SingleOrDefault(d => d.ProfileId == profile && d.Date == date);
+    public ActivityDay? Find(string profile, DateOnly date)
+    {
+        var data=Current.Data;
+        if(!ReferenceEquals(_indexed,data)){_byDate=data.Days.ToDictionary(d=>(d.ProfileId,d.Date));_indexed=data;}
+        return _byDate.GetValueOrDefault((profile,date));
+    }
     public string? Index(AvatarState avatar, DateOnly today, DateTimeOffset now) => Try(() =>
     {
         var sources = Sources(); CheckAvatar(avatar, sources);
-        var data = Current.Data; var days = data.Days;
+        var data = Current.Data; var days = data.Days.ToBuilder();
+        var knownDates = data.Days.Where(d=>d.ProfileId==avatar.ProfileId).Select(d=>d.Date).ToHashSet();
         var dates = sources.Cardio.Select(w => w.Date).Concat(sources.Strength.Select(s => s.Date)).Append(today).Where(d => d <= today).Distinct().Order();
         foreach (var date in dates)
         {
-            var day = days.SingleOrDefault(d => d.ProfileId == avatar.ProfileId && d.Date == date) ?? NewDay(avatar, date, today, now);
-            var next = Link(day, sources, now);
-            var index = days.FindIndex(d => d.Id == day.Id);
-            days = index < 0 ? days.Add(next) : days.SetItem(index, next);
+            if(knownDates.Add(date))days.Add(NewDay(avatar,date,today,now));
         }
         // Remove moved/deleted references from every open day, including dates no longer in the journals.
-        days = days.Select(d => d.ProfileId == avatar.ProfileId ? Link(d, sources, now) : d).ToImmutableArray();
-        return Write(data with { Days = days }, sources.Guards);
+        var linked = days.Select(d => d.ProfileId == avatar.ProfileId ? Link(d, sources, now) : d).ToImmutableArray();
+        if(!Current.NeedsMigration && linked.SequenceEqual(data.Days))return null;
+        return Write(data with { Days = linked }, sources.Guards);
     });
     public ActivityDay Ensure(AvatarState avatar, DateOnly date, DateOnly today, DateTimeOffset now)
     {
-        if (Current.Error is { } error) throw new ArgumentException(error);
+        if (Current.Error is { } error) throw new ApplicationFault(ApplicationErrorCode.CorruptOrFutureSchema,error);
         if (Find(avatar.ProfileId, date) is { } day) return day;
         var sources = Sources(); CheckAvatar(avatar, sources);
         var next = Link(NewDay(avatar, date, today, now), sources, now);
@@ -107,8 +124,7 @@ public sealed class ActivityDayStore(IJournalStorage storage)
     {
         if (day.State != ActivityDayState.Open) return day;
         var events = day.ActualEvents.Where(e => e.LinkedEntityId is null).ToImmutableArray();
-        foreach (var (type, id) in sources.Cardio.Where(w => w.Date == day.Date).Select(w => (ActivityEventType.Cardio, w.Id))
-            .Concat(sources.Strength.Where(s => s.Date == day.Date && StrengthAggregation.Session(s).Volume.CompletedSets > 0).Select(s => (ActivityEventType.Strength, s.Id))))
+        foreach (var (type, id) in sources.Links(day.Date))
         {
             var existing = day.ActualEvents.SingleOrDefault(e => e.Type == type && e.LinkedEntityId == id);
             events = events.Add(existing ?? new(Guid.NewGuid().ToString(), day.Id, type, type == ActivityEventType.Cardio ? ActivitySource.CardioJournal : ActivitySource.StrengthJournal, now, now, LinkedEntityId: id));
@@ -155,7 +171,7 @@ public sealed class ActivityDayStore(IJournalStorage storage)
     }
     public ActivityDayReview Review(ActivityDay day, NutritionTarget? target = null)
     {
-        if (Current.Error is { } error) throw new ArgumentException(error);
+        if (Current.Error is { } error) throw new ApplicationFault(ApplicationErrorCode.CorruptOrFutureSchema,error);
         RequireCurrent(day);
         var sources = Sources(); var next = Link(day, sources, DateTimeOffset.Now);
         if (next != day)
@@ -184,21 +200,21 @@ public sealed class ActivityDayStore(IJournalStorage storage)
         if (Current.Error is { } error) return error;
         data = data with { SchemaVersion = 2 };
         Validate(data);
-        var payload = JsonSerializer.Serialize(data, ActivityDayJson.Default.ActivityDayData);
-        var raw = JsonSerializer.Serialize(new ActivityDayEnvelope(2, payload, ForecastStore.Hash(payload)), ActivityDayJson.Default.ActivityDayEnvelope);
+        var payload = JsonSerializer.Serialize(data, StorageJsonEncoding.Activity.ActivityDayData);
+        var raw = JsonSerializer.Serialize(new ActivityDayEnvelope(2, payload, ForecastStore.Hash(payload)), StorageJsonEncoding.Activity.ActivityDayEnvelope);
         if (raw == Current.OriginalPayload && storage.Read(Key) == Current.OriginalPayload) return null;
         if (!storage.CompareExchangeChecked(Key, Current.OriginalPayload, raw, guards ?? new Dictionary<string, string?>()))
-            return "День или связанные данные изменены в другой вкладке. Перезагрузите страницу и повторите проверку дня.";
-        _read = new(data, raw); return null;
+            return ApplicationCommand.Reject(ApplicationErrorCode.StaleConflict,"День или связанные данные изменены в другой вкладке. Перезагрузите страницу и повторите проверку дня.");
+        _read = Cache.Read(raw,()=>new(data,raw)); return null;
     }
-    private string? Try(Func<string?> action) { try { if (Current.Error is { } error) return error; return action(); } catch (Exception e) when (e is not OutOfMemoryException) { return e.Message; } }
+    private string? Try(Func<string?> action) { try { if (Current.Error is { } error) return error; return action(); } catch (Exception e) when (e is not OutOfMemoryException) { return ApplicationCommand.Capture(e,e.Message); } }
     public static void Validate(ActivityDayData data)
     {
         if (data.SchemaVersion is not (1 or 2) || data.IndexVersion != "journals-reference-1" || data.DefaultPlan is null || data.Days.IsDefault) throw new JsonException("Неизвестная схема дней.");
         data.DefaultPlan.Validate(); var keys = new HashSet<string>(); var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase); var links = new HashSet<string>();
         foreach (var day in data.Days)
         {
-            if (day is null) throw new JsonException("Пустой день."); day.Validate();
+            if (day is null) throw new JsonException("Пустой день."); Records.Validate(day,day.Validate);
             if (!ids.Add(day.Id) || !keys.Add($"{day.ProfileId}:{day.Date:yyyy-MM-dd}")) throw new JsonException("Повторяющийся день.");
             if (data.SchemaVersion == 1 && (!day.Meals.IsEmpty || day.Closure?.Nutrition is not null || !day.Plan.MealSlots.IsEmpty)) throw new JsonException("Питание требует schema v2.");
             foreach (var meal in day.Meals)
@@ -212,7 +228,7 @@ public sealed class ActivityDayStore(IJournalStorage storage)
     }
     public void ValidateReferences()
     {
-        if (Current.Error is { } error) throw new ArgumentException(error);
+        if (Current.Error is { } error) throw new ApplicationFault(ApplicationErrorCode.CorruptOrFutureSchema,error);
         var sources = Sources();
         foreach (var day in Current.Data.Days)
         {

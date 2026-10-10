@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "desiredRatio": 2,
+  "actualRatio": 4.55125284738041,
+  "regressionCeiling": 8,
+  "growth365To1000": 1.8330275229357798,
+  "growthCeiling": 3.5,
+  "limitation": "Versioned whole-envelope serialization, exact-byte CAS, post-save factual read models; no storage format migration in this stabilization pass"
+}

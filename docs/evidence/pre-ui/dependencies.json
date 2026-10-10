@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "parameters": "--vulnerable --include-transitive",
+  "sources": [
+    "https://api.nuget.org/v3/index.json",
+    "C:/Program Files (x86)/Microsoft SDKs/NuGetPackages/"
+  ],
+  "projects": [
+    {
+      "path": "src/WorkoutCalculator.Core/WorkoutCalculator.Core.csproj"
+    },
+    {
+      "path": "tests/WorkoutCalculator.Tests/WorkoutCalculator.Tests.csproj"
+    },
+    {
+      "path": "src/WorkoutCalculator.BodyModel/WorkoutCalculator.BodyModel.csproj"
+    },
+    {
+      "path": "tools/WorkoutCalculator.MakeHumanImport/WorkoutCalculator.MakeHumanImport.csproj"
+    },
+    {
+      "path": "tools/WorkoutCalculator.AnsurFit/WorkoutCalculator.AnsurFit.csproj"
+    },
+    {
+      "path": "src/WorkoutCalculator.Web/WorkoutCalculator.Web.csproj"
+    },
+    {
+      "path": "tools/WorkoutCalculator.CompositionBenchmark/WorkoutCalculator.CompositionBenchmark.csproj"
+    },
+    {
+      "path": "tools/WorkoutCalculator.GeometryWarpBenchmark/WorkoutCalculator.GeometryWarpBenchmark.csproj"
+    },
+    {
+      "path": "tools/WorkoutCalculator.AnatomyBuild/WorkoutCalculator.AnatomyBuild.csproj"
+    },
+    {
+      "path": "tools/WorkoutCalculator.AnatomicalMorphBenchmark/WorkoutCalculator.AnatomicalMorphBenchmark.csproj"
+    },
+    {
+      "path": "tools/WorkoutCalculator.ShapeResearch/WorkoutCalculator.ShapeResearch.csproj"
+    },
+    {
+      "path": "tools/WorkoutCalculator.PreUiAudit/WorkoutCalculator.PreUiAudit.csproj"
+    }
+  ]
+}

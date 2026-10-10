@@ -2,11 +2,28 @@ namespace WorkoutCalculator.Web.Services;
 
 public sealed class BrowserJournalStorage : ICheckInTransactionStorage
 {
-    public string? Read(string key) => BrowserStorage.GetItemStrict(key);
+    private static readonly Dictionary<string,List<(string? Raw,string Token)>> Observed=new();
+    public string? Read(string key)
+    {
+        ReadCacheGeneration.Observe(BrowserStorage.GetItemStrict("trening:data-generation"));
+        var raw=BrowserStorage.GetItemStrict(key);var token=BrowserStorage.ReadToken(key);
+        if(!Observed.TryGetValue(key,out var items))Observed[key]=items=[];
+        if(items.Count==0 || items[0].Token!=token){items.Insert(0,(raw,token));if(items.Count>2)items.RemoveAt(2);}
+        return raw;
+    }
     public bool CompareExchange(string key, string? expected, string value) => BrowserStorage.CompareExchange(key, expected, value);
     public bool CompareExchangeChecked(string key, string? expected, string value, IReadOnlyDictionary<string, string?> guards) =>
         BrowserStorage.CompareExchangeChecked(key, expected, value, System.Text.Json.JsonSerializer.Serialize(guards.ToDictionary(), ActivityDayJson.Default.DictionaryStringString));
-    public Task<bool> CommitCheckIn(IReadOnlyDictionary<string,string?> expected, IReadOnlyDictionary<string,string> values) =>
-        BrowserStorage.CommitCheckIn(System.Text.Json.JsonSerializer.Serialize(expected.ToDictionary(), ActivityDayJson.Default.DictionaryStringString),
+    public Task<bool> CommitCheckIn(IReadOnlyDictionary<string,string?> expected, IReadOnlyDictionary<string,string> values)
+    {
+        var tokens=new Dictionary<string,string>();
+        foreach(var (key,raw) in expected)
+        {
+            var entry=Observed.GetValueOrDefault(key)?.FirstOrDefault(e=>e.Raw==raw);
+            if(entry?.Token is not {} token)return Task.FromResult(false);
+            tokens[key]=token;
+        }
+        return BrowserStorage.CommitCheckInByToken(System.Text.Json.JsonSerializer.Serialize(tokens,CheckInStoreJson.Default.DictionaryStringString),
             System.Text.Json.JsonSerializer.Serialize(values.ToDictionary(), CheckInStoreJson.Default.DictionaryStringString));
+    }
 }

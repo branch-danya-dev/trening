@@ -5,6 +5,7 @@
 // С PIN-кодом снимки и превью хранятся зашифрованными (AES-GCM, ключ из PIN через PBKDF2) — см. «Защита».
 
 import { assertWritable } from './data-guard.js';
+import { appError, storageError } from './app-errors.js';
 import { hashBytes, synthetic, rejectSyntheticImage } from './render-contract.js';
 const DB_NAME = 'body3d-photos';
 const DB_VERSION = 3; // Separate synthetic artifacts share only encryption and atomic retention.
@@ -26,8 +27,8 @@ export function openDb() {
             if (!db.objectStoreNames.contains('renderArtifacts')) db.createObjectStore('renderArtifacts', { keyPath: 'key' });
         };
         request.onsuccess = () => { request.result.onversionchange=()=>{request.result.close();dbPromise=null;}; resolve(request.result); };
-        request.onblocked = () => reject(Error('Закройте старые вкладки приложения для обновления хранилища.'));
-        request.onerror = () => reject(new Error('Хранилище браузера недоступно (приватный режим?)'));
+        request.onblocked = () => reject(appError('RecoveryRequired','Закройте старые вкладки приложения для обновления хранилища.'));
+        request.onerror = () => reject(appError('UnsupportedBrowser','Хранилище браузера недоступно (приватный режим?)'));
     });
     return dbPromise;
 }
@@ -40,9 +41,10 @@ async function transact(mode, work) {
         const tx = db.transaction(['sessions', 'images', 'renderArtifacts'], mode);
         let result;
         tx.oncomplete = () => resolve(result);
-        tx.onerror = () => reject(tx.error ?? new Error('Ошибка хранилища'));
-        tx.onabort = () => reject(tx.error ?? new Error('Не хватает места в хранилище браузера'));
-        result = work(tx.objectStore('sessions'), tx.objectStore('images'), tx.objectStore('renderArtifacts'));
+        tx.onerror = () => reject(storageError(tx.error ?? appError('RecoveryRequired','Ошибка хранилища')));
+        tx.onabort = () => reject(storageError(tx.error ?? appError('RecoveryRequired','Транзакция хранилища отменена')));
+        try { result = work(tx.objectStore('sessions'), tx.objectStore('images'), tx.objectStore('renderArtifacts')); }
+        catch(error) { tx.abort(); reject(storageError(error)); }
     });
 }
 
@@ -166,13 +168,14 @@ async function rewriteImages(rewrite, pin) {
         assertWritable();
         const tx = db.transaction(['images', 'settings', 'renderArtifacts'], 'readwrite');
         tx.oncomplete = resolve;
-        tx.onerror = () => reject(tx.error ?? new Error('Ошибка хранилища'));
-        tx.onabort = () => reject(tx.error ?? new Error('Не хватает места в хранилище браузера'));
-        const images = tx.objectStore('images');
-        for (const r of next) images.put(r);
-        for (const r of renderNext) tx.objectStore('renderArtifacts').put(r);
-        if (pin) tx.objectStore('settings').put(pin);
-        else tx.objectStore('settings').delete('pin');
+        tx.onerror = tx.onabort = () => reject(storageError(tx.error ?? appError('RecoveryRequired','Транзакция защиты отменена')));
+        try {
+            const images = tx.objectStore('images');
+            for (const r of next) images.put(r);
+            for (const r of renderNext) tx.objectStore('renderArtifacts').put(r);
+            if (pin) tx.objectStore('settings').put(pin);
+            else tx.objectStore('settings').delete('pin');
+        } catch(error) { tx.abort(); reject(storageError(error)); }
     });
 }
 

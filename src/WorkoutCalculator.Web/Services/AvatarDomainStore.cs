@@ -15,6 +15,7 @@ public sealed class AvatarDomainStore(IJournalStorage storage)
     public const string Key = "workoutcalc.avatarDomain.v1", MigrationVersion = "legacy-body-v1-to-avatar-1";
     public const int SchemaVersion = 1;
     private AvatarDomainRead? _read;
+    private static readonly ValidatedReadCache<AvatarDomainData> Cache = new();
     public AvatarDomainRead Load()
     {
         string? payload = null;
@@ -22,11 +23,14 @@ public sealed class AvatarDomainStore(IJournalStorage storage)
         {
             payload = storage.Read(Key);
             if (payload is null) return _read = new(null, null);
-            var data = JsonSerializer.Deserialize(payload, AvatarDomainJson.Default.AvatarDomainData) ?? throw new JsonException("Пустой документ.");
-            Validate(data); return _read = new(data, payload);
+            var data = Cache.Read(payload, () => {
+                var decoded = JsonSerializer.Deserialize(payload, AvatarDomainJson.Default.AvatarDomainData) ?? throw new JsonException("Пустой документ.");
+                Validate(decoded); return decoded;
+            });
+            return _read = new(data, payload);
         }
         catch (Exception e) when (e is not OutOfMemoryException)
-        { return _read = new(null, payload, $"Домен аватара недоступен; запись заблокирована, исходные данные сохранены. {e.Message}"); }
+        { return _read = new(null, payload,ApplicationCommand.Capture(e,$"Домен аватара недоступен; запись заблокирована, исходные данные сохранены. {e.Message}",ApplicationErrorCode.CorruptOrFutureSchema)); }
     }
     public AvatarDomainRead Current => _read ?? Load();
     public Profile? Profile => Current.Data?.Profiles.SingleOrDefault();
@@ -74,7 +78,12 @@ public sealed class AvatarDomainStore(IJournalStorage storage)
             if (ReferenceEquals(next, avatar)) return null;
             return Write(data with { Avatars = data.Avatars.Replace(avatar, next) });
         }
-        catch (Exception e) when (e is not OutOfMemoryException) { return e.Message; }
+        catch (Exception e) when (e is not OutOfMemoryException) { return ApplicationCommand.Capture(e,e.Message); }
+    }
+    public static string Encode(AvatarDomainData data)
+    {
+        Validate(data);var raw=JsonSerializer.Serialize(data,StorageJsonEncoding.Avatar.AvatarDomainData);
+        Cache.Read(raw,()=>data);return raw;
     }
     private string? Write(AvatarDomainData data)
     {
@@ -83,13 +92,13 @@ public sealed class AvatarDomainStore(IJournalStorage storage)
         try
         {
             Validate(data);
-            var payload = JsonSerializer.Serialize(data, AvatarDomainJson.Default.AvatarDomainData);
+            var payload = Encode(data);
             if (payload == read.OriginalPayload) return null;
             if (!storage.CompareExchange(Key, read.OriginalPayload, payload))
-                return "Аватар изменён в другой вкладке. Перезагрузите страницу; сохранённая ревизия не изменена.";
+                return ApplicationCommand.Reject(ApplicationErrorCode.StaleConflict,"Аватар изменён в другой вкладке. Перезагрузите страницу; сохранённая ревизия не изменена.");
             _read = new(data, payload); return null;
         }
-        catch (Exception e) when (e is not OutOfMemoryException) { return $"Аватар не сохранён. {e.Message}"; }
+        catch (Exception e) when (e is not OutOfMemoryException) { return ApplicationCommand.Capture(e,$"Аватар не сохранён. {e.Message}"); }
     }
     public static void Validate(AvatarDomainData data)
     {

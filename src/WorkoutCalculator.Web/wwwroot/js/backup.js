@@ -3,6 +3,7 @@ import { LOCK, EPOCH, acceptGeneration } from './data-guard.js';
 import { reportStorageError } from './storage.js';
 import { recoverCheckIn } from './checkin-transaction.js';
 import { validateArtifact } from './render-contract.js';
+import { appError, storageError } from './app-errors.js';
 
 export async function initialize() {
     try { const message = await recover(); if (message) reportStorageError(message); }
@@ -40,7 +41,8 @@ async function readPhotos() {
 async function replacePhotos(value) {
     const db = await photosDb();
     try { const tx = db.transaction(tables, 'readwrite'), finished = done(tx);
-        for (const t of tables) { const store = tx.objectStore(t); store.clear(); for (const row of value[t]||[]) store.put(row); }
+        try { for (const t of tables) { const store = tx.objectStore(t); store.clear(); for (const row of value[t]||[]) store.put(row); } }
+        catch(error) { tx.abort(); await finished.catch(()=>{}); throw storageError(error); }
         await finished;
     } finally { db.close(); }
 }
@@ -56,7 +58,7 @@ async function recoveryRecord(value) {
     } finally { db.close(); }
 }
 async function exclusive(action) {
-    if (!navigator.locks) throw Error('Этот браузер не поддерживает безопасное восстановление. Используйте актуальный Chrome, Edge, Firefox или Safari.');
+    if (!navigator.locks) throw appError('UnsupportedBrowser','Этот браузер не поддерживает безопасное восстановление. Используйте актуальный Chrome, Edge, Firefox или Safari.');
     return navigator.locks.request('trening-archive', { mode: 'exclusive' }, action);
 }
 // Called before Blazor loads any store. An interrupted commit always rolls back to the durable before-image.
@@ -213,7 +215,7 @@ export async function restoreState(next, build, checkpoint=()=>{}) {
             return 'Восстановлено. Перезагрузите приложение.';
         } catch(e) {
             if(staged) { try { await replacePhotos(before.photos); replaceLocal(before.local); await recoveryRecord(null); staged=false; } catch { throw Error('Восстановление прервано. Прежние данные сохранены для автоматического отката при следующем запуске.'); } }
-            throw Error('Восстановление отменено; прежние данные сохранены. '+e.message);
+            throw appError(storageError(e).code||'RecoveryRequired','Восстановление отменено; прежние данные сохранены. '+e.message);
         } finally { if(!staged) localStorage.removeItem(LOCK); }
     });
 }

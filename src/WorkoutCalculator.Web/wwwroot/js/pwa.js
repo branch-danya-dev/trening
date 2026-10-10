@@ -1,12 +1,7 @@
 // Установка как приложения и офлайн-режим: регистрирует service worker. Когда вышла новая версия и уже
-// скачалась, показывает плашку «Обновить» — без неё новая версия включилась бы только после закрытия всех вкладок.
+// скачалась, предлагает сохранить работу и закрыть все вкладки. Активный черновик не перезагружается.
 if ('serviceWorker' in navigator) {
-    let reloading = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (reloading) return;
-        reloading = true;
-        location.reload();
-    });
+    // Never reload a live draft/transaction in response to another tab's update.
 
     navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
         .then(registration => {
@@ -27,11 +22,8 @@ function offerUpdate(worker) {
     banner.className = 'update-banner';
     banner.setAttribute('role', 'status');
     const text = document.createElement('span');
-    text.textContent = 'Вышла новая версия';
-    const button = document.createElement('button');
-    button.className = 'btn';
-    button.textContent = 'Обновить';
-    button.addEventListener('click', () => worker.postMessage('skip-waiting'));
-    banner.append(text, button);
+    text.textContent = 'Вышла новая версия. Сохраните работу, закройте все вкладки приложения и откройте его снова.';
+    banner.setAttribute('data-testid','pwa-update-ready');
+    banner.append(text);
     document.body.append(banner);
 }

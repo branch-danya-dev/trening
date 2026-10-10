@@ -15,6 +15,7 @@ public sealed class BodySnapshotStore(IJournalStorage storage)
     public const string ImportBackupKey = Key + ".backup.before-import";
     public const int SchemaVersion = 1;
     private SnapshotRead? _read;
+    private static readonly ValidatedReadCache<SnapshotRead> Cache = new();
 
     public SnapshotRead Load()
     {
@@ -23,14 +24,16 @@ public sealed class BodySnapshotStore(IJournalStorage storage)
         {
             payload = storage.Read(Key);
             if (payload is null) return _read = new([], [], null);
+            return _read = Cache.Read(payload, () => {
             var data = JsonSerializer.Deserialize(payload, SnapshotJson.Default.BodySnapshotData)
                 ?? throw new JsonException("Пустой документ.");
             Validate(data);
-            return _read = new(Array.AsReadOnly(data.Snapshots), Array.AsReadOnly(data.ImportedReferences), payload);
+            return new(Array.AsReadOnly(data.Snapshots), Array.AsReadOnly(data.ImportedReferences), payload);
+            });
         }
         catch (Exception e) when (e is not OutOfMemoryException)
         {
-            return _read = new([], [], payload, $"История тела недоступна; исходные данные сохранены, запись заблокирована. {e.Message}");
+            return _read = new([], [], payload,ApplicationCommand.Capture(e,$"История тела недоступна; исходные данные сохранены, запись заблокирована. {e.Message}",ApplicationErrorCode.CorruptOrFutureSchema));
         }
     }
 
@@ -53,9 +56,15 @@ public sealed class BodySnapshotStore(IJournalStorage storage)
             if (additions.Count == 0) return null;
             return Write(read.Snapshots.Concat(additions).ToArray(), refs.Order(StringComparer.Ordinal).ToArray(), true);
         }
-        catch (Exception e) when (e is not OutOfMemoryException) { return $"Импорт не выполнен. {e.Message}"; }
+        catch (Exception e) when (e is not OutOfMemoryException) { return ApplicationCommand.Capture(e,$"Импорт не выполнен. {e.Message}"); }
     }
 
+    public static string Encode(BodySnapshotData data)
+    {
+        Validate(data);var raw=JsonSerializer.Serialize(data,StorageJsonEncoding.Facts.BodySnapshotData);
+        // Copy mutable array containers before caching their read-only wrappers.
+        Cache.Read(raw,()=>new(Array.AsReadOnly(data.Snapshots.ToArray()),Array.AsReadOnly(data.ImportedReferences.ToArray()),raw));return raw;
+    }
     private string? Write(IReadOnlyList<BodySnapshot> snapshots, IReadOnlyList<string> references, bool importing)
     {
         var read = _read ?? Load();
@@ -64,7 +73,7 @@ public sealed class BodySnapshotStore(IJournalStorage storage)
         {
             var data = new BodySnapshotData(SchemaVersion, snapshots.ToArray(), references.ToArray());
             Validate(data);
-            var payload = JsonSerializer.Serialize(data, SnapshotJson.Default.BodySnapshotData);
+            var payload = Encode(data);
             var hypotheses = storage.Read(ObservedHypothesisStore.Key);
             ObservedHypothesisStore.ProtectOutcomes(hypotheses, snapshots);
             var checkIns = storage.Read(CheckInStore.Key);
@@ -72,15 +81,15 @@ public sealed class BodySnapshotStore(IJournalStorage storage)
             // The first pre-import state is retained byte-for-byte; old weight/IndexedDB records are never changed.
             if (importing && storage.Read(ImportBackupKey) is null)
             {
-                var backup = read.OriginalPayload ?? JsonSerializer.Serialize(new BodySnapshotData(SchemaVersion, [], []), SnapshotJson.Default.BodySnapshotData);
-                if (!storage.CompareExchange(ImportBackupKey, null, backup)) return "Не удалось сохранить резервную копию. Импорт отменён.";
+                var backup = read.OriginalPayload ?? JsonSerializer.Serialize(new BodySnapshotData(SchemaVersion, [], []), StorageJsonEncoding.Facts.BodySnapshotData);
+                if (!storage.CompareExchange(ImportBackupKey, null, backup)) return ApplicationCommand.Reject(ApplicationErrorCode.StaleConflict,"Не удалось сохранить резервную копию. Импорт отменён.");
             }
             if (!storage.CompareExchangeChecked(Key, read.OriginalPayload, payload, new Dictionary<string,string?> { [ObservedHypothesisStore.Key] = hypotheses, [CheckInStore.Key] = checkIns }))
-                return "История изменена в другой вкладке. Перезагрузите страницу перед сохранением; черновик остался здесь.";
+                return ApplicationCommand.Reject(ApplicationErrorCode.StaleConflict,"История изменена в другой вкладке. Перезагрузите страницу перед сохранением; черновик остался здесь.");
             _read = new(Array.AsReadOnly(data.Snapshots), Array.AsReadOnly(data.ImportedReferences), payload);
             return null;
         }
-        catch (Exception e) when (e is not OutOfMemoryException) { return $"История не сохранена; черновик остался здесь. {e.Message}"; }
+        catch (Exception e) when (e is not OutOfMemoryException) { return ApplicationCommand.Capture(e,$"История не сохранена; черновик остался здесь. {e.Message}"); }
     }
 
     private static void Validate(BodySnapshotData data)

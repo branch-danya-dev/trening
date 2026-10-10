@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "browser": "154.0.4258.62",
+  "idbRecoveryBoundaries": 4,
+  "quotaRollbackBoundaries": 3,
+  "photoQuotaAtomic": true,
+  "exportAndDeleteAfterQuota": true,
+  "health": {
+    "available": true,
+    "persistent": false,
+    "usage": 147456,
+    "quota": 10737565696,
+    "localBytes": 0,
+    "recoveryRequired": false,
+    "backupRecommended": true,
+    "lastSuccessfulBackup": null,
+    "lastBackupTracked": false,
+    "reason": "BackupRecommended"
+  }
+}

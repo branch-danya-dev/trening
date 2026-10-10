@@ -1,6 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {commitCheckIn,recoverCheckIn} from '../../src/WorkoutCalculator.Web/wwwroot/js/checkin-transaction.js';
+import {commitCheckInByToken} from '../../src/WorkoutCalculator.Web/wwwroot/js/checkin-transaction.js';
+import {rememberRead,readToken} from '../../src/WorkoutCalculator.Web/wwwroot/js/read-snapshots.js';
 import {CHECKIN_PENDING,EPOCH,acceptGeneration,assertWritable} from '../../src/WorkoutCalculator.Web/wwwroot/js/data-guard.js';
 import {getItemStrict,compareExchange} from '../../src/WorkoutCalculator.Web/wwwroot/js/storage.js';
 import {analysisData,exportValidation} from '../../src/WorkoutCalculator.Web/wwwroot/js/validation.js';
@@ -21,6 +23,32 @@ test('restored identical bytes reject the old tab by generation',async()=>{const
 test('journal corruption is retained and blocks readers and writers',async()=>{const values=setup();await assert.rejects(commitCheckIn(JSON.stringify(expected()),JSON.stringify(after),()=>{throw Error('crash');}));const env=JSON.parse(values.get(CHECKIN_PENDING));env.sha256='bad';values.set(CHECKIN_PENDING,JSON.stringify(env));await assert.rejects(recoverCheckIn(),/контрольная сумма/);assert.throws(()=>compareExchange(keys[1],values.get(keys[1]),'{}'));assert.ok(values.has(CHECKIN_PENDING));});
 test('quota failure before staging changes nothing',async()=>{const values=setup(),before=new Map(values);localStorage.setItem=()=>{throw Error('quota');};await assert.rejects(commitCheckIn(JSON.stringify(expected()),JSON.stringify(after)),/quota/);assert.deepEqual(values,before);});
 test('journal cannot target another key',async()=>{setup();await assert.rejects(commitCheckIn(JSON.stringify(expected()),JSON.stringify({...after,'unrelated':'{}'})),/Повреждён журнал/);});
+test('bridge handles compare original exact bytes and reject changed live data',async()=>{
+ const values=setup(),tokens={};for(const [k,v]of Object.entries(expected()))tokens[k]=rememberRead(k,v);
+ values.set(keys[2],'"changed after read"');const before=new Map(values);
+ assert.equal(await commitCheckInByToken(JSON.stringify(tokens),JSON.stringify(after)),false);assert.deepEqual(values,before);
+ for(const [k,v]of Object.entries(expected()))tokens[k]=rememberRead(k,v);
+ assert.equal(await commitCheckInByToken(JSON.stringify(tokens),JSON.stringify(after)),true);
+});
+test('read handles are invalid after restore and after bounded eviction',async()=>{
+ const values=setup();const old=rememberRead(keys[0],'one');rememberRead(keys[0],'two');rememberRead(keys[0],'three');
+ assert.equal(await commitCheckInByToken(JSON.stringify({[keys[0]]:old}),JSON.stringify(after)),false);
+ values.set(EPOCH,'another-generation');assert.equal(readToken(keys[0]),'');
+});
+test('quota after any factual write restores the complete before-image',async()=>{
+ for(const failed of keys){
+  const values=setup(),before=new Map(values),set=localStorage.setItem;let injected=false;
+  localStorage.setItem=(k,v)=>{if(k===failed&&!injected){injected=true;throw new DOMException('quota','QuotaExceededError');}set(k,v);};
+  await assert.rejects(commitCheckIn(JSON.stringify(expected()),JSON.stringify(after)),/\[StorageQuota\]/);
+  assert.deepEqual(values,before);assert.doesNotThrow(()=>assertWritable());
+ }
+});
+test('read-only history is not duplicated in compact recovery journal',async()=>{
+ const values=setup(),key='workoutcalc.observedHypotheses.v1';values.set(key,'"'+'x'.repeat(100000)+'"');
+ await assert.rejects(commitCheckIn(JSON.stringify({...expected(),[key]:values.get(key)}),JSON.stringify(after),()=>{throw Error('stop');}));
+ const raw=values.get(CHECKIN_PENDING);assert.ok(raw.length<3000);assert.equal(JSON.parse(JSON.parse(raw).payload).version,2);
+ await recoverCheckIn();assert.equal(values.get(key).length,100002);
+});
 test('validation opt-in pseudonymizes lineage and exports fit-vs-validation distinction',()=>{
  const c={id:'private-id',observedDate:'2026-10-09',baseAvatarRevisionId:'private-base',revision:{id:'private-next'},photo:{sessionId:'private-photo',analysisHash:'private-hash',source:'OriginalObservation',estimates:{Waist:{cm:90,method:'PhotoDerived',modelRmseCm:1.55}}},manual:{weightKg:80,girths:{Waist:85},note:'private-note'},quality:{version:'checkin-quality-2',avatarUpdated:false,reasons:['ManualPhotoConflict'],girths:[{girth:'Waist',manualCm:85,photoCm:90,usedAsFitConstraint:true,independentValidationOfNewFit:false}]},events:[{status:'RejectedForAvatarUpdate'}]};
  const stores={checkIns:{items:[c]},avatars:{avatars:[{revisions:[{id:'private-base'},{id:'private-next'}]}]}};

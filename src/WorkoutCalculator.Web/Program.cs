@@ -22,6 +22,7 @@ builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.H
 // JS-модули для [JSImport]: путь — относительно папки _framework
 await JSHost.ImportAsync(ViewerInterop.Module, "../js/viewer.js");
 await JSHost.ImportAsync(BrowserStorage.Module, "../js/storage.js");
+await JSHost.ImportAsync("storage-health", "../js/storage-health.js");
 await JSHost.ImportAsync("backup", "../js/backup.js");
 await JSHost.ImportAsync("checkin-transaction", "../js/checkin-transaction.js");
 await BrowserStorage.InitializeRecovery();

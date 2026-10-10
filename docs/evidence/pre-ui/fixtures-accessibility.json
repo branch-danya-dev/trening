@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "synthetic": true,
+  "scenarios": [
+    "brand-new",
+    "avatar-draft",
+    "locked-empty",
+    "seven-days",
+    "nutrition-partial",
+    "nutrition-complete",
+    "preliminary-issued",
+    "active-14d",
+    "awaiting-outcome",
+    "evaluated",
+    "expired",
+    "checkin-good-photo",
+    "checkin-bad-photo",
+    "quota-warning"
+  ],
+  "checks": [
+    "loopback-isolation",
+    "labels-and-names",
+    "unique-ids",
+    "checkin-keyboard-and-focus",
+    "numeric-unit-descriptions",
+    "research-off"
+  ]
+}

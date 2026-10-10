@@ -36,7 +36,7 @@ public sealed class ForecastStore(IJournalStorage storage)
         }
         catch (Exception e) when (e is not OutOfMemoryException)
         {
-            return _read = new(Empty, raw, $"История прогнозов недоступна; исходные данные сохранены, запись заблокирована. {e.Message}");
+            return _read = new(Empty, raw,ApplicationCommand.Capture(e,$"История прогнозов недоступна; исходные данные сохранены, запись заблокирована. {e.Message}",ApplicationErrorCode.CorruptOrFutureSchema));
         }
     }
 
@@ -65,10 +65,10 @@ public sealed class ForecastStore(IJournalStorage storage)
             var archive = read.Archive with { Forecasts = read.Archive.Forecasts.AddRange(additions) };
             Validate(archive);
             if (storage.Read(LegacyBackupKey) is null && !storage.CompareExchange(LegacyBackupKey, null, originalLegacyPayload))
-                return "Не удалось сохранить старые планы перед импортом.";
+                return ApplicationCommand.Reject(ApplicationErrorCode.StaleConflict,"Не удалось сохранить старые планы перед импортом.");
             return Write(archive);
         }
-        catch (Exception e) when (e is not OutOfMemoryException) { return $"Старые планы не перенесены. {e.Message}"; }
+        catch (Exception e) when (e is not OutOfMemoryException) { return ApplicationCommand.Capture(e,$"Старые планы не перенесены. {e.Message}"); }
     }
     private string? Write(ForecastArchive archive)
     {
@@ -80,11 +80,11 @@ public sealed class ForecastStore(IJournalStorage storage)
             string payload = JsonSerializer.Serialize(archive, ForecastStoreJson.Default.ForecastArchive);
             string raw = JsonSerializer.Serialize(new ForecastEnvelope(SchemaVersion, payload, Hash(payload)), ForecastStoreJson.Default.ForecastEnvelope);
             if (!storage.CompareExchange(Key, read.OriginalPayload, raw))
-                return "Прогнозы изменены в другой вкладке. Перезагрузите страницу; сохранённая история не затронута.";
+                return ApplicationCommand.Reject(ApplicationErrorCode.StaleConflict,"Прогнозы изменены в другой вкладке. Перезагрузите страницу; сохранённая история не затронута.");
             _read = new(archive, raw);
             return null;
         }
-        catch (Exception e) when (e is not OutOfMemoryException) { return $"Прогноз не сохранён. {e.Message}"; }
+        catch (Exception e) when (e is not OutOfMemoryException) { return ApplicationCommand.Capture(e,$"Прогноз не сохранён. {e.Message}"); }
     }
     public static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
