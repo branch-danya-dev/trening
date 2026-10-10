@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "provider": "muscle-field-anatomical-1",
+  "sidecarSha256": "A27839A20F2FE1A67AADB9F85A2C608F64DB5512351F6331E9FD492F8FA30F0D",
+  "caseCount": 488,
+  "bytes": 27918,
+  "gzipBytes": 20957,
+  "loadMs": 9.9902,
+  "warmValidationMs": 5.7016800000000005,
+  "proceduralInitMs": 14.5553,
+  "apply": [
+    {
+      "provider": "muscle-field-procedural-1",
+      "groups": 1,
+      "medianMs": 0.048,
+      "p95Ms": 0.0692
+    },
+    {
+      "provider": "muscle-field-procedural-1",
+      "groups": 20,
+      "medianMs": 0.0745,
+      "p95Ms": 0.0902
+    },
+    {
+      "provider": "muscle-field-anatomical-1",
+      "groups": 1,
+      "medianMs": 0.0391,
+      "p95Ms": 0.1507
+    },
+    {
+      "provider": "muscle-field-anatomical-1",
+      "groups": 20,
+      "medianMs": 0.0883,
+      "p95Ms": 0.1646
+    }
+  ],
+  "anatomicalFallbackCases": 24,
+  "proceduralFallbackCases": 40,
+  "maximumProtectedDisplacementM": 0,
+  "maximumGirthWorseningCm": 0.09638018552097449,
+  "maximumInvertedTriangles": 0,
+  "maximumRawInvertedTriangles": 0,
+  "defaultProviderGo": false,
+  "limitation": "Deterministic geometry evidence, not human accuracy. Desktop timings are not physical phone measurements. Self-intersection proxies are triangle inversion and extreme edge stretch, not an exact collision test."
+}

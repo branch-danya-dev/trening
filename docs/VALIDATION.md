@@ -1,5 +1,8 @@
 # Ручная проверка продукта
 
+Current decision, 2026-10-09: the non-AI R&D package is ready for final review. Product lifecycle Phases 1–7 are implemented; Phase 8 managed renderer and Phase 9 GPU/business work remain deferred. C0/prospective infrastructure exists; C1 remains `BLOCKED_PENDING_DATA_ACCESS`, Pseudo-DXA is blocked by prerequisite/rights. Procedural shape and muscle remain production defaults; BodyParts3D is research NO-GO for default. No participants recruited, no application submitted, no renderer integration. [Current validation matrix](MODEL_VALIDATION_STATUS.md), [hardening and reproduction](MODEL_PRODUCTION_HARDENING.md), [readiness for later controlled tests](USER_TEST_READINESS.md) supersede the historical planning status below.
+
+
 ## Factual integrity дня — Phase 3
 
 Phase 4 adds nutrition integrity: [NUTRITION_V1](NUTRITION_V1.md). `Complete` requires explicit full-intake confirmation; empty Complete additionally requires NoFood. Partial totals are recorded observations, excluded from whole-day averages. Old/blank nutrition stays null. RestDay can contain meals. Forecast v3 adapter never substitutes targets or partial days for intake; incompatible label macros trigger an explicit calories-only fallback, with observed values unchanged.

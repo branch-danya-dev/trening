@@ -21,6 +21,9 @@
     <details><summary>Наблюдения, исходный аватар и ограничения</summary>
         <p>Данные отсечены: @Core.EvidenceCutoff.ToString("dd.MM.yyyy HH:mm zzz"). Аватар от @Core.CurrentAvatarRevisionAtIssue.CreatedAt.ToString("dd.MM.yyyy").</p>
         <p>Модель: @Core.Forecast.ModelVersion · Калибровка: @(Core.CalibrationRevision?.Profile.Status ?? "без доступных предыдущих результатов")</p>
+        <p data-testid="model-provider-status">Форма: @(Core.Forecast.ModelManifest?.ShapeVersion ?? "архивная procedural") · Мышцы: @(Core.Forecast.MuscleGeometry?.ProviderVersion ?? "muscle-field-procedural-1").</p>
+        @if(Core.Forecast.ModelManifest is { } manifest){<p class="note">Реестр: @manifest.RegistryVersion · Диапазоны: @manifest.UncertaintyVersion / @manifest.EvidenceRangeVersion.</p>}
+        <p class="note">DeltaShape и Pseudo-DXA недоступны: исследовательские данные не получены. Анатомический слой остаётся исследовательским.</p>
         <ul>@foreach(var d in Core.FrozenEvidence){<li>@d.Date.ToString("dd.MM.yyyy") · @(d.IsFactual ? "подтверждённый день" : "нет данных")</li>}</ul>
         <ul>@foreach(var w in Core.Uncertainty.Limitations.Distinct()){<li>@w</li>}</ul>
     </details>

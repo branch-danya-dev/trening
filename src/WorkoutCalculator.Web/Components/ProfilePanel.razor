@@ -22,7 +22,7 @@
         <div class="volume-line">
             @if (NavyBodyFat.Estimate(Profile) is double navy)
             {
-                <span>По обхватам (формула ВМС США, ошибка 3–4&nbsp;%): ≈&nbsp;@Fmt.N(navy, 1)&nbsp;%</span>
+                <span>Оценка по обхватам (формула ВМС США): ≈&nbsp;@Fmt.N(navy, 1)&nbsp;%</span>
                 <button class="btn-link" @onclick="() => ApplyNavy(navy)">Подставить</button>
             }
             else

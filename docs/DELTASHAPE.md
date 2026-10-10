@@ -46,3 +46,7 @@ Pre-register material improvement thresholds on both surface and key girth/regio
 ## Later integration, deliberately absent
 
 Only after independent GO: versioned provider, compact approved local artifact, composition→global shape→muscle→reconciliation pipeline, frozen model/hash/OOD/fallback endpoint metadata and exact replay. Do not alter physiology, historical hypotheses or factual snapshots. No managed renderer, GPU or provider API is introduced by C0.
+
+## Production boundary after C0
+
+The immutable model registry identifies the existing procedural bridge. DeltaShape is disabled, has no production weights and cannot be enabled by a research artifact. Reproduce available structural layers with `python tools/reproduce_model_validation.py work/model-validation`; see [hardening](MODEL_PRODUCTION_HARDENING.md). This does not run C1 without a private approved data gate.

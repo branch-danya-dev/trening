@@ -1,0 +1,3086 @@
+{
+  "fixture": "MakeHuman synthetic controlled; not real-human accuracy",
+  "renderer": "geometry-warp-1",
+  "cases": [
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "identity",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 131,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "waist-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.991986357728037,
+        "contourDistance": 0.00033508859236400815,
+        "rowWidthMae": 0.0008404584136159281
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9909117944447748,
+        "contourDistance": 0.00037983934653955213,
+        "rowWidthMae": 0.0008864536501819741
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000021828926993226495,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0011647174659590307,
+        "stretchedBodyFraction": 0.0017311365807067814,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 184.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "waist-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9924461337394036,
+        "contourDistance": 0.0003119683147322846,
+        "rowWidthMae": 0.0010850694444444445
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9910268834571624,
+        "contourDistance": 0.00037098934724920325,
+        "rowWidthMae": 0.0011017949850139158
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000021508304029985674,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.006135779640258399,
+        "stretchedBodyFraction": 0.0018458197611292075,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 168.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "hips-thigh-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9786352192294903,
+        "contourDistance": 0.0008945497065996038,
+        "rowWidthMae": 0.0029520579105116684
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9816414686825053,
+        "contourDistance": 0.0007692258891299658,
+        "rowWidthMae": 0.002609184328837508
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000040426243823363554,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.010530486779856392,
+        "stretchedBodyFraction": 0.002412183325932771,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 163.59999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "hips-thigh-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9780470420527441,
+        "contourDistance": 0.0009184120957202493,
+        "rowWidthMae": 0.002594549480839221
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9818108326596605,
+        "contourDistance": 0.0007597838766530995,
+        "rowWidthMae": 0.002113690189466924
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00004007451166079093,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.011407026728464734,
+        "stretchedBodyFraction": 0.003712603628499339,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 176.2000000178814,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "chest-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9898288916711382,
+        "contourDistance": 0.00042508002906109814,
+        "rowWidthMae": 0.0007275610147719976
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9911734225917499,
+        "contourDistance": 0.00036942219498444916,
+        "rowWidthMae": 0.000735923785056733
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000019563611959892448,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.00324199707019524,
+        "stretchedBodyFraction": 0.0016747413122794425,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 162,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "chest-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9894348923746964,
+        "contourDistance": 0.00043720746845746846,
+        "rowWidthMae": 0.0010432555930207665
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9910228671838579,
+        "contourDistance": 0.0003707600162856089,
+        "rowWidthMae": 0.001135246066152858
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000020436212378152322,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.007060349175091856,
+        "stretchedBodyFraction": 0.0019279663569870705,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 160.59999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "loss",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.989757244290923,
+        "contourDistance": 0.00042443887842286544,
+        "rowWidthMae": 0.0008822722650396062
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9899736147757255,
+        "contourDistance": 0.0004137488828037348,
+        "rowWidthMae": 0.0008906350353243418
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00005842170180426655,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.009125621382771787,
+        "stretchedBodyFraction": 0.0017672121622930182,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 170.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "gain",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9893995455248474,
+        "contourDistance": 0.0004422375723057191,
+        "rowWidthMae": 0.0009742627381716979
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9905653659925947,
+        "contourDistance": 0.00039425492419189903,
+        "rowWidthMae": 0.0008906350353243418
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00006850682196029147,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0014408875867534402,
+        "stretchedBodyFraction": 0.002156481955845734,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 160.80000001192093,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "posture-small",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0000018284910759988103,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 161.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Front",
+      "change": "unsafe-growth",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9188859878154917,
+        "contourDistance": 0.003620664442644658,
+        "rowWidthMae": 0.007432412090558768
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9449227475800447,
+        "contourDistance": 0.0025130283036909544,
+        "rowWidthMae": 0.006880469251766217
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 1.1352027070249458e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00017312344076376226,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0491943036910737,
+        "stretchedBodyFraction": 0.008735592972538318,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 169.2999999821186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "identity",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 96.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "waist-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9819954988747187,
+        "contourDistance": 0.0006999059802095227,
+        "rowWidthMae": 0.0013464060158424323
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9890749293023824,
+        "contourDistance": 0.0004210455402856373,
+        "rowWidthMae": 0.0007756469439092273
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00002582115531390983,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.009266456654256842,
+        "stretchedBodyFraction": 0.0027830072849308342,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 176.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "waist-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9829137784263651,
+        "contourDistance": 0.0006686735531777698,
+        "rowWidthMae": 0.001327589782701777
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9892597087378641,
+        "contourDistance": 0.0004207894577584121,
+        "rowWidthMae": 0.000928267501605652
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000025441894559050827,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.007998199893630079,
+        "stretchedBodyFraction": 0.003207551024577604,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 161.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "hips-thigh-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9822379746835443,
+        "contourDistance": 0.0006879063939311841,
+        "rowWidthMae": 0.0016746447495183047
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9834840898077855,
+        "contourDistance": 0.0006405678344108656,
+        "rowWidthMae": 0.0015220241918218799
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00004781968077709558,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.007936832631019106,
+        "stretchedBodyFraction": 0.003572376344744524,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 160.2999999821186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "hips-thigh-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9825654556525268,
+        "contourDistance": 0.0006772231775625749,
+        "rowWidthMae": 0.0014823010329693856
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.984345851245032,
+        "contourDistance": 0.0006070730732090048,
+        "rowWidthMae": 0.001434215103832156
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00004740362135273406,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.009716483246737307,
+        "stretchedBodyFraction": 0.004447176964852956,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 161.19999998807907,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "chest-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9886382113821138,
+        "contourDistance": 0.0004365357028209141,
+        "rowWidthMae": 0.0009387209644615715
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.990939563230066,
+        "contourDistance": 0.0003474100114175831,
+        "rowWidthMae": 0.0007254703222008135
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000023141543470014035,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.005011659779896085,
+        "stretchedBodyFraction": 0.002206107649882545,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 159.59999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "chest-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9889262086513995,
+        "contourDistance": 0.0004277819259661508,
+        "rowWidthMae": 0.0009010884981802612
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9908836189393324,
+        "contourDistance": 0.00035451693883505893,
+        "rowWidthMae": 0.0008028259473346178
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000024173731215001892,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.006239005032115534,
+        "stretchedBodyFraction": 0.004055714870954527,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 166.90000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "loss",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9882896323394167,
+        "contourDistance": 0.0004512539051120554,
+        "rowWidthMae": 0.0009868068935988013
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9891769134766863,
+        "contourDistance": 0.0004153750852694515,
+        "rowWidthMae": 0.0008864536501819741
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000047471739421652244,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.010800638219531155,
+        "stretchedBodyFraction": 0.002541164803834473,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 162.19999998807907,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "gain",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.989139904771553,
+        "contourDistance": 0.00042262668578904995,
+        "rowWidthMae": 0.0009031791907514452
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9904241593419886,
+        "contourDistance": 0.00037319231775945563,
+        "rowWidthMae": 0.0009031791907514452
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000053470042692104675,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0013705355316450517,
+        "stretchedBodyFraction": 0.0019274468430449602,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 161.2999999821186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "posture-small",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9999795442457964,
+        "contourDistance": 7.854284795109987e-7,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9999795442457964,
+        "contourDistance": 7.854284795109987e-7,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0000046285113689907105,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.000020455754203657487,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 168.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-standard",
+      "view": "Side",
+      "change": "unsafe-growth",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.8380830169847975,
+        "contourDistance": 0.007458382046298828,
+        "rowWidthMae": 0.01665236632947977
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9558052568483959,
+        "contourDistance": 0.0020705876019658513,
+        "rowWidthMae": 0.003823876712695355
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 0.9712426493630985,
+        "contourDistance": 0.003676136417998986,
+        "rowWidthMae": 0.0003558985659604292,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.2301590266133702e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00020478547817911105,
+        "invalidBodyFraction": 0.02875735063690158,
+        "repairedBackgroundFraction": 0.038088614327210245,
+        "stretchedBodyFraction": 0.06804062897487419,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Rejected",
+      "runtimeMs": 164.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "identity",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 101.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "waist-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.994856451287568,
+        "contourDistance": 0.00022655908304333773,
+        "rowWidthMae": 0.0005205824502247913
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9943933391526221,
+        "contourDistance": 0.0002467782688591072,
+        "rowWidthMae": 0.0005498521462213659
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000013828242524876406,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.001619378563476266,
+        "stretchedBodyFraction": 0.0010213931353402026,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 175.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "waist-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9912756425371375,
+        "contourDistance": 0.0003843303194293591,
+        "rowWidthMae": 0.0013213177049882254
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9897746617686587,
+        "contourDistance": 0.0004516627140598511,
+        "rowWidthMae": 0.0013673129415542713
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00002524407441660291,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.00718599237542593,
+        "stretchedBodyFraction": 0.0018886702404379001,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 170.2000000178814,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "hips-thigh-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9856750854006832,
+        "contourDistance": 0.0006326321936346753,
+        "rowWidthMae": 0.0016349215906658104
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9873739637015461,
+        "contourDistance": 0.0005576644330386846,
+        "rowWidthMae": 0.0013254990901305933
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000021855475922454376,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.010312292657692611,
+        "stretchedBodyFraction": 0.0016861307260546804,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 160.90000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "hips-thigh-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9769944960249068,
+        "contourDistance": 0.001024177440268482,
+        "rowWidthMae": 0.002970874143652323
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9801670726688246,
+        "contourDistance": 0.000881855489474721,
+        "rowWidthMae": 0.0025694611699850142
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00004572740994902281,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.011886688483294536,
+        "stretchedBodyFraction": 0.0035779382974414366,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 163.69999998807907,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "chest-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9927429108990727,
+        "contourDistance": 0.00032042983422964614,
+        "rowWidthMae": 0.0005038569096553202
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9931309153558723,
+        "contourDistance": 0.00030364388486931647,
+        "rowWidthMae": 0.0005080382947976878
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000013828242524876406,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0031375459667352655,
+        "stretchedBodyFraction": 0.0011683686652511432,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 164.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "chest-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9886590313109352,
+        "contourDistance": 0.0005019571610236847,
+        "rowWidthMae": 0.001239780694712053
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9902830019702669,
+        "contourDistance": 0.0004296346333466766,
+        "rowWidthMae": 0.001348496708413616
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000024422670899629343,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.007883224812478211,
+        "stretchedBodyFraction": 0.0019879592920154067,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 165.69999998807907,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "loss",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9877545064763059,
+        "contourDistance": 0.0005415133493068629,
+        "rowWidthMae": 0.001160334377007065
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9885822705227232,
+        "contourDistance": 0.0005041999334664005,
+        "rowWidthMae": 0.0011310646810104904
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00002647935497940768,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.010346029711098366,
+        "stretchedBodyFraction": 0.00167849933086851,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 160.7999999821186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "gain",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9874611641295754,
+        "contourDistance": 0.0005593474048662729,
+        "rowWidthMae": 0.0015659287358167418
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.989198319738626,
+        "contourDistance": 0.00048258407687028145,
+        "rowWidthMae": 0.0013568594786983518
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00002677882626231985,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0027889297482091248,
+        "stretchedBodyFraction": 0.0021439817761549026,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 160.80000001192093,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "posture-small",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9999775086310628,
+        "contourDistance": 9.912704756829458e-7,
+        "rowWidthMae": 0.000004181385142367801
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9999775086310628,
+        "contourDistance": 9.912704756829458e-7,
+        "rowWidthMae": 0.000004181385142367801
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0000018237939103793868,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.00002249136893717036,
+        "stretchedBodyFraction": 0.000022491874810224805,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 182.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Front",
+      "change": "unsafe-growth",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.8951988846773842,
+        "contourDistance": 0.0050558520581145015,
+        "rowWidthMae": 0.011135028634125455
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9242854939291774,
+        "contourDistance": 0.0036359608568346437,
+        "rowWidthMae": 0.009696632145150933
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 0.9994123109110357,
+        "contourDistance": 0.00005197937458416501,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.642530474424291e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0002692551818300954,
+        "invalidBodyFraction": 0.0008932874152258489,
+        "repairedBackgroundFraction": 0.07571719352698401,
+        "stretchedBodyFraction": 0.01691369198039469,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Rejected",
+      "runtimeMs": 164.90000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "identity",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 99.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "waist-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9867277761863841,
+        "contourDistance": 0.000552734218084679,
+        "rowWidthMae": 0.0010265300524512954
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9908516746411483,
+        "contourDistance": 0.00037801032253545095,
+        "rowWidthMae": 0.0006502053896381932
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000016357249170583112,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.008500757968261278,
+        "stretchedBodyFraction": 0.0017333692846962752,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 164.90000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "waist-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9824080941785055,
+        "contourDistance": 0.00074467870269397,
+        "rowWidthMae": 0.0014655754923999147
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.988629029196249,
+        "contourDistance": 0.00047711853267408833,
+        "rowWidthMae": 0.0010516183633055023
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0000298608890152512,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.008769404946942222,
+        "stretchedBodyFraction": 0.0032038983961323,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 163.89999997615814,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "hips-thigh-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9879191038727683,
+        "contourDistance": 0.0004966721784301289,
+        "rowWidthMae": 0.0011436088364375938
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9870379901259984,
+        "contourDistance": 0.0005349196826546732,
+        "rowWidthMae": 0.001158243684435881
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00002585255969884599,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.008270489129391899,
+        "stretchedBodyFraction": 0.0021587032361274406,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 177.59999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "hips-thigh-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9812121673582822,
+        "contourDistance": 0.0007779631647446958,
+        "rowWidthMae": 0.0016976423678013274
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9835273529635548,
+        "contourDistance": 0.0006847257562906418,
+        "rowWidthMae": 0.0015972891243845003
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00005409036159967454,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.010861013566672423,
+        "stretchedBodyFraction": 0.004137161330049261,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 196.7999999821186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "chest-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9910340476782198,
+        "contourDistance": 0.00036847334219242345,
+        "rowWidthMae": 0.0008258235656176409
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9923744362051831,
+        "contourDistance": 0.0003152991646537842,
+        "rowWidthMae": 0.0006188450010704347
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000016357249170583112,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.005238616084278395,
+        "stretchedBodyFraction": 0.0014797447920670305,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 169.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "chest-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9879338653633205,
+        "contourDistance": 0.0004991673463839043,
+        "rowWidthMae": 0.001053709055876686
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9897380245221232,
+        "contourDistance": 0.00042572573253155257,
+        "rowWidthMae": 0.0009240861164632843
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000028889261422506124,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.007042388655421871,
+        "stretchedBodyFraction": 0.0043836880659860415,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 171.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "loss",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9862473184186331,
+        "contourDistance": 0.0005714816824420731,
+        "rowWidthMae": 0.0011666064547206168
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9880822154413035,
+        "contourDistance": 0.0004916552586976363,
+        "rowWidthMae": 0.0009679906604581461
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000019194757638698384,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.011954790551301978,
+        "stretchedBodyFraction": 0.0020936318697295725,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 171,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "gain",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9865206082812826,
+        "contourDistance": 0.0005631098913284543,
+        "rowWidthMae": 0.0011749692250053521
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9884783922635237,
+        "contourDistance": 0.0004817278992850733,
+        "rowWidthMae": 0.001118520525583387
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000023022269031534762,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.00287836048586725,
+        "stretchedBodyFraction": 0.002589341812158483,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 167.60000002384186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "posture-small",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000004616595678416555,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 167.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Male-large",
+      "view": "Side",
+      "change": "unsafe-growth",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.8273065965373657,
+        "contourDistance": 0.008493085930380902,
+        "rowWidthMae": 0.01845245263326911
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9392517006802721,
+        "contourDistance": 0.003009401641253063,
+        "rowWidthMae": 0.005707590719332049
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 0.9632735736749525,
+        "contourDistance": 0.004205083940186987,
+        "rowWidthMae": 0.0005968409189072455,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.226992091694789e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000318498470917727,
+        "invalidBodyFraction": 0.03672642632504753,
+        "repairedBackgroundFraction": 0.0582963943737647,
+        "stretchedBodyFraction": 0.08404257209360175,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Rejected",
+      "runtimeMs": 165.7999999821186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "identity",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 97.59999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "waist-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9918524819975797,
+        "contourDistance": 0.00033997084988494225,
+        "rowWidthMae": 0.0007965538696210662
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9874554322032888,
+        "contourDistance": 0.000524637959759067,
+        "rowWidthMae": 0.001097613599871548
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000017434527677024833,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0013631867203898955,
+        "stretchedBodyFraction": 0.0011877909487930125,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 163,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "waist-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9922300390305017,
+        "contourDistance": 0.0003250494738874409,
+        "rowWidthMae": 0.0009951696638835369
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9898563076960013,
+        "contourDistance": 0.0004256061556778325,
+        "rowWidthMae": 0.0010369835153072149
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000016508920498055822,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.006357516828721017,
+        "stretchedBodyFraction": 0.0013820694671758502,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 162,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "hips-thigh-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9754943343281453,
+        "contourDistance": 0.0010356226064718432,
+        "rowWidthMae": 0.0028621581299507603
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9762299940723177,
+        "contourDistance": 0.0010096341377634542,
+        "rowWidthMae": 0.0025443728591308073
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000041923874385149976,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.010278186599753903,
+        "stretchedBodyFraction": 0.0027867533122725254,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 167.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "hips-thigh-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9760261706344469,
+        "contourDistance": 0.0010126060036619448,
+        "rowWidthMae": 0.0029750555287946906
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9821599387794145,
+        "contourDistance": 0.0007526159615817032,
+        "rowWidthMae": 0.0021178715746092915
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00004208141352211202,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.013800757594035757,
+        "stretchedBodyFraction": 0.003607136804899896,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 198.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "chest-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9875011949144441,
+        "contourDistance": 0.0005293389506601806,
+        "rowWidthMae": 0.0009847162010276174
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9851317917975069,
+        "contourDistance": 0.0006279145659341365,
+        "rowWidthMae": 0.0012565062352815244
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000020935468014491066,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.003040027022462422,
+        "stretchedBodyFraction": 0.0014382281029771322,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 168.7999999821186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "chest-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9875160859682249,
+        "contourDistance": 0.0005240131345917297,
+        "rowWidthMae": 0.001200057535859559
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9891120164401341,
+        "contourDistance": 0.00045759956400497184,
+        "rowWidthMae": 0.001162425069578249
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000022294214379624,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.009469925446956354,
+        "stretchedBodyFraction": 0.00214904931886064,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 165.90000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "loss",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9892285473582862,
+        "contourDistance": 0.00044992981999189677,
+        "rowWidthMae": 0.0011519716067223294
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9862117793884703,
+        "contourDistance": 0.0005767503157476327,
+        "rowWidthMae": 0.0013401339381288804
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000011188584475039808,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.008432455907544574,
+        "stretchedBodyFraction": 0.0009345680960299061,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 171,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "gain",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9891886720244929,
+        "contourDistance": 0.0004547532581259981,
+        "rowWidthMae": 0.0014279430261186043
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9911711367757946,
+        "contourDistance": 0.00037288647342995166,
+        "rowWidthMae": 0.0011854226878612718
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000010257533120589997,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0021955750717784156,
+        "stretchedBodyFraction": 0.0013064218424143634,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 205.69999998807907,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "posture-small",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.999975872801409,
+        "contourDistance": 0.000001005392119012689,
+        "rowWidthMae": 0.000004181385142367801
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.999975872801409,
+        "contourDistance": 0.000001005392119012689,
+        "rowWidthMae": 0.000004181385142367801
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0000015644433715978614,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.000024127198590971604,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 181.19999998807907,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Front",
+      "change": "unsafe-growth",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9019114688128773,
+        "contourDistance": 0.004408106526192567,
+        "rowWidthMae": 0.00897116182295012
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9281529411764706,
+        "contourDistance": 0.003234618179223189,
+        "rowWidthMae": 0.007398961009419825
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 0.9996486340649274,
+        "contourDistance": 0.00003071675709679956,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.683726325080574e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0001660173147288724,
+        "invalidBodyFraction": 0.00035136593507259473,
+        "repairedBackgroundFraction": 0.06990855791734021,
+        "stretchedBodyFraction": 0.012034283276236369,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Rejected",
+      "runtimeMs": 179.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "identity",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 101.90000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "waist-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9831191052499791,
+        "contourDistance": 0.0006627273409519078,
+        "rowWidthMae": 0.00126486900556626
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9870835597542115,
+        "contourDistance": 0.0005034657778602656,
+        "rowWidthMae": 0.0009366302718903876
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00002062307721825593,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.009189939434724091,
+        "stretchedBodyFraction": 0.0027586497357171436,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 161.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "waist-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9845124442406303,
+        "contourDistance": 0.0006105104436739242,
+        "rowWidthMae": 0.001266959698137444
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9880858483125078,
+        "contourDistance": 0.0004712557609693027,
+        "rowWidthMae": 0.0009512651198886749
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000019528188461971476,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.006750504710632571,
+        "stretchedBodyFraction": 0.003525486328247959,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 156.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "hips-thigh-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9797517826330998,
+        "contourDistance": 0.0007941163880327513,
+        "rowWidthMae": 0.0018669884660672234
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9822926181184091,
+        "contourDistance": 0.000692421004921005,
+        "rowWidthMae": 0.0015951984318133166
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000049591208592031573,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.008895524899057873,
+        "stretchedBodyFraction": 0.00350251677852349,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 156.30000001192093,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "hips-thigh-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9801015735575722,
+        "contourDistance": 0.0007804938965377292,
+        "rowWidthMae": 0.001649556438664098
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9835953236289636,
+        "contourDistance": 0.0006458528676355681,
+        "rowWidthMae": 0.001413308178120317
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0000497775595988794,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.009757738896366084,
+        "stretchedBodyFraction": 0.005716687683900799,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 155.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "chest-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9846805668607684,
+        "contourDistance": 0.0005946752124778182,
+        "rowWidthMae": 0.001499026573538857
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9879862939283774,
+        "contourDistance": 0.0004633676508676509,
+        "rowWidthMae": 0.0010892508295868124
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000024764294247716892,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.007844044414535666,
+        "stretchedBodyFraction": 0.002818679007151872,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 152.2000000178814,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "chest-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9818367177097204,
+        "contourDistance": 0.0007085587727778298,
+        "rowWidthMae": 0.0016265588203810747
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9883730569948187,
+        "contourDistance": 0.00045584495616087867,
+        "rowWidthMae": 0.0009972603564547208
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000026371537743294682,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.007591689098250336,
+        "stretchedBodyFraction": 0.005450390960736222,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 158.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "loss",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9863318566419619,
+        "contourDistance": 0.0005299647847118419,
+        "rowWidthMae": 0.001114339140441019
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9884278740952701,
+        "contourDistance": 0.0004486451887095604,
+        "rowWidthMae": 0.0008906350353243418
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000013234831815745743,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.012070995962314939,
+        "stretchedBodyFraction": 0.0026989692912549146,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 154,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "gain",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.98573327241766,
+        "contourDistance": 0.0005612288025384935,
+        "rowWidthMae": 0.0012272365392849499
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9901026923156394,
+        "contourDistance": 0.0003930172790901138,
+        "rowWidthMae": 0.0008258235656176409
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00001213350321467217,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0017875168236877524,
+        "stretchedBodyFraction": 0.0034117622584201876,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 159.2000000178814,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "posture-small",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.999936913824284,
+        "contourDistance": 0.000002434255624104194,
+        "rowWidthMae": 0.000004181385142367801
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.999936913824284,
+        "contourDistance": 0.000002434255624104194,
+        "rowWidthMae": 0.000004181385142367801
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000004355318434502143,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.000021029609690444146,
+        "stretchedBodyFraction": 0.000042058334910520896,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 157,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-standard",
+      "view": "Side",
+      "change": "unsafe-growth",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.8107569005175388,
+        "contourDistance": 0.00890940061099583,
+        "rowWidthMae": 0.020185636774780562
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9293594658315786,
+        "contourDistance": 0.003387653796532302,
+        "rowWidthMae": 0.0070268177317490904
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 0.9741792419145697,
+        "contourDistance": 0.003429254560011139,
+        "rowWidthMae": 0.000861316647797725,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.33406869361876e-16,
+        "alignmentLandmarkError": 7.015011327313905e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00019637973363273033,
+        "invalidBodyFraction": 0.025820758085430252,
+        "repairedBackgroundFraction": 0.051207099596231494,
+        "stretchedBodyFraction": 0.07028357732133125,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Rejected",
+      "runtimeMs": 155.69999998807907,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "identity",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 95.69999998807907,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "waist-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9919548753904582,
+        "contourDistance": 0.00036080548763922854,
+        "rowWidthMae": 0.0009658999678869622
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9920545854468734,
+        "contourDistance": 0.0003556279743430582,
+        "rowWidthMae": 0.0008780908798972383
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00002220679112349997,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0015381483408355764,
+        "stretchedBodyFraction": 0.0014404357318088723,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 166.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "waist-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9922533143618583,
+        "contourDistance": 0.0003480315980315981,
+        "rowWidthMae": 0.0010871601370156284
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9906998738965952,
+        "contourDistance": 0.0004195045211353362,
+        "rowWidthMae": 0.001095522907300364
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000018904880161730168,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.006220452848967405,
+        "stretchedBodyFraction": 0.0019430934957501932,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 160.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "hips-thigh-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9754259428801108,
+        "contourDistance": 0.0011093168063314714,
+        "rowWidthMae": 0.0030670460019267824
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9815061366509661,
+        "contourDistance": 0.0008344358184073816,
+        "rowWidthMae": 0.002243313128880326
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00004144268470667672,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.011909339727204867,
+        "stretchedBodyFraction": 0.0024855106029622767,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 178.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "hips-thigh-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9736232759488573,
+        "contourDistance": 0.0011960956844138506,
+        "rowWidthMae": 0.0035479052932990795
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9772938476179813,
+        "contourDistance": 0.0010295025734533417,
+        "rowWidthMae": 0.00282452566366945
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00005347893365942119,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.015596371779501912,
+        "stretchedBodyFraction": 0.0047603899202435865,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 161.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "chest-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9893291143501531,
+        "contourDistance": 0.00047787967161441177,
+        "rowWidthMae": 0.0009784441233140657
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9907747836613908,
+        "contourDistance": 0.0004138638856626662,
+        "rowWidthMae": 0.0008739094947548705
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000023027040511911268,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.002804858739170757,
+        "stretchedBodyFraction": 0.0015865335928797273,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 156.90000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "chest-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9858189606583249,
+        "contourDistance": 0.0006408089856312896,
+        "rowWidthMae": 0.0015617473506743737
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9887247716766264,
+        "contourDistance": 0.000509279529091263,
+        "rowWidthMae": 0.0013986733301220296
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00003026256354555491,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.010925377185640933,
+        "stretchedBodyFraction": 0.0030087527352297594,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 166.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "loss",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9890096250409036,
+        "contourDistance": 0.0004888109212769255,
+        "rowWidthMae": 0.0012272365392849499
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9898644454226345,
+        "contourDistance": 0.0004517339318921432,
+        "rowWidthMae": 0.0010725252890173413
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000016010333264128687,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.008697324074283516,
+        "stretchedBodyFraction": 0.0011041045370728708,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 168.2000000178814,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "gain",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9892512889486662,
+        "contourDistance": 0.0004878194914046611,
+        "rowWidthMae": 0.001202148228430743
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9919012036332722,
+        "contourDistance": 0.0003675112743954592,
+        "rowWidthMae": 0.0009596278901734105
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000015818021652267178,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.001775656540523423,
+        "stretchedBodyFraction": 0.0015157809640366931,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 161.80000001192093,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "posture-small",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9999773801714583,
+        "contourDistance": 0.0000010124277531555348,
+        "rowWidthMae": 0.000004181385142367801
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9999773801714583,
+        "contourDistance": 0.0000010124277531555348,
+        "rowWidthMae": 0.000004181385142367801
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0000015597457250462713,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.000022619828541699653,
+        "stretchedBodyFraction": 0.000022620340209916757,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 158.40000000596046,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Front",
+      "change": "unsafe-growth",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.8732502861167356,
+        "contourDistance": 0.006160203979462533,
+        "rowWidthMae": 0.013771391966388354
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9019874944171505,
+        "contourDistance": 0.004756780708648525,
+        "rowWidthMae": 0.01113711932669664
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 0.9966384705652259,
+        "contourDistance": 0.00038836764512739696,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 1.0082356316554678e-16,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0002510286448863818,
+        "invalidBodyFraction": 0.0045961275180911405,
+        "repairedBackgroundFraction": 0.10251306295098284,
+        "stretchedBodyFraction": 0.022442792880891845,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Rejected",
+      "runtimeMs": 164.59999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "identity",
+      "noWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0,
+        "stretchedBodyFraction": 0,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 107,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "waist-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9833522216577436,
+        "contourDistance": 0.0006979341150195422,
+        "rowWidthMae": 0.0014906638032541213
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9873061200539832,
+        "contourDistance": 0.0005325296800831969,
+        "rowWidthMae": 0.0009972603564547208
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00002626812590473733,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.008256971130160606,
+        "stretchedBodyFraction": 0.0028960381410193265,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 166.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "waist-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9844782421707002,
+        "contourDistance": 0.0006624548994530747,
+        "rowWidthMae": 0.0013192270124170414
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9876713929573075,
+        "contourDistance": 0.0005256870823821288,
+        "rowWidthMae": 0.001095522907300364
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000022362338148760075,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.007586954379741846,
+        "stretchedBodyFraction": 0.004471232444995962,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 191.10000002384186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "hips-thigh-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9796407418952618,
+        "contourDistance": 0.0008581645704264085,
+        "rowWidthMae": 0.0019568882466281315
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9821289670192906,
+        "contourDistance": 0.0007567663817663819,
+        "rowWidthMae": 0.001622377435238707
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000049022015547030134,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.009104345255690215,
+        "stretchedBodyFraction": 0.0031062006055125233,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 166.5,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "hips-thigh-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9777270242835949,
+        "contourDistance": 0.0009401294372159299,
+        "rowWidthMae": 0.0018941674694926143
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9815644853256421,
+        "contourDistance": 0.0007811523559555056,
+        "rowWidthMae": 0.0016307402055234428
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00006325953870618735,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.012966794758104246,
+        "stretchedBodyFraction": 0.006723353767055566,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 158.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "chest-minus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.987139837143752,
+        "contourDistance": 0.0005327182946796825,
+        "rowWidthMae": 0.0013798570969813747
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9898772345466293,
+        "contourDistance": 0.0004226624059060459,
+        "rowWidthMae": 0.0009366302718903876
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000027238388293771013,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.006187801753867376,
+        "stretchedBodyFraction": 0.002461889943671958,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 159.69999998807907,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "chest-plus",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9807876104468587,
+        "contourDistance": 0.0008102014135560127,
+        "rowWidthMae": 0.0018063583815028904
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9877081064260153,
+        "contourDistance": 0.0005242470349563047,
+        "rowWidthMae": 0.001074615981588525
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.00003579719487587261,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.0090846388806779,
+        "stretchedBodyFraction": 0.006258856872933397,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 167.59999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "loss",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9880544731766836,
+        "contourDistance": 0.0004904817404817405,
+        "rowWidthMae": 0.0010474369781631344
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9880373831775701,
+        "contourDistance": 0.0004985892072083282,
+        "rowWidthMae": 0.0009533558124598589
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000018938416073761074,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.01060202975662627,
+        "stretchedBodyFraction": 0.0023669345214416423,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 161.7999999821186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "gain",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9875309291406082,
+        "contourDistance": 0.0005267583502155732,
+        "rowWidthMae": 0.0011268832958681227
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9902699978679278,
+        "contourDistance": 0.0004148107845278584,
+        "rowWidthMae": 0.0008927257278955257
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.0000187109331561552,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.001142969750714356,
+        "stretchedBodyFraction": 0.0025356453217343813,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Limited",
+      "runtimeMs": 159.09999999403954,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "posture-small",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.9999802936249876,
+        "contourDistance": 8.114185413680647e-7,
+        "rowWidthMae": 0
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9999802936249876,
+        "contourDistance": 8.114185413680647e-7,
+        "rowWidthMae": 0
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 1,
+        "contourDistance": 0,
+        "rowWidthMae": 0,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000004344859267101664,
+        "invalidBodyFraction": 0,
+        "repairedBackgroundFraction": 0.000019706375012316486,
+        "stretchedBodyFraction": 0.00001970676336118556,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Accepted",
+      "runtimeMs": 158,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    },
+    {
+      "profile": "Female-large",
+      "view": "Side",
+      "change": "unsafe-growth",
+      "noWarp": {
+        "targetSilhouetteIoU": 0.7948252151915927,
+        "contourDistance": 0.010300598974680896,
+        "rowWidthMae": 0.023164873688717624
+      },
+      "legacyRowWarp": {
+        "targetSilhouetteIoU": 0.9033369728401801,
+        "contourDistance": 0.004829340424864288,
+        "rowWidthMae": 0.010282026065082425
+      },
+      "geometryWarp": {
+        "targetSilhouetteIoU": 0.9672378665502438,
+        "contourDistance": 0.003820770190808817,
+        "rowWidthMae": 0.0013392013551452328,
+        "alignmentWidthMae": 0,
+        "centerlineError": 0,
+        "heightResidual": 1.3308649649105107e-16,
+        "alignmentLandmarkError": 9.594519965896416e-17,
+        "sourceMaskIoU": 1,
+        "landmarkDrift": 0.000296938536184983,
+        "invalidBodyFraction": 0.03276213344975624,
+        "repairedBackgroundFraction": 0.07742634742339147,
+        "stretchedBodyFraction": 0.08577093793203813,
+        "backgroundChangedOutsideBand": 0,
+        "finiteDecodable": true
+      },
+      "state": "Rejected",
+      "runtimeMs": 157.2999999821186,
+      "identityMaxByteError": 0,
+      "workingBytes": 41569248
+    }
+  ]
+}

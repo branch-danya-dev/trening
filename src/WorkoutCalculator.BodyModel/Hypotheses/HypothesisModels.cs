@@ -22,6 +22,7 @@ public sealed record HypothesisUncertainty(string Version, double RangeMultiplie
 public sealed record EndpointGeometry(string Version, string BodyProfileJson, AvatarShapeCorrectionProfile Corrections,
     string AvatarBuilderVersion, string FitterVersion, string AssetVersion, string CompositionModelVersion, MuscleMorphState Muscle, string Sha256)
 {
+    [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] public ModelVersionManifest? ModelManifest { get; init; }
     [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] public ImmutableArray<Girth>? CorrectionProtectedPriors { get; init; }
     [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] public Muscles.MuscleGeometrySelection? MuscleGeometry { get; init; }
 }
@@ -105,7 +106,7 @@ public static class HypothesisEndpointBuilder
         foreach (var (g, value) in point.Girths) body.SetGirth(g,value);
         var geometry = new EndpointGeometry(Version, JsonSerializer.Serialize(body, ForecastJson.Default.BodyProfile), revision.Corrections,
             revision.BuilderVersion, revision.FitterVersion, revision.AssetVersion, forecast.ModelVersion, MuscleMorphState.Identity, "")
-            { CorrectionProtectedPriors=revision.Inputs.CorrectionProtectedPriors, MuscleGeometry=forecast.MuscleGeometry };
+            { ModelManifest=forecast.ModelManifest, CorrectionProtectedPriors=revision.Inputs.CorrectionProtectedPriors, MuscleGeometry=forecast.MuscleGeometry };
         geometry = geometry with { Sha256 = HypothesisHash.Of(geometry, HypothesisJson.Default.EndpointGeometry) };
         return new(forecast.StartDate.AddDays(days), week, point, geometry);
     }
@@ -118,7 +119,7 @@ public static class HypothesisEndpointBuilder
     }
     public static bool CanBuildGeometry(EndpointGeometry geometry)
     {
-        try { GeometryInputs(geometry).Validate(); geometry.MuscleGeometry?.Validate(); geometry.Muscle.Validate(); return geometry.AvatarBuilderVersion is AvatarBuilder.Version or AvatarBuilder.CurrentVersion
+        try { geometry.ModelManifest?.Validate(geometry.CompositionModelVersion, geometry.MuscleGeometry); GeometryInputs(geometry).Validate(); geometry.MuscleGeometry?.Validate(); geometry.Muscle.Validate(); return geometry.Version==Version && (geometry.AvatarBuilderVersion is AvatarBuilder.Version or AvatarBuilder.CurrentVersion)
             && geometry.FitterVersion==AvatarBuilder.FitterVersion && geometry.AssetVersion==AvatarBuilder.AssetVersion; }
         catch(ArgumentException) { return false; }
     }

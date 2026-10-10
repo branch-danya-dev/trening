@@ -2,7 +2,7 @@ import argparse
 import json
 import hashlib
 from pathlib import Path
-from .contracts import LongitudinalBodyPair, read_json, canonical, split_participants, require_data_access, contained
+from .contracts import LongitudinalBodyPair, read_json, canonical, split_participants, require_data_access, contained, restricted_output
 from .geometry import import_mesh, rigid_landmark_registration, correspondence, delete_cache
 from .harness import evaluate_registered, load_cases
 from .models import representation_benchmark
@@ -12,6 +12,8 @@ def gated_context(c):
     pairs = [LongitudinalBodyPair.from_dict(r) for r in read_json(Path(c["pairs"]))]
     manifest, gate = read_json(Path(c["split"])), read_json(Path(c["gate"]))
     root, repo = Path(c["data_root"]), Path(c["repo_root"])
+    if repo.resolve(strict=True) != Path(__file__).resolve().parents[2]:
+        raise ValueError("repo_root must identify the running checkout")
     require_data_access(gate, root, pairs, manifest, repo)
     return pairs, manifest, gate, root, repo
 
@@ -31,10 +33,16 @@ def main():
     delete.add_argument("cache", type=Path); delete.add_argument("--execute", action="store_true")
     args = parser.parse_args()
     if args.command == "split":
-        result = split_participants([LongitudinalBodyPair.from_dict(r) for r in read_json(args.pairs)], args.seed)
+        pairs = [LongitudinalBodyPair.from_dict(r) for r in read_json(args.pairs)]
+        if any(not p.synthetic for p in pairs):
+            args.output = restricted_output(args.output, args.pairs.resolve().parent, Path(__file__).resolve().parents[2])
+        result = split_participants(pairs, args.seed)
     elif args.command == "register":
         c = read_json(args.config)
-        _, _, _, root, _ = gated_context(c)
+        pairs, _, _, root, repo = gated_context(c)
+        args.output = restricted_output(args.output, root, repo)
+        if c["source"] not in {name for p in pairs for name in (p.mesh_t0, p.mesh_t1)}:
+            raise ValueError("Registration source is outside approved pair inventory")
         source = import_mesh(contained(root, c["source"]), c["unit"], c["orientation"])
         template = import_mesh(contained(root, c["template"]))
         mapping = read_json(contained(root, c["mapping"]))
@@ -43,7 +51,8 @@ def main():
                   "source_file_sha256": hashlib.sha256(contained(root, c["source"]).read_bytes()).hexdigest()}
     elif args.command == "pca-report":
         c = read_json(args.config)
-        _, manifest, _, root, _ = gated_context(c)
+        _, manifest, _, root, repo = gated_context(c)
+        args.output = restricted_output(args.output, root, repo)
         rows = read_json(contained(root, c["registered_shapes"]))
         lookup = {r["participant"]: r["split"] for r in manifest["assignments"]}
         # Reject TEST in the selection file instead of silently accepting leaked preprocessing.
@@ -53,6 +62,7 @@ def main():
     elif args.command == "evaluate":
         c = read_json(args.config)
         pairs, manifest, gate, root, repo = gated_context(c)
+        args.output = restricted_output(args.output, root, repo)
         # No synthetic override on the real-data CLI. Test-only API is exercised by unit tests.
         result = evaluate_registered(pairs=pairs, manifest=manifest, frozen=read_json(Path(c["freeze"])), model_artifact=read_json(Path(c["model"])),
                                      policy=c["policy"], gate=gate, data_root=root, repo_root=repo, cases=load_cases(root, c["cases"]))

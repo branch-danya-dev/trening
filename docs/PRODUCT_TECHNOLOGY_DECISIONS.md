@@ -1,5 +1,8 @@
 # Инструменты и архитектурные решения lifecycle
 
+Current decision, 2026-10-09: the non-AI R&D package is ready for final review. Product lifecycle Phases 1–7 are implemented; Phase 8 managed renderer and Phase 9 GPU/business work remain deferred. C0/prospective infrastructure exists; C1 remains `BLOCKED_PENDING_DATA_ACCESS`, Pseudo-DXA is blocked by prerequisite/rights. Procedural shape and muscle remain production defaults; BodyParts3D is research NO-GO for default. No participants recruited, no application submitted, no renderer integration. [Current validation matrix](MODEL_VALIDATION_STATUS.md), [hardening and reproduction](MODEL_PRODUCTION_HARDENING.md), [readiness for later controlled tests](USER_TEST_READINESS.md) supersede the historical planning status below.
+
+
 **Принято в Phase 7, 2026-10-09:** isolated WebGL2 projective triangle warp, shared MakeHuman topology и ортографический bounded alignment. У нового provider нет зависимости от live Three.js camera, WebGPU, сервера или внешнего inference. Source depth rejection, target z-buffer и bounded deterministic repair проходят versioned quality gates. Общий `IForecastRenderer` и structural depth/normal/mask bundle подготовлены для будущего Phase 8; AI adapter не реализован. Найденный legacy `PhotoWarp.cs`/`warp.js` сохранён и включён в сравнение. [Решение, численные limits и evidence](GEOMETRY_WARP.md).
 
 Статус: рекомендации для [roadmap](PRODUCT_LIFECYCLE_ROADMAP.md), 2026-10-09. Код и зависимости этим документом не меняются. [Канон](PRODUCT_LIFECYCLE.md) определяет поведение; exact provider/checkpoint закрепляется только после benchmark, license, privacy и cost review.

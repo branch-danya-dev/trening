@@ -26,7 +26,8 @@ if(args.ElementAtOrDefault(0)=="--freeze-fixture")
     foreach(var item in archive.RootElement.GetProperty("items").EnumerateArray())
     {
         var h=item.Deserialize(HypothesisJson.Default.Hypothesis)!;HypothesisService.Validate(h);
-        var c=h.Core;var f=c.Forecast with{MuscleGeometry=args[3]=="anatomical"?AnatomicalAsset.Selection:null};
+        var c=h.Core;var selection=args[3]=="anatomical"?AnatomicalAsset.Selection:null;
+        var f=c.Forecast with{MuscleGeometry=selection,ModelManifest=selection is null?null:ModelRegistry.FreezeV1(c.Forecast.ModelVersion,selection)};
         c=c with{Forecast=f,ExactEndpoint=HypothesisEndpointBuilder.Build(f,c.CurrentAvatarRevisionAtIssue,c.HorizonDays,c.Uncertainty)};
         h=h with{Core=c,CoreHash=HypothesisHash.Of(c,HypothesisJson.Default.HypothesisCore)};HypothesisService.Validate(h);
         items.Add(JsonSerializer.Serialize(h,HypothesisJson.Default.Hypothesis));
@@ -50,7 +51,7 @@ foreach(var (name,exercises) in new[]{("bench-heavy",new[]{"bench-press"}),("squ
 {
     var input=new ForecastInput{Weeks=12,IntakeKcalPerDay=3100,StrengthTraining=true,StrengthPerWeek=3,Experience=TrainingExperience.Beginner,StrengthProgram=new([new(exercises.Select(e=>new PlannedExercise(e,Enumerable.Range(0,4).Select(_=>new TrainingSet(10,50,2)).ToImmutableArray())).ToImmutableArray(),3)])};
     var f=ForecastSnapshot.Create(BodyDefaults.Default(),input,new(2026,1,5),new(2026,1,5,9,0,0,TimeSpan.Zero));
-    f=f with{Id=$"00000000-0000-4000-8000-{programs.Count+1:000000000000}",MuscleGeometry=AnatomicalAsset.Selection};programs.Add(f);
+    f=f with{Id=$"00000000-0000-4000-8000-{programs.Count+1:000000000000}",MuscleGeometry=AnatomicalAsset.Selection,ModelManifest=ModelRegistry.FreezeV1(f.ModelVersion,AnatomicalAsset.Selection)};programs.Add(f);
     var week=f.Muscle!.Weeks[^1];namedStates.Add((name,week.Morph,name,week.Groups.ToImmutableDictionary(g=>g.Key,g=>g.Value.LeanDeltaKg)));
 }
 namedStates.Add(("all-max",new(MuscleDefinitions.Groups.ToImmutableDictionary(g=>g.Id,_=>.25)),"all-max",null));

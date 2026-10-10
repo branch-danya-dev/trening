@@ -1,2 +1,4 @@
 # Pinned input snapshots are hashed as bytes; never rewrite their line endings.
 docs/assets/bodyparts3d/* -text
+# Frozen benchmark reports carry byte hashes in provenance.json.
+docs/evidence/model-hardening/*.json -text

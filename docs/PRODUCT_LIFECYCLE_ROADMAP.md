@@ -1,5 +1,8 @@
 # Roadmap реализации продуктового lifecycle
 
+Current decision, 2026-10-09: the non-AI R&D package is ready for final review. Product lifecycle Phases 1–7 are implemented; Phase 8 managed renderer and Phase 9 GPU/business work remain deferred. C0/prospective infrastructure exists; C1 remains `BLOCKED_PENDING_DATA_ACCESS`, Pseudo-DXA is blocked by prerequisite/rights. Procedural shape and muscle remain production defaults; BodyParts3D is research NO-GO for default. No participants recruited, no application submitted, no renderer integration. [Current validation matrix](MODEL_VALIDATION_STATUS.md), [hardening and reproduction](MODEL_PRODUCTION_HARDENING.md), [readiness for later controlled tests](USER_TEST_READINESS.md) supersede the historical planning status below.
+
+
 **Текущая Phase 6 (2026-10-09):** Current Avatar check-ins реализованы от merge #25 `106efdaf`, после [успешного main CI](https://github.com/branch-danya-dev/trening/actions/runs/37899920321). Контракт — [CHECKIN_LIFECYCLE](CHECKIN_LIFECYCLE.md), проверки и ограничения — [evidence](evidence/checkin/README.md). Phase 7–9 остаются планом. Записи Phase 1–5 ниже сохранены как исторические.
 
 **Phase 4, 2026-10-09:** Nutrition v1 реализована от `main 0f943cc4fdd637d30d71f7d7519bb0aaf0d8e05c` после merge #23 и #19. Ручные КБЖУ/граммы, отдельные meal plan/actual, явная полнота, frozen nutrition, schema-2 migration, protected edit/delete/move, Forecast v3 adapter без Hypothesis. Контракт — [NUTRITION_V1](NUTRITION_V1.md). Phase 5–9 остаются планом; новый PR не мержится автоматически. Исторические статусы ниже сохранены по фазам.

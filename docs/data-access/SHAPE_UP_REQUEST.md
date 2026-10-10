@@ -49,7 +49,7 @@ Before submission the user/organisation must supply: legal entity and address; P
 
 ## Questions requiring written answers
 
-1. Can this commercial entity apply directly, or is a bona fide academic/research collaborator mandatory? What IRB/ethics determination is required for secondary use?
+1. Can an independent developer without institutional affiliation apply? If not, may a future commercial entity apply directly, or is a research partner mandatory? Is university affiliation specifically required? What IRB/ethics determination is required for secondary use of already de-identified data?
 2. Which longitudinal cohorts and surfaces are releasable, under which dataset version and study-specific agreements?
 3. Is derivative model training permitted? May PCA bases, latent regressors and learned weights be commercially used, redistributed and embedded in a local app? Are weights subject to disclosure review or withdrawal?
 4. Are commercial research, product deployment and model distribution separate permissions or fees?

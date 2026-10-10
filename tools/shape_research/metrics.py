@@ -147,5 +147,7 @@ def aggregate(rows, minimum_participants=5):
                     values.append(float(np.mean(present)))
             metrics[key] = {"participant_mean": float(np.mean(values)) if values else None, "participants": len(values)}
         result[label] = {"participants": len(people), "pairs": len(cases), "metrics": metrics,
-                         "fallback_count": sum(c.get("fallback", False) for c in cases)}
+                         "fallback_count": sum(c.get("fallback") is True for c in cases),
+                         "support_observed_pairs": sum(isinstance(c.get("fallback"), bool) for c in cases),
+                         "support_missing_pairs": sum(not isinstance(c.get("fallback"), bool) for c in cases)}
     return result

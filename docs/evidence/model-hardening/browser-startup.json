@@ -1,0 +1,3384 @@
+{
+  "version": "browser-startup-performance-1",
+  "browser": "154.0.4258.62",
+  "os": "win32",
+  "architecture": "x64",
+  "logicalProcessors": 12,
+  "samples": [
+    {
+      "kind": "fresh-context",
+      "readyMs": 2307,
+      "jsHeapUsedBytes": 8975804,
+      "resources": [
+        {
+          "name": "/css/app.css",
+          "ms": 16.19999998807907,
+          "encodedBytes": 54810,
+          "decodedBytes": 54772,
+          "transferBytes": 55110
+        },
+        {
+          "name": "/_framework/blazor.webassembly.w3qd1tpl0e.js",
+          "ms": 10.799999982118607,
+          "encodedBytes": 18922,
+          "decodedBytes": 60682,
+          "transferBytes": 19222
+        },
+        {
+          "name": "/_framework/dotnet.js",
+          "ms": 52.69999998807907,
+          "encodedBytes": 82631,
+          "decodedBytes": 82588,
+          "transferBytes": 82931
+        },
+        {
+          "name": "/js/pwa.js",
+          "ms": 3.600000023841858,
+          "encodedBytes": 1994,
+          "decodedBytes": 1961,
+          "transferBytes": 2294
+        },
+        {
+          "name": "/icons/icon.svg",
+          "ms": 1.5999999940395355,
+          "encodedBytes": 1047,
+          "decodedBytes": 1014,
+          "transferBytes": 1347
+        },
+        {
+          "name": "/_framework/dotnet.native.js",
+          "ms": 2.2000000178813934,
+          "encodedBytes": 34953,
+          "decodedBytes": 145050,
+          "transferBytes": 35253
+        },
+        {
+          "name": "/_framework/dotnet.runtime.js",
+          "ms": 2.300000011920929,
+          "encodedBytes": 57290,
+          "decodedBytes": 198480,
+          "transferBytes": 57590
+        },
+        {
+          "name": "/_framework/dotnet.native.wasm",
+          "ms": 104.69999998807907,
+          "encodedBytes": 1207786,
+          "decodedBytes": 3001422,
+          "transferBytes": 1208086
+        },
+        {
+          "name": "/_framework/System.Runtime.InteropServices.JavaScript.wasm",
+          "ms": 2.4000000059604645,
+          "encodedBytes": 79680,
+          "decodedBytes": 79637,
+          "transferBytes": 79980
+        },
+        {
+          "name": "/_framework/System.Private.CoreLib.wasm",
+          "ms": 192.30000001192093,
+          "encodedBytes": 4870686,
+          "decodedBytes": 4869913,
+          "transferBytes": 4870986
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.Core.pdb",
+          "ms": 10.200000017881393,
+          "encodedBytes": 42098,
+          "decodedBytes": 42060,
+          "transferBytes": 42398
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.BodyModel.pdb",
+          "ms": 22.600000023841858,
+          "encodedBytes": 780500,
+          "decodedBytes": 780352,
+          "transferBytes": 780800
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.Web.pdb",
+          "ms": 35.80000001192093,
+          "encodedBytes": 1381059,
+          "decodedBytes": 1380816,
+          "transferBytes": 1381359
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Authorization.wasm",
+          "ms": 3.9000000059604645,
+          "encodedBytes": 45371,
+          "decodedBytes": 45333,
+          "transferBytes": 45671
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Components.wasm",
+          "ms": 13,
+          "encodedBytes": 388973,
+          "decodedBytes": 388885,
+          "transferBytes": 389273
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Components.Forms.wasm",
+          "ms": 12.400000005960464,
+          "encodedBytes": 37691,
+          "decodedBytes": 37653,
+          "transferBytes": 37991
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Components.Web.wasm",
+          "ms": 19.80000001192093,
+          "encodedBytes": 179535,
+          "decodedBytes": 179477,
+          "transferBytes": 179835
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Components.WebAssembly.wasm",
+          "ms": 18.200000017881393,
+          "encodedBytes": 156490,
+          "decodedBytes": 156437,
+          "transferBytes": 156790
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Metadata.wasm",
+          "ms": 21.599999994039536,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.wasm",
+          "ms": 22.900000005960464,
+          "encodedBytes": 34619,
+          "decodedBytes": 34581,
+          "transferBytes": 34919
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.Abstractions.wasm",
+          "ms": 25.200000017881393,
+          "encodedBytes": 18230,
+          "decodedBytes": 18197,
+          "transferBytes": 18530
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.FileExtensions.wasm",
+          "ms": 24.900000005960464,
+          "encodedBytes": 18230,
+          "decodedBytes": 18197,
+          "transferBytes": 18530
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.Binder.wasm",
+          "ms": 25.200000017881393,
+          "encodedBytes": 33083,
+          "decodedBytes": 33045,
+          "transferBytes": 33383
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.Json.wasm",
+          "ms": 27,
+          "encodedBytes": 17718,
+          "decodedBytes": 17685,
+          "transferBytes": 18018
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.DependencyInjection.wasm",
+          "ms": 27.80000001192093,
+          "encodedBytes": 85312,
+          "decodedBytes": 85269,
+          "transferBytes": 85612
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.DependencyInjection.Abstractions.wasm",
+          "ms": 27.19999998807907,
+          "encodedBytes": 55611,
+          "decodedBytes": 55573,
+          "transferBytes": 55911
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Diagnostics.wasm",
+          "ms": 29.099999994039536,
+          "encodedBytes": 25910,
+          "decodedBytes": 25877,
+          "transferBytes": 26210
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Diagnostics.Abstractions.wasm",
+          "ms": 30,
+          "encodedBytes": 20790,
+          "decodedBytes": 20757,
+          "transferBytes": 21090
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.FileProviders.Abstractions.wasm",
+          "ms": 29.799999982118607,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.FileProviders.Physical.wasm",
+          "ms": 30.599999994039536,
+          "encodedBytes": 35131,
+          "decodedBytes": 35093,
+          "transferBytes": 35431
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.FileSystemGlobbing.wasm",
+          "ms": 31.400000005960464,
+          "encodedBytes": 37691,
+          "decodedBytes": 37653,
+          "transferBytes": 37991
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Logging.wasm",
+          "ms": 31.900000005960464,
+          "encodedBytes": 41275,
+          "decodedBytes": 41237,
+          "transferBytes": 41575
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Logging.Abstractions.wasm",
+          "ms": 32.400000005960464,
+          "encodedBytes": 56635,
+          "decodedBytes": 56597,
+          "transferBytes": 56935
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Options.wasm",
+          "ms": 33.099999994039536,
+          "encodedBytes": 55099,
+          "decodedBytes": 55061,
+          "transferBytes": 55399
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Options.ConfigurationExtensions.wasm",
+          "ms": 33.099999994039536,
+          "encodedBytes": 11574,
+          "decodedBytes": 11541,
+          "transferBytes": 11874
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Primitives.wasm",
+          "ms": 35.29999998211861,
+          "encodedBytes": 34619,
+          "decodedBytes": 34581,
+          "transferBytes": 34919
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Validation.wasm",
+          "ms": 35.900000005960464,
+          "encodedBytes": 33083,
+          "decodedBytes": 33045,
+          "transferBytes": 33383
+        },
+        {
+          "name": "/_framework/Microsoft.JSInterop.wasm",
+          "ms": 36.20000001788139,
+          "encodedBytes": 64827,
+          "decodedBytes": 64789,
+          "transferBytes": 65127
+        },
+        {
+          "name": "/_framework/Microsoft.JSInterop.WebAssembly.wasm",
+          "ms": 35.79999998211861,
+          "encodedBytes": 14646,
+          "decodedBytes": 14613,
+          "transferBytes": 14946
+        },
+        {
+          "name": "/_framework/Microsoft.CSharp.wasm",
+          "ms": 38.5,
+          "encodedBytes": 301411,
+          "decodedBytes": 301333,
+          "transferBytes": 301711
+        },
+        {
+          "name": "/_framework/Microsoft.VisualBasic.Core.wasm",
+          "ms": 39.69999998807907,
+          "encodedBytes": 418674,
+          "decodedBytes": 418581,
+          "transferBytes": 418974
+        },
+        {
+          "name": "/_framework/Microsoft.VisualBasic.wasm",
+          "ms": 36.70000001788139,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/Microsoft.Win32.Primitives.wasm",
+          "ms": 36.900000005960464,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.AppContext.wasm",
+          "ms": 38.19999998807907,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/Microsoft.Win32.Registry.wasm",
+          "ms": 38.29999998211861,
+          "encodedBytes": 22838,
+          "decodedBytes": 22805,
+          "transferBytes": 23138
+        },
+        {
+          "name": "/_framework/System.Buffers.wasm",
+          "ms": 39.099999994039536,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Collections.Concurrent.wasm",
+          "ms": 40.099999994039536,
+          "encodedBytes": 78656,
+          "decodedBytes": 78613,
+          "transferBytes": 78956
+        },
+        {
+          "name": "/_framework/System.Collections.Immutable.wasm",
+          "ms": 41,
+          "encodedBytes": 240985,
+          "decodedBytes": 240917,
+          "transferBytes": 241285
+        },
+        {
+          "name": "/_framework/System.Collections.NonGeneric.wasm",
+          "ms": 40.69999998807907,
+          "encodedBytes": 37691,
+          "decodedBytes": 37653,
+          "transferBytes": 37991
+        },
+        {
+          "name": "/_framework/System.Collections.Specialized.wasm",
+          "ms": 40.599999994039536,
+          "encodedBytes": 37691,
+          "decodedBytes": 37653,
+          "transferBytes": 37991
+        },
+        {
+          "name": "/_framework/System.Collections.wasm",
+          "ms": 41.5,
+          "encodedBytes": 102725,
+          "decodedBytes": 102677,
+          "transferBytes": 103025
+        },
+        {
+          "name": "/_framework/System.ComponentModel.Annotations.wasm",
+          "ms": 41.80000001192093,
+          "encodedBytes": 92480,
+          "decodedBytes": 92437,
+          "transferBytes": 92780
+        },
+        {
+          "name": "/_framework/System.ComponentModel.DataAnnotations.wasm",
+          "ms": 42,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.ComponentModel.EventBasedAsync.wasm",
+          "ms": 42,
+          "encodedBytes": 16182,
+          "decodedBytes": 16149,
+          "transferBytes": 16482
+        },
+        {
+          "name": "/_framework/System.ComponentModel.Primitives.wasm",
+          "ms": 42.30000001192093,
+          "encodedBytes": 32054,
+          "decodedBytes": 32021,
+          "transferBytes": 32354
+        },
+        {
+          "name": "/_framework/System.ComponentModel.TypeConverter.wasm",
+          "ms": 46.39999997615814,
+          "encodedBytes": 306531,
+          "decodedBytes": 306453,
+          "transferBytes": 306831
+        },
+        {
+          "name": "/_framework/System.ComponentModel.wasm",
+          "ms": 42.5,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Configuration.wasm",
+          "ms": 42.599999994039536,
+          "encodedBytes": 9014,
+          "decodedBytes": 8981,
+          "transferBytes": 9314
+        },
+        {
+          "name": "/_framework/System.Console.wasm",
+          "ms": 43.20000001788139,
+          "encodedBytes": 43835,
+          "decodedBytes": 43797,
+          "transferBytes": 44135
+        },
+        {
+          "name": "/_framework/System.Core.wasm",
+          "ms": 43.69999998807907,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/System.Data.Common.wasm",
+          "ms": 51.69999998807907,
+          "encodedBytes": 1008076,
+          "decodedBytes": 1007893,
+          "transferBytes": 1008376
+        },
+        {
+          "name": "/_framework/System.Data.DataSetExtensions.wasm",
+          "ms": 44,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Data.wasm",
+          "ms": 44.30000001192093,
+          "encodedBytes": 15158,
+          "decodedBytes": 15125,
+          "transferBytes": 15458
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Contracts.wasm",
+          "ms": 45.10000002384186,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Debug.wasm",
+          "ms": 45.099999994039536,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Diagnostics.DiagnosticSource.wasm",
+          "ms": 47.900000005960464,
+          "encodedBytes": 192335,
+          "decodedBytes": 192277,
+          "transferBytes": 192635
+        },
+        {
+          "name": "/_framework/System.Diagnostics.FileVersionInfo.wasm",
+          "ms": 46.900000005960464,
+          "encodedBytes": 12598,
+          "decodedBytes": 12565,
+          "transferBytes": 12898
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Process.wasm",
+          "ms": 47.099999994039536,
+          "encodedBytes": 46395,
+          "decodedBytes": 46357,
+          "transferBytes": 46695
+        },
+        {
+          "name": "/_framework/System.Diagnostics.StackTrace.wasm",
+          "ms": 48.5,
+          "encodedBytes": 15670,
+          "decodedBytes": 15637,
+          "transferBytes": 15970
+        },
+        {
+          "name": "/_framework/System.Diagnostics.TextWriterTraceListener.wasm",
+          "ms": 48.69999998807907,
+          "encodedBytes": 21302,
+          "decodedBytes": 21269,
+          "transferBytes": 21602
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Tools.wasm",
+          "ms": 49.19999998807907,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Diagnostics.TraceSource.wasm",
+          "ms": 49.80000001192093,
+          "encodedBytes": 48443,
+          "decodedBytes": 48405,
+          "transferBytes": 48743
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Tracing.wasm",
+          "ms": 49.80000001192093,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Drawing.Primitives.wasm",
+          "ms": 50.19999998807907,
+          "encodedBytes": 54587,
+          "decodedBytes": 54549,
+          "transferBytes": 54887
+        },
+        {
+          "name": "/_framework/System.Drawing.wasm",
+          "ms": 51.099999994039536,
+          "encodedBytes": 10038,
+          "decodedBytes": 10005,
+          "transferBytes": 10338
+        },
+        {
+          "name": "/_framework/System.Dynamic.Runtime.wasm",
+          "ms": 51,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Formats.Asn1.wasm",
+          "ms": 52.30000001192093,
+          "encodedBytes": 86848,
+          "decodedBytes": 86805,
+          "transferBytes": 87148
+        },
+        {
+          "name": "/_framework/System.Formats.Tar.wasm",
+          "ms": 52,
+          "encodedBytes": 28470,
+          "decodedBytes": 28437,
+          "transferBytes": 28770
+        },
+        {
+          "name": "/_framework/System.Globalization.Calendars.wasm",
+          "ms": 51.89999997615814,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Globalization.Extensions.wasm",
+          "ms": 51.79999998211861,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Globalization.wasm",
+          "ms": 52.900000005960464,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.IO.Compression.Brotli.wasm",
+          "ms": 52.80000001192093,
+          "encodedBytes": 18230,
+          "decodedBytes": 18197,
+          "transferBytes": 18530
+        },
+        {
+          "name": "/_framework/System.IO.Compression.FileSystem.wasm",
+          "ms": 52.900000005960464,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.IO.Compression.ZipFile.wasm",
+          "ms": 52.79999998211861,
+          "encodedBytes": 43323,
+          "decodedBytes": 43285,
+          "transferBytes": 43623
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.AccessControl.wasm",
+          "ms": 53.69999998807907,
+          "encodedBytes": 21814,
+          "decodedBytes": 21781,
+          "transferBytes": 22114
+        },
+        {
+          "name": "/_framework/System.IO.Compression.wasm",
+          "ms": 54.19999998807907,
+          "encodedBytes": 157514,
+          "decodedBytes": 157461,
+          "transferBytes": 157814
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.DriveInfo.wasm",
+          "ms": 53.599999994039536,
+          "encodedBytes": 13622,
+          "decodedBytes": 13589,
+          "transferBytes": 13922
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.Primitives.wasm",
+          "ms": 53.599999994039536,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.Watcher.wasm",
+          "ms": 54.599999994039536,
+          "encodedBytes": 22838,
+          "decodedBytes": 22805,
+          "transferBytes": 23138
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.wasm",
+          "ms": 54.29999998211861,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.IO.IsolatedStorage.wasm",
+          "ms": 54.5,
+          "encodedBytes": 24886,
+          "decodedBytes": 24853,
+          "transferBytes": 25186
+        },
+        {
+          "name": "/_framework/System.IO.MemoryMappedFiles.wasm",
+          "ms": 54.5,
+          "encodedBytes": 39739,
+          "decodedBytes": 39701,
+          "transferBytes": 40039
+        },
+        {
+          "name": "/_framework/System.IO.Pipes.AccessControl.wasm",
+          "ms": 55.20000001788139,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/System.IO.Pipelines.wasm",
+          "ms": 55.5,
+          "encodedBytes": 67904,
+          "decodedBytes": 67861,
+          "transferBytes": 68204
+        },
+        {
+          "name": "/_framework/System.IO.UnmanagedMemoryStream.wasm",
+          "ms": 55.19999998807907,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.IO.Pipes.wasm",
+          "ms": 55.29999998211861,
+          "encodedBytes": 32054,
+          "decodedBytes": 32021,
+          "transferBytes": 32354
+        },
+        {
+          "name": "/_framework/System.IO.wasm",
+          "ms": 55.80000001192093,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Linq.AsyncEnumerable.wasm",
+          "ms": 59.20000001788139,
+          "encodedBytes": 446327,
+          "decodedBytes": 446229,
+          "transferBytes": 446627
+        },
+        {
+          "name": "/_framework/System.Linq.Expressions.wasm",
+          "ms": 60.5,
+          "encodedBytes": 565131,
+          "decodedBytes": 565013,
+          "transferBytes": 565431
+        },
+        {
+          "name": "/_framework/System.Linq.Parallel.wasm",
+          "ms": 57.79999998211861,
+          "encodedBytes": 212820,
+          "decodedBytes": 212757,
+          "transferBytes": 213120
+        },
+        {
+          "name": "/_framework/System.Linq.Queryable.wasm",
+          "ms": 56.80000001192093,
+          "encodedBytes": 68416,
+          "decodedBytes": 68373,
+          "transferBytes": 68716
+        },
+        {
+          "name": "/_framework/System.Linq.wasm",
+          "ms": 59.5,
+          "encodedBytes": 190799,
+          "decodedBytes": 190741,
+          "transferBytes": 191099
+        },
+        {
+          "name": "/_framework/System.Memory.wasm",
+          "ms": 59,
+          "encodedBytes": 45371,
+          "decodedBytes": 45333,
+          "transferBytes": 45671
+        },
+        {
+          "name": "/_framework/System.Net.Http.Json.wasm",
+          "ms": 60.29999998211861,
+          "encodedBytes": 45883,
+          "decodedBytes": 45845,
+          "transferBytes": 46183
+        },
+        {
+          "name": "/_framework/System.Net.Http.wasm",
+          "ms": 61.099999994039536,
+          "encodedBytes": 286558,
+          "decodedBytes": 286485,
+          "transferBytes": 286858
+        },
+        {
+          "name": "/_framework/System.Net.HttpListener.wasm",
+          "ms": 60.69999998807907,
+          "encodedBytes": 45883,
+          "decodedBytes": 45845,
+          "transferBytes": 46183
+        },
+        {
+          "name": "/_framework/System.Net.Mail.wasm",
+          "ms": 62.599999994039536,
+          "encodedBytes": 95040,
+          "decodedBytes": 94997,
+          "transferBytes": 95340
+        },
+        {
+          "name": "/_framework/System.Net.NameResolution.wasm",
+          "ms": 62.30000001192093,
+          "encodedBytes": 14134,
+          "decodedBytes": 14101,
+          "transferBytes": 14434
+        },
+        {
+          "name": "/_framework/System.Net.NetworkInformation.wasm",
+          "ms": 62.29999998211861,
+          "encodedBytes": 32054,
+          "decodedBytes": 32021,
+          "transferBytes": 32354
+        },
+        {
+          "name": "/_framework/System.Net.Ping.wasm",
+          "ms": 62.29999998211861,
+          "encodedBytes": 17718,
+          "decodedBytes": 17685,
+          "transferBytes": 18018
+        },
+        {
+          "name": "/_framework/System.Net.Primitives.wasm",
+          "ms": 63.900000005960464,
+          "encodedBytes": 97088,
+          "decodedBytes": 97045,
+          "transferBytes": 97388
+        },
+        {
+          "name": "/_framework/System.Net.Quic.wasm",
+          "ms": 63.400000005960464,
+          "encodedBytes": 28982,
+          "decodedBytes": 28949,
+          "transferBytes": 29282
+        },
+        {
+          "name": "/_framework/System.Net.Requests.wasm",
+          "ms": 63.60000002384186,
+          "encodedBytes": 55611,
+          "decodedBytes": 55573,
+          "transferBytes": 55911
+        },
+        {
+          "name": "/_framework/System.Net.Security.wasm",
+          "ms": 63.79999998211861,
+          "encodedBytes": 104261,
+          "decodedBytes": 104213,
+          "transferBytes": 104561
+        },
+        {
+          "name": "/_framework/System.Net.ServerSentEvents.wasm",
+          "ms": 64.19999998807907,
+          "encodedBytes": 30518,
+          "decodedBytes": 30485,
+          "transferBytes": 30818
+        },
+        {
+          "name": "/_framework/System.Net.ServicePoint.wasm",
+          "ms": 64.7999999821186,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Net.Sockets.wasm",
+          "ms": 65.5,
+          "encodedBytes": 64315,
+          "decodedBytes": 64277,
+          "transferBytes": 64615
+        },
+        {
+          "name": "/_framework/System.Net.WebClient.wasm",
+          "ms": 65.5,
+          "encodedBytes": 45883,
+          "decodedBytes": 45845,
+          "transferBytes": 46183
+        },
+        {
+          "name": "/_framework/System.Net.WebHeaderCollection.wasm",
+          "ms": 65.59999999403954,
+          "encodedBytes": 22838,
+          "decodedBytes": 22805,
+          "transferBytes": 23138
+        },
+        {
+          "name": "/_framework/System.Net.WebProxy.wasm",
+          "ms": 66.90000000596046,
+          "encodedBytes": 11574,
+          "decodedBytes": 11541,
+          "transferBytes": 11874
+        },
+        {
+          "name": "/_framework/System.Net.WebSockets.Client.wasm",
+          "ms": 67.09999999403954,
+          "encodedBytes": 42299,
+          "decodedBytes": 42261,
+          "transferBytes": 42599
+        },
+        {
+          "name": "/_framework/System.Net.WebSockets.wasm",
+          "ms": 67.30000001192093,
+          "encodedBytes": 99141,
+          "decodedBytes": 99093,
+          "transferBytes": 99441
+        },
+        {
+          "name": "/_framework/System.Net.wasm",
+          "ms": 67.09999999403954,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Numerics.Vectors.wasm",
+          "ms": 67.59999999403954,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Numerics.wasm",
+          "ms": 68.09999999403954,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.ObjectModel.wasm",
+          "ms": 68.7000000178814,
+          "encodedBytes": 31030,
+          "decodedBytes": 30997,
+          "transferBytes": 31330
+        },
+        {
+          "name": "/_framework/System.Private.DataContractSerialization.wasm",
+          "ms": 88.10000002384186,
+          "encodedBytes": 849331,
+          "decodedBytes": 849173,
+          "transferBytes": 849631
+        },
+        {
+          "name": "/_framework/System.Private.Uri.wasm",
+          "ms": 68.69999998807907,
+          "encodedBytes": 95552,
+          "decodedBytes": 95509,
+          "transferBytes": 95852
+        },
+        {
+          "name": "/_framework/System.Private.Xml.Linq.wasm",
+          "ms": 82.59999999403954,
+          "encodedBytes": 143690,
+          "decodedBytes": 143637,
+          "transferBytes": 143990
+        },
+        {
+          "name": "/_framework/System.Private.Xml.wasm",
+          "ms": 204.90000000596046,
+          "encodedBytes": 3096848,
+          "decodedBytes": 3096345,
+          "transferBytes": 3097148
+        },
+        {
+          "name": "/_framework/System.Reflection.DispatchProxy.wasm",
+          "ms": 81.40000000596046,
+          "encodedBytes": 27958,
+          "decodedBytes": 27925,
+          "transferBytes": 28258
+        },
+        {
+          "name": "/_framework/System.Reflection.Emit.ILGeneration.wasm",
+          "ms": 83.19999998807907,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Reflection.Emit.Lightweight.wasm",
+          "ms": 84.2999999821186,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Reflection.Emit.wasm",
+          "ms": 85,
+          "encodedBytes": 123205,
+          "decodedBytes": 123157,
+          "transferBytes": 123505
+        },
+        {
+          "name": "/_framework/System.Reflection.Extensions.wasm",
+          "ms": 84.80000001192093,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Reflection.Primitives.wasm",
+          "ms": 86,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Reflection.Metadata.wasm",
+          "ms": 90.10000002384186,
+          "encodedBytes": 493441,
+          "decodedBytes": 493333,
+          "transferBytes": 493741
+        },
+        {
+          "name": "/_framework/System.Reflection.TypeExtensions.wasm",
+          "ms": 86.2999999821186,
+          "encodedBytes": 14134,
+          "decodedBytes": 14101,
+          "transferBytes": 14434
+        },
+        {
+          "name": "/_framework/System.Reflection.wasm",
+          "ms": 87.5,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Resources.Reader.wasm",
+          "ms": 87.5,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Resources.ResourceManager.wasm",
+          "ms": 88.90000000596046,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Resources.Writer.wasm",
+          "ms": 88.90000000596046,
+          "encodedBytes": 16694,
+          "decodedBytes": 16661,
+          "transferBytes": 16994
+        },
+        {
+          "name": "/_framework/System.Runtime.CompilerServices.Unsafe.wasm",
+          "ms": 88.7999999821186,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Runtime.CompilerServices.VisualC.wasm",
+          "ms": 90.69999998807907,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Runtime.Extensions.wasm",
+          "ms": 90.5,
+          "encodedBytes": 7478,
+          "decodedBytes": 7445,
+          "transferBytes": 7778
+        },
+        {
+          "name": "/_framework/System.Runtime.Handles.wasm",
+          "ms": 90.59999999403954,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Runtime.InteropServices.RuntimeInformation.wasm",
+          "ms": 91,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Runtime.InteropServices.wasm",
+          "ms": 92.2000000178814,
+          "encodedBytes": 54587,
+          "decodedBytes": 54549,
+          "transferBytes": 54887
+        },
+        {
+          "name": "/_framework/System.Runtime.Intrinsics.wasm",
+          "ms": 91.5,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Runtime.Loader.wasm",
+          "ms": 91.59999999403954,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Runtime.Numerics.wasm",
+          "ms": 92.90000000596046,
+          "encodedBytes": 134986,
+          "decodedBytes": 134933,
+          "transferBytes": 135286
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.Formatters.wasm",
+          "ms": 92.19999998807907,
+          "encodedBytes": 55611,
+          "decodedBytes": 55573,
+          "transferBytes": 55911
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.Json.wasm",
+          "ms": 92.2999999821186,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.Primitives.wasm",
+          "ms": 92.19999998807907,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.Xml.wasm",
+          "ms": 93.7000000178814,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.wasm",
+          "ms": 93.90000000596046,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Runtime.wasm",
+          "ms": 93.7999999821186,
+          "encodedBytes": 34619,
+          "decodedBytes": 34581,
+          "transferBytes": 34919
+        },
+        {
+          "name": "/_framework/System.Security.AccessControl.wasm",
+          "ms": 94,
+          "encodedBytes": 47931,
+          "decodedBytes": 47893,
+          "transferBytes": 48231
+        },
+        {
+          "name": "/_framework/System.Security.Claims.wasm",
+          "ms": 95.09999999403954,
+          "encodedBytes": 44859,
+          "decodedBytes": 44821,
+          "transferBytes": 45159
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Algorithms.wasm",
+          "ms": 94.80000001192093,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Cng.wasm",
+          "ms": 94.60000002384186,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Csp.wasm",
+          "ms": 94.7999999821186,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Encoding.wasm",
+          "ms": 95.7999999821186,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.OpenSsl.wasm",
+          "ms": 95.90000000596046,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Primitives.wasm",
+          "ms": 95.90000000596046,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.X509Certificates.wasm",
+          "ms": 96,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.wasm",
+          "ms": 104.2000000178814,
+          "encodedBytes": 643989,
+          "decodedBytes": 643861,
+          "transferBytes": 644289
+        },
+        {
+          "name": "/_framework/System.Security.Principal.Windows.wasm",
+          "ms": 96.69999998807907,
+          "encodedBytes": 27446,
+          "decodedBytes": 27413,
+          "transferBytes": 27746
+        },
+        {
+          "name": "/_framework/System.Security.Principal.wasm",
+          "ms": 96.69999998807907,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Security.SecureString.wasm",
+          "ms": 96.80000001192093,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Security.wasm",
+          "ms": 97.60000002384186,
+          "encodedBytes": 7990,
+          "decodedBytes": 7957,
+          "transferBytes": 8290
+        },
+        {
+          "name": "/_framework/System.ServiceModel.Web.wasm",
+          "ms": 97.7999999821186,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.ServiceProcess.wasm",
+          "ms": 97.5,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Text.Encoding.CodePages.wasm",
+          "ms": 104.59999999403954,
+          "encodedBytes": 732580,
+          "decodedBytes": 732437,
+          "transferBytes": 732880
+        },
+        {
+          "name": "/_framework/System.Text.Encoding.Extensions.wasm",
+          "ms": 98.60000002384186,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Text.Encoding.wasm",
+          "ms": 98.39999997615814,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Text.Encodings.Web.wasm",
+          "ms": 100,
+          "encodedBytes": 55611,
+          "decodedBytes": 55573,
+          "transferBytes": 55911
+        },
+        {
+          "name": "/_framework/System.Text.Json.wasm",
+          "ms": 105,
+          "encodedBytes": 638869,
+          "decodedBytes": 638741,
+          "transferBytes": 639169
+        },
+        {
+          "name": "/_framework/System.Text.RegularExpressions.wasm",
+          "ms": 104.30000001192093,
+          "encodedBytes": 374637,
+          "decodedBytes": 374549,
+          "transferBytes": 374937
+        },
+        {
+          "name": "/_framework/System.Threading.AccessControl.wasm",
+          "ms": 104.7000000178814,
+          "encodedBytes": 23350,
+          "decodedBytes": 23317,
+          "transferBytes": 23650
+        },
+        {
+          "name": "/_framework/System.Threading.Channels.wasm",
+          "ms": 106,
+          "encodedBytes": 56123,
+          "decodedBytes": 56085,
+          "transferBytes": 56423
+        },
+        {
+          "name": "/_framework/System.Threading.Overlapped.wasm",
+          "ms": 105.69999998807907,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Threading.Tasks.Dataflow.wasm",
+          "ms": 107.19999998807907,
+          "encodedBytes": 175439,
+          "decodedBytes": 175381,
+          "transferBytes": 175739
+        },
+        {
+          "name": "/_framework/System.Threading.Tasks.Extensions.wasm",
+          "ms": 106.09999999403954,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Threading.Tasks.Parallel.wasm",
+          "ms": 106.7000000178814,
+          "encodedBytes": 51003,
+          "decodedBytes": 50965,
+          "transferBytes": 51303
+        },
+        {
+          "name": "/_framework/System.Threading.Tasks.wasm",
+          "ms": 106.59999999403954,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.Threading.Thread.wasm",
+          "ms": 107,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Threading.ThreadPool.wasm",
+          "ms": 107.59999999403954,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Threading.Timer.wasm",
+          "ms": 107.59999999403954,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Threading.wasm",
+          "ms": 107.5,
+          "encodedBytes": 34619,
+          "decodedBytes": 34581,
+          "transferBytes": 34919
+        },
+        {
+          "name": "/_framework/System.Transactions.Local.wasm",
+          "ms": 108.09999999403954,
+          "encodedBytes": 165711,
+          "decodedBytes": 165653,
+          "transferBytes": 166011
+        },
+        {
+          "name": "/_framework/System.Transactions.wasm",
+          "ms": 108.2000000178814,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.ValueTuple.wasm",
+          "ms": 108.30000001192093,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Web.HttpUtility.wasm",
+          "ms": 108.19999998807907,
+          "encodedBytes": 19766,
+          "decodedBytes": 19733,
+          "transferBytes": 20066
+        },
+        {
+          "name": "/_framework/System.Web.wasm",
+          "ms": 108.40000000596046,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Windows.wasm",
+          "ms": 108.90000000596046,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.Linq.wasm",
+          "ms": 108.7000000178814,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.ReaderWriter.wasm",
+          "ms": 108.69999998807907,
+          "encodedBytes": 11574,
+          "decodedBytes": 11541,
+          "transferBytes": 11874
+        },
+        {
+          "name": "/_framework/System.Xml.Serialization.wasm",
+          "ms": 109.09999999403954,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Xml.XDocument.wasm",
+          "ms": 109.5,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.XPath.XDocument.wasm",
+          "ms": 109.5,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Xml.XPath.wasm",
+          "ms": 109.5,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.XmlDocument.wasm",
+          "ms": 109.39999997615814,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.XmlSerializer.wasm",
+          "ms": 110.2999999821186,
+          "encodedBytes": 7478,
+          "decodedBytes": 7445,
+          "transferBytes": 7778
+        },
+        {
+          "name": "/_framework/System.Xml.wasm",
+          "ms": 110.30000001192093,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/System.wasm",
+          "ms": 110.59999999403954,
+          "encodedBytes": 39739,
+          "decodedBytes": 39701,
+          "transferBytes": 40039
+        },
+        {
+          "name": "/_framework/WindowsBase.wasm",
+          "ms": 110.2000000178814,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/mscorlib.wasm",
+          "ms": 111.09999999403954,
+          "encodedBytes": 49467,
+          "decodedBytes": 49429,
+          "transferBytes": 49767
+        },
+        {
+          "name": "/_framework/netstandard.wasm",
+          "ms": 111.19999998807907,
+          "encodedBytes": 90432,
+          "decodedBytes": 90389,
+          "transferBytes": 90732
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.Core.wasm",
+          "ms": 118.30000001192093,
+          "encodedBytes": 204628,
+          "decodedBytes": 204565,
+          "transferBytes": 204928
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.BodyModel.wasm",
+          "ms": 127.90000000596046,
+          "encodedBytes": 1877075,
+          "decodedBytes": 1876757,
+          "transferBytes": 1877375
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.Web.wasm",
+          "ms": 228.40000000596046,
+          "encodedBytes": 2381986,
+          "decodedBytes": 2381593,
+          "transferBytes": 2382286
+        },
+        {
+          "name": "/_framework/icudt_no_CJK.dat",
+          "ms": 113.59999999403954,
+          "encodedBytes": 347783,
+          "decodedBytes": 1107168,
+          "transferBytes": 348083
+        },
+        {
+          "name": "/js/viewer.js",
+          "ms": 1.800000011920929,
+          "encodedBytes": 27845,
+          "decodedBytes": 27812,
+          "transferBytes": 28145
+        },
+        {
+          "name": "/lib/three/three.module.js",
+          "ms": 3.800000011920929,
+          "encodedBytes": 682624,
+          "decodedBytes": 682491,
+          "transferBytes": 682924
+        },
+        {
+          "name": "/js/skeletal.js",
+          "ms": 2.399999976158142,
+          "encodedBytes": 11308,
+          "decodedBytes": 11275,
+          "transferBytes": 11608
+        },
+        {
+          "name": "/js/exercise-animations.js",
+          "ms": 2.2999999821186066,
+          "encodedBytes": 7026,
+          "decodedBytes": 6993,
+          "transferBytes": 7326
+        },
+        {
+          "name": "/lib/three/addons/controls/OrbitControls.js",
+          "ms": 4.5,
+          "encodedBytes": 42765,
+          "decodedBytes": 42727,
+          "transferBytes": 43065
+        },
+        {
+          "name": "/js/muscle-heatmap.js",
+          "ms": 2.199999988079071,
+          "encodedBytes": 3310,
+          "decodedBytes": 3277,
+          "transferBytes": 3610
+        },
+        {
+          "name": "/js/joint-constraints.js",
+          "ms": 1,
+          "encodedBytes": 2476,
+          "decodedBytes": 2443,
+          "transferBytes": 2776
+        },
+        {
+          "name": "/lib/three/three.core.js",
+          "ms": 6.5,
+          "encodedBytes": 1518962,
+          "decodedBytes": 1518699,
+          "transferBytes": 1519262
+        },
+        {
+          "name": "/js/storage.js",
+          "ms": 1.300000011920929,
+          "encodedBytes": 5965,
+          "decodedBytes": 5932,
+          "transferBytes": 6265
+        },
+        {
+          "name": "/js/data-guard.js",
+          "ms": 0.8999999761581421,
+          "encodedBytes": 1259,
+          "decodedBytes": 1226,
+          "transferBytes": 1559
+        },
+        {
+          "name": "/js/activity-guard.js",
+          "ms": 0.9000000059604645,
+          "encodedBytes": 2176,
+          "decodedBytes": 2143,
+          "transferBytes": 2476
+        },
+        {
+          "name": "/js/backup.js",
+          "ms": 0.7999999821186066,
+          "encodedBytes": 17780,
+          "decodedBytes": 17747,
+          "transferBytes": 18080
+        },
+        {
+          "name": "/js/checkin-transaction.js",
+          "ms": 0.9000000059604645,
+          "encodedBytes": 3772,
+          "decodedBytes": 3739,
+          "transferBytes": 4072
+        },
+        {
+          "name": "/js/render-contract.js",
+          "ms": 0.9000000059604645,
+          "encodedBytes": 5928,
+          "decodedBytes": 5895,
+          "transferBytes": 6228
+        },
+        {
+          "name": "/js/photos.js",
+          "ms": 0.6000000238418579,
+          "encodedBytes": 36796,
+          "decodedBytes": 36758,
+          "transferBytes": 37096
+        },
+        {
+          "name": "/js/capture.js",
+          "ms": 1,
+          "encodedBytes": 21210,
+          "decodedBytes": 21177,
+          "transferBytes": 21510
+        },
+        {
+          "name": "/js/pose.js",
+          "ms": 0.699999988079071,
+          "encodedBytes": 3861,
+          "decodedBytes": 3828,
+          "transferBytes": 4161
+        },
+        {
+          "name": "/js/analysis.js",
+          "ms": 0.699999988079071,
+          "encodedBytes": 3263,
+          "decodedBytes": 3230,
+          "transferBytes": 3563
+        },
+        {
+          "name": "/js/warp.js",
+          "ms": 0.5999999940395355,
+          "encodedBytes": 3913,
+          "decodedBytes": 3880,
+          "transferBytes": 4213
+        },
+        {
+          "name": "/js/geometry-warp.js",
+          "ms": 0.5999999940395355,
+          "encodedBytes": 8230,
+          "decodedBytes": 8197,
+          "transferBytes": 8530
+        },
+        {
+          "name": "/js/geometry-warp-gl.js",
+          "ms": 0.7999999821186066,
+          "encodedBytes": 9577,
+          "decodedBytes": 9544,
+          "transferBytes": 9877
+        },
+        {
+          "name": "/js/render-store.js",
+          "ms": 1,
+          "encodedBytes": 4341,
+          "decodedBytes": 4308,
+          "transferBytes": 4641
+        },
+        {
+          "name": "/js/geometry-warp-core.js",
+          "ms": 0.9000000059604645,
+          "encodedBytes": 7862,
+          "decodedBytes": 7829,
+          "transferBytes": 8162
+        },
+        {
+          "name": "/data/makehuman-hm08.bin",
+          "ms": 431.90000000596046,
+          "encodedBytes": 2394747,
+          "decodedBytes": 2394747,
+          "transferBytes": 2395047
+        },
+        {
+          "name": "/data/makehuman-muscle-atlas-v1.bin",
+          "ms": 3.9000000059604645,
+          "encodedBytes": 107156,
+          "decodedBytes": 107156,
+          "transferBytes": 107456
+        },
+        {
+          "name": "/data/makehuman-anatomical-muscle-fields-v1.bin",
+          "ms": 3.199999988079071,
+          "encodedBytes": 27918,
+          "decodedBytes": 27918,
+          "transferBytes": 28218
+        }
+      ],
+      "logs": [
+        "Product timing: forecast 234,00 ms, muscle=False",
+        "Forecast MakeHuman rebuild: 10,2 ms, muscle=False",
+        "Muscle atlas: 107156 bytes, source hash 3,5 ms, read/validate 34,0 ms, assets ready 736,0 ms.",
+        "Product timing: forecast 161,40 ms, muscle=False",
+        "Forecast MakeHuman rebuild: 134,3 ms, muscle=False"
+      ]
+    },
+    {
+      "kind": "warm-reload",
+      "readyMs": 2087,
+      "jsHeapUsedBytes": 11476272,
+      "resources": [
+        {
+          "name": "/css/app.css",
+          "ms": 2.5,
+          "encodedBytes": 54810,
+          "decodedBytes": 54772,
+          "transferBytes": 55110
+        },
+        {
+          "name": "/_framework/blazor.webassembly.w3qd1tpl0e.js",
+          "ms": 2,
+          "encodedBytes": 18922,
+          "decodedBytes": 60682,
+          "transferBytes": 300
+        },
+        {
+          "name": "/_framework/dotnet.js",
+          "ms": 1.800000011920929,
+          "encodedBytes": 82631,
+          "decodedBytes": 82588,
+          "transferBytes": 82931
+        },
+        {
+          "name": "/js/pwa.js",
+          "ms": 1.2000000178813934,
+          "encodedBytes": 1994,
+          "decodedBytes": 1961,
+          "transferBytes": 2294
+        },
+        {
+          "name": "/_framework/dotnet.runtime.js",
+          "ms": 2.300000011920929,
+          "encodedBytes": 57290,
+          "decodedBytes": 198480,
+          "transferBytes": 300
+        },
+        {
+          "name": "/_framework/dotnet.native.js",
+          "ms": 2.2000000178813934,
+          "encodedBytes": 34953,
+          "decodedBytes": 145050,
+          "transferBytes": 300
+        },
+        {
+          "name": "/_framework/dotnet.native.wasm",
+          "ms": 104.7000000178814,
+          "encodedBytes": 1207786,
+          "decodedBytes": 3001422,
+          "transferBytes": 300
+        },
+        {
+          "name": "/icons/icon.svg",
+          "ms": 4,
+          "encodedBytes": 1047,
+          "decodedBytes": 1014,
+          "transferBytes": 1347
+        },
+        {
+          "name": "/_framework/System.Runtime.InteropServices.JavaScript.wasm",
+          "ms": 8,
+          "encodedBytes": 79680,
+          "decodedBytes": 79637,
+          "transferBytes": 79980
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.Core.pdb",
+          "ms": 7.9000000059604645,
+          "encodedBytes": 42098,
+          "decodedBytes": 42060,
+          "transferBytes": 42398
+        },
+        {
+          "name": "/_framework/System.Private.CoreLib.wasm",
+          "ms": 160,
+          "encodedBytes": 4870686,
+          "decodedBytes": 4869913,
+          "transferBytes": 4870986
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.BodyModel.pdb",
+          "ms": 30.19999998807907,
+          "encodedBytes": 780500,
+          "decodedBytes": 780352,
+          "transferBytes": 780800
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.Web.pdb",
+          "ms": 14,
+          "encodedBytes": 1381059,
+          "decodedBytes": 1380816,
+          "transferBytes": 1381359
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Authorization.wasm",
+          "ms": 9.400000005960464,
+          "encodedBytes": 45371,
+          "decodedBytes": 45333,
+          "transferBytes": 45671
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Components.wasm",
+          "ms": 11.800000011920929,
+          "encodedBytes": 388973,
+          "decodedBytes": 388885,
+          "transferBytes": 389273
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Components.Forms.wasm",
+          "ms": 10.300000011920929,
+          "encodedBytes": 37691,
+          "decodedBytes": 37653,
+          "transferBytes": 37991
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Components.Web.wasm",
+          "ms": 12,
+          "encodedBytes": 179535,
+          "decodedBytes": 179477,
+          "transferBytes": 179835
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Components.WebAssembly.wasm",
+          "ms": 12.200000017881393,
+          "encodedBytes": 156490,
+          "decodedBytes": 156437,
+          "transferBytes": 156790
+        },
+        {
+          "name": "/_framework/Microsoft.AspNetCore.Metadata.wasm",
+          "ms": 14.399999976158142,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.wasm",
+          "ms": 15,
+          "encodedBytes": 34619,
+          "decodedBytes": 34581,
+          "transferBytes": 34919
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.Abstractions.wasm",
+          "ms": 15,
+          "encodedBytes": 18230,
+          "decodedBytes": 18197,
+          "transferBytes": 18530
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.Binder.wasm",
+          "ms": 15.800000011920929,
+          "encodedBytes": 33083,
+          "decodedBytes": 33045,
+          "transferBytes": 33383
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.FileExtensions.wasm",
+          "ms": 16.5,
+          "encodedBytes": 18230,
+          "decodedBytes": 18197,
+          "transferBytes": 18530
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Configuration.Json.wasm",
+          "ms": 16.200000017881393,
+          "encodedBytes": 17718,
+          "decodedBytes": 17685,
+          "transferBytes": 18018
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.DependencyInjection.wasm",
+          "ms": 20.80000001192093,
+          "encodedBytes": 85312,
+          "decodedBytes": 85269,
+          "transferBytes": 85612
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.DependencyInjection.Abstractions.wasm",
+          "ms": 20.700000017881393,
+          "encodedBytes": 55611,
+          "decodedBytes": 55573,
+          "transferBytes": 55911
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Diagnostics.wasm",
+          "ms": 20.599999994039536,
+          "encodedBytes": 25910,
+          "decodedBytes": 25877,
+          "transferBytes": 26210
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Diagnostics.Abstractions.wasm",
+          "ms": 20.799999982118607,
+          "encodedBytes": 20790,
+          "decodedBytes": 20757,
+          "transferBytes": 21090
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.FileProviders.Abstractions.wasm",
+          "ms": 22.099999994039536,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.FileProviders.Physical.wasm",
+          "ms": 22,
+          "encodedBytes": 35131,
+          "decodedBytes": 35093,
+          "transferBytes": 35431
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.FileSystemGlobbing.wasm",
+          "ms": 22.400000005960464,
+          "encodedBytes": 37691,
+          "decodedBytes": 37653,
+          "transferBytes": 37991
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Logging.wasm",
+          "ms": 22.5,
+          "encodedBytes": 41275,
+          "decodedBytes": 41237,
+          "transferBytes": 41575
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Logging.Abstractions.wasm",
+          "ms": 23.30000001192093,
+          "encodedBytes": 56635,
+          "decodedBytes": 56597,
+          "transferBytes": 56935
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Options.wasm",
+          "ms": 23.5,
+          "encodedBytes": 55099,
+          "decodedBytes": 55061,
+          "transferBytes": 55399
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Options.ConfigurationExtensions.wasm",
+          "ms": 23.700000017881393,
+          "encodedBytes": 11574,
+          "decodedBytes": 11541,
+          "transferBytes": 11874
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Primitives.wasm",
+          "ms": 23.599999994039536,
+          "encodedBytes": 34619,
+          "decodedBytes": 34581,
+          "transferBytes": 34919
+        },
+        {
+          "name": "/_framework/Microsoft.Extensions.Validation.wasm",
+          "ms": 24.299999982118607,
+          "encodedBytes": 33083,
+          "decodedBytes": 33045,
+          "transferBytes": 33383
+        },
+        {
+          "name": "/_framework/Microsoft.JSInterop.wasm",
+          "ms": 24.69999998807907,
+          "encodedBytes": 64827,
+          "decodedBytes": 64789,
+          "transferBytes": 65127
+        },
+        {
+          "name": "/_framework/Microsoft.JSInterop.WebAssembly.wasm",
+          "ms": 24.5,
+          "encodedBytes": 14646,
+          "decodedBytes": 14613,
+          "transferBytes": 14946
+        },
+        {
+          "name": "/_framework/Microsoft.CSharp.wasm",
+          "ms": 27.700000017881393,
+          "encodedBytes": 301411,
+          "decodedBytes": 301333,
+          "transferBytes": 301711
+        },
+        {
+          "name": "/_framework/Microsoft.VisualBasic.Core.wasm",
+          "ms": 27.900000005960464,
+          "encodedBytes": 418674,
+          "decodedBytes": 418581,
+          "transferBytes": 418974
+        },
+        {
+          "name": "/_framework/Microsoft.VisualBasic.wasm",
+          "ms": 25.5,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/Microsoft.Win32.Primitives.wasm",
+          "ms": 25.799999982118607,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/Microsoft.Win32.Registry.wasm",
+          "ms": 26.80000001192093,
+          "encodedBytes": 22838,
+          "decodedBytes": 22805,
+          "transferBytes": 23138
+        },
+        {
+          "name": "/_framework/System.AppContext.wasm",
+          "ms": 26.900000005960464,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Buffers.wasm",
+          "ms": 28.5,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Collections.Concurrent.wasm",
+          "ms": 29.099999994039536,
+          "encodedBytes": 78656,
+          "decodedBytes": 78613,
+          "transferBytes": 78956
+        },
+        {
+          "name": "/_framework/System.Collections.Immutable.wasm",
+          "ms": 29.400000005960464,
+          "encodedBytes": 240985,
+          "decodedBytes": 240917,
+          "transferBytes": 241285
+        },
+        {
+          "name": "/_framework/System.Collections.NonGeneric.wasm",
+          "ms": 29.299999982118607,
+          "encodedBytes": 37691,
+          "decodedBytes": 37653,
+          "transferBytes": 37991
+        },
+        {
+          "name": "/_framework/System.Collections.Specialized.wasm",
+          "ms": 30.599999994039536,
+          "encodedBytes": 37691,
+          "decodedBytes": 37653,
+          "transferBytes": 37991
+        },
+        {
+          "name": "/_framework/System.Collections.wasm",
+          "ms": 30.80000001192093,
+          "encodedBytes": 102725,
+          "decodedBytes": 102677,
+          "transferBytes": 103025
+        },
+        {
+          "name": "/_framework/System.ComponentModel.Annotations.wasm",
+          "ms": 30.80000001192093,
+          "encodedBytes": 92480,
+          "decodedBytes": 92437,
+          "transferBytes": 92780
+        },
+        {
+          "name": "/_framework/System.ComponentModel.DataAnnotations.wasm",
+          "ms": 30.799999982118607,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.ComponentModel.EventBasedAsync.wasm",
+          "ms": 30.69999998807907,
+          "encodedBytes": 16182,
+          "decodedBytes": 16149,
+          "transferBytes": 16482
+        },
+        {
+          "name": "/_framework/System.ComponentModel.Primitives.wasm",
+          "ms": 31.400000005960464,
+          "encodedBytes": 32054,
+          "decodedBytes": 32021,
+          "transferBytes": 32354
+        },
+        {
+          "name": "/_framework/System.ComponentModel.TypeConverter.wasm",
+          "ms": 32.20000001788139,
+          "encodedBytes": 306531,
+          "decodedBytes": 306453,
+          "transferBytes": 306831
+        },
+        {
+          "name": "/_framework/System.ComponentModel.wasm",
+          "ms": 31.600000023841858,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Configuration.wasm",
+          "ms": 31.799999982118607,
+          "encodedBytes": 9014,
+          "decodedBytes": 8981,
+          "transferBytes": 9314
+        },
+        {
+          "name": "/_framework/System.Console.wasm",
+          "ms": 33,
+          "encodedBytes": 43835,
+          "decodedBytes": 43797,
+          "transferBytes": 44135
+        },
+        {
+          "name": "/_framework/System.Core.wasm",
+          "ms": 32.900000005960464,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/System.Data.Common.wasm",
+          "ms": 35.599999994039536,
+          "encodedBytes": 1008076,
+          "decodedBytes": 1007893,
+          "transferBytes": 1008376
+        },
+        {
+          "name": "/_framework/System.Data.DataSetExtensions.wasm",
+          "ms": 33.20000001788139,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Data.wasm",
+          "ms": 33.20000001788139,
+          "encodedBytes": 15158,
+          "decodedBytes": 15125,
+          "transferBytes": 15458
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Contracts.wasm",
+          "ms": 33.80000001192093,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Debug.wasm",
+          "ms": 34.099999994039536,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Diagnostics.DiagnosticSource.wasm",
+          "ms": 34.599999994039536,
+          "encodedBytes": 192335,
+          "decodedBytes": 192277,
+          "transferBytes": 192635
+        },
+        {
+          "name": "/_framework/System.Diagnostics.FileVersionInfo.wasm",
+          "ms": 35.80000001192093,
+          "encodedBytes": 12598,
+          "decodedBytes": 12565,
+          "transferBytes": 12898
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Process.wasm",
+          "ms": 36.400000005960464,
+          "encodedBytes": 46395,
+          "decodedBytes": 46357,
+          "transferBytes": 46695
+        },
+        {
+          "name": "/_framework/System.Diagnostics.StackTrace.wasm",
+          "ms": 36.20000001788139,
+          "encodedBytes": 15670,
+          "decodedBytes": 15637,
+          "transferBytes": 15970
+        },
+        {
+          "name": "/_framework/System.Diagnostics.TextWriterTraceListener.wasm",
+          "ms": 36.60000002384186,
+          "encodedBytes": 21302,
+          "decodedBytes": 21269,
+          "transferBytes": 21602
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Tools.wasm",
+          "ms": 36.89999997615814,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Diagnostics.TraceSource.wasm",
+          "ms": 37.400000005960464,
+          "encodedBytes": 48443,
+          "decodedBytes": 48405,
+          "transferBytes": 48743
+        },
+        {
+          "name": "/_framework/System.Diagnostics.Tracing.wasm",
+          "ms": 37.30000001192093,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Drawing.Primitives.wasm",
+          "ms": 37.80000001192093,
+          "encodedBytes": 54587,
+          "decodedBytes": 54549,
+          "transferBytes": 54887
+        },
+        {
+          "name": "/_framework/System.Drawing.wasm",
+          "ms": 37.5,
+          "encodedBytes": 10038,
+          "decodedBytes": 10005,
+          "transferBytes": 10338
+        },
+        {
+          "name": "/_framework/System.Dynamic.Runtime.wasm",
+          "ms": 37.70000001788139,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Formats.Asn1.wasm",
+          "ms": 39,
+          "encodedBytes": 86848,
+          "decodedBytes": 86805,
+          "transferBytes": 87148
+        },
+        {
+          "name": "/_framework/System.Formats.Tar.wasm",
+          "ms": 38.5,
+          "encodedBytes": 28470,
+          "decodedBytes": 28437,
+          "transferBytes": 28770
+        },
+        {
+          "name": "/_framework/System.Globalization.Calendars.wasm",
+          "ms": 38.599999994039536,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Globalization.Extensions.wasm",
+          "ms": 38.900000005960464,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Globalization.wasm",
+          "ms": 38.900000005960464,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.IO.Compression.Brotli.wasm",
+          "ms": 39.39999997615814,
+          "encodedBytes": 18230,
+          "decodedBytes": 18197,
+          "transferBytes": 18530
+        },
+        {
+          "name": "/_framework/System.IO.Compression.FileSystem.wasm",
+          "ms": 39.69999998807907,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.IO.Compression.ZipFile.wasm",
+          "ms": 39.599999994039536,
+          "encodedBytes": 43323,
+          "decodedBytes": 43285,
+          "transferBytes": 43623
+        },
+        {
+          "name": "/_framework/System.IO.Compression.wasm",
+          "ms": 41.20000001788139,
+          "encodedBytes": 157514,
+          "decodedBytes": 157461,
+          "transferBytes": 157814
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.AccessControl.wasm",
+          "ms": 40.80000001192093,
+          "encodedBytes": 21814,
+          "decodedBytes": 21781,
+          "transferBytes": 22114
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.DriveInfo.wasm",
+          "ms": 40.89999997615814,
+          "encodedBytes": 13622,
+          "decodedBytes": 13589,
+          "transferBytes": 13922
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.Primitives.wasm",
+          "ms": 40.599999994039536,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.Watcher.wasm",
+          "ms": 41,
+          "encodedBytes": 22838,
+          "decodedBytes": 22805,
+          "transferBytes": 23138
+        },
+        {
+          "name": "/_framework/System.IO.FileSystem.wasm",
+          "ms": 41.900000005960464,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.IO.IsolatedStorage.wasm",
+          "ms": 41.900000005960464,
+          "encodedBytes": 24886,
+          "decodedBytes": 24853,
+          "transferBytes": 25186
+        },
+        {
+          "name": "/_framework/System.IO.MemoryMappedFiles.wasm",
+          "ms": 42.099999994039536,
+          "encodedBytes": 39739,
+          "decodedBytes": 39701,
+          "transferBytes": 40039
+        },
+        {
+          "name": "/_framework/System.IO.Pipelines.wasm",
+          "ms": 42.400000005960464,
+          "encodedBytes": 67904,
+          "decodedBytes": 67861,
+          "transferBytes": 68204
+        },
+        {
+          "name": "/_framework/System.IO.Pipes.AccessControl.wasm",
+          "ms": 42.19999998807907,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/System.IO.Pipes.wasm",
+          "ms": 46.20000001788139,
+          "encodedBytes": 32054,
+          "decodedBytes": 32021,
+          "transferBytes": 32354
+        },
+        {
+          "name": "/_framework/System.IO.UnmanagedMemoryStream.wasm",
+          "ms": 46.30000001192093,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.IO.wasm",
+          "ms": 46.20000001788139,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Linq.AsyncEnumerable.wasm",
+          "ms": 48.400000005960464,
+          "encodedBytes": 446327,
+          "decodedBytes": 446229,
+          "transferBytes": 446627
+        },
+        {
+          "name": "/_framework/System.Linq.Expressions.wasm",
+          "ms": 49.099999994039536,
+          "encodedBytes": 565131,
+          "decodedBytes": 565013,
+          "transferBytes": 565431
+        },
+        {
+          "name": "/_framework/System.Linq.Parallel.wasm",
+          "ms": 48,
+          "encodedBytes": 212820,
+          "decodedBytes": 212757,
+          "transferBytes": 213120
+        },
+        {
+          "name": "/_framework/System.Linq.Queryable.wasm",
+          "ms": 47,
+          "encodedBytes": 68416,
+          "decodedBytes": 68373,
+          "transferBytes": 68716
+        },
+        {
+          "name": "/_framework/System.Linq.wasm",
+          "ms": 47.69999998807907,
+          "encodedBytes": 190799,
+          "decodedBytes": 190741,
+          "transferBytes": 191099
+        },
+        {
+          "name": "/_framework/System.Memory.wasm",
+          "ms": 48.19999998807907,
+          "encodedBytes": 45371,
+          "decodedBytes": 45333,
+          "transferBytes": 45671
+        },
+        {
+          "name": "/_framework/System.Net.Http.Json.wasm",
+          "ms": 49,
+          "encodedBytes": 45883,
+          "decodedBytes": 45845,
+          "transferBytes": 46183
+        },
+        {
+          "name": "/_framework/System.Net.Http.wasm",
+          "ms": 50.599999994039536,
+          "encodedBytes": 286558,
+          "decodedBytes": 286485,
+          "transferBytes": 286858
+        },
+        {
+          "name": "/_framework/System.Net.HttpListener.wasm",
+          "ms": 49.20000001788139,
+          "encodedBytes": 45883,
+          "decodedBytes": 45845,
+          "transferBytes": 46183
+        },
+        {
+          "name": "/_framework/System.Net.Mail.wasm",
+          "ms": 49.29999998211861,
+          "encodedBytes": 95040,
+          "decodedBytes": 94997,
+          "transferBytes": 95340
+        },
+        {
+          "name": "/_framework/System.Net.NameResolution.wasm",
+          "ms": 49.400000005960464,
+          "encodedBytes": 14134,
+          "decodedBytes": 14101,
+          "transferBytes": 14434
+        },
+        {
+          "name": "/_framework/System.Net.NetworkInformation.wasm",
+          "ms": 49.599999994039536,
+          "encodedBytes": 32054,
+          "decodedBytes": 32021,
+          "transferBytes": 32354
+        },
+        {
+          "name": "/_framework/System.Net.Ping.wasm",
+          "ms": 49.70000001788139,
+          "encodedBytes": 17718,
+          "decodedBytes": 17685,
+          "transferBytes": 18018
+        },
+        {
+          "name": "/_framework/System.Net.Primitives.wasm",
+          "ms": 50.599999994039536,
+          "encodedBytes": 97088,
+          "decodedBytes": 97045,
+          "transferBytes": 97388
+        },
+        {
+          "name": "/_framework/System.Net.Quic.wasm",
+          "ms": 50.39999997615814,
+          "encodedBytes": 28982,
+          "decodedBytes": 28949,
+          "transferBytes": 29282
+        },
+        {
+          "name": "/_framework/System.Net.Requests.wasm",
+          "ms": 50.5,
+          "encodedBytes": 55611,
+          "decodedBytes": 55573,
+          "transferBytes": 55911
+        },
+        {
+          "name": "/_framework/System.Net.Security.wasm",
+          "ms": 51.400000005960464,
+          "encodedBytes": 104261,
+          "decodedBytes": 104213,
+          "transferBytes": 104561
+        },
+        {
+          "name": "/_framework/System.Net.ServerSentEvents.wasm",
+          "ms": 50.80000001192093,
+          "encodedBytes": 30518,
+          "decodedBytes": 30485,
+          "transferBytes": 30818
+        },
+        {
+          "name": "/_framework/System.Net.ServicePoint.wasm",
+          "ms": 51.099999994039536,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Net.Sockets.wasm",
+          "ms": 51.20000001788139,
+          "encodedBytes": 64315,
+          "decodedBytes": 64277,
+          "transferBytes": 64615
+        },
+        {
+          "name": "/_framework/System.Net.WebClient.wasm",
+          "ms": 51.20000001788139,
+          "encodedBytes": 45883,
+          "decodedBytes": 45845,
+          "transferBytes": 46183
+        },
+        {
+          "name": "/_framework/System.Net.WebHeaderCollection.wasm",
+          "ms": 51.5,
+          "encodedBytes": 22838,
+          "decodedBytes": 22805,
+          "transferBytes": 23138
+        },
+        {
+          "name": "/_framework/System.Net.WebProxy.wasm",
+          "ms": 51.79999998211861,
+          "encodedBytes": 11574,
+          "decodedBytes": 11541,
+          "transferBytes": 11874
+        },
+        {
+          "name": "/_framework/System.Net.WebSockets.Client.wasm",
+          "ms": 52,
+          "encodedBytes": 42299,
+          "decodedBytes": 42261,
+          "transferBytes": 42599
+        },
+        {
+          "name": "/_framework/System.Net.WebSockets.wasm",
+          "ms": 52.20000001788139,
+          "encodedBytes": 99141,
+          "decodedBytes": 99093,
+          "transferBytes": 99441
+        },
+        {
+          "name": "/_framework/System.Net.wasm",
+          "ms": 51.70000001788139,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Numerics.Vectors.wasm",
+          "ms": 52.19999998807907,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Numerics.wasm",
+          "ms": 52.099999994039536,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.ObjectModel.wasm",
+          "ms": 52.099999994039536,
+          "encodedBytes": 31030,
+          "decodedBytes": 30997,
+          "transferBytes": 31330
+        },
+        {
+          "name": "/_framework/System.Private.DataContractSerialization.wasm",
+          "ms": 54.900000005960464,
+          "encodedBytes": 849331,
+          "decodedBytes": 849173,
+          "transferBytes": 849631
+        },
+        {
+          "name": "/_framework/System.Private.Uri.wasm",
+          "ms": 53.19999998807907,
+          "encodedBytes": 95552,
+          "decodedBytes": 95509,
+          "transferBytes": 95852
+        },
+        {
+          "name": "/_framework/System.Private.Xml.Linq.wasm",
+          "ms": 53.79999998211861,
+          "encodedBytes": 143690,
+          "decodedBytes": 143637,
+          "transferBytes": 143990
+        },
+        {
+          "name": "/_framework/System.Private.Xml.wasm",
+          "ms": 156.2999999821186,
+          "encodedBytes": 3096848,
+          "decodedBytes": 3096345,
+          "transferBytes": 3097148
+        },
+        {
+          "name": "/_framework/System.Reflection.DispatchProxy.wasm",
+          "ms": 53.30000001192093,
+          "encodedBytes": 27958,
+          "decodedBytes": 27925,
+          "transferBytes": 28258
+        },
+        {
+          "name": "/_framework/System.Reflection.Emit.ILGeneration.wasm",
+          "ms": 56,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Reflection.Emit.Lightweight.wasm",
+          "ms": 56,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Reflection.Emit.wasm",
+          "ms": 56.39999997615814,
+          "encodedBytes": 123205,
+          "decodedBytes": 123157,
+          "transferBytes": 123505
+        },
+        {
+          "name": "/_framework/System.Reflection.Extensions.wasm",
+          "ms": 55.900000005960464,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Reflection.Metadata.wasm",
+          "ms": 57.69999998807907,
+          "encodedBytes": 493441,
+          "decodedBytes": 493333,
+          "transferBytes": 493741
+        },
+        {
+          "name": "/_framework/System.Reflection.Primitives.wasm",
+          "ms": 56.599999994039536,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Reflection.TypeExtensions.wasm",
+          "ms": 56.599999994039536,
+          "encodedBytes": 14134,
+          "decodedBytes": 14101,
+          "transferBytes": 14434
+        },
+        {
+          "name": "/_framework/System.Reflection.wasm",
+          "ms": 56.79999998211861,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Resources.Reader.wasm",
+          "ms": 57.099999994039536,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Resources.ResourceManager.wasm",
+          "ms": 58.400000005960464,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Resources.Writer.wasm",
+          "ms": 58.30000001192093,
+          "encodedBytes": 16694,
+          "decodedBytes": 16661,
+          "transferBytes": 16994
+        },
+        {
+          "name": "/_framework/System.Runtime.CompilerServices.Unsafe.wasm",
+          "ms": 58.400000005960464,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Runtime.CompilerServices.VisualC.wasm",
+          "ms": 61.400000005960464,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Runtime.Extensions.wasm",
+          "ms": 61.19999998807907,
+          "encodedBytes": 7478,
+          "decodedBytes": 7445,
+          "transferBytes": 7778
+        },
+        {
+          "name": "/_framework/System.Runtime.Handles.wasm",
+          "ms": 61.29999998211861,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Runtime.InteropServices.RuntimeInformation.wasm",
+          "ms": 61.5,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Runtime.InteropServices.wasm",
+          "ms": 62.099999994039536,
+          "encodedBytes": 54587,
+          "decodedBytes": 54549,
+          "transferBytes": 54887
+        },
+        {
+          "name": "/_framework/System.Runtime.Intrinsics.wasm",
+          "ms": 62,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Runtime.Loader.wasm",
+          "ms": 62.400000005960464,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Runtime.Numerics.wasm",
+          "ms": 62.5,
+          "encodedBytes": 134986,
+          "decodedBytes": 134933,
+          "transferBytes": 135286
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.Formatters.wasm",
+          "ms": 62.599999994039536,
+          "encodedBytes": 55611,
+          "decodedBytes": 55573,
+          "transferBytes": 55911
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.Json.wasm",
+          "ms": 63.599999994039536,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.Primitives.wasm",
+          "ms": 63.400000005960464,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.Xml.wasm",
+          "ms": 63.30000001192093,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.Runtime.Serialization.wasm",
+          "ms": 63.60000002384186,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Runtime.wasm",
+          "ms": 63.69999998807907,
+          "encodedBytes": 34619,
+          "decodedBytes": 34581,
+          "transferBytes": 34919
+        },
+        {
+          "name": "/_framework/System.Security.AccessControl.wasm",
+          "ms": 64.09999999403954,
+          "encodedBytes": 47931,
+          "decodedBytes": 47893,
+          "transferBytes": 48231
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Algorithms.wasm",
+          "ms": 64.40000000596046,
+          "encodedBytes": 6966,
+          "decodedBytes": 6933,
+          "transferBytes": 7266
+        },
+        {
+          "name": "/_framework/System.Security.Claims.wasm",
+          "ms": 64.5,
+          "encodedBytes": 44859,
+          "decodedBytes": 44821,
+          "transferBytes": 45159
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Cng.wasm",
+          "ms": 64.40000000596046,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Csp.wasm",
+          "ms": 65.19999998807907,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Encoding.wasm",
+          "ms": 65.19999998807907,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.OpenSsl.wasm",
+          "ms": 65.19999998807907,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.Primitives.wasm",
+          "ms": 65.40000000596046,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.X509Certificates.wasm",
+          "ms": 65.5,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.Security.Cryptography.wasm",
+          "ms": 67.80000001192093,
+          "encodedBytes": 643989,
+          "decodedBytes": 643861,
+          "transferBytes": 644289
+        },
+        {
+          "name": "/_framework/System.Security.Principal.Windows.wasm",
+          "ms": 66.5,
+          "encodedBytes": 27446,
+          "decodedBytes": 27413,
+          "transferBytes": 27746
+        },
+        {
+          "name": "/_framework/System.Security.Principal.wasm",
+          "ms": 66.40000000596046,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Security.SecureString.wasm",
+          "ms": 66.40000000596046,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Security.wasm",
+          "ms": 67.09999999403954,
+          "encodedBytes": 7990,
+          "decodedBytes": 7957,
+          "transferBytes": 8290
+        },
+        {
+          "name": "/_framework/System.ServiceModel.Web.wasm",
+          "ms": 67,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.ServiceProcess.wasm",
+          "ms": 68,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Text.Encoding.CodePages.wasm",
+          "ms": 70.30000001192093,
+          "encodedBytes": 732580,
+          "decodedBytes": 732437,
+          "transferBytes": 732880
+        },
+        {
+          "name": "/_framework/System.Text.Encoding.Extensions.wasm",
+          "ms": 68.19999998807907,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Text.Encoding.wasm",
+          "ms": 68.5,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Text.Encodings.Web.wasm",
+          "ms": 68.90000000596046,
+          "encodedBytes": 55611,
+          "decodedBytes": 55573,
+          "transferBytes": 55911
+        },
+        {
+          "name": "/_framework/System.Text.RegularExpressions.wasm",
+          "ms": 70.5,
+          "encodedBytes": 374637,
+          "decodedBytes": 374549,
+          "transferBytes": 374937
+        },
+        {
+          "name": "/_framework/System.Text.Json.wasm",
+          "ms": 70.7000000178814,
+          "encodedBytes": 638869,
+          "decodedBytes": 638741,
+          "transferBytes": 639169
+        },
+        {
+          "name": "/_framework/System.Threading.AccessControl.wasm",
+          "ms": 71.69999998807907,
+          "encodedBytes": 23350,
+          "decodedBytes": 23317,
+          "transferBytes": 23650
+        },
+        {
+          "name": "/_framework/System.Threading.Channels.wasm",
+          "ms": 71.7999999821186,
+          "encodedBytes": 56123,
+          "decodedBytes": 56085,
+          "transferBytes": 56423
+        },
+        {
+          "name": "/_framework/System.Threading.Overlapped.wasm",
+          "ms": 71.69999998807907,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Threading.Tasks.Dataflow.wasm",
+          "ms": 72.09999999403954,
+          "encodedBytes": 175439,
+          "decodedBytes": 175381,
+          "transferBytes": 175739
+        },
+        {
+          "name": "/_framework/System.Threading.Tasks.Extensions.wasm",
+          "ms": 72.80000001192093,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Threading.Tasks.Parallel.wasm",
+          "ms": 72.80000001192093,
+          "encodedBytes": 51003,
+          "decodedBytes": 50965,
+          "transferBytes": 51303
+        },
+        {
+          "name": "/_framework/System.Threading.Tasks.wasm",
+          "ms": 73,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.Threading.Thread.wasm",
+          "ms": 73.10000002384186,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Threading.ThreadPool.wasm",
+          "ms": 73.59999999403954,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Threading.Timer.wasm",
+          "ms": 74,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Threading.wasm",
+          "ms": 73.90000000596046,
+          "encodedBytes": 34619,
+          "decodedBytes": 34581,
+          "transferBytes": 34919
+        },
+        {
+          "name": "/_framework/System.Transactions.Local.wasm",
+          "ms": 74.90000000596046,
+          "encodedBytes": 165711,
+          "decodedBytes": 165653,
+          "transferBytes": 166011
+        },
+        {
+          "name": "/_framework/System.Transactions.wasm",
+          "ms": 74.59999999403954,
+          "encodedBytes": 6454,
+          "decodedBytes": 6421,
+          "transferBytes": 6754
+        },
+        {
+          "name": "/_framework/System.ValueTuple.wasm",
+          "ms": 74.5,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Web.HttpUtility.wasm",
+          "ms": 74.90000000596046,
+          "encodedBytes": 19766,
+          "decodedBytes": 19733,
+          "transferBytes": 20066
+        },
+        {
+          "name": "/_framework/System.Web.wasm",
+          "ms": 75.7999999821186,
+          "encodedBytes": 4918,
+          "decodedBytes": 4885,
+          "transferBytes": 5218
+        },
+        {
+          "name": "/_framework/System.Windows.wasm",
+          "ms": 75.69999998807907,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.Linq.wasm",
+          "ms": 75.60000002384186,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.ReaderWriter.wasm",
+          "ms": 75.69999998807907,
+          "encodedBytes": 11574,
+          "decodedBytes": 11541,
+          "transferBytes": 11874
+        },
+        {
+          "name": "/_framework/System.Xml.Serialization.wasm",
+          "ms": 75.90000000596046,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Xml.XDocument.wasm",
+          "ms": 76,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.XPath.XDocument.wasm",
+          "ms": 76.40000000596046,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/System.Xml.XPath.wasm",
+          "ms": 76.2999999821186,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.XmlDocument.wasm",
+          "ms": 76.2999999821186,
+          "encodedBytes": 5430,
+          "decodedBytes": 5397,
+          "transferBytes": 5730
+        },
+        {
+          "name": "/_framework/System.Xml.XmlSerializer.wasm",
+          "ms": 77.19999998807907,
+          "encodedBytes": 7478,
+          "decodedBytes": 7445,
+          "transferBytes": 7778
+        },
+        {
+          "name": "/_framework/System.Xml.wasm",
+          "ms": 77.09999999403954,
+          "encodedBytes": 13110,
+          "decodedBytes": 13077,
+          "transferBytes": 13410
+        },
+        {
+          "name": "/_framework/System.wasm",
+          "ms": 77.2000000178814,
+          "encodedBytes": 39739,
+          "decodedBytes": 39701,
+          "transferBytes": 40039
+        },
+        {
+          "name": "/_framework/WindowsBase.wasm",
+          "ms": 77.30000001192093,
+          "encodedBytes": 5942,
+          "decodedBytes": 5909,
+          "transferBytes": 6242
+        },
+        {
+          "name": "/_framework/mscorlib.wasm",
+          "ms": 77.59999999403954,
+          "encodedBytes": 49467,
+          "decodedBytes": 49429,
+          "transferBytes": 49767
+        },
+        {
+          "name": "/_framework/netstandard.wasm",
+          "ms": 78.19999998807907,
+          "encodedBytes": 90432,
+          "decodedBytes": 90389,
+          "transferBytes": 90732
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.Core.wasm",
+          "ms": 79.59999999403954,
+          "encodedBytes": 204628,
+          "decodedBytes": 204565,
+          "transferBytes": 204928
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.BodyModel.wasm",
+          "ms": 85.5,
+          "encodedBytes": 1877075,
+          "decodedBytes": 1876757,
+          "transferBytes": 1877375
+        },
+        {
+          "name": "/_framework/WorkoutCalculator.Web.wasm",
+          "ms": 167.30000001192093,
+          "encodedBytes": 2381986,
+          "decodedBytes": 2381593,
+          "transferBytes": 2382286
+        },
+        {
+          "name": "/_framework/icudt_no_CJK.dat",
+          "ms": 81.7000000178814,
+          "encodedBytes": 347783,
+          "decodedBytes": 1107168,
+          "transferBytes": 300
+        },
+        {
+          "name": "/js/viewer.js",
+          "ms": 1.4000000059604645,
+          "encodedBytes": 27845,
+          "decodedBytes": 27812,
+          "transferBytes": 28145
+        },
+        {
+          "name": "/lib/three/three.module.js",
+          "ms": 2.9000000059604645,
+          "encodedBytes": 682624,
+          "decodedBytes": 682491,
+          "transferBytes": 682924
+        },
+        {
+          "name": "/js/skeletal.js",
+          "ms": 1.5,
+          "encodedBytes": 11308,
+          "decodedBytes": 11275,
+          "transferBytes": 11608
+        },
+        {
+          "name": "/js/muscle-heatmap.js",
+          "ms": 1.5999999940395355,
+          "encodedBytes": 3310,
+          "decodedBytes": 3277,
+          "transferBytes": 3610
+        },
+        {
+          "name": "/js/exercise-animations.js",
+          "ms": 1.5999999940395355,
+          "encodedBytes": 7026,
+          "decodedBytes": 6993,
+          "transferBytes": 7326
+        },
+        {
+          "name": "/lib/three/addons/controls/OrbitControls.js",
+          "ms": 2.2999999821186066,
+          "encodedBytes": 42765,
+          "decodedBytes": 42727,
+          "transferBytes": 43065
+        },
+        {
+          "name": "/js/joint-constraints.js",
+          "ms": 0.699999988079071,
+          "encodedBytes": 2476,
+          "decodedBytes": 2443,
+          "transferBytes": 2776
+        },
+        {
+          "name": "/lib/three/three.core.js",
+          "ms": 3.7999999821186066,
+          "encodedBytes": 1518962,
+          "decodedBytes": 1518699,
+          "transferBytes": 1519262
+        },
+        {
+          "name": "/js/storage.js",
+          "ms": 1.0999999940395355,
+          "encodedBytes": 5965,
+          "decodedBytes": 5932,
+          "transferBytes": 6265
+        },
+        {
+          "name": "/js/data-guard.js",
+          "ms": 0.800000011920929,
+          "encodedBytes": 1259,
+          "decodedBytes": 1226,
+          "transferBytes": 1559
+        },
+        {
+          "name": "/js/activity-guard.js",
+          "ms": 0.9000000059604645,
+          "encodedBytes": 2176,
+          "decodedBytes": 2143,
+          "transferBytes": 2476
+        },
+        {
+          "name": "/js/backup.js",
+          "ms": 0.699999988079071,
+          "encodedBytes": 17780,
+          "decodedBytes": 17747,
+          "transferBytes": 18080
+        },
+        {
+          "name": "/js/checkin-transaction.js",
+          "ms": 0.9000000059604645,
+          "encodedBytes": 3772,
+          "decodedBytes": 3739,
+          "transferBytes": 4072
+        },
+        {
+          "name": "/js/render-contract.js",
+          "ms": 1,
+          "encodedBytes": 5928,
+          "decodedBytes": 5895,
+          "transferBytes": 6228
+        },
+        {
+          "name": "/js/photos.js",
+          "ms": 0.7000000178813934,
+          "encodedBytes": 36796,
+          "decodedBytes": 36758,
+          "transferBytes": 37096
+        },
+        {
+          "name": "/js/capture.js",
+          "ms": 0.800000011920929,
+          "encodedBytes": 21210,
+          "decodedBytes": 21177,
+          "transferBytes": 21510
+        },
+        {
+          "name": "/js/pose.js",
+          "ms": 0.800000011920929,
+          "encodedBytes": 3861,
+          "decodedBytes": 3828,
+          "transferBytes": 4161
+        },
+        {
+          "name": "/js/analysis.js",
+          "ms": 0.5999999940395355,
+          "encodedBytes": 3263,
+          "decodedBytes": 3230,
+          "transferBytes": 3563
+        },
+        {
+          "name": "/js/warp.js",
+          "ms": 0.699999988079071,
+          "encodedBytes": 3913,
+          "decodedBytes": 3880,
+          "transferBytes": 4213
+        },
+        {
+          "name": "/js/geometry-warp.js",
+          "ms": 0.800000011920929,
+          "encodedBytes": 8230,
+          "decodedBytes": 8197,
+          "transferBytes": 8530
+        },
+        {
+          "name": "/js/geometry-warp-gl.js",
+          "ms": 0.7999999821186066,
+          "encodedBytes": 9577,
+          "decodedBytes": 9544,
+          "transferBytes": 9877
+        },
+        {
+          "name": "/js/render-store.js",
+          "ms": 1,
+          "encodedBytes": 4341,
+          "decodedBytes": 4308,
+          "transferBytes": 4641
+        },
+        {
+          "name": "/js/geometry-warp-core.js",
+          "ms": 0.9000000059604645,
+          "encodedBytes": 7862,
+          "decodedBytes": 7829,
+          "transferBytes": 8162
+        },
+        {
+          "name": "/data/makehuman-hm08.bin",
+          "ms": 388.59999999403954,
+          "encodedBytes": 2394747,
+          "decodedBytes": 2394747,
+          "transferBytes": 300
+        },
+        {
+          "name": "/data/makehuman-muscle-atlas-v1.bin",
+          "ms": 0.5999999940395355,
+          "encodedBytes": 107156,
+          "decodedBytes": 107156,
+          "transferBytes": 300
+        },
+        {
+          "name": "/data/makehuman-anatomical-muscle-fields-v1.bin",
+          "ms": 0.6000000238418579,
+          "encodedBytes": 27918,
+          "decodedBytes": 27918,
+          "transferBytes": 300
+        }
+      ],
+      "logs": [
+        "Product timing: forecast 247,90 ms, muscle=False",
+        "Forecast MakeHuman rebuild: 13,9 ms, muscle=False",
+        "Muscle atlas: 107156 bytes, source hash 3,5 ms, read/validate 34,6 ms, assets ready 711,8 ms.",
+        "Product timing: forecast 179,70 ms, muscle=False",
+        "Forecast MakeHuman rebuild: 139,8 ms, muscle=False"
+      ]
+    }
+  ],
+  "limitation": "Loopback server, fresh browser context versus same-context reload; no OS-cache flush or mobile network measurement. JS heap snapshot is not total/peak process or WASM memory. Headless desktop is not a physical phone."
+}

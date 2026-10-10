@@ -171,3 +171,17 @@ def require_data_access(gate, root: Path, pairs, manifest, repo_root: Path):
 
 def pair_inventory(pairs):
     return digest([asdict(p) for p in sorted(pairs, key=lambda p: (p.participant_id, p.t0, p.t1))])
+
+
+def restricted_output(path: Path, root: Path, repo_root: Path):
+    """Derivative artifacts stay in the approved data root, never in Git or a public report."""
+    root, repo_root = root.resolve(strict=True), repo_root.resolve(strict=True)
+    if root.is_relative_to(repo_root) or repo_root.is_relative_to(root):
+        raise ValueError("Restricted output root must be separate from repository")
+    parent = path.parent.resolve(strict=True)
+    target = path.resolve()
+    if not parent.is_relative_to(root) or not target.is_relative_to(root) or target.is_relative_to(repo_root) or linked(path):
+        raise ValueError("Restricted output must stay inside approved data root")
+    if target.exists():
+        raise ValueError("Preserve existing research artifacts; choose a new output")
+    return target

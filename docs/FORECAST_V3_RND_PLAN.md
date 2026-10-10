@@ -1,5 +1,8 @@
 # Forecast v3 R&D — правила повышения точности числового и визуального прогноза
 
+Current decision, 2026-10-09: the non-AI R&D package is ready for final review. Product lifecycle Phases 1–7 are implemented; Phase 8 managed renderer and Phase 9 GPU/business work remain deferred. C0/prospective infrastructure exists; C1 remains `BLOCKED_PENDING_DATA_ACCESS`, Pseudo-DXA is blocked by prerequisite/rights. Procedural shape and muscle remain production defaults; BodyParts3D is research NO-GO for default. No participants recruited, no application submitted, no renderer integration. [Current validation matrix](MODEL_VALIDATION_STATUS.md), [hardening and reproduction](MODEL_PRODUCTION_HARDENING.md), [readiness for later controlled tests](USER_TEST_READINESS.md) supersede the historical planning status below.
+
+
 Current C0 update (2026-10-09): #28 merged as `c106bdf`, full main CI green. [DeltaShape infrastructure](DELTASHAPE.md), [official access audit and unsent dossiers](data-access/ACCESS_STATUS.md), and [prospective protocol](REAL_USER_VALIDATION_PROTOCOL.md) are prepared. C1 is `BLOCKED_PENDING_DATA_ACCESS`; [Pseudo-DXA](PSEUDO_DXA_RESEARCH.md) is blocked by prerequisite/rights. User has prohibited submission of applications for now. No external user testing or managed renderer work. Older stage/status entries below are historical planning context.
 
 Статус: roadmap / R&D rules.  
