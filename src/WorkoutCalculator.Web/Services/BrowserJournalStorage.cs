@@ -3,12 +3,15 @@ namespace WorkoutCalculator.Web.Services;
 public sealed class BrowserJournalStorage : ICheckInTransactionStorage
 {
     private static readonly Dictionary<string,List<(string? Raw,string Token)>> Observed=new();
+    private static long _observedGeneration=-1;
     public string? Read(string key)
     {
         ReadCacheGeneration.Observe(BrowserStorage.GetItemStrict("trening:data-generation"));
+        if(_observedGeneration!=ReadCacheGeneration.Version){Observed.Clear();_observedGeneration=ReadCacheGeneration.Version;}
         var raw=BrowserStorage.GetItemStrict(key);var token=BrowserStorage.ReadToken(key);
         if(!Observed.TryGetValue(key,out var items))Observed[key]=items=[];
         if(items.Count==0 || items[0].Token!=token){items.Insert(0,(raw,token));if(items.Count>2)items.RemoveAt(2);}
+        if(Observed.Count>32)Observed.Remove(Observed.Keys.First());
         return raw;
     }
     public bool CompareExchange(string key, string? expected, string value) => BrowserStorage.CompareExchange(key, expected, value);

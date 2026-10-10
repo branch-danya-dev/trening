@@ -42,7 +42,7 @@ public sealed class BodySnapshotStore(IJournalStorage storage)
     public string? Import(IReadOnlyList<BodySnapshot> candidates)
     {
         var read = _read ?? Load();
-        if (read.Error is not null) return read.Error;
+        if (read.Error is not null) return ApplicationCommand.Unavailable(read.Error);
         try
         {
             var refs = read.ImportedReferences.ToHashSet(StringComparer.Ordinal);
@@ -68,7 +68,7 @@ public sealed class BodySnapshotStore(IJournalStorage storage)
     private string? Write(IReadOnlyList<BodySnapshot> snapshots, IReadOnlyList<string> references, bool importing)
     {
         var read = _read ?? Load();
-        if (read.Error is not null) return read.Error;
+        if (read.Error is not null) return ApplicationCommand.Unavailable(read.Error);
         try
         {
             var data = new BodySnapshotData(SchemaVersion, snapshots.ToArray(), references.ToArray());

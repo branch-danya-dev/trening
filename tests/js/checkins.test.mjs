@@ -49,6 +49,13 @@ test('read-only history is not duplicated in compact recovery journal',async()=>
  const raw=values.get(CHECKIN_PENDING);assert.ok(raw.length<3000);assert.equal(JSON.parse(JSON.parse(raw).payload).version,2);
  await recoverCheckIn();assert.equal(values.get(key).length,100002);
 });
+test('a second quota failure during rollback retains a recoverable before/after mixture',async()=>{
+ const values=setup(),before=expected(),set=localStorage.setItem;let written=false;
+ localStorage.setItem=(k,v)=>{if(k===keys[0]&&v===after[k])written=true;if(k===keys[1]&&written)throw new DOMException('persistent quota','QuotaExceededError');set(k,v);};
+ await assert.rejects(commitCheckIn(JSON.stringify(before),JSON.stringify(after)),/\[RecoveryRequired\]/);
+ assert.ok(values.has(CHECKIN_PENDING));for(const k of keys)assert.ok(values.get(k)===before[k]||values.get(k)===after[k]);
+ localStorage.setItem=set;await recoverCheckIn();for(const k of keys)assert.equal(values.get(k),after[k]);assert.equal(values.has(CHECKIN_PENDING),false);
+});
 test('validation opt-in pseudonymizes lineage and exports fit-vs-validation distinction',()=>{
  const c={id:'private-id',observedDate:'2026-10-09',baseAvatarRevisionId:'private-base',revision:{id:'private-next'},photo:{sessionId:'private-photo',analysisHash:'private-hash',source:'OriginalObservation',estimates:{Waist:{cm:90,method:'PhotoDerived',modelRmseCm:1.55}}},manual:{weightKg:80,girths:{Waist:85},note:'private-note'},quality:{version:'checkin-quality-2',avatarUpdated:false,reasons:['ManualPhotoConflict'],girths:[{girth:'Waist',manualCm:85,photoCm:90,usedAsFitConstraint:true,independentValidationOfNewFit:false}]},events:[{status:'RejectedForAvatarUpdate'}]};
  const stores={checkIns:{items:[c]},avatars:{avatars:[{revisions:[{id:'private-base'},{id:'private-next'}]}]}};

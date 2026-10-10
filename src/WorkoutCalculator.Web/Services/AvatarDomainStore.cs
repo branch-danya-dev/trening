@@ -39,7 +39,7 @@ public sealed class AvatarDomainStore(IJournalStorage storage)
     public string? Initialize(Profile profile, AvatarState avatar, bool migration)
     {
         var read = Current;
-        if (read.Error is not null) return read.Error;
+        if (read.Error is not null) return ApplicationCommand.Unavailable(read.Error);
         // Explicit and idempotent. A read never creates, replaces, or deletes a legacy key.
         if (read.Data is not null) return null;
         return Write(new(SchemaVersion, [profile], [avatar], migration ? MigrationVersion : null));
@@ -58,19 +58,19 @@ public sealed class AvatarDomainStore(IJournalStorage storage)
     }
     public string? UpdatePreferences(DateOnly? birthDate, string goal)
     {
-        if (Current.Error is { } error) return error;
+        if (Current.Error is { } error) return ApplicationCommand.Unavailable(error);
         if (Current.Data is not { } data || Profile is not { } profile) return "Сначала создайте профиль.";
         return Write(data with { Profiles = [profile with { BirthDate = birthDate, Goal = goal }] });
     }
     public string? UpdateCalculationSettings(int? restingHr, double? vo2Max)
     {
-        if (Current.Error is { } error) return error;
+        if (Current.Error is { } error) return ApplicationCommand.Unavailable(error);
         if (Current.Data is not { } data || Profile is not { } profile) return "Сначала создайте профиль.";
         return Write(data with { Profiles = [profile with { RestingHr = restingHr, Vo2Max = vo2Max }] });
     }
     private string? Change(Func<AvatarState, AvatarState> action)
     {
-        if (Current.Error is { } error) return error;
+        if (Current.Error is { } error) return ApplicationCommand.Unavailable(error);
         try
         {
             if (Current.Data is not { } data || Avatar is not { } avatar) return "Сначала создайте аватар.";
@@ -88,7 +88,7 @@ public sealed class AvatarDomainStore(IJournalStorage storage)
     private string? Write(AvatarDomainData data)
     {
         var read = Current;
-        if (read.Error is not null) return read.Error;
+        if (read.Error is not null) return ApplicationCommand.Unavailable(read.Error);
         try
         {
             Validate(data);

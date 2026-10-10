@@ -25,7 +25,8 @@ public sealed class CheckInApplication(IJournalStorage storage)
     {
         _hypotheses.Load();
         if(_hypotheses.Current.Error is {} error)throw new ApplicationFault(ApplicationErrorCode.CorruptOrFutureSchema,error);
-        if(_hypotheses.Synchronize(now) is {} conflict)throw new ApplicationFault(ApplicationErrorCode.StaleConflict,conflict);
+        var synchronized=ApplicationCommand.Run(()=>_hypotheses.Synchronize(now));
+        if(synchronized.Error is {} failure)throw new ApplicationFault(failure.Code,failure.Message);
         var candidate=_hypotheses.Current.Data.Items.FirstOrDefault(h=>h.IsOpen && h.Core.TrackingCycleId==avatar.TrackingCycleId
             && date>=h.Core.TargetDate.AddDays(-h.Core.OutcomePolicy.EarlyDays) && date<=h.Core.TargetDate.AddDays(h.Core.OutcomePolicy.GraceDays));
         return Store.Begin(CheckInService.Create(profile,avatar,id,date,now,facts,photo,candidate?.Core.Id));

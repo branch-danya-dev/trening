@@ -197,7 +197,7 @@ public sealed class ActivityDayStore(IJournalStorage storage)
     }
     private string? Write(ActivityDayData data, IReadOnlyDictionary<string, string?>? guards = null)
     {
-        if (Current.Error is { } error) return error;
+        if (Current.Error is { } error) return ApplicationCommand.Unavailable(error);
         data = data with { SchemaVersion = 2 };
         Validate(data);
         var payload = JsonSerializer.Serialize(data, StorageJsonEncoding.Activity.ActivityDayData);
@@ -207,7 +207,7 @@ public sealed class ActivityDayStore(IJournalStorage storage)
             return ApplicationCommand.Reject(ApplicationErrorCode.StaleConflict,"День или связанные данные изменены в другой вкладке. Перезагрузите страницу и повторите проверку дня.");
         _read = Cache.Read(raw,()=>new(data,raw)); return null;
     }
-    private string? Try(Func<string?> action) { try { if (Current.Error is { } error) return error; return action(); } catch (Exception e) when (e is not OutOfMemoryException) { return ApplicationCommand.Capture(e,e.Message); } }
+    private string? Try(Func<string?> action) { try { if (Current.Error is { } error) return ApplicationCommand.Unavailable(error); return action(); } catch (Exception e) when (e is not OutOfMemoryException) { return ApplicationCommand.Capture(e,e.Message); } }
     public static void Validate(ActivityDayData data)
     {
         if (data.SchemaVersion is not (1 or 2) || data.IndexVersion != "journals-reference-1" || data.DefaultPlan is null || data.Days.IsDefault) throw new JsonException("Неизвестная схема дней.");

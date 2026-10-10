@@ -15,7 +15,9 @@
     "expired",
     "checkin-good-photo",
     "checkin-bad-photo",
-    "quota-warning"
+    "quota-warning",
+    "geometry-eligible",
+    "geometry-unsupported"
   ],
   "checks": [
     "loopback-isolation",

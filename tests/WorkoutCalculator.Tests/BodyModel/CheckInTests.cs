@@ -34,6 +34,13 @@ public class CheckInTests(MakeHumanFixture fx):IClassFixture<MakeHumanFixture>
         var before=m.Values.ToDictionary();var summary=new ProductReadModels(m).Read(Today);Assert.True(summary.Succeeded);Assert.Equal(1,summary.Value!.Progress.AcceptedCheckIns);Assert.Equal(before,m.Values);
         m.Values[AvatarDomainStore.Key]="{}";Assert.Equal(ApplicationErrorCode.CorruptOrFutureSchema,new ProductReadModels(m).Read(Today).Error!.Code);
     }
+    [Fact]public async Task CachedSnapshotReadDoesNotAliasCallerOwnedArray()
+    {
+        var(m,s,p,a)=Store();var job=Begin(s,p,a);await s.Process(job.Id,Builder);
+        var read=new BodySnapshotStore(m).Load();var array=read.Snapshots.ToArray();var original=array[0];
+        var raw=BodySnapshotStore.Encode(new(1,array,[]));array[0]=original with{WeightKg=99};m.Values[BodySnapshotStore.Key]=raw;
+        Assert.Equal(original,new BodySnapshotStore(m).Load().Snapshots[0]);Assert.Null(new CheckInStore(m).Load().Error);
+    }
     private static readonly DateTimeOffset Now=new(2026,10,9,12,0,0,TimeSpan.FromHours(3));
     private static readonly DateOnly Today=new(2026,10,9);
     private AvatarBuilder Builder=>new(fx.Model);

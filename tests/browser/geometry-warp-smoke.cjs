@@ -3,10 +3,10 @@ const {sourceFixture}=require('./geometry-fixture.cjs');
 const url=process.env.APP_URL||'http://127.0.0.1:5256',key='workoutcalc.observedHypotheses.v1';
 const button=(p,name)=>p.getByRole('button',{name,exact:true}).click(),tab=(p,name)=>p.getByRole('tab',{name,exact:true}).click();
 const ready=p=>p.waitForSelector('[data-model-ready="true"]',{timeout:60000});
-async function seed(p,fixture,out){
+async function seed(p,fixture,out,targetUrl=url){
  await p.clock.setFixedTime(new Date('2026-09-19T08:59:00Z'));
  await p.addInitScript(seed=>{if(!localStorage.getItem('workoutcalc.avatarDomain.v1')){localStorage.setItem('workoutcalc.avatarDomain.v1',JSON.stringify(seed));localStorage.setItem('workoutcalc.body.v1',JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57}));}},fixture.seed);
- await p.goto(url);await ready(p);await p.evaluate('window.sourceFixture='+sourceFixture.toString());
+ await p.goto(targetUrl);await ready(p);await p.evaluate('window.sourceFixture='+sourceFixture.toString());
  await p.evaluate(async f=>{
   const photos=await import(new URL('js/photos.js',document.baseURI)),{hashObject}=await import(new URL('js/render-contract.js',document.baseURI));
   const front=await window.sourceFixture(f,'Front'),side=await window.sourceFixture(f,'Side');

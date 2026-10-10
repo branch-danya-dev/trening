@@ -140,7 +140,7 @@ public sealed class ObservedHypothesisStore(IJournalStorage storage)
     });
     private string? Write(ObservedHypothesisData data,IReadOnlyDictionary<string,string?> guards)
     {
-        if(Current.Error is { } error)return error;
+        if(Current.Error is { } error)return ApplicationCommand.Unavailable(error);
         Validate(data);ValidateReferences(data,new FrozenStorage(guards));
         var byId=data.Items.ToDictionary(h=>h.Core.Id);
         foreach(var old in Current.Data.Items)
@@ -154,7 +154,7 @@ public sealed class ObservedHypothesisStore(IJournalStorage storage)
         if(!storage.CompareExchangeChecked(Key,Current.OriginalPayload,raw,guards))return ApplicationCommand.Reject(ApplicationErrorCode.StaleConflict,"Гипотеза или источники изменены в другой вкладке. Обновите страницу и проверьте данные.");
         _read=new(data,raw);Cache.Read(raw,()=>data);return null;
     }
-    private string? Try(Func<string?> action) { if(Current.Error is { } error)return error;try{return action();}catch(Exception e)when(e is not OutOfMemoryException){return ApplicationCommand.Capture(e,$"Гипотеза не сохранена. {e.Message}");} }
+    private string? Try(Func<string?> action) { if(Current.Error is { } error)return ApplicationCommand.Unavailable(error);try{return action();}catch(Exception e)when(e is not OutOfMemoryException){return ApplicationCommand.Capture(e,$"Гипотеза не сохранена. {e.Message}");} }
     public static void ProtectOutcomes(string? raw,IReadOnlyList<BodySnapshot> facts)
     {
         foreach(var h in Decode(raw).Items.Where(h=>h.Outcome is not null))

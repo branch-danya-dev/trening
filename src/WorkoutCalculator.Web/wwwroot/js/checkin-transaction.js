@@ -66,8 +66,12 @@ async function commit(expected,values,checkpoint=()=>{}){
             // A quota failure is recoverable immediately: retain the WAL until every previous value is restored.
             // Other interruptions intentionally retain the existing roll-forward recovery semantics.
             if(error?.name==='QuotaExceededError' && localStorage.getItem(CHECKIN_PENDING)){
-                for(const k of Object.keys(before))localStorage.removeItem(k);
-                for(const [k,v] of Object.entries(before))if(v!==null)localStorage.setItem(k,v);
+                // Restore shrinking values first. Never delete every key up front: a second storage failure
+                // must leave only valid before/after values that the retained WAL can still recover.
+                const rollback=Object.entries(before).sort(([ak,av],[bk,bv])=>
+                    ((av?.length??0)-(localStorage.getItem(ak)?.length??0))-((bv?.length??0)-(localStorage.getItem(bk)?.length??0)));
+                try{for(const [k,v] of rollback){if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}}
+                catch(rollbackError){throw appError('RecoveryRequired','Не удалось закончить откат. Данные сохранены в журнале; освободите место и перезагрузите страницу.',rollbackError);}
                 localStorage.removeItem(CHECKIN_PENDING);
             }
             if(external&&!localStorage.getItem(CHECKIN_PENDING))await discardExternal();

@@ -2,6 +2,10 @@ using WorkoutCalculator.Web.Services;
 
 namespace WorkoutCalculator.Tests.BodyModel;
 
+[CollectionDefinition("PreUiGlobalState",DisableParallelization=true)]
+public sealed class PreUiGlobalStateCollection;
+
+[Collection("PreUiGlobalState")]
 public class ValidatedReadCacheTests
 {
     [Fact] public void TypedCommandPreservesConflictWithoutParsingTextAndDoesNotLeakAcrossCalls()
@@ -10,6 +14,8 @@ public class ValidatedReadCacheTests
         Assert.Equal(ApplicationErrorCode.StaleConflict,conflict.Error!.Code);
         Assert.Equal(ApplicationErrorCode.Validation,ApplicationCommand.Run(()=>"different validation text").Error!.Code);
         Assert.True(ApplicationCommand.Run(()=>null).Succeeded);
+        Assert.Equal(ApplicationErrorCode.CorruptOrFutureSchema,ApplicationCommand.Run(()=>ApplicationCommand.Unavailable("unreadable archive")).Error!.Code);
+        Assert.Equal(ApplicationErrorCode.UnsupportedBrowser,ApplicationCommand.Run(()=>ApplicationCommand.Unavailable("[UnsupportedBrowser] storage unavailable")).Error!.Code);
     }
     [Fact] public void DiagnosticsAreBoundedOptInAndRejectArbitraryNames()
     {

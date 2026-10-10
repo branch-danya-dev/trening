@@ -23,6 +23,7 @@ public static class UsabilityDiagnostics
 internal sealed class OperationTiming(string flow):IDisposable
 {
     private readonly Stopwatch _watch=Stopwatch.StartNew();
-    public static T Run<T>(string flow,Func<T> operation){using var timing=new OperationTiming(flow);return operation();}
-    public void Dispose(){UsabilityDiagnostics.Record(flow,_watch.Elapsed.TotalMilliseconds);Console.WriteLine($"PreUI timing {flow}: {_watch.Elapsed.TotalMilliseconds:F2} ms");}
+    private ApplicationErrorCode? _error;
+    public static T Run<T>(string flow,Func<T> operation){using var timing=new OperationTiming(flow);try{return operation();}catch(Exception e){timing._error=ApplicationError.From(e).Code;throw;}}
+    public void Dispose(){UsabilityDiagnostics.Record(flow,_watch.Elapsed.TotalMilliseconds,_error);Console.WriteLine($"PreUI timing {flow}: {_watch.Elapsed.TotalMilliseconds:F2} ms");}
 }

@@ -59,7 +59,7 @@ public sealed class StrengthJournalStore(IJournalStorage storage)
     public string? Save(IReadOnlyList<TrainingSession> sessions)
     {
         var snapshot = _snapshot ?? Load();
-        if (snapshot.Error is not null) return snapshot.Error;
+        if (snapshot.Error is not null) return ApplicationCommand.Unavailable(snapshot.Error);
         try
         {
             Validate(sessions);

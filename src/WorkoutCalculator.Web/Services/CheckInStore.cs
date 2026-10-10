@@ -160,7 +160,7 @@ public sealed class CheckInStore(IJournalStorage storage)
     {
         try
         {
-            Load();if(Current.Error is { } error)return error;
+            Load();if(Current.Error is { } error)return ApplicationCommand.Unavailable(error);
             var c=Current.Data.Items.Single(c=>c.Id==checkInId);
             if(c.Snapshot is null || c.LinkedHypothesisId is null)throw new ArgumentException("Нет подходящего фактического результата.");
             var hypotheses=new ObservedHypothesisStore(storage);var h=hypotheses.Current.Data.Items.Single(h=>h.Core.Id==c.LinkedHypothesisId);

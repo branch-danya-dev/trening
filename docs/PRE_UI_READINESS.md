@@ -11,7 +11,7 @@ FINAL_IMPLEMENTATION_SHA = pending final regression. The exact reviewed implemen
 - One typed runtime capability policy, driven by frozen model provenance plus validated asset availability and explicit session research opt-in. Asset presence alone cannot enable research.
 - Exact-raw validated caches, immutable record/hash reuse, dictionary reference joins, grouped activity sources/date lookup and no-photo CheckIn application orchestration. Canonical historical hash functions and semantic model versions unchanged.
 - Bounded browser read handles retain exact CAS semantics without echoing entire readonly histories through WASM. Compact JSON storage encoding; legacy encodings remain readable.
-- Authenticated compact recovery WAL; IndexedDB overflow journal when localStorage cannot hold a second full archive. Quota rollback and explicit photo/PIN/restore transaction aborts.
+- SHA-256-checked compact recovery WAL; IndexedDB overflow journal when localStorage cannot hold a second full archive. Quota rollback and explicit photo/PIN/restore transaction aborts.
 - Typed error adapter/bridge codes, read models and StorageHealth; local diagnostics disabled until opt-in, a separate export opt-in, no remote analytics.
 - Semantic test hooks/helpers, targeted keyboard/focus/label assertions. PWA updates wait for all old clients to close.
 - Synthetic fixture loader outside production, mixed full-lifecycle backup, five pilot preparation drafts. [Frozen UI contract](PRE_UI_CONTRACT.md); [testing policy](TESTING.md).
@@ -37,9 +37,9 @@ Research opt-in is sessionStorage `trening:research-mode=enabled`, explicitly se
 
 Full matrix: [PRE_UI_CONTRACT](PRE_UI_CONTRACT.md#storage-and-integrity-contract). Avatar/fact/check-in/hypothesis schemas remain 1; ActivityDay readers preserve schema 1 migration and write schema 2 only through explicit CAS. Photos remain IndexedDB 3. Recovery DB remains version 1 with separate restore/check-in keys. New check-in WAL payload version 2 retains version 1 recovery support. Nothing makes a derived cache/index a backup authority.
 
-The canonical `docs/evidence/pre-ui/pre-ui-full-lifecycle.zip` is **entirely synthetic**, with public fixture PIN `1234`. It covers profile, locked avatar/revisions/cycle, ActivityDays/nutrition, strength/cardio references, evaluated and expired hypotheses, check-in/fact, encrypted photos and GeometryWarp artifacts. Exact clean restore, repeated reload/no extra migration, navigation/index rebuild, old-tab generation rejection, frozen hypothesis core and disabled research are checked. [Mixed archive report](evidence/pre-ui/mixed-backup.json).
+The canonical `docs/evidence/pre-ui/pre-ui-full-lifecycle.zip` is **entirely synthetic**, with public fixture PIN `1234`. It covers profile, locked avatar/revisions/cycle, ActivityDays/nutrition, strength/cardio references, evaluated and expired hypotheses, check-in/fact, encrypted photos and GeometryWarp artifacts. Its `syntheticFixture` manifest flag requires explicit local developer fixture mode; ordinary production import is rejected. Exact clean restore, repeated reload/no extra migration, navigation/index rebuild, old-tab generation rejection, frozen hypothesis core and disabled research are checked. [Mixed archive report](evidence/pre-ui/mixed-backup.json); [reproduction and archive fingerprint](evidence/pre-ui/README.md).
 
-Fault tests cover every inline/external WAL boundary, old journal compatibility, stale exact bytes/generation, failed staging, failed factual writes with complete rollback, corrupt journal blocking, synchronous photo blob quota after metadata enqueue, and export/delete after quota. Physical disk exhaustion or browser eviction is not simulated by these deterministic injected failures.
+Fault tests cover every inline/external WAL boundary, old journal compatibility, stale exact bytes/generation (including a writer during the IndexedDB staging await), failed staging, failed factual writes with complete rollback, a second failure during rollback with retained recoverable WAL, corrupt journal blocking, synchronous photo blob quota after metadata enqueue, and export/delete after quota. Physical disk exhaustion or browser eviction is not simulated by these deterministic injected failures.
 
 ## Performance findings
 
@@ -53,16 +53,21 @@ Local Edge 154, desktop, mobile viewport, Release WASM; single-run observations 
 
 | Operation | Fresh | 30d | 180d | 365d | 1000d |
 |---|---:|---:|---:|---:|---:|
-| Startup/model ready | 2790 | 3175 | 4074 | 5647 | 11289 |
-| Activity/calendar open | 128 | 216 | 645 | 1209 | 3260 |
-| Switch calendar day | 57 | 20 | 31 | 49 | 93 |
-| Hypothesis open/preview | 423 | 573 | 620 | 868 | 1876 |
-| CheckIn open after preview | 151 | 304 | 404 | 551 | 1073 |
-| CheckIn save, visible completion | 878 | 1204 | 1641 | 2180 | 3996 |
-| Expand check-in history | 8 | 15 | 17 | 29 | 175 |
-| Full backup creation/download | 143 | 84 | 94 | 100 | 142 |
+| Startup/model ready | 2532 | 2937 | 4009 | 6662 | 11388 |
+| Activity/calendar open | 117 | 214 | 646 | 1214 | 3261 |
+| Switch calendar day | 56 | 19 | 34 | 53 | 95 |
+| Add meal, form through completion | 151 | 153 | 549 | 1083 | 2778 |
+| Add activity event | 50 | 135 | 550 | 1069 | 2725 |
+| Close Day, review through confirmation | 103 | 214 | 767 | 1433 | 3643 |
+| Hypothesis open/preview | 400 | 565 | 618 | 902 | 1839 |
+| CheckIn open after preview | 95 | 313 | 409 | 542 | 1033 |
+| CheckIn save, visible completion | 874 | 1265 | 1680 | 2244 | 3957 |
+| Expand check-in history | 7 | 13 | 20 | 33 | 188 |
+| Full backup creation/download | 138 | 88 | 90 | 108 | 158 |
+| ZIP structure/checksum validation in browser | 1 | 1 | 4 | 13 | 20 |
+| Full restore inspection, including domain/references | 79 | 316 | 1058 | 2026 | 5491 |
 
-1000/fresh save = **4.55x**, 1000/365 = **1.83x**. Desired <=2x is **not met**. Exact blocker: versioned whole-envelope serialization/SHA and durable CAS/WAL still grow with factual archive size, and post-save calibration/current-fact projections process history. Achieving bounded independent persistence would require a separately versioned storage migration; it is not disguised as a cache change here. Current regression ceilings are 8x and 3.5x respectively, with the desired target reported separately. No integrity checks were dropped.
+1000/fresh save = **4.53x**, 1000/365 = **1.76x**. Desired <=2x is **not met**. Exact blocker: versioned whole-envelope serialization/SHA and durable CAS/WAL still grow with factual archive size, and post-save calibration/current-fact projections process history. Achieving bounded independent persistence would require a separately versioned storage migration; it is not disguised as a cache change here. Current regression ceilings are 8x and 3.5x respectively, with the desired target reported separately. No integrity checks were dropped.
 
 An additional final-path breakdown at 1000 days: begin 308 ms, ready 265, avatar/fact validated reads 4/6, reconstruction 232, encoding 220, hypothesis checks 129, CAS bridge/WAL 335, reconstruction/commit 1750 end to end, visible save 4010. Photo analysis is absent from this no-photo path. Native timings include index, 100 date lookups, meal/event/close, preview/issue where eligible, progress projection and CheckIn stages; see machine-readable evidence. Backup validation is measured in-browser separately from the automation cost of transferring archive bytes.
 
@@ -70,7 +75,7 @@ Cold startup and backup/restore must validate the complete archive and remain li
 
 ## Regression and dependency audit
 
-Local: Release build 0 warnings / 0 errors; **682 .NET**, **91 JS**, **34 Python** tests pass. New real-browser checks pass for storage failures, synthetic states/accessibility, mixed backup and two-version PWA transition. Full final CI is pending at this reporting point; the baseline full matrix already passed. Final decision below is deliberately NO until the exact PR head passes the full matrix.
+Local: Release build 0 warnings / 0 errors; **683 .NET**, **93 JS**, **34 Python** tests pass. New real-browser checks pass for storage failures, 16 synthetic states/accessibility, mixed backup and two-version PWA transition. Full final CI is pending at this reporting point; the baseline full matrix already passed. Final decision below is deliberately NO until the exact PR head passes the full matrix.
 
 Retain all suites: avatar, creation, skeletal, strength, history, forecast, composition, muscle forecast, product, ActivityDay, Nutrition, Hypothesis, CheckIn, GeometryWarp/WebGL, anatomical research, errors/recovery, backup/restore and published offline PWA. Added history ratios, developer-loader isolation, local diagnostic privacy, typed errors/caches, storage health, quota and PWA version transition. Layout screenshots remain distinct from behavioral contracts.
 

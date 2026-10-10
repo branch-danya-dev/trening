@@ -53,7 +53,7 @@ public sealed class ForecastStore(IJournalStorage storage)
     public string? ImportLegacy(IReadOnlyList<ForecastSnapshot> candidates, string originalLegacyPayload)
     {
         var read = _read ?? Load();
-        if (read.Error is not null) return read.Error;
+        if (read.Error is not null) return ApplicationCommand.Unavailable(read.Error);
         try
         {
             using var source = JsonDocument.Parse(originalLegacyPayload);
@@ -73,7 +73,7 @@ public sealed class ForecastStore(IJournalStorage storage)
     private string? Write(ForecastArchive archive)
     {
         var read = _read ?? Load();
-        if (read.Error is not null) return read.Error;
+        if (read.Error is not null) return ApplicationCommand.Unavailable(read.Error);
         try
         {
             Validate(archive);

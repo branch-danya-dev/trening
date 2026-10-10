@@ -29,6 +29,13 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
     try{await transaction.commitCheckIn(JSON.stringify(before),JSON.stringify(after));throw Error('expected quota');}catch(e){require(e.code==='StorageQuota',e.message);}finally{Storage.prototype.setItem=set;}
     for(const k of keys)require(localStorage.getItem(k)===before[k],'quota rollback '+k);require(!localStorage.getItem(guard.CHECKIN_PENDING),'quota marker cleared');
    }
+   // A regular writer during async IDB staging must win, never be overwritten by stale expected values.
+   localStorage.clear();guard.acceptGeneration();for(const k of keys)localStorage.setItem(k,'{"before":true}');
+   const old=Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)])),originalPut=IDBObjectStore.prototype.put;
+   Storage.prototype.setItem=function(k,v){if(k===guard.CHECKIN_PENDING&&v.length>200)throw new DOMException('full','QuotaExceededError');return set.call(this,k,v);};
+   IDBObjectStore.prototype.put=function(...args){const result=originalPut.apply(this,args);if(this.name==='recovery'&&args[1]==='checkin')queueMicrotask(()=>set.call(localStorage,keys[1],'"newer ordinary write"'));return result;};
+   try{require(!await transaction.commitCheckIn(JSON.stringify(old),JSON.stringify(after)),'must recheck CAS after IDB await');}finally{Storage.prototype.setItem=set;IDBObjectStore.prototype.put=originalPut;}
+   require(localStorage.getItem(keys[1])==='"newer ordinary write"','concurrent write retained');require(localStorage.getItem(keys[0])===old[keys[0]],'unrelated store unchanged');require(!localStorage.getItem(guard.CHECKIN_PENDING),'no stale marker installed');
    localStorage.clear();guard.acceptGeneration();const canvas=document.createElement('canvas');canvas.width=40;canvas.height=80;const ctx=canvas.getContext('2d');ctx.fillStyle='#123';ctx.fillRect(0,0,40,80);const blob=await new Promise(r=>canvas.toBlob(r));
    const put=IDBObjectStore.prototype.put;
    IDBObjectStore.prototype.put=function(...args){if(this.name==='images')throw new DOMException('injected photo quota','QuotaExceededError');return put.apply(this,args);};
@@ -38,7 +45,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
    // Normal export/removal still works after a rejected write.
    const saved=await photos.saveSession({sex:'Male',heightCm:180},{front:blob});await backup.exportBackup('synthetic-pre-ui');await photos.deleteSession(saved.id);require(JSON.parse(await photos.listMeta()).length===0,'delete after quota');
    const status=await health.storageHealth();require(status.available&&status.lastSuccessfulBackup===null&&!status.lastBackupTracked,'health must not fabricate backups');
-   return {idbRecoveryBoundaries:recovered,quotaRollbackBoundaries:keys.length,photoQuotaAtomic:true,exportAndDeleteAfterQuota:true,health:status};
+   return {idbRecoveryBoundaries:recovered,quotaRollbackBoundaries:keys.length,casAfterAsyncStaging:true,photoQuotaAtomic:true,exportAndDeleteAfterQuota:true,health:status};
   });
   assert.equal(result.idbRecoveryBoundaries,4);await fs.writeFile(path.join(out,'storage-faults.json'),JSON.stringify({passed:true,browser:browser.version(),...result},null,2));console.log('Pre-UI storage faults PASS');
  }finally{await browser.close();}

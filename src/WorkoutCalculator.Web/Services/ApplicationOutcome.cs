@@ -49,6 +49,7 @@ public static class ApplicationCommand
     {
         if(Active.Value is {} scope)scope.Error=new(code,message);return message;
     }
+    public static string Unavailable(string message) => Reject(ApplicationError.From(new Exception(message),ApplicationErrorCode.CorruptOrFutureSchema).Code,message);
     public static string Capture(Exception error,string message,ApplicationErrorCode fallback=ApplicationErrorCode.Unexpected)
     {
         if(Active.Value is {} scope)scope.Error=ApplicationError.From(error,fallback) with {Message=message};return message;

@@ -83,7 +83,7 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" CHECKIN_OUTPUT="$RUNNER_TEMP/checkin-evidence" node tests/browser/checkin-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" node tests/browser/errors-smoke.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-storage.cjs
-          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-fixtures.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-fixtures.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-mixed.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-history.cjs
       - name: Model hardening evidence

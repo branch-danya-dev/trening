@@ -10,12 +10,14 @@ async function loadScenario(context,url,file,options){
  assert.equal(fixture.format,'trening-dev-fixture-1');assert.equal(fixture.synthetic,true);
  assert.ok(Object.entries(fixture.local).every(([k,v])=>k.startsWith('workoutcalc.')&&typeof v==='string'));
  const page=await context.newPage();await page.clock.setFixedTime(new Date(fixture.at));
+ await page.addInitScript(()=>sessionStorage.setItem('trening:dev-fixtures','enabled'));
  if(fixture.recipe?.startsWith('geometry-')){
   const geometry=JSON.parse(await fs.readFile(options.geometryFixtures,'utf8'));
-  await require('./geometry-warp-smoke.cjs').seed(page,geometry,options.output);
+  await require('./geometry-warp-smoke.cjs').seed(page,geometry,options.output,url);
   if(fixture.recipe==='geometry-unsupported'){
    await page.evaluate(async()=>{const p=await import(new URL('js/photos.js',document.baseURI));for(const s of JSON.parse(await p.listMeta()))await p.deleteSession(s.id);});
    await page.reload();await page.waitForSelector('[data-model-ready="true"]',{timeout:120000});
+   await page.getByRole('tab',{name:'Прогресс',exact:true}).click();
   }
   return page;
  }

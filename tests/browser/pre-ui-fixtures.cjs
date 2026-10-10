@@ -2,10 +2,10 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
 const {loadScenario}=require('./fixture-loader.cjs'),{tab,action,newCheckIn,saveCheckIn,assertSemantics}=require('./product-page.cjs');
 (async()=>{
  const fixtures=process.env.PRE_UI_FIXTURES,out=process.env.PRE_UI_OUTPUT||'work/pre-ui-evidence',url=process.env.APP_URL||'http://127.0.0.1:5256';await fs.mkdir(out,{recursive:true});
- const names=['brand-new','avatar-draft','locked-empty','seven-days','nutrition-partial','nutrition-complete','preliminary-issued','active-14d','awaiting-outcome','evaluated','expired','checkin-good-photo','checkin-bad-photo','quota-warning'];
+ const names=['brand-new','avatar-draft','locked-empty','seven-days','nutrition-partial','nutrition-complete','preliminary-issued','active-14d','awaiting-outcome','evaluated','expired','checkin-good-photo','checkin-bad-photo','quota-warning','geometry-eligible','geometry-unsupported'];
  const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,args:['--enable-unsafe-swiftshader']});const checked=[];
  try{for(const name of names){
-  const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'});const p=await loadScenario(context,url,path.join(fixtures,name+'.json'),{enabled:true});
+  const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'});const p=await loadScenario(context,url,path.join(fixtures,name+'.json'),{enabled:true,geometryFixtures:process.env.GEOMETRY_FIXTURES,output:out});
   await assertSemantics(p);assert.equal(await p.evaluate(()=>sessionStorage.getItem('trening:research-mode')),null);
   if(['active-14d','awaiting-outcome','evaluated','expired'].includes(name)){
    await tab(p,'План');const expected={'active-14d':'Active','awaiting-outcome':'AwaitingOutcome',evaluated:'Evaluated',expired:'ExpiredWithoutOutcome'}[name];await p.locator(`[data-hypothesis-state="${expected}"]`).first().waitFor();await assertSemantics(p);
@@ -22,6 +22,8 @@ const {loadScenario}=require('./fixture-loader.cjs'),{tab,action,newCheckIn,save
    assert.equal(await p.getByTestId('checkin-result').getAttribute('data-checkin-status'),name==='checkin-good-photo'?'ProcessedAccepted':'RejectedForAvatarUpdate');
   }
   if(name==='quota-warning')assert.equal(await p.evaluate(async()=> (await(await import(new URL('js/storage-health.js',document.baseURI))).storageHealth()).reason),'StorageQuota');
+  if(name==='geometry-eligible')assert.equal(await p.getByRole('button',{name:'Создать визуализацию',exact:true}).isEnabled(),true);
+  if(name==='geometry-unsupported')await p.getByText('Для этой гипотезы нет подходящего исходного фото, связанного с её исходным аватаром.',{exact:true}).waitFor();
   checked.push(name);await context.close();
  }
  await fs.writeFile(path.join(out,'fixtures-accessibility.json'),JSON.stringify({passed:true,synthetic:true,scenarios:checked,checks:['loopback-isolation','labels-and-names','unique-ids','checkin-keyboard-and-focus','numeric-unit-descriptions','research-off']},null,2));console.log('Pre-UI fixtures and accessibility PASS');

@@ -132,13 +132,25 @@ foreach(var count in new[]{0,3,7,30,180,365,1000})
     Time("activity.event",()=>{Require(activity.SaveEvent(current,new(Id("bench-event"),current.Id,ActivityEventType.Walking,ActivitySource.Manual,now,now,DistanceKm:2),today,now));return true;});
     Time("activity.close",()=>{Require(activity.Close(activity.Review(activity.Find(p.Id,today)!),ActivityDayState.Completed,today,now,true,true));return true;});
     Time("progress.summary",()=>new ProductReadModels(memory).Read(today));
-    var issueStore=new ObservedHypothesisStore(activityMemory);var issueReview=issueStore.Preview(now,14,WorkoutCalculator.BodyModel.Forecast.TrainingExperience.Beginner);
-    if(issueReview.Preview.Candidate is not null)Time("hypothesis.issue",()=>{Require(issueStore.Issue(issueReview,now));return true;});
+    var issueStore=new ObservedHypothesisStore(activityMemory);
+    var issueCutoff=now;
+    foreach(var open in issueStore.Current.Data.Items.Where(h=>h.IsOpen).ToArray()){
+        if(open.Core.TargetDate>today)Require(issueStore.Cancel(open.Core.Id,now));
+        else issueCutoff=now.AddDays(open.Core.TargetDate.DayNumber+open.Core.OutcomePolicy.GraceDays+1-today.DayNumber);
+    }
+    Require(issueStore.Synchronize(issueCutoff));
+    var issueReview=Time("hypothesis.previewEligible",()=>issueStore.Preview(issueCutoff,14,WorkoutCalculator.BodyModel.Forecast.TrainingExperience.Beginner));
+    if(issueReview.Preview.Candidate is not null)Time("hypothesis.issue",()=>{Require(issueStore.Issue(issueReview,issueCutoff));return true;});
     Time("checkin.read",()=>store.Load());Time("bodySnapshot.read",()=>new BodySnapshotStore(memory).Load());Time("avatar.read",()=>new AvatarDomainStore(memory).Load());Time("hypothesis.read",()=>new ObservedHypothesisStore(memory).Load());
     Time("activity.read",()=>new ActivityDayStore(memory).Load());Time("hypothesis.preview",()=>new ObservedHypothesisStore(memory).Preview(now,14,WorkoutCalculator.BodyModel.Forecast.TrainingExperience.Beginner));
     var cnew=CheckInService.Create(p,a,Id("measured"),today,now,new(78.1,null,ImmutableDictionary<Girth,double>.Empty));
     var total=Stopwatch.StartNew();Time("checkin.begin",()=>store.Begin(cnew));Time("checkin.ready",()=>store.MarkReady(cnew.Id));
     var prepared=Time("checkin.prepare",()=>store.Prepare(cnew.Id,builder));var sw=Stopwatch.StartNew();if(!await store.Commit(prepared))throw new Exception("Commit failed");phases["checkin.commit"]=sw.Elapsed.TotalMilliseconds;phases["checkin.save"]=total.Elapsed.TotalMilliseconds;
+    ReadCacheGeneration.Observe(Guid.NewGuid().ToString());
+    Time("restore.factualStoreColdValidation",()=>{
+        Require(new CheckInStore(memory).Load().Error);Require(new ObservedHypothesisStore(memory).Load().Error);
+        new ActivityDayStore(memory).ValidateReferences();Require(new AvatarDomainStore(memory).Load().Error);Require(new BodySnapshotStore(memory).Load().Error);return true;
+    });
     rows.Add(new{days=count,checks=checks.Count,hypotheses=hypotheses.Count,bytes=memory.Values.Values.Sum(v=>v.Length),phases});Console.WriteLine(JsonSerializer.Serialize(rows[^1]));
 }
 File.WriteAllText(Path.Combine(output,"native.json"),JsonSerializer.Serialize(new{version="pre-ui-history-1",evidence="SYNTHETIC",rows},new JsonSerializerOptions{WriteIndented=true}));

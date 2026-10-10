@@ -5,6 +5,7 @@ import { assertReadable } from './data-guard.js';
 import { packageFiles, download } from './backup.js';
 import { analysisImages } from './photos.js';
 import { diagnostics } from './render-store.js';
+import { errorCodes } from './app-errors.js';
 const read = key => JSON.parse(localStorage.getItem('workoutcalc.' + key) || 'null');
 const pick = (value, keys) => Object.fromEntries(keys.filter(k => value?.[k] !== undefined).map(k => [k,value[k]]));
 const parseNested = value => typeof value === 'string' ? JSON.parse(value) : value;
@@ -54,7 +55,7 @@ export function analysisData(options, stores, report={}) {
         result.checkIns=(stores.checkIns?.items||[]).map((c,i)=>checkInAnalysis(c,i,revisions,stores.hypotheses?.items||[]));
     }
     if(options.validation) result.validation={body:(report.body || []).map(o=>pick(o,['girth','entered','calculated','source'])),manual:pick(report.manual,['Tape','Photo','Date','ExternalKcal','AvatarSimilarity']),evaluation:(report.evaluation || []).map(o=>({forecast:forecastRefs.get(o.ForecastId),fact:factRefs.get(o.FactId),...pick(o,['Date','HorizonDays','Metric','Actual','Predicted','BaselinePredicted','SignedError','AbsoluteError','SourceQuality','ExclusionReason'])}))};
-    if(options.diagnostics)result.diagnostics=(report.diagnostics||[]).filter(x=>["checkin.read","checkin.avatar","checkin.facts","checkin.hypotheses","checkin.build","checkin.encode","checkin.references","checkin.cas","checkin.begin","checkin.ready","checkin.save","checkin.photo","hypothesis.preview","hypothesis.issue","activity.read","backup.export","backup.restore"].includes(x.flow)&&Number.isFinite(x.milliseconds)&&x.milliseconds>=0&&x.milliseconds<=3600000).slice(-256).map((x,i)=>({flow:x.flow,milliseconds:x.milliseconds,sequence:i+1}));
+    if(options.diagnostics)result.diagnostics=(report.diagnostics||[]).filter(x=>["checkin.read","checkin.avatar","checkin.facts","checkin.hypotheses","checkin.build","checkin.encode","checkin.references","checkin.cas","checkin.begin","checkin.ready","checkin.save","checkin.photo","hypothesis.preview","hypothesis.issue","activity.read","backup.export","backup.restore"].includes(x.flow)&&Number.isFinite(x.milliseconds)&&x.milliseconds>=0&&x.milliseconds<=3600000).slice(-256).map((x,i)=>({flow:x.flow,milliseconds:x.milliseconds,sequence:i+1,...(errorCodes.includes(x.error)?{error:x.error}:{})}));
     return result;
 }
 export async function exportValidation(optionsJson, reportJson, build) {
