@@ -1,0 +1,35 @@
+{
+  "filesChecked": 212,
+  "vendorHashes": [
+    {
+      "file": "src\\WorkoutCalculator.Web\\wwwroot\\lib\\three\\three.module.js",
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea"
+    },
+    {
+      "file": "src\\WorkoutCalculator.Web\\wwwroot\\lib\\three\\three.core.js",
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6"
+    },
+    {
+      "file": "src\\WorkoutCalculator.Web\\wwwroot\\lib\\three\\addons\\controls\\OrbitControls.js",
+      "sha256": "3d79d07ecb686b4e5d93232eedab255331c1beef711e13164eaa1f68655a5f2b"
+    },
+    {
+      "file": "src\\WorkoutCalculator.Web\\wwwroot\\lib\\mediapipe-1.1.0\\vision_bundle.mjs",
+      "sha256": "9d5fc9ef74b22329cf9aa88dc543956d192b8c254210b187271614713eb5b10c"
+    },
+    {
+      "file": "src\\WorkoutCalculator.Web\\wwwroot\\lib\\mediapipe-1.1.0\\wasm\\vision_wasm_internal.js",
+      "sha256": "7c652617b5bef832f42878ce8c5f752b0724bca6054e4bc1013a37d4b1949723"
+    },
+    {
+      "file": "src\\WorkoutCalculator.Web\\wwwroot\\lib\\mediapipe-1.1.0\\wasm\\vision_wasm_internal.wasm",
+      "sha256": "782eda3ec1f414fdb4f1d66a8b59093eb4d5ab437e06117796abf05962d68eef"
+    },
+    {
+      "file": "src\\WorkoutCalculator.Web\\wwwroot\\lib\\mediapipe-1.1.0\\pose_landmarker_full.bin",
+      "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1"
+    }
+  ],
+  "issues": [],
+  "limits": "Static narrow patterns and pinned vendor hashes; no claim of comprehensive security or legal certification."
+}

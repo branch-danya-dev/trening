@@ -13,11 +13,20 @@ public static partial class BrowserStorage
 {
     public const string Module = "storage";
 
+    [JSImport("researchMode", Module)]
+    public static partial bool ResearchMode();
+
     [JSImport("initialize", "backup")]
     public static partial Task InitializeRecovery();
 
     [JSImport("commitCheckIn", "checkin-transaction")]
     public static partial Task<bool> CommitCheckIn(string expected, string values);
+
+    [JSImport("commitCheckInByToken", "checkin-transaction")]
+    public static partial Task<bool> CommitCheckInByToken(string tokens, string values);
+
+    [JSImport("readToken", Module)]
+    public static partial string ReadToken(string key);
 
     [JSImport("getItem", Module)]
     public static partial string? GetItem(string key);

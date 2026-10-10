@@ -1,0 +1,72 @@
+{
+  "suite": "checkin-smoke",
+  "layout": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "panel": 320,
+      "panelScroll": 320
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "panel": 390,
+      "panelScroll": 390
+    },
+    {
+      "width": 1400,
+      "scroll": 1400,
+      "panel": 479,
+      "panelScroll": 479
+    }
+  ],
+  "performance": [
+    "CheckIn open: 56,00 ms",
+    "CheckIn reconstruction prepare: 253,00 ms",
+    "CheckIn avatar transaction commit: 18,00 ms",
+    "CheckIn reconstruction and commit: 308,00 ms",
+    "CheckIn save total: 917,00 ms",
+    "CheckIn open: 112,00 ms",
+    "CheckIn reconstruction prepare: 195,00 ms",
+    "CheckIn avatar transaction commit: 30,00 ms",
+    "CheckIn reconstruction and commit: 344,00 ms",
+    "CheckIn save total: 870,00 ms",
+    "CheckIn open: 142,00 ms",
+    "CheckIn reconstruction prepare: 172,00 ms",
+    "CheckIn avatar transaction commit: 28,00 ms",
+    "CheckIn reconstruction and commit: 370,00 ms",
+    "CheckIn save total: 1197,00 ms",
+    "CheckIn open: 153,00 ms",
+    "CheckIn reconstruction prepare: 180,00 ms",
+    "CheckIn avatar transaction commit: 36,00 ms",
+    "CheckIn reconstruction and commit: 397,00 ms",
+    "CheckIn save total: 957,00 ms",
+    "CheckIn open: 175,00 ms",
+    "CheckIn reconstruction prepare: 36,00 ms",
+    "CheckIn avatar transaction commit: 32,00 ms",
+    "CheckIn reconstruction and commit: 111,00 ms",
+    "CheckIn save total: 563,00 ms",
+    "CheckIn open: 93,00 ms",
+    "CheckIn reconstruction prepare: 222,00 ms",
+    "CheckIn avatar transaction commit: 54,00 ms",
+    "CheckIn reconstruction and commit: 326,00 ms",
+    "CheckIn save total: 966,00 ms",
+    "CheckIn open: 528,00 ms",
+    "CheckIn hypothesis evaluation: 704,00 ms",
+    "CheckIn clean restore: 3537 ms"
+  ],
+  "browserErrors": 0,
+  "checks": [
+    "partial-manual",
+    "same-cycle",
+    "exact-reload",
+    "good-photo-derived",
+    "bad-photo-last-known-good",
+    "manual-photo-conflict",
+    "back-only-reference",
+    "target-checkin-outcome",
+    "frozen-hypothesis-endpoint",
+    "exact-clean-restore",
+    "opt-in-private-export"
+  ]
+}

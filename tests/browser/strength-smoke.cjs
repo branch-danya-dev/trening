@@ -39,19 +39,19 @@ const assert = require('node:assert/strict');
         };
         await openJournal();
         await page.getByRole('button', { name: '+ Упражнение', exact: true }).click();
-        const squat = page.locator('.strength-exercise').nth(0);
+        const squat = page.getByTestId('strength-exercise').nth(0);
         await squat.getByRole('combobox', { name: 'Упражнение 1', exact: true }).selectOption('squat');
         await squat.getByLabel('Повторения', { exact: true }).fill('10');
         await squat.getByLabel('Вес, кг', { exact: true }).fill('60');
         await squat.getByLabel('RIR', { exact: true }).fill('2');
         await squat.getByLabel('Выполнен', { exact: true }).check();
         await squat.getByRole('button', { name: '+ Подход', exact: true }).click();
-        await squat.locator('.strength-set').nth(1).getByLabel('Вес, кг', { exact: true }).fill('100'); // unfinished; excluded
+        await squat.getByTestId('strength-set').nth(1).getByLabel('Вес, кг', { exact: true }).fill('100'); // unfinished; excluded
         await squat.getByRole('button', { name: '+ Подход', exact: true }).click();
         await squat.getByRole('button', { name: 'Удалить подход 3', exact: true }).click();
         assert.equal(await squat.locator('.strength-set').count(), 2);
         await page.getByRole('button', { name: '+ Упражнение', exact: true }).click();
-        const bench = page.locator('.strength-exercise').nth(1);
+        const bench = page.getByTestId('strength-exercise').nth(1);
         await bench.getByRole('combobox', { name: 'Упражнение 2', exact: true }).selectOption('bench-press');
         await bench.getByLabel('Повторения', { exact: true }).fill('10');
         await bench.getByLabel('Вес, кг', { exact: true }).fill('40');

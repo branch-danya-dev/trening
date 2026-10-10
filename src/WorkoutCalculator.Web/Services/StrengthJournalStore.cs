@@ -59,7 +59,7 @@ public sealed class StrengthJournalStore(IJournalStorage storage)
     public string? Save(IReadOnlyList<TrainingSession> sessions)
     {
         var snapshot = _snapshot ?? Load();
-        if (snapshot.Error is not null) return snapshot.Error;
+        if (snapshot.Error is not null) return ApplicationCommand.Unavailable(snapshot.Error);
         try
         {
             Validate(sessions);
@@ -72,13 +72,13 @@ public sealed class StrengthJournalStore(IJournalStorage storage)
                     return $"Не удалось сохранить копию старого формата в {MigrationBackupKey}. Журнал не изменён.";
             }
             if (!storage.CompareExchange(Key, snapshot.OriginalPayload, payload))
-                return "Журнал изменён в другой вкладке. Перезагрузите страницу перед сохранением; ваш черновик пока здесь.";
+                return ApplicationCommand.Reject(ApplicationErrorCode.StaleConflict,"Журнал изменён в другой вкладке. Перезагрузите страницу перед сохранением; ваш черновик пока здесь.");
             _snapshot = new(sessions.ToArray(), payload);
             return null;
         }
         catch (Exception e) when (e is not OutOfMemoryException)
         {
-            return $"Силовая тренировка не сохранена. Черновик остался на экране. {e.Message}";
+            return ApplicationCommand.Capture(e,$"Силовая тренировка не сохранена. Черновик остался на экране. {e.Message}");
         }
     }
 

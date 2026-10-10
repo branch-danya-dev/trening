@@ -1,0 +1,158 @@
+{
+  "baseline": "355cebe21f69dda43a5548a2be6556e01e906312",
+  "implementation": "3be42a345ffee496575f111fec95e8264177f5e9",
+  "run": 38047271063,
+  "url": "https://github.com/branch-danya-dev/trening/actions/runs/38047271063",
+  "conclusion": "success",
+  "tests": {
+    "dotnet": 683,
+    "js": 93,
+    "python": 34
+  },
+  "release": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "sourceTree": "8372ea3c26e615d779b77bf70a2ffdd4a6c96aa6",
+  "testsTree": "d750ad12d8cc00d0ab33930cc3472166eda923bb",
+  "toolsTree": "f225628bc5817b50ad0d680a6dac96cbaf4cdf4b",
+  "browserEnvironment": "GitHub Actions Ubuntu Chromium; desktop headless with mobile viewport, not a physical phone",
+  "browserScripts": [
+    "tests/browser/model-startup-benchmark.cjs",
+    "tests/browser/anatomical-muscle-smoke.cjs",
+    "tests/browser/anatomical-muscle-audit.cjs",
+    "tests/browser/geometry-warp-benchmark.cjs",
+    "tests/browser/geometry-warp-webgl.cjs",
+    "tests/browser/geometry-warp-smoke.cjs",
+    "tests/browser/skeletal-smoke.cjs",
+    "tests/browser/strength-smoke.cjs",
+    "tests/browser/history-smoke.cjs",
+    "tests/browser/forecast-smoke.cjs",
+    "tests/browser/composition-smoke.cjs",
+    "tests/browser/muscle-forecast-smoke.cjs",
+    "tests/browser/product-smoke.cjs",
+    "tests/browser/avatar-smoke.cjs",
+    "tests/browser/avatar-creation-smoke.cjs",
+    "tests/browser/activity-day-smoke.cjs",
+    "tests/browser/nutrition-smoke.cjs",
+    "tests/browser/hypothesis-smoke.cjs",
+    "tests/browser/checkin-smoke.cjs",
+    "tests/browser/errors-smoke.cjs",
+    "tests/browser/pre-ui-storage.cjs",
+    "tests/browser/pre-ui-fixtures.cjs",
+    "tests/browser/pre-ui-mixed.cjs",
+    "tests/browser/pre-ui-history.cjs",
+    "tests/browser/offline-smoke.cjs",
+    "tests/browser/pwa-version-transition.cjs"
+  ],
+  "additionalModes": [
+    "GeometryWarp anatomical pinned provider",
+    "GeometryWarp published offline PWA"
+  ],
+  "history": [
+    {
+      "days": 0,
+      "phases": {
+        "startup": 4785,
+        "activityOpen": 176,
+        "calendarSwitch": 61,
+        "addMeal": 156,
+        "addEvent": 120,
+        "closeDay": 193,
+        "hypothesisOpen": 832,
+        "checkinOpen": 286,
+        "checkinSave": 1682,
+        "historyExpand": 33,
+        "backup": 69,
+        "restoreValidation": 1,
+        "restoreValidationWithAutomationTransfer": 159,
+        "restoreFullInspection": 128
+      }
+    },
+    {
+      "days": 30,
+      "phases": {
+        "startup": 6018,
+        "activityOpen": 319,
+        "calendarSwitch": 61,
+        "addMeal": 287,
+        "addEvent": 298,
+        "closeDay": 404,
+        "hypothesisOpen": 1263,
+        "checkinOpen": 903,
+        "checkinSave": 2401,
+        "historyExpand": 41,
+        "backup": 70,
+        "restoreValidation": 2,
+        "restoreValidationWithAutomationTransfer": 1124,
+        "restoreFullInspection": 574
+      }
+    },
+    {
+      "days": 180,
+      "phases": {
+        "startup": 8179,
+        "activityOpen": 1195,
+        "calendarSwitch": 77,
+        "addMeal": 1155,
+        "addEvent": 1120,
+        "closeDay": 1512,
+        "hypothesisOpen": 1397,
+        "checkinOpen": 976,
+        "checkinSave": 3209,
+        "historyExpand": 133,
+        "backup": 82,
+        "restoreValidation": 8,
+        "restoreValidationWithAutomationTransfer": 4127,
+        "restoreFullInspection": 2080
+      }
+    },
+    {
+      "days": 365,
+      "phases": {
+        "startup": 11639,
+        "activityOpen": 2286,
+        "calendarSwitch": 91,
+        "addMeal": 2170,
+        "addEvent": 2144,
+        "closeDay": 2863,
+        "hypothesisOpen": 1942,
+        "checkinOpen": 1139,
+        "checkinSave": 4472,
+        "historyExpand": 37,
+        "backup": 90,
+        "restoreValidation": 15,
+        "restoreValidationWithAutomationTransfer": 8143,
+        "restoreFullInspection": 4059
+      }
+    },
+    {
+      "days": 1000,
+      "phases": {
+        "startup": 23275,
+        "activityOpen": 5886,
+        "calendarSwitch": 199,
+        "addMeal": 5725,
+        "addEvent": 5658,
+        "closeDay": 7385,
+        "hypothesisOpen": 3835,
+        "checkinOpen": 2045,
+        "checkinSave": 8193,
+        "historyExpand": 85,
+        "backup": 129,
+        "restoreValidation": 35,
+        "restoreValidationWithAutomationTransfer": 22758,
+        "restoreFullInspection": 11051
+      }
+    }
+  ],
+  "checkinRatios": {
+    "largeToFresh": 4.870986920332937,
+    "largeTo365": 1.832066189624329,
+    "desired": 2,
+    "regressionCeilings": [
+      8,
+      3.5
+    ]
+  }
+}

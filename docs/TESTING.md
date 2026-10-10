@@ -1,5 +1,33 @@
 # Как проверять приложение
 
+## Pre-UI stabilization: semantic selector policy
+
+The [pre-UI contract](PRE_UI_CONTRACT.md) and [readiness report](PRE_UI_READINESS.md) govern the next UI refactor. Preserve all existing behavioral suites; update screenshot/layout expectations separately.
+
+1. Prefer accessible role/name for user actions and explicitly labelled inputs. Copy changes may update these names with a reviewed test change.
+2. Use stable `data-testid` for state surfaces or repeated domain rows: `checkin-new`, `checkin-save`, `checkin-result`, `checkin-panel`, `observed-hypothesis`, `hypothesis-comparison`, `geometry-warp`, `render-output`, `strength-exercise`, `strength-set`, `pwa-update-ready`. Keep existing day state/date attributes.
+3. Do not add CSS hierarchy, nth-child, card positions or pixel coordinates to behavioral assertions. An index within a semantic ordered exercise/set collection is acceptable when order itself is tested.
+4. CSS/scroll width/screenshot assertions remain in explicitly labelled layout sections. A moved card should not invalidate factual backup/CAS/hash assertions.
+5. Share basic workflows through `tests/browser/product-page.cjs`; selectors are test infrastructure, never application business logic.
+
+Audited suites: avatar, avatar-creation, skeletal, strength, history, forecast, composition, muscle-forecast, product, activity-day, nutrition, hypothesis, checkin, errors, anatomical-muscle smoke/audit, GeometryWarp benchmark/WebGL/smoke and published offline. Most already use role/name and state IDs. Changes target check-in orchestration/focus and strength row scopes; remaining `.panel-body`/card width selectors intentionally measure layout. No blanket test rewrite.
+
+Generate scenarios and native timings:
+
+```sh
+dotnet run -c Release --project tools/WorkoutCalculator.PreUiAudit -- . work/pre-ui-fixtures
+dotnet run -c Release --project tools/WorkoutCalculator.GeometryWarpBenchmark -- . work/geometry-fixtures.json
+```
+
+With a Release app running, set `APP_URL`, `PRE_UI_FIXTURES`, `PRE_UI_OUTPUT`, `GEOMETRY_FIXTURES` and Playwright's `NODE_PATH`, then run `pre-ui-storage.cjs`, `pre-ui-fixtures.cjs`, `pre-ui-mixed.cjs`, `pre-ui-history.cjs`. Run the timing suite alone to avoid CPU contention. `pwa-version-transition.cjs` starts its own server and requires `PWA_ROOT` pointing to published wwwroot. CI runs them sequentially and uploads evidence, including native timings and full synthetic backup.
+
+Fixture catalog: brand-new, avatar-draft, locked-empty, seven-days, nutrition-partial/complete, preliminary/preliminary-issued, active-14d, awaiting-outcome, evaluated, expired, checkin-good-photo/bad-photo, geometry-eligible/unsupported, large-history and quota-warning. `loadScenario(context,url,file,{enabled:true,...})` requires a new isolated context and loopback URL; geometry recipes additionally require `geometryFixtures` and `output`. No loader or seeds ship in the app. Exports in explicit fixture mode are marked `syntheticFixture:true` and rejected outside loopback plus sessionStorage `trening:dev-fixtures=enabled`; research remains a separate disabled flag. General fixture generation preserves semantic states but new issued IDs need not be byte-identical across generation; the checked-in canonical ZIP is the exact replay reference. [Canonical import and measurement instructions](evidence/pre-ui/README.md).
+
+Accessibility baseline is local assertions, with no added dependency: visible controls named/labelled, unique IDs, check-in keyboard operation and focus transitions, units/context, error association, state roles/headings. This is not a full WCAG audit. Screen-reader review, every modal's focus sequence, contrast and visual interaction design belong to the separate UI phase.
+
+History budget is a measured regression guard, not a phone SLA: 1000/fresh CheckIn save <=8x and 1000/365 <=3.5x. The desired <=2x ratio is reported separately and is **not currently met**; whole-envelope persistence and post-save factual projections remain linear. Do not silently loosen the ceilings or compare timings produced under concurrent benchmark runs.
+
+
 Current decision, 2026-10-09: the non-AI R&D package is ready for final review. Product lifecycle Phases 1–7 are implemented; Phase 8 managed renderer and Phase 9 GPU/business work remain deferred. C0/prospective infrastructure exists; C1 remains `BLOCKED_PENDING_DATA_ACCESS`, Pseudo-DXA is blocked by prerequisite/rights. Procedural shape and muscle remain production defaults; BodyParts3D is research NO-GO for default. No participants recruited, no application submitted, no renderer integration. [Current validation matrix](MODEL_VALIDATION_STATUS.md), [hardening and reproduction](MODEL_PRODUCTION_HARDENING.md), [readiness for later controlled tests](USER_TEST_READINESS.md) supersede the historical planning status below.
 
 
