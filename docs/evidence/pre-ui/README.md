@@ -23,6 +23,8 @@ To regenerate, follow the Release app and fixture commands in [TESTING](../../TE
 - `storage-faults.json`: actual browser IndexedDB fault injection, external WAL crash/rollback/recheck, atomic photo failure and export/delete availability. Unit tests separately cover a second rollback failure and legacy journal support.
 - `fixtures-accessibility.json`: 16 developer states, labels/names/IDs and targeted keyboard/focus checks. This is a technical baseline, not a full accessibility certification.
 - `pwa-transition.json`: two old controlled clients, waiting update, preserved input, ignored historical forced-activation message, offline old/new cache and activation after both old clients close.
+- `ci-verification.json`: successful full implementation run, exact SHA/source-tree fingerprints, 683 .NET + 93 JS + 34 Python, browser script matrix and independent Ubuntu/Chromium history timings.
+- `checkin-regression.json`: unchanged original CheckIn smoke on the final local implementation, including good/rejected photos, exact restore, frozen endpoint and private export. Save paths ranged 563–1197 ms; zero browser errors. An earlier extra attempt against a long-running stale development server received an empty module response; this report is from the clean rebuilt/restarted server.
 - `dependencies.json` and `security-audit.json`: advisory query and scoped repository/library checks; see [audit scope and license notices](../../PRE_UI_DEPENDENCY_AUDIT.md).
 
 The full PR CI uploads fresh reports and its own canonical fixture as `pre-ui-stabilization-evidence`. The readiness report identifies the tested implementation SHA and run. Local numbers remain labeled local; CI timings are not substituted for them.

@@ -4,7 +4,9 @@ PRE_UI_BASELINE = `355cebe21f69dda43a5548a2be6556e01e906312`
 
 PR #30 head `bfe195084be9a3d20f620295d2ef4dc5736337d4` was rechecked GREEN/mergeable and merged with an ordinary merge commit. [Full baseline main CI](https://github.com/branch-danya-dev/trening/actions/runs/38042605807) passed before `codex/pre-ui-stabilization` was created. No squash/rebase/history rewrite.
 
-FINAL_IMPLEMENTATION_SHA = pending final regression. The exact reviewed implementation commit will be recorded here; a reporting-only commit cannot contain its own SHA. The final PR/check run identifies its exact head independently.
+FINAL_IMPLEMENTATION_SHA = `3be42a345ffee496575f111fec95e8264177f5e9`
+
+[Full implementation CI](https://github.com/branch-danya-dev/trening/actions/runs/38047271063) is GREEN. Subsequent changes only finalize these reports/evidence; a reporting-only commit cannot contain its own SHA. [PR #31](https://github.com/branch-danya-dev/trening/pull/31) records its exact final head and required checks. The source/test/tool tree fingerprints in [CI verification](evidence/pre-ui/ci-verification.json) distinguish the tested code from reporting-only changes. PR #31 remains open and must not be automatically merged.
 
 ## Changes and boundaries
 
@@ -69,13 +71,15 @@ Local Edge 154, desktop, mobile viewport, Release WASM; single-run observations 
 
 1000/fresh save = **4.53x**, 1000/365 = **1.76x**. Desired <=2x is **not met**. Exact blocker: versioned whole-envelope serialization/SHA and durable CAS/WAL still grow with factual archive size, and post-save calibration/current-fact projections process history. Achieving bounded independent persistence would require a separately versioned storage migration; it is not disguised as a cache change here. Current regression ceilings are 8x and 3.5x respectively, with the desired target reported separately. No integrity checks were dropped.
 
+The independent Ubuntu/Chromium CI measured CheckIn save **1682 / 2401 / 3209 / 4472 / 8193 ms**, respectively: **4.87x** large/fresh and **1.83x** large/365. All measured startup/activity/meal/event/close/hypothesis/backup/restore phases are in `ci-verification.json`. In particular, 1000-day startup was 23275 ms and full restore inspection 11051 ms on that runner. The regression ratios pass; absolute desktop latency is not a phone SLA and the 2x goal is not claimed. The existing local CheckIn smoke's six save paths measured 563–1197 ms, with zero browser errors and unchanged endpoint/recovery/export assertions (`checkin-regression.json`).
+
 An additional final-path breakdown at 1000 days: begin 308 ms, ready 265, avatar/fact validated reads 4/6, reconstruction 232, encoding 220, hypothesis checks 129, CAS bridge/WAL 335, reconstruction/commit 1750 end to end, visible save 4010. Photo analysis is absent from this no-photo path. Native timings include index, 100 date lookups, meal/event/close, preview/issue where eligible, progress projection and CheckIn stages; see machine-readable evidence. Backup validation is measured in-browser separately from the automation cost of transferring archive bytes.
 
 Cold startup and backup/restore must validate the complete archive and remain linear. Historical calibration cross-checks can still be quadratic in the number of issued hypotheses on a cold decode; the representative curve varies day/fact history, not arbitrarily many hypotheses. This cold correctness path was retained rather than replace calibration semantics. Full snapshot format capacity is a known engineering limitation; quota is a typed recoverable result, not silent loss.
 
 ## Regression and dependency audit
 
-Local: Release build 0 warnings / 0 errors; **683 .NET**, **93 JS**, **34 Python** tests pass. New real-browser checks pass for storage failures, 16 synthetic states/accessibility, mixed backup and two-version PWA transition. Full final CI is pending at this reporting point; the baseline full matrix already passed. Final decision below is deliberately NO until the exact PR head passes the full matrix.
+Full CI on `3be42a345ffee496575f111fec95e8264177f5e9`: Release build **0 warnings / 0 errors**; **683 .NET**, **93 JS**, **34 Python**, no skipped .NET tests. The complete browser step and published PWA step pass, including storage failures, 16 synthetic states/accessibility, mixed backup, history budgets and two-version PWA transition. The matrix runs 26 distinct browser scripts, with extra anatomical and published-offline GeometryWarp modes. [Machine-readable verification and script list](evidence/pre-ui/ci-verification.json). Local targeted checks independently pass; the stale local development-server asset response found during an extra run disappeared after a clean rebuild/restart and the unchanged CheckIn smoke then passed fully.
 
 Retain all suites: avatar, creation, skeletal, strength, history, forecast, composition, muscle forecast, product, ActivityDay, Nutrition, Hypothesis, CheckIn, GeometryWarp/WebGL, anatomical research, errors/recovery, backup/restore and published offline PWA. Added history ratios, developer-loader isolation, local diagnostic privacy, typed errors/caches, storage health, quota and PWA version transition. Layout screenshots remain distinct from behavioral contracts.
 
@@ -87,6 +91,6 @@ Safe changes and immutable semantics are listed in PRE_UI_CONTRACT. The next pha
 
 Non-blocking external/empirical gaps: physical low-end-phone performance, real-photo quality, real-user predictive accuracy, formal privacy/legal review and named pilot owner, DeltaShape/Pseudo-DXA data/prerequisite/rights access. AI renderer remains deferred. No participant or application was contacted/submitted by this task.
 
-READY_FOR_UI_REDESIGN = NO
+The engineering gates for a separate UI redesign pass. No unresolved engineering blocker is known in the tested scope. Whole-envelope capacity/linear costs, the unmet 2x target and cold many-hypothesis calibration limits are explicit constraints, not claims of constant-time access. Review and merge of PR #31 remain human decisions; this is not authorization to recruit participants or certify accuracy/privacy compliance.
 
-Current blocker: final complete regression/CI on the stabilization PR has not yet been confirmed. This document will be updated after verification; performance target shortfall and capacity limits remain explicitly documented even if the engineering gate passes.
+READY_FOR_UI_REDESIGN = YES
