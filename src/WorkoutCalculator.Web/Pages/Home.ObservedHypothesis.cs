@@ -29,5 +29,5 @@ public partial class Home
         SetMode(ViewMode.Compare);
         Console.WriteLine($"Hypothesis endpoint geometry (cached by descriptor): {watch.Elapsed.TotalMilliseconds:F2} ms");
     }
-    private void ShowScenario(){_observedEndpoint=null;_observedGeometryHash=null;_observedGeometryError=null;Refresh();}
+    private void ShowScenario(){_observedEndpoint=null;_observedGeometryHash=null;_observedGeometryError=null;Refresh();SetMode(ViewMode.Compare);}
 }

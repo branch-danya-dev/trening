@@ -32,6 +32,7 @@
     private string? _error;
     private Guid _editKey;
     private string _moveDate = "";
+    public void OpenNew(){Edit(null);StateHasChanged();}
     private void Edit(MealEvent? meal) { _editing=meal; _adding=true; _editKey=Guid.NewGuid(); _error=null; }
     private async Task Save(MealEvent meal) { _error=Store.SaveMeal(Day,meal,DateOnly.FromDateTime(DateTime.Now),DateTimeOffset.Now); if (_error is null) { _adding=false; await OnChanged.InvokeAsync(); } }
     private async Task Remove(MealEvent meal) { _error=Store.RemoveMeal(Day,meal.Id,DateTimeOffset.Now); if (_error is null) await OnChanged.InvokeAsync(); }

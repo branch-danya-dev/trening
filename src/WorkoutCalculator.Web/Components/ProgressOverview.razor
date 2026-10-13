@@ -1,0 +1,46 @@
+@using WorkoutCalculator.BodyModel.History
+<section class="card progress-overview" aria-label="Фактические изменения" data-testid="progress-overview">
+    <p class="eyebrow">Ваша история</p><h1>Что изменилось</h1>
+    <p>Измерения по датам. Пустые поля остаются неизвестными.</p>
+    <div class="chart-controls">
+        <label>Период<select aria-label="Период прогресса" @bind="_days" @bind:after="Refresh"><option value="30">30 дней</option><option value="90">90 дней</option><option value="0">Вся история</option></select></label>
+        <label>Показатель<select aria-label="Показатель прогресса" @bind="_metric" @bind:after="Refresh"><option value="weight">Вес</option>@foreach(var g in Enum.GetValues<Girth>()){<option value="@g">@BodyProfile.GirthName(g)</option>}@if(Facts.Any(f=>f.BodyFatPercent.HasValue)){<option value="fat">Доля жира — записанные данные</option>}</select></label>
+    </div>
+    @if (Points.Length == 0) { <div class="empty-state"><h3>Здесь появится ваш прогресс</h3><p>Добавьте новый замер. Для сравнения нужны два известных значения в выбранном периоде.</p></div> }
+    else {
+        var points=Points;var first=points[0];var last=points[^1];
+        <div class="dashboard-grid" style="margin-top:20px">
+            <div><small>Последнее значение · @last.Date.ToString("dd.MM")</small><strong>@Fmt.N(Value(last)!.Value,1) @Unit</strong></div>
+            <div><small>Изменение за период</small><strong>@(points.Length>1?Fmt.Signed(Value(last)!.Value-Value(first)!.Value,1)+" "+Unit:"Нет пары")</strong></div>
+        </div>
+        <p class="note" data-testid="trend-summary">@(_metric=="weight"?"Вес":_metric=="fat"?"Доля жира":BodyProfile.GirthName(Enum.Parse<Girth>(_metric))): @first.Date.ToString("dd.MM.yyyy") — @last.Date.ToString("dd.MM.yyyy"). Известных значений: @points.Length. @(_metric is "weight" or "fat"?"Источник указан у каждой записи.":"Ручные замеры и оценки по фото отмечены отдельно.")</p>
+        @if(points.Length>1){
+            <svg class="fact-chart" viewBox="0 0 500 210" role="img" aria-label="Тенденция выбранного показателя; точные значения и источники доступны в таблице ниже">
+                <line class="grid" x1="42" y1="170" x2="470" y2="170" />
+                <line class="grid" x1="42" y1="25" x2="470" y2="25" />
+                <text x="2" y="30">@Fmt.N(Max,1)</text><text x="2" y="170">@Fmt.N(Min,1)</text>
+                <polyline class="fact-line" points="@Polyline" />
+                @foreach(var point in points){<circle class="fact-dot" cx="@F(X(point))" cy="@F(Y(Value(point)!.Value))" r="4"><title>@point.Date.ToString("dd.MM.yyyy"): @Fmt.N(Value(point)!.Value,1) @Unit · @Source(point)</title></circle>}
+                <text x="42" y="200">@first.Date.ToString("dd.MM")</text><text x="470" y="200" text-anchor="end">@last.Date.ToString("dd.MM")</text>
+            </svg>
+        }
+        <details><summary>Значения и источники</summary><table class="history-deltas"><thead><tr><th>Дата</th><th>Значение</th><th>Источник</th></tr></thead><tbody>@foreach(var point in points.Reverse()){<tr><td>@point.Date.ToString("dd.MM.yyyy")</td><td>@Fmt.N(Value(point)!.Value,1) @Unit</td><td>@Source(point)</td></tr>}</tbody></table></details>
+    }
+</section>
+@code {
+    [Parameter] public IReadOnlyList<BodySnapshot> Facts {get;set;}=[];
+    private int _days=30;
+    private string _metric="weight";
+    private DateOnly Today=>DateOnly.FromDateTime(DateTime.Now);
+    private BodySnapshot[] Points {get;set;}=[];
+    protected override void OnParametersSet()=>Refresh();
+    private void Refresh(){Points=Facts.Where(f=>f.Date<=Today&&(_days==0||f.Date>=Today.AddDays(-_days))&&Value(f).HasValue).OrderBy(f=>f.Date).ToArray();Min=Points.Length==0?0:Points.Min(p=>Value(p)!.Value);Max=Points.Length==0?0:Points.Max(p=>Value(p)!.Value);}
+    private double? Value(BodySnapshot f)=>_metric switch{"weight"=>f.WeightKg,"fat"=>f.BodyFatPercent,_=>f.Measurements.GetValueOrDefault(Enum.Parse<Girth>(_metric))?.Cm};
+    private string Source(BodySnapshot f)=>_metric is "weight" or "fat" ? f.Source switch{SnapshotSource.Manual=>"Записано вручную",SnapshotSource.Photo=>"Запись по фото",_=>"Журнал веса"} : f.Measurements[Enum.Parse<Girth>(_metric)].Method==MeasurementMethod.Manual?"Лента · факт":"Фото · оценка";
+    private string Unit=>_metric=="weight"?"кг":_metric=="fat"?"%":"см";
+    private double Min,Max;
+    private double X(BodySnapshot p)=>42+428d*(p.Date.DayNumber-Points[0].Date.DayNumber)/Math.Max(1,Points[^1].Date.DayNumber-Points[0].Date.DayNumber);
+    private double Y(double value)=>Max==Min?98:170-145*(value-Min)/(Max-Min);
+    private string Polyline=>string.Join(" ",Points.Select(p=>$"{F(X(p))},{F(Y(Value(p)!.Value))}"));
+    private static string F(double n)=>n.ToString("0.##",CultureInfo.InvariantCulture);
+}

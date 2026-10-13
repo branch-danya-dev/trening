@@ -27,3 +27,7 @@ function offerUpdate(worker) {
     banner.append(text);
     document.body.append(banner);
 }
+
+// Connectivity is presentation only; never reload or mutate drafts on network changes.
+function showConnectivity(){document.body.classList.toggle('is-offline',!navigator.onLine);}
+addEventListener('online',showConnectivity);addEventListener('offline',showConnectivity);showConnectivity();

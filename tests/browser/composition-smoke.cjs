@@ -13,7 +13,7 @@ const fs=require('node:fs'), path=require('node:path');
    localStorage.setItem('workoutcalc.hypotheses.v1',JSON.stringify({Selected:0,Items:[{Name:'Nutrition',Slot:0,Plan:{Weeks:24,IntakeKcalPerDay:2000,ActivityFactor:1.3,CardioKind:-1,Strength:false}}]}));
   }});
   const ready=()=>p.waitForSelector('[data-model-ready="true"]',{timeout:60000});
-  const open=()=>p.getByRole('tab',{name:'План',exact:true}).click();
+  const open=()=>require('./ui-disclosures.cjs').tab(p,'План');
   const read=()=>p.evaluate(()=>JSON.parse(JSON.parse(localStorage.getItem('workoutcalc.forecasts.v1')).payload));
   await p.goto(process.env.APP_URL||'http://127.0.0.1:5256');await ready();await open();
   assert.equal(await p.locator('.advanced-nutrition').getAttribute('open'),null);

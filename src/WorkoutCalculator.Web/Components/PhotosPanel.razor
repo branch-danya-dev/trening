@@ -30,8 +30,7 @@ else
 <div class="card">
     <div class="card-title">Новая фотосессия</div>
     <div class="note">
-        Фото хранятся только на этом устройстве и никуда не отправляются — политика безопасности страницы
-        этого и не позволит. При сохранении снимки уменьшаются до 2048&nbsp;px, а метаданные, в том числе
+        Фото хранятся в этом браузере. Приложение не отправляет их скрыто. При сохранении снимки уменьшаются до 2048&nbsp;px, а метаданные, в том числе
         геопозиция, удаляются.
     </div>
     <ul class="tips">
@@ -85,7 +84,7 @@ else
     @foreach (var s in _sessions)
     {
         <div class="session @Css.On(s.Id == _openId)">
-            <button class="session-thumbs @(_privacy.Blur ? "private" : "")" disabled="@_pin.Locked"
+            <button aria-label="Открыть фото и результаты анализа" class="session-thumbs @(_privacy.Blur ? "private" : "")" disabled="@_pin.Locked"
                     title="@(_pin.Locked ? "Снимки под PIN-кодом" : "Открыть и разобрать")" @onclick="() => Open(s)">
                 @if (_pin.Locked)
                 {

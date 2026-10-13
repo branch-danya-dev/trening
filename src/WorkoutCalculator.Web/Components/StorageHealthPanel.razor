@@ -1,0 +1,19 @@
+<section class="card storage-health" aria-label="Хранилище устройства" data-testid="storage-health" data-reason="@_health?.Reason">
+    <h2>Данные на этом устройстве</h2>
+    @if(_error is not null){<p role="alert">@_error</p>}
+    else if(_health is not { } h){<p role="status">Проверяем хранилище…</p>}
+    else {
+        <p role="status">@(h.RecoveryRequired?"Есть незавершённое сохранение. Перезагрузите приложение, чтобы продолжить восстановление.":!h.Available?"Хранилище браузера недоступно. Записи не могут быть сохранены.":h.Reason=="StorageQuota"?"Место заканчивается. Сохраните резервную копию перед следующими записями.":"Ваши записи хранятся в этом браузере.")</p>
+        <p>Занято: @Bytes(h.Usage) · доступный браузеру объём: @Bytes(h.Quota).</p>
+        <p class="note">Оценка браузера не отражает отдельный лимит журнала. @(h.Persistent==true?"Браузер предоставил постоянное хранение.":h.Persistent==false?"Браузер может освободить место. Регулярно скачивайте резервную копию.":"Постоянство хранения неизвестно.")</p>
+        <p class="note">Дата последней резервной копии не отслеживается. Удаление данных браузера удалит локальную историю.</p>
+    }
+    <button class="btn" @onclick="Read">Проверить хранилище</button>
+</section>
+@code {
+    private StorageHealth? _health;
+    private string? _error;
+    protected override Task OnInitializedAsync()=>Read();
+    private async Task Read(){try{_health=await StorageHealthService.Read();_error=null;}catch(Exception e){_error=UiError.Message(ApplicationError.From(e));}}
+    private static string Bytes(long? value)=>value is null?"неизвестно":value<1048576?$"{Fmt.N(value.Value/1024d)} КБ":$"{Fmt.N(value.Value/1048576d,1)} МБ";
+}

@@ -6,17 +6,17 @@
     {
         @if (State.ActiveRevision is { } active)
         {
-            <p>Зафиксирован @active.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") · ревизий: @State.Revisions.Length.</p>
+            <p>Зафиксирован @active.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") · версий модели: @State.Revisions.Length.</p>
             @if (State.Draft is null) {
                 <AvatarReview Inputs="active.Inputs" Corrections="active.Corrections" Quality="active.Quality" />
-                <p>Исправление создаст новую ревизию и новый отсчёт прогресса. Текущий аватар и старые прогнозы сохранятся.</p>
+                <p>Исправление создаст новую версию модели и новый отсчёт прогресса. Текущий аватар и старые прогнозы сохранятся.</p>
                 <button class="btn" @onclick="OnStart">Исправить аватар</button>
             }
         }
         @if (State.Draft is { } draft)
         {
             @if (State.Status == AvatarStatus.Recalibrating) {
-                <p>Предыдущая ревизия зафиксирована. Вы редактируете отдельный черновик. После подтверждения потребуется начать новый цикл прогнозов.</p>
+                <p>Предыдущая версия модели зафиксирована. Вы редактируете отдельный черновик. После подтверждения потребуется начать новый цикл прогнозов.</p>
                 <button class="btn" @onclick="OnMeasure">Добавить фактический замер</button>
                 <button class="btn" @onclick="OnUseFact">Использовать последний факт</button>
             }
@@ -34,10 +34,10 @@
             <p role="status">Начался новый отсчёт формы. Старые прогнозы сохранены. Для новых расчётов начните новый цикл.</p>
             <button class="btn" disabled="@(State.Status != AvatarStatus.Active)" @onclick="OnNewCycle">Начать новый цикл прогнозов</button>
         }
-        <details><summary>История ревизий и диагностика</summary>
+        <details><summary>История версий модели</summary>
             @foreach (var r in State.Revisions.Reverse()) {
                 <p>@(r.Source switch { AvatarRevisionSource.FactualUpdate => "Фактический замер", AvatarRevisionSource.PhotoCheckIn => "Замер по фото", AvatarRevisionSource.ManualRecalibration => "Ручная коррекция", _ => "Исходный аватар" }) · @(r.Id == State.ActiveRevisionId ? "текущая" : "архив") · @r.EffectiveDate.ToString("dd.MM.yyyy")</p>
-                <p class="note">@r.BuilderVersion · @r.Corrections.CorrectionModelVersion · @r.DerivedMetrics.Source</p>
+                <details><summary>Технические сведения версии</summary><p class="note">@r.BuilderVersion · @r.Corrections.CorrectionModelVersion · @r.DerivedMetrics.Source</p></details>
                 <AvatarReview Inputs="r.Inputs" Corrections="r.Corrections" Quality="r.Quality" Detailed="true" />
             }
         </details>

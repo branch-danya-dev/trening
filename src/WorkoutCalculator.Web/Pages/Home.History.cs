@@ -17,12 +17,14 @@ public partial class Home
 
     private void OpenHistory()
     {
+        _revisionCompare=false; _checkInOpen=false;
         _tab = Tab.History;
         ShowHistory();
     }
 
     private void ShowHistory()
     {
+        _revisionCompare=false;
         SyncCurrentFact();
         RefreshCalibration();
         if (_history.Timeline.Selected is null)
@@ -37,6 +39,7 @@ public partial class Home
 
     private void RenderHistory()
     {
+        if (_revisionCompare) { RenderRevisionComparison(); return; }
         if (!_viewerReady || !IsHistory || _history.Timeline.Selected is null) return;
         IBodyShape Build(BodySnapshot snapshot)
         {

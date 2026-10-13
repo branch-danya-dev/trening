@@ -1,0 +1,57 @@
+{
+  "scope": "local completed checks; exact-head CI is authoritative and linked in PR",
+  "release": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "tests": {
+    "dotnet": 683,
+    "javascript": 93,
+    "python": 34
+  },
+  "browserPassed": [
+    "product-smoke",
+    "activity-day-smoke",
+    "nutrition-smoke",
+    "hypothesis-smoke",
+    "checkin-smoke",
+    "avatar-smoke",
+    "avatar-creation-smoke",
+    "history-smoke",
+    "forecast-smoke",
+    "composition-smoke",
+    "muscle-forecast-smoke",
+    "skeletal-smoke",
+    "strength-smoke",
+    "errors-smoke",
+    "pre-ui-storage",
+    "pre-ui-fixtures",
+    "pre-ui-mixed",
+    "pre-ui-history",
+    "anatomical-muscle-smoke",
+    "anatomical-muscle-audit",
+    "geometry-warp-benchmark",
+    "geometry-warp-webgl",
+    "geometry-warp-smoke (legacy)",
+    "geometry-warp-smoke (anatomical)",
+    "model-startup-benchmark",
+    "ui-redesign-smoke",
+    "ui-gallery",
+    "offline-smoke",
+    "geometry-warp-smoke (published PWA)",
+    "pwa-version-transition"
+  ],
+  "captureCount": 73,
+  "viewportWidths": [
+    320,
+    390,
+    768,
+    1024,
+    1400
+  ],
+  "photosAndData": "synthetic only",
+  "knownLimit": "1000/fresh CheckIn ratio 4.34x; desired <=2x remains unmet",
+  "domainModelStorageLogicChanged": false,
+  "aiRendererAdded": false,
+  "userRecruitment": false
+}

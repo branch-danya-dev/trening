@@ -1,7 +1,7 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path');
 const {sourceFixture}=require('./geometry-fixture.cjs');
 const url=process.env.APP_URL||'http://127.0.0.1:5256',key='workoutcalc.observedHypotheses.v1';
-const button=(p,name)=>p.getByRole('button',{name,exact:true}).click(),tab=(p,name)=>p.getByRole('tab',{name,exact:true}).click();
+const button=require('./ui-disclosures.cjs').action,tab=require('./ui-disclosures.cjs').tab;
 const ready=p=>p.waitForSelector('[data-model-ready="true"]',{timeout:60000});
 async function seed(p,fixture,out,targetUrl=url){
  await p.clock.setFixedTime(new Date('2026-09-19T08:59:00Z'));
@@ -17,7 +17,7 @@ async function seed(p,fixture,out,targetUrl=url){
   const data=JSON.parse(localStorage.getItem('workoutcalc.avatarDomain.v1'));data.avatars[0].revisions[0].inputs.photos=[{sessionId:session.id,pipelineVersion:'controlled-synthetic-test-fixture',confidence:1,analysisHash:await hashObject({front:front.photo,side:side.photo})}];localStorage.setItem('workoutcalc.avatarDomain.v1',JSON.stringify(data));
  },fixture.cases[0]);
  await p.clock.setFixedTime(new Date('2026-10-09T09:00:00Z'));await p.reload();await ready(p);
- for(const date of ['2026-10-06','2026-10-07','2026-10-08']){await tab(p,'Активность');await button(p,'День '+date);await button(p,'Добавить приём пищи');await p.getByLabel('Блюдо или продукт 1',{exact:true}).fill('Benchmark food');await p.getByLabel('Калории, ккал 1',{exact:true}).fill('200');await p.getByLabel('Съедено, г 1',{exact:true}).fill('1000');await button(p,'Сохранить приём пищи');await button(p,'День отдыха');await p.getByLabel('Всё съеденное за день внесено?').check();await p.getByLabel('Подтверждаю итог дня').check();await button(p,'Подтвердить завершение');}
+ for(const date of ['2026-10-06','2026-10-07','2026-10-08']){await tab(p,'Сегодня');await button(p,'День '+date);await button(p,'Добавить приём пищи');await p.getByLabel('Блюдо или продукт 1',{exact:true}).fill('Benchmark food');await p.getByLabel('Калории, ккал 1',{exact:true}).fill('200');await p.getByLabel('Съедено, г 1',{exact:true}).fill('1000');await button(p,'Сохранить приём пищи');await button(p,'День отдыха');await p.getByLabel('Всё съеденное за день внесено?').check();await p.getByLabel('Подтверждаю итог дня').check();await button(p,'Подтвердить завершение');}
  await tab(p,'План');await button(p,'Сохранить гипотезу');await p.locator('[data-hypothesis-state="Active"]').waitFor();
  // Fresh synthetic test fixture only: exercise both pre-Stage-B absent metadata and a pinned anatomical endpoint.
  const input=path.resolve(out,'issued-fixture.json'),output=path.resolve(out,'frozen-fixture.json');
@@ -51,7 +51,7 @@ if(require.main===module)(async()=>{
    const epoch=localStorage.getItem('trening:data-generation');try{localStorage.setItem('trening:data-generation','restore-in-another-tab');try{await store.deleteArtifact(id);}catch{rejected++;}}finally{if(epoch===null)localStorage.removeItem('trening:data-generation');else localStorage.setItem('trening:data-generation',epoch);}
    return rejected;
   },first.request.id);assert.equal(integrity,6);
-  await button(p,'Новый замер');await p.getByLabel('Вес нового замера',{exact:true}).fill('84');await button(p,'Сохранить замер и обновить аватар');await p.getByTestId('checkin-result').waitFor();
+  await button(p,'Новый замер');await p.getByLabel('Вес нового замера',{exact:true}).fill('84');await button(p,'Сохранить замер и обновить аватар');await p.getByTestId('checkin-result').waitFor();await p.locator('[data-testid="checkin-panel"][aria-busy="false"]').waitFor();
   const afterCore=await p.evaluate(k=>JSON.parse(localStorage.getItem(k)).payload,key);assert.equal(beforeCore,afterCore);
   await create(p);assert.deepEqual((await artifacts(p)).find(a=>a.request.id===first.request.id),first);
   const cachedTiming=await p.evaluate(async a=>{const renderer=await import(new URL('js/geometry-warp.js',document.baseURI));const result=JSON.parse(await renderer.render(JSON.stringify(a.request),'{}'));return result.timings.repeatCached;},first);assert.ok(Number.isFinite(cachedTiming)&&cachedTiming>=0);
@@ -63,7 +63,7 @@ if(require.main===module)(async()=>{
   assert.equal(await p.evaluate(async id=>{try{await(await import(new URL('js/render-store.js',document.baseURI))).readArtifact(id);return false;}catch{return true;}},first.request.id),true);
   await p.evaluate(async()=>{await(await import(new URL('js/photos.js',document.baseURI))).unlock('1234');});
   // Full backup through UI, clean context restore, exact encrypted bytes and metadata.
-  await tab(p,'Профиль');const backup=p.waitForEvent('download');await button(p,'Скачать полный backup');const archivePath=path.join(out,'full-backup.zip');await(await backup).saveAs(archivePath);
+  await tab(p,'Профиль');const backup=p.waitForEvent('download');await button(p,'Скачать резервную копию');const archivePath=path.join(out,'full-backup.zip');await(await backup).saveAs(archivePath);
   const restoredContext=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'}),restored=await restoredContext.newPage();await restored.clock.setFixedTime(new Date('2026-10-09T09:00:00Z'));if(process.env.GEOMETRY_ANATOMICAL)await restoredContext.addInitScript(()=>sessionStorage.setItem('trening:research-mode','enabled'));await restored.goto(url);await ready(restored);
   await restored.getByText('У меня есть резервная копия',{exact:true}).click();await restored.getByLabel('Архив резервной копии').setInputFiles(archivePath);await restored.getByLabel('Подтверждаю замену всех данных').check();await Promise.all([restored.waitForNavigation(),button(restored,'Восстановить данные')]);await ready(restored);
   await restored.evaluate(async()=>{await(await import(new URL('js/photos.js',document.baseURI))).unlock('1234');});assert.deepEqual(await artifacts(restored),await artifacts(p));

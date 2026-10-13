@@ -46,7 +46,7 @@ const materials = {
         depthWrite: false,
         depthFunc: THREE.LessEqualDepth,
         uniforms: {
-            color: { value: new THREE.Color(0xf2f6fa) },
+            color: { value: new THREE.Color(0x53624f) },
             strength: { value: 0.85 },
         },
         vertexShader: `
@@ -567,18 +567,20 @@ function placeCamera(view, animate, resetDistance = true, keepAngle = false) {
     requestRender();
 }
 
-/** Кнопки поверх вида сверху: модель вписывается в кадр под ними, иначе на телефоне они закрывают голову. */
-const OVERLAY_SELECTORS = '.view-toolbar, .mode-bar';
+/** Keep the body between the upper camera controls and lower mode controls. */
+const OVERLAY_SELECTORS = '.view-toolbar, .mode-bar, .view-tapes';
 
-/** Сколько пикселей сверху занимают видимые кнопки (не больше 40 % высоты вида). */
-function topInset(host, h) {
+/** Insets for visible controls; each edge is bounded to preserve a usable frame. */
+function contentInsets(host, h) {
     const top = host.getBoundingClientRect().top;
-    let bottom = 0;
+    let above = 0, below = 0;
     host.querySelectorAll(OVERLAY_SELECTORS).forEach(el => {
         const r = el.getBoundingClientRect();
-        if (r.height > 0) bottom = Math.max(bottom, r.bottom - top);
+        if (!r.height) return;
+        if (r.top + r.height / 2 - top < h / 2) above = Math.max(above, r.bottom - top + 8);
+        else below = Math.max(below, h - (r.top - top) + 8);
     });
-    return bottom > 0 ? Math.min(bottom + 6, 0.4 * h) : 0;
+    return { top: Math.min(above, h * .4), bottom: Math.min(below, h * .4) };
 }
 
 function resize() {
@@ -587,10 +589,10 @@ function resize() {
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     // Кадр камеры — часть вида под кнопками; холст показывает его и полосу над ним
-    const inset = topInset(host, h);
-    const frameH = h - inset;
+    const inset = contentInsets(host, h);
+    const frameH = h - inset.top - inset.bottom;
     camera.aspect = w / frameH;
-    camera.setViewOffset(w, frameH, 0, -inset, w, h);
+    camera.setViewOffset(w, frameH, 0, -inset.top, w, h);
     camera.updateProjectionMatrix();
     requestRender();
 }

@@ -1,7 +1,7 @@
 // Shared behavioral surfaces; layout/screenshot assertions belong in their dedicated suite.
 const ready=page=>page.waitForSelector('[data-model-ready="true"]',{timeout:120000});
-const tab=(page,name)=>page.getByRole('tab',{name,exact:true}).click();
-const action=(page,name)=>page.getByRole('button',{name,exact:true}).click();
+const tab=require('./ui-disclosures.cjs').tab;
+const action=require('./ui-disclosures.cjs').action;
 async function newCheckIn(page){await tab(page,'Прогресс');await page.getByTestId('checkin-new').click();}
 async function saveCheckIn(page){await page.getByTestId('checkin-save').click();await page.getByTestId('checkin-result').waitFor({timeout:120000});await page.locator('[data-testid="checkin-panel"][aria-busy="false"]').waitFor({timeout:120000});}
 async function assertSemantics(page){
@@ -12,7 +12,7 @@ async function assertSemantics(page){
    if(!visible(e)||e.type==='hidden')continue;
    const labelled=e.getAttribute('aria-labelledby')?.split(/\s+/).map(id=>document.getElementById(id)?.textContent||'').join('');
    const name=e.getAttribute('aria-label')||labelled||(e.labels?[...e.labels].map(l=>l.textContent).join(''):'')||(e.tagName==='BUTTON'?e.textContent:'');
-   if(!name?.trim())errors.push('unnamed '+e.tagName+' '+e.id);
+   if(!name?.trim())errors.push('unnamed '+e.outerHTML);
   }
   return errors;
  });require('node:assert/strict').deepEqual(errors,[]);

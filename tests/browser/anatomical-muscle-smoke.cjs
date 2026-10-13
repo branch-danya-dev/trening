@@ -5,7 +5,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,args:['--enable-unsafe-swiftshader','--use-angle=swiftshader']});
  const ready=async p=>{await p.waitForSelector('[data-model-ready="true"]',{timeout:60000});await p.evaluate(async()=>{window.viewer=await import(new URL('js/viewer.js',document.baseURI));});};
  const read=(p,slot)=>p.evaluate(slot=>Array.from(viewer.smokeState().meshes[slot].geometry.attributes.position.array),slot);
- const tab=(p,name)=>p.getByRole('tab',{name,exact:true}).click();
+ const tab=require('./ui-disclosures.cjs').tab;
  async function context(fault){
   const c=await browser.newContext({viewport:{width:390,height:1000},timezoneId:'Europe/Moscow'});
   await c.addInitScript(()=>sessionStorage.setItem('trening:research-mode','enabled'));
@@ -31,7 +31,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
   await p.getByLabel('Неделя формы',{exact:true}).fill('0');await p.getByLabel('Неделя формы',{exact:true}).dispatchEvent('change');await p.waitForFunction(old=>viewer.smokeState().meshes.forecast.geometry.attributes.position.array.some((x,i)=>Math.abs(x-old[i])>1e-5),changed);
   await p.getByLabel('Неделя формы',{exact:true}).fill('12');await p.getByLabel('Неделя формы',{exact:true}).dispatchEvent('change');await p.waitForTimeout(700);
   for(const width of [320,390,1400]){await p.setViewportSize({width,height:1000});assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:path.join(dir,`app-${width}.png`),fullPage:true});}
-  const saved=await p.evaluate(k=>localStorage.getItem(k),key);await tab(p,'Профиль');const dl=p.waitForEvent('download');await p.getByRole('button',{name:'Скачать полный backup',exact:true}).click();const backup=path.join(dir,'anatomical-backup.zip');await(await dl).saveAs(backup);
+  const saved=await p.evaluate(k=>localStorage.getItem(k),key);await tab(p,'Профиль');const dl=p.waitForEvent('download');await p.getByRole('button',{name:'Скачать резервную копию',exact:true}).click();const backup=path.join(dir,'anatomical-backup.zip');await(await dl).saveAs(backup);
   const fresh=await context(),q=await fresh.newPage();await q.goto(url);await ready(q);await q.getByText('У меня есть резервная копия',{exact:true}).click();await q.getByLabel('Архив резервной копии').setInputFiles(backup);await q.getByLabel('Подтверждаю замену всех данных').check();await Promise.all([q.waitForNavigation(),q.getByRole('button',{name:'Восстановить данные',exact:true}).click()]);await ready(q);assert.equal(await q.evaluate(k=>localStorage.getItem(k),key),saved,'backup preserves frozen provider/hash/states exactly');
   const snapshot=await p.evaluate(()=>Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('workoutcalc.')).map(k=>[k,localStorage.getItem(k)])));
   for(const fault of ['missing','corrupt']){

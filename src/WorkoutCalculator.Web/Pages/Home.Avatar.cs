@@ -29,10 +29,10 @@ public partial class Home
         try
         {
             var read = _avatars.Current;
-            if (read.Error is not null) throw new InvalidOperationException(read.Error);
+            if (read.Error is not null) throw new ApplicationFault(ApplicationErrorCode.CorruptOrFutureSchema, read.Error);
             if (read.Data is null)
             {
-                if (_history.StorageError is { } error) throw new InvalidOperationException(error);
+                if (_history.StorageError is { } error) throw new ApplicationFault(ApplicationErrorCode.CorruptOrFutureSchema, error);
                 // Strict read and validation before the explicit migration command. Keep original keys byte-for-byte.
                 var raw = BrowserStorage.GetItemStrict("workoutcalc.body.v1");
                 var legacy = raw is null ? null : JsonSerializer.Deserialize(raw, StorageJson.Default.StoredProfile)?.ToProfile()
@@ -66,7 +66,7 @@ public partial class Home
             if (_onboarding is not null) { _onboarding.Step = Math.Max(6, _onboarding.Step); ProductStorage.Save(_onboarding); CompleteAvatarOnboarding(); }
             _avatarError = null;
         }
-        catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = e.Message; }
+        catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = UiError.From(e); }
     }
 
     private void RebuildAvatar()
@@ -80,8 +80,8 @@ public partial class Home
     }
     private void AvatarCommand(Func<string?> action)
     {
-        try { _avatarError = action(); if (_avatarError is null) { RebuildAvatar(); Refresh(); } }
-        catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = e.Message; }
+        try { var outcome = ApplicationCommand.Run(action); _avatarError = outcome.Error is { } error ? UiError.Message(error) : null; if (_avatarError is null) { RebuildAvatar(); Refresh(); } }
+        catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = UiError.From(e); }
     }
     private void StartAvatarRecalibration()
     {
@@ -98,7 +98,7 @@ public partial class Home
         await Task.Delay(180);
         if (version != _avatarEditVersion) return;
         try { RebuildAvatar(); }
-        catch (Exception e) when (e is not OutOfMemoryException) { _avatarRepresentation = null; _avatarError = e.Message; }
+        catch (Exception e) when (e is not OutOfMemoryException) { _avatarRepresentation = null; _avatarError = UiError.From(e); }
         finally { _avatarBusy = false; }
     }
     private void CancelAvatarRecalibration() => AvatarCommand(_avatars.CancelRecalibration);
@@ -113,7 +113,7 @@ public partial class Home
                 CompleteAvatarOnboarding();
                 _avatarError = new ObservedHypothesisStore(new BrowserJournalStorage()).Synchronize(DateTimeOffset.Now);
             }
-        } catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = e.Message; }
+        } catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = UiError.From(e); }
         finally { _avatarBusy = false; }
     }
     private void ApplyInitialPhoto(PhotoSession photo)
@@ -131,7 +131,7 @@ public partial class Home
                 if (Avatar?.Draft is { } draft) AvatarCommand(() => _avatars.EditDraft(draft.Corrections, result.Inputs));
             }
             ProductStorage.Save(onboarding);
-        } catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = e.Message; }
+        } catch (Exception e) when (e is not OutOfMemoryException) { _avatarError = UiError.From(e); }
     }
     private void UseCurrentAvatarFact() => AvatarCommand(() =>
     {

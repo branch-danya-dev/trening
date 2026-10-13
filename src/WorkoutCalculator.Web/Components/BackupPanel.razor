@@ -5,7 +5,7 @@
 <section class="card backup-panel" aria-label="Резервная копия">
     <h2>Резервная копия</h2>
     <p>Один ZIP: профиль, планы, журналы, история тела, сохранённые прогнозы, фотографии и настройки. Храните его в надёжном месте. Защищённые фото останутся зашифрованными и потребуют прежний PIN.</p>
-    <button class="btn" disabled="@_busy" @onclick="Export">Скачать полный backup</button>
+    <button class="btn" disabled="@_busy" @onclick="Export">Скачать резервную копию</button>
     <h3>Восстановить</h3>
     <input id="@_inputId" aria-label="Архив резервной копии" type="file" accept=".zip" @onchange="Inspect" disabled="@_busy" />
     @if (_summary is not null)

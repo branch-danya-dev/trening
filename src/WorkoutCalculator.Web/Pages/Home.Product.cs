@@ -16,8 +16,8 @@ public partial class Home
     private Dictionary<string,DateTimeOffset> _checkInFactTimes = [];
     private BodySnapshot? CurrentFact => _history.Timeline.Items.Where(s => s.Date <= DateOnly.FromDateTime(DateTime.Now))
         .OrderBy(s => s.Date).ThenBy(s => _checkInFactTimes.GetValueOrDefault(s.Id)).ThenBy(s => s.Id, StringComparer.Ordinal).LastOrDefault();
-    private string CurrentFactCaption => (Avatar is not null ? "Текущая форма — сохранённая ревизия аватара. " : "") + (CurrentFact is { } fact
-        ? Avatar is not null ? $"Факты за {fact.Date:dd.MM.yyyy}. Неизмеренные параметры формы сохраняются из предыдущей ревизии и не считаются новыми замерами."
+    private string CurrentFactCaption => (Avatar is not null ? "Текущая форма — сохранённая версия аватара. " : "") + (CurrentFact is { } fact
+        ? Avatar is not null ? $"Факты за {fact.Date:dd.MM.yyyy}. Неизмеренные параметры формы сохраняются из предыдущей версии и не считаются новыми замерами."
             : $"Факты за {fact.Date:dd.MM.yyyy}. Для 3D условно заполнены: {string.Join(", ", SnapshotVisuals.Build(fact).EstimatedFields)}."
         : "Измерений пока нет. Параметры внешнего вида ещё не подтверждены как факты.");
     private void InitializeProduct()
@@ -98,7 +98,7 @@ public partial class Home
         draft.Completed = true; draft.Step = 7; ProductStorage.Save(draft);
         _onboarding = null; OpenModel();
     }
-    private void OpenModel() { _tab = Tab.Params; if (IsHistory || _mode != ViewMode.Current) SetMode(ViewMode.Current); }
+    private void OpenModel() { _showViewerTools = false; _tab = Tab.Params; if (IsHistory || _mode != ViewMode.Current) SetMode(ViewMode.Current); }
     private bool _activityEditable = true;
     private int _activityVisit;
     private void OpenActivity() { _tab = Tab.Workout; _activityVisit++; ActivityDate(DateOnly.FromDateTime(DateTime.Now)); }

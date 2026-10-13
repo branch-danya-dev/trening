@@ -8,10 +8,10 @@ const {loadScenario}=require('./fixture-loader.cjs'),{tab,action,newCheckIn,save
   const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'});const p=await loadScenario(context,url,path.join(fixtures,name+'.json'),{enabled:true,geometryFixtures:process.env.GEOMETRY_FIXTURES,output:out});
   await assertSemantics(p);assert.equal(await p.evaluate(()=>sessionStorage.getItem('trening:research-mode')),null);
   if(['active-14d','awaiting-outcome','evaluated','expired'].includes(name)){
-   await tab(p,'План');const expected={'active-14d':'Active','awaiting-outcome':'AwaitingOutcome',evaluated:'Evaluated',expired:'ExpiredWithoutOutcome'}[name];await p.locator(`[data-hypothesis-state="${expected}"]`).first().waitFor();await assertSemantics(p);
+   await tab(p,'План');const expected={'active-14d':'Active','awaiting-outcome':'AwaitingOutcome',evaluated:'Evaluated',expired:'ExpiredWithoutOutcome'}[name];await require('./ui-disclosures.cjs').prepare(p,'План');await p.locator(`[data-hypothesis-state="${expected}"]`).first().waitFor();await assertSemantics(p);
   }
   if(name==='locked-empty'){
-   await tab(p,'Активность');await assertSemantics(p);await newCheckIn(p);await assertSemantics(p);
+   await tab(p,'Сегодня');await assertSemantics(p);await newCheckIn(p);await assertSemantics(p);
    assert.equal(await p.getByLabel('Вес нового замера',{exact:true}).evaluate(e=>e===document.activeElement),true);
    await p.getByRole('button',{name:'Отмена',exact:true}).focus();await p.keyboard.press('Enter');await p.getByTestId('checkin-new').waitFor();assert.equal(await p.getByTestId('checkin-new').evaluate(e=>e===document.activeElement),true);
    await p.keyboard.press('Enter');await p.getByLabel('Вес нового замера',{exact:true}).fill('79');await saveCheckIn(p);assert.equal(await p.getByTestId('checkin-result').evaluate(e=>e===document.activeElement),true);
@@ -24,7 +24,7 @@ const {loadScenario}=require('./fixture-loader.cjs'),{tab,action,newCheckIn,save
   if(name==='quota-warning')assert.equal(await p.evaluate(async()=> (await(await import(new URL('js/storage-health.js',document.baseURI))).storageHealth()).reason),'StorageQuota');
   if(name==='geometry-eligible')assert.equal(await p.getByRole('button',{name:'Создать визуализацию',exact:true}).isEnabled(),true);
   if(name==='geometry-unsupported')await p.getByText('Для этой гипотезы нет подходящего исходного фото, связанного с её исходным аватаром.',{exact:true}).waitFor();
-  checked.push(name);await context.close();
+  checked.push(name);console.log('Fixture PASS: '+name);await context.close();
  }
  await fs.writeFile(path.join(out,'fixtures-accessibility.json'),JSON.stringify({passed:true,synthetic:true,scenarios:checked,checks:['loopback-isolation','labels-and-names','unique-ids','checkin-keyboard-and-focus','numeric-unit-descriptions','research-off']},null,2));console.log('Pre-UI fixtures and accessibility PASS');
  }finally{await browser.close();}

@@ -5,18 +5,13 @@
 @using WorkoutCalculator.BodyModel.Photos
 @inject HttpClient Http
 
+<a class="skip-link" href="#section-content">Перейти к содержимому</a>
 <div data-section="@_tab" data-onboarding-step="@_onboarding?.Step" data-build-ms="@_buildMs.ToString(CultureInfo.InvariantCulture)" data-forecast-ms="@_forecastMs.ToString(CultureInfo.InvariantCulture)" data-avatar-build-ms="@_avatarRebuildMs.ToString(CultureInfo.InvariantCulture)" data-avatar-busy="@(_avatarBusy ? "true" : "false")" data-model-ready="@(_mh is not null ? "true" : "false")" class="app product-app @(_onboarding is not null ? "is-onboarding" : null) @(_tab is Tab.Workout or Tab.Profile ? "panel-only" : null)">
     <header class="topbar">
         <span class="brand-dot"></span>
         <span class="brand">Тренировки и тело</span>
         <span class="brand-sub">ваше тело, движение и прогресс</span>
-        <div class="topbar-right">
-            <span class="brand-sub model-label">Модель</span>
-            <div class="seg" role="group" aria-label="Модель тела">
-                <button class="@Css.On(_kind == BodyKind.MakeHuman)" @onclick="() => SetKind(BodyKind.MakeHuman)">MakeHuman</button>
-                <button class="@Css.On(_kind == BodyKind.Mannequin)" disabled="@(Avatar?.Draft is not null)" @onclick="() => SetKind(BodyKind.Mannequin)">Манекен</button>
-            </div>
-        </div>
+        <span class="local-badge">На вашем устройстве</span>
         @if (_kind == BodyKind.MakeHuman && _mhStatus is not null)
         {
             <span class="asset-status" role="status">@_mhStatus</span>
@@ -27,19 +22,21 @@
         }
     </header>
 
-    <nav class="product-nav" aria-label="Разделы приложения">
-        <button role="tab" aria-selected="@(_tab is Tab.Params or Tab.Photos)" class="@Css.On(_tab is Tab.Params or Tab.Photos)" @onclick="OpenModel">Модель</button>
-        <button role="tab" aria-selected="@(_tab == Tab.Workout)" class="@Css.On(_tab == Tab.Workout)" @onclick="OpenActivity">Активность</button>
-        <button role="tab" aria-selected="@(_tab == Tab.History)" class="@Css.On(_tab == Tab.History)" @onclick="OpenHistory">Прогресс</button>
-        <button role="tab" aria-selected="@(_tab == Tab.Hypothesis)" class="@Css.On(_tab == Tab.Hypothesis)" @onclick="OpenHypothesis">План</button>
-        <button role="tab" aria-selected="@(_tab == Tab.Profile)" class="@Css.On(_tab == Tab.Profile)" @onclick="OpenProfile">Профиль</button>
+    <p class="ui-offline" role="status">Вы офлайн. Доступные локальные данные остаются на этом устройстве.</p>
+    <nav class="product-nav" role="tablist" aria-label="Разделы приложения">
+        <button @onkeydown="e=>NavigateKey(e,0)" @ref="_navToday" id="nav-today" aria-controls="section-content" role="tab" aria-selected="@((_tab == Tab.Workout) ? "true" : "false")" tabindex="@((_tab == Tab.Workout) ? 0 : -1)" class="@Css.On(_tab == Tab.Workout)" @onclick="OpenActivity"><NavIcon Kind="today" />Сегодня</button>
+        <button @onkeydown="e=>NavigateKey(e,1)" @ref="_navModel" id="nav-model" aria-controls="section-content" role="tab" aria-selected="@((_tab is Tab.Params or Tab.Photos) ? "true" : "false")" tabindex="@((_tab is Tab.Params or Tab.Photos) ? 0 : -1)" class="@Css.On(_tab is Tab.Params or Tab.Photos)" @onclick="OpenModel"><NavIcon Kind="model" />Модель</button>
+        <button @onkeydown="e=>NavigateKey(e,2)" @ref="_navProgress" id="nav-progress" aria-controls="section-content" role="tab" aria-selected="@((_tab == Tab.History) ? "true" : "false")" tabindex="@((_tab == Tab.History) ? 0 : -1)" class="@Css.On(_tab == Tab.History)" @onclick="OpenHistory"><NavIcon Kind="progress" />Прогресс</button>
+        <button @onkeydown="e=>NavigateKey(e,3)" @ref="_navPlan" id="nav-plan" aria-controls="section-content" role="tab" aria-selected="@((_tab == Tab.Hypothesis) ? "true" : "false")" tabindex="@((_tab == Tab.Hypothesis) ? 0 : -1)" class="@Css.On(_tab == Tab.Hypothesis)" @onclick="OpenHypothesis"><NavIcon Kind="plan" />План</button>
+        <button @onkeydown="e=>NavigateKey(e,4)" @ref="_navProfile" id="nav-profile" aria-controls="section-content" role="tab" aria-selected="@((_tab == Tab.Profile) ? "true" : "false")" tabindex="@((_tab == Tab.Profile) ? 0 : -1)" class="@Css.On(_tab == Tab.Profile)" @onclick="OpenProfile"><NavIcon Kind="profile" />Профиль</button>
     </nav>
     @if (_avatarError is not null) { <p class="avatar-error" role="alert">@_avatarError</p> }
     @if (_observedGeometryError is not null) { <p class="avatar-error" role="alert">@_observedGeometryError</p> }
     <div class="main">
-        @if (_tab != Tab.Workout && _onboarding is null) { <ActivityDayReminder Avatar="Avatar" OnOpen="OpenActivity" /> }
-        <section class="viewport" aria-label="3D-модель">
-            <canvas id="body-canvas" tabindex="0"></canvas>
+        @if (_tab == Tab.History && !_checkInOpen) { <ProgressOverview Facts="_history.Timeline.Items" /> }
+        <section class="viewport @(_viewerError is not null ? "viewer-unavailable" : null)" aria-label="3D-модель">
+            @if(_viewerError is not null){<div class="view-error" role="status">@_viewerError</div>}
+            <canvas id="body-canvas" tabindex="0" aria-label="3D аватар. Показатели и действия доступны в текстовой панели."></canvas>
 
             <div class="view-toolbar">
                 <button class="btn" @onclick='() => SetView("front")'>Спереди</button>
@@ -94,7 +91,7 @@
                         @onclick="RecordVideo">@(_recording ? "Запись…" : "● Видео")</button>
                 @if (_mode == ViewMode.Current)
                 {
-                    <ExercisePreview State="_exercise" />
+                    <details open="@_showViewerTools" class="viewer-tools" data-testid="viewer-tools"><summary>Движение и нагрузка мышц</summary><ExercisePreview State="_exercise" /></details>
                 }
                 @if (_mode is ViewMode.Forecast or ViewMode.Compare && ManyHypotheses && _observedEndpoint is null)
                 {
@@ -107,7 +104,7 @@
                 }
                 @if (IsHistory)
                 {
-                    <div class="history-view-caption">@HistoryCaption<br /><small>3D с оценками недостающих параметров@(_history.Comparing ? "; от — серый контур/тело, до — бирюзовый" : "")</small></div>
+                    <div class="history-view-caption">@(_revisionCompare?RevisionCaption:HistoryCaption)<br /><small>3D с оценками недостающих параметров@(_history.Comparing ? "; от — серый контур/тело, до — бирюзовый" : "")</small></div>
                 }
             </div>
 
@@ -125,7 +122,7 @@
             }
             @if (!UseMakeHuman && Avatar is not null)
             {
-                <div class="view-error" role="status">Упрощённый манекен. Точная форма и визуальные коррекции аватара доступны в MakeHuman.</div>
+                <div class="view-error" role="status">Упрощённый манекен. Основная модель с визуальными коррекциями сейчас недоступна.</div>
             }
 
             <label class="check view-tapes" title="Где меряется каждый обхват. Лента обхвата подсвечивается и при наведении на его поле">
@@ -134,7 +131,7 @@
 
         </section>
 
-        <aside class="panel">
+        <main id="section-content" tabindex="-1" role="tabpanel" aria-labelledby="@NavigationId" class="panel">
             <div class="panel-body">
                 @if (_onboarding is not null)
                 {
@@ -146,18 +143,20 @@
                 {
                     <Dashboard Fact="CurrentFact" Facts="_history.Timeline.Items" Cardio="_workouts" Strength="_strength" Goal="@_preferences.Goal" Plan="_hypotheses.Current" Calibration="_personalized" />
                     <p class="note">@CurrentFactCaption</p>
-                    <div class="history-actions"><button class="btn primary" @onclick="NewCheckIn">Записать замеры</button><button class="btn" @onclick="() => _tab = Tab.Photos">Фото</button></div>
+                    <div class="history-actions"><button class="btn primary" @onclick="NewCheckIn">Новый замер</button><button class="btn" @onclick="() => _tab = Tab.Photos">Фото</button></div>
+                    @if(Avatar?.Revisions.Length>1){<button class="btn" data-testid="avatar-compare" @onclick="CompareRevisions">Сравнить с предыдущим аватаром</button>}
                     <div class="model-adjustments">
                     <AvatarPanel State="Avatar" Representation="_avatarRepresentation" Busy="_avatarBusy" OnMeasure="NewMeasurement" OnStart="StartAvatarRecalibration" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" OnCancel="CancelAvatarRecalibration" OnUseFact="UseCurrentAvatarFact" OnNewCycle="BeginAvatarForecastCycle" />
                     </div>
                 }
                 else if (_tab == Tab.Workout)
                 {
-                    <ActivityCalendar @key="_activityVisit" Avatar="Avatar" Profile="_profile" Cardio="_workouts" Strength="_strength.Summaries" OnDate="ActivityDate" OnSave="SaveWorkout" OnRemove="RemoveWorkout" OnEditStrength="EditStrength" OnShowLoad="ShowStrengthLoad" OnShowDailyLoad="ShowDailyLoad" />
+                    <header class="page-intro"><p class="eyebrow">Каждый день имеет значение</p><h1>Сегодня</h1><p>Запишите движение и питание. В конце дня подтвердите итог.</p></header>
+                    <ActivityCalendar OnTraining="OpenTraining" @key="_activityVisit" Avatar="Avatar" Profile="_profile" Cardio="_workouts" Strength="_strength.Summaries" OnDate="ActivityDate" OnSave="SaveWorkout" OnRemove="RemoveWorkout" OnEditStrength="EditStrength" OnShowLoad="ShowStrengthLoad" OnShowDailyLoad="ShowDailyLoad" />
                     @if (_activityEditable) {
-                    <TrainingPanel Profile="_profile" Draft="_workout" OnChange="ChangeProfile" Log="_workouts" Plan="CardioPlan()"
+                    <div id="training-editor" @ref="_trainingEditor" tabindex="-1"><h2>Тренировка</h2><TrainingPanel Profile="_profile" Draft="_workout" OnChange="ChangeProfile" Log="_workouts" Plan="CardioPlan()"
                                   OnSave="SaveWorkout" OnRemove="RemoveWorkout" Strength="_strength"
-                                  OnStrengthChanged="_exercise.RefreshJournal" OnShowLoad="ShowStrengthLoad" />
+                                  OnStrengthChanged="_exercise.RefreshJournal" OnShowLoad="ShowStrengthLoad" /></div>
                     } else { <p class="note">Запись тренировок для выбранного дня недоступна. Выберите открытый день в календаре.</p> }
                 }
                 else if (_tab == Tab.Photos)
@@ -168,41 +167,53 @@
                 else if (_tab == Tab.History)
                 {
                     <CheckInPanel @key="CheckInComponentKey" Avatar="Avatar" Profile="_avatars.Profile" Builder="AvatarBuilder" StartOpen="_checkInOpen" OnChanged="CheckInChanged" OnRecalibrate="StartAvatarRecalibration" />
-                    <ObservedHypothesisPanel Builder="AvatarBuilder" @key="_checkInChanges" HistoryOnly="true" OnMeasure="NewCheckIn" OnEndpoint="ShowObservedEndpoint" />
-                    <details open="@(!_checkInOpen)"><summary>Архив фактических замеров</summary><BodyHistory State="_history" Profile="_profile" Strength="_strength" Cardio="_workouts" OnView="ShowHistory" /></details>
+                    <details class="card" open="@(_checkInChanges > 0)" data-testid="outcome-history"><summary>Прогноз и факт · история гипотез</summary><ObservedHypothesisPanel Builder="AvatarBuilder" @key="_checkInChanges" HistoryOnly="true" OnMeasure="NewCheckIn" OnEndpoint="ShowObservedEndpoint" /></details>
+                    <details class="card" data-testid="fact-history"><summary>Архив фактических замеров</summary><BodyHistory State="_history" Profile="_profile" Strength="_strength" Cardio="_workouts" OnView="ShowHistory" /></details>
                     <details class="card"><summary>Фото-прогресс</summary><PhotosPanel Profile="_profile" Model="_mh" OnChange="ChangeProfile" ForecastEnd="_forecast?.End" ForecastLabel="@ForecastLabel" RevisionManaged="@(Avatar is not null || _avatarError is not null)" /></details>
                 }
                 else if (_tab == Tab.Profile)
                 {
-                    <section class="card"><h1>Профиль</h1><p>@(_profile.Sex == Sex.Male ? "Мужской" : "Женский") · @_profile.HeightCm см · @_profile.Age лет</p>
+                    <header class="page-intro"><p class="eyebrow">Ваши настройки</p><h1>Профиль</h1><p>Личные данные, приватность и резервная копия — всё в одном месте.</p></header>
+                    <section class="card"><h2>Личные данные</h2><p>@(_profile.Sex == Sex.Male ? "Мужской" : "Женский") · @_profile.HeightCm см · @_profile.Age лет</p>
                     <label>Дата рождения<input type="date" value="@_preferences.BirthDate" @onchange="ChangeBirthDate" /></label>
                     <label>Цель<select class="select" @bind="_preferences.Goal" @bind:after="SavePreferences">@foreach (var goal in Onboarding.Goals) { <option>@goal</option> }</select></label>
                     @if (_productError is not null) { <p role="alert">@_productError</p> }
                     <p>@CurrentFactCaption</p><button class="btn" @onclick="NewCheckIn">Обновить фактические параметры</button>
+                    </section><section class="card"><h2>Приватность и фото</h2><p>Обычные записи и фотографии хранятся локально. Скрытой отправки нет. Файлы покидают приложение, только когда вы сами экспортируете или делитесь ими.</p>
                     <label class="check"><input type="checkbox" @bind="_privacy.Blur" @bind:after="SavePrivacy" /> Размывать фото до нажатия</label>
                     <label class="check"><input type="checkbox" @bind="_privacy.Watermark" @bind:after="SavePrivacy" /> Водяной знак на фото</label>
                     <button class="btn" @onclick="() => _tab = Tab.Photos">Фото и защита PIN</button></section>
-                    <BackupPanel />
-                    <DefaultDayPlan />
+                    <section aria-label="Данные"><StorageHealthPanel /><BackupPanel /></section>
+                    <details class="card"><summary>Предпочтения ежедневного плана</summary><DefaultDayPlan /></details>
                     <AvatarPanel State="Avatar" Representation="_avatarRepresentation" Busy="_avatarBusy" OnMeasure="NewMeasurement" OnStart="StartAvatarRecalibration" OnEdit="EditAvatarCorrections" OnConfirm="ConfirmAvatar" OnCancel="CancelAvatarRecalibration" OnUseFact="UseCurrentAvatarFact" OnNewCycle="BeginAvatarForecastCycle" />
+                    <details class="card" data-testid="advanced-settings"><summary>Дополнительно · диагностика и версии</summary>
+        <div class="topbar-right">
+            <span class="brand-sub model-label">Модель</span>
+            <div class="seg" role="group" aria-label="Модель тела">
+                <button class="@Css.On(_kind == BodyKind.MakeHuman)" @onclick="() => SetKind(BodyKind.MakeHuman)">MakeHuman</button>
+                <button class="@Css.On(_kind == BodyKind.Mannequin)" disabled="@(Avatar?.Draft is not null)" @onclick="() => SetKind(BodyKind.Mannequin)">Манекен</button>
+            </div>
+        </div>
                     <ValidationPanel Fact="@(Avatar?.Draft?.Inputs.Fact ?? Avatar?.ActiveRevision?.Inputs.Fact ?? CurrentFact)" Profile="_profile" Body="_current" Facts="_history.Timeline.Items" Cardio="_workouts" Calibration="_personalized" Avatar="Avatar" Representation="_avatarRepresentation" />
-                    <details class="card"><summary>Диагностика и версия</summary>
+                    <details><summary>Технические сведения</summary>
                         <p>Сборка @AppInfo.Build. Каталог: @WorkoutCalculator.Exercises.ExerciseCatalog.All.Count упражнений.</p>
                         <p>Геометрия @Fmt.N(_buildMs) мс · передача @Fmt.N(_uploadMs) мс · проверка @Fmt.N(_checkMs) мс · вершин @_current?.Mesh.VertexCount</p>
                         <p>@_history.StorageError @_strength.StorageError @_personalized.StorageError</p>
+                    </details>
                     </details>
                 }
                 else
                 {
                     <ObservedHypothesisPanel Builder="AvatarBuilder" OnMeasure="NewCheckIn" OnEndpoint="ShowObservedEndpoint" />
-                    <h2>Ручные сценарии</h2><p class="note">Задайте предположения самостоятельно. Сценарии не являются гипотезами по закрытым наблюдениям.</p>
+                    <details class="card" data-testid="manual-scenarios"><summary>Сценарии · задать режим вручную</summary><h2>Ручные сценарии</h2><p class="note">Задайте предположения самостоятельно. Сценарии не являются гипотезами по закрытым наблюдениям.</p>
                     <button class="btn" @onclick="ShowScenario">Показать сценарий в 3D</button>
                     <HypothesisPanel Profile="_profile" Hypotheses="_hypotheses" Forecasts="_forecasts" OnChange="ChangeHypothesis"
                                      OnHypotheses="ChangeHypotheses"
                                      Personalized="_personalized" OnSaveForecast="SaveForecast" OnNewForecast="NewForecast" OnSelectForecast="SelectForecast" OnImportLegacy="ImportLegacyForecasts" />
+                    </details>
                 }
             </div>
-        </aside>
+        </main>
     </div>
 </div>
 
@@ -241,6 +252,7 @@
 
     private void ShowStrengthLoad(string? sessionId)
     {
+        _showViewerTools = true;
         _exercise.SetSource(sessionId is null ? MuscleLoadSource.Week : MuscleLoadSource.Session, sessionId);
         _exercise.SetHeatmap(true);
         SetMode(ViewMode.Current);
@@ -248,6 +260,7 @@
     }
     private void ShowDailyLoad(WorkoutCalculator.Exercises.MuscleLoadResult load)
     {
+        _showViewerTools = true;
         _exercise.SetDailyLoad(load);
         SetMode(ViewMode.Current);
         _tab = Tab.Params;
@@ -326,7 +339,7 @@
         }
         catch (JSException e)
         {
-            _videoError = e.Message.StartsWith("Error: ", StringComparison.Ordinal) ? e.Message[7..] : e.Message;
+            _videoError = UiError.From(e);
         }
         finally
         {
@@ -349,6 +362,9 @@
         _personalized.Load();
         _avatars.Load();
         InitializeProduct();
+        // The former global day reminder warmed this validated read before navigation.
+        // Keep that read-only readiness without showing the reminder on unrelated screens.
+        if (Avatar?.ActiveRevision is not null) _ = new ActivityDayStore(new BrowserJournalStorage()).Load();
         RefreshCalibration();
         _exercise.Journal = _strength;
         _exercise.RefreshJournal();
@@ -389,9 +405,8 @@
     protected override void OnAfterRender(bool firstRender)
     {
         if (!firstRender) return;
-        ViewerInterop.Init("body-canvas");
-        _viewerReady = true;
-        Refresh();
+        try { ViewerInterop.Init("body-canvas"); _viewerReady = true; Refresh(); }
+        catch (Exception) { _viewerError="3D недоступен на этом устройстве. Замеры и история остаются доступны в текстовом виде."; StateHasChanged(); }
     }
 
     private void Refresh()
@@ -465,8 +480,7 @@
         _tab = Tab.Hypothesis;
         RefreshCalibration();
         Refresh();
-        if (_mode == ViewMode.Current && _forecast is not null)
-            SetMode(ViewMode.Compare); // на вкладке гипотез сразу видно разницу
+        if(_observedEndpoint is null) SetMode(ViewMode.Current); // A manual scenario is shown only by its explicit action.
     }
 
     /// <summary>Последний выбранный ракурс камеры: front, side или back.</summary>
@@ -486,7 +500,7 @@
     private void SetView(string view)
     {
         _view = view == "reset" ? "front" : view;
-        ViewerInterop.SetView(view);
+        if (_viewerReady) ViewerInterop.SetView(view);
     }
 
     private void CycleView() => SetView(NextView);
@@ -496,6 +510,7 @@
         if (mode != ViewMode.Current) _exercise.Stop();
         bool wasHistory = IsHistory;
         _mode = mode;
+        if (!IsHistory) _revisionCompare=false;
         if (wasHistory && !IsHistory) RestoreLiveBodies();
         ApplyMode();
     }
@@ -504,7 +519,7 @@
     {
         _showTapes = e.Value is true;
         if (_showTapes) SendTapes();
-        ViewerInterop.ShowTapes(_showTapes);
+        if (_viewerReady) ViewerInterop.ShowTapes(_showTapes);
     }
 
     private void SetHighlight(Girth? g)
@@ -513,12 +528,13 @@
         bool had = TapesNeeded;
         _highlight = g;
         if (!had && TapesNeeded) SendTapes();
-        ViewerInterop.HighlightTape(g is Girth x ? (int)x : -1);
+        if (_viewerReady) ViewerInterop.HighlightTape(g is Girth x ? (int)x : -1);
     }
 
     /// <summary>Ленты для уже показанных тел (MakeHuman считает их только по запросу).</summary>
     private void SendTapes()
     {
+        if (!_viewerReady) return;
         if (IsHistory)
         {
             if (_historyFromBody is not null) ViewerInterop.SetTapes("current", _historyFromBody.Tapes);
@@ -532,7 +548,7 @@
     /// <summary>Сетка в 3D-вид и, если ленты сейчас показываются, её ленты.</summary>
     private void Show(string slot, IBodyShape body)
     {
-        if (IsHistory) return; // Delayed current/forecast builds must not overwrite the historical slots.
+        if (!_viewerReady || IsHistory) return; // Delayed current/forecast builds must not overwrite the historical slots.
         ViewerInterop.SetGeometry(slot, body.Geometry);
         if (slot == "current") _exercise.GeometryChanged(body.Geometry.Skeleton is not null);
         if (TapesNeeded) ViewerInterop.SetTapes(slot, body.Tapes);
@@ -546,6 +562,7 @@
 
     private void ApplyMode()
     {
+        if (!_viewerReady) return;
         if (IsHistory) { RenderHistory(); return; }
         string mode = _mode switch
         {

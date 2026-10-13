@@ -22,10 +22,10 @@ const fs = require('node:fs');
             await p.waitForFunction(() => document.querySelector('[data-model-ready]')?.dataset.modelReady === 'true', null, { timeout: 60000 });
             await p.evaluate(async () => { window.viewer = await import(new URL('js/viewer.js', document.baseURI)); });
         };
-        const open = p => p.getByRole('tab', { name: 'План', exact: true }).click();
+        const open = p => require('./ui-disclosures.cjs').tab(p,'План');
         const read = () => page.evaluate(k => JSON.parse(JSON.parse(localStorage.getItem(k)).payload), key);
         const saveFact = async (date, kg, waist, fat) => {
-            await page.getByRole('tab', { name: 'Прогресс', exact: true }).click();
+            await require('./ui-disclosures.cjs').tab(page,'Прогресс');
             await page.getByRole('button', { name: 'Новая запись', exact: true }).click();
             await page.getByLabel('Дата состояния', { exact: true }).fill(date);
             if (kg !== undefined) await page.getByLabel('Вес состояния', { exact: true }).fill(String(kg));

@@ -13,6 +13,7 @@
         var row = _entries[i]; var index = i;
         <fieldset class="food-editor" @key="row.Id"><legend>Продукт @(i + 1)</legend>
             <label>Блюдо или продукт<input aria-label="Блюдо или продукт @(i + 1)" maxlength="200" @bind="row.Name" @bind:event="oninput" /></label>
+            <label>Съедено, г<input aria-label="Съедено, г @(i + 1)" inputmode="decimal" @bind="row.ActualGrams" @bind:event="oninput" /></label>
             <label>КБЖУ указаны<select aria-label="База КБЖУ @(i + 1)" @bind="row.Basis"><option value="Per100Gram">На 100 г</option><option value="Serving">На порцию</option></select></label>
             @if (row.Basis == NutritionBasis.Serving) { <label>Стандартная порция, г<input aria-label="Стандартная порция, г @(i + 1)" inputmode="decimal" @bind="row.ReferenceGrams" @bind:event="oninput" /></label> }
             <div class="food-numbers">
@@ -21,7 +22,6 @@
                 <label>Жиры, г — необязательно<input aria-label="Жиры, г @(i + 1)" inputmode="decimal" @bind="row.Fat" @bind:event="oninput" /></label>
                 <label>Углеводы, г — необязательно<input aria-label="Углеводы, г @(i + 1)" inputmode="decimal" @bind="row.Carbs" @bind:event="oninput" /></label>
             </div>
-            <label>Съедено, г<input aria-label="Съедено, г @(i + 1)" inputmode="decimal" @bind="row.ActualGrams" @bind:event="oninput" /></label>
             <p aria-live="polite" data-testid="food-preview">@Preview(row)</p>
             <button class="btn" @onclick="() => _entries.RemoveAt(index)">Удалить продукт @(i + 1)</button>
         </fieldset>

@@ -194,3 +194,15 @@ Release: `dotnet build WorkoutCalculator.sln -c Release`, `dotnet test WorkoutCa
 ## Anatomical muscle fields — Stage B
 
 Stage B anatomical tests (2026-10-09): run the full Release/.NET/JS suites, then `WorkoutCalculator.AnatomicalMorphBenchmark`, `tests/browser/anatomical-muscle-smoke.cjs` and `anatomical-muscle-audit.cjs` with `ANATOMY_OUTPUT`. CI uploads anatomical evidence and runs all previous suites. GeometryWarp smoke covers absent legacy provider metadata and a pinned anatomical endpoint (`GEOMETRY_ANATOMICAL=1`), including backup and replay. Published offline smoke checks exact bundled sidecar SHA. Parser fixtures reject SHA/path/duplicate/index/finite errors; geometry checks cover identity, protected regions, caps, joints, spatial differentiation, symmetry, girth fallback and immutable mass outputs. Rebuild the real source twice intentionally, outside CI; hashes must match. [Commands and limits](ANATOMICAL_MUSCLE_FIELDS.md).
+
+## UI/UX Redesign V1
+
+Use the same complete CI matrix and semantic hooks; do not replace behavioral assertions with screenshots. `ui-disclosures.cjs` navigates the actual disclosure summaries when older behavioral suites need the relocated calendar, manual scenarios, history or Advanced settings. The new presentation defaults are tested independently. No storage or lifecycle assertion is removed.
+
+Generate fixtures with `dotnet run -c Release --no-build --project tools/WorkoutCalculator.PreUiAudit -- . work/ui-fixtures` and geometry with the existing GeometryWarpBenchmark. With the Release app running, set `PRE_UI_FIXTURES`, `GEOMETRY_FIXTURES`, `APP_URL`, optional `BROWSER_CHANNEL` and `UI_OUTPUT`, then run:
+
+- `node tests/browser/ui-redesign-smoke.cjs`: five-section navigation, 320/390/768/1024/1400, document overflow, accessible names, keyboard focus, normal-route metadata, default-closed disclosures, quick add, close review, durable result and read-only avatar comparison.
+- `node tests/browser/ui-gallery.cjs`: isolated synthetic state screenshots at 390/1400; critical onboarding/day/CheckIn/recovery also at 320. Screenshot review is separate from behavior.
+- Existing `pre-ui-history.cjs`: matched archives and same timing boundaries before/after. No weakened performance ceilings.
+
+The complete previous browser/offline matrix remains required. New copy uses «Сегодня», «Новый замер», «Скачать резервную копию». Core semantic `data-testid` and record identifiers remain stable. Physical devices and human usability have not been validated by emulated viewport checks.

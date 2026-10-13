@@ -5,7 +5,7 @@
     <section class="avatar-review" aria-label="Качество и источники аватара" data-quality="@summary.Category" data-estimated="@summary.EstimatedFields">
         <h3>@summary.Category</h3>
         <p>Подтверждено: @summary.FactualFields полей · по фото: @summary.PhotoFields · оценено: @summary.EstimatedFields.</p>
-        <p class="note">Категория описывает полноту данных по правилам v1, а не вероятность точности. Модель не предназначена для медицинских измерений.</p>
+        <p class="note">Качество описывает полноту исходных данных, а не точность результата. Модель не предназначена для медицинских измерений.</p>
         @foreach (var warning in summary.Warnings) { <p class="hint">@warning</p> }
         @if (Detailed)
         {

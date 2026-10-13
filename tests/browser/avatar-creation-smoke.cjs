@@ -3,8 +3,8 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict');
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
 const url=process.env.APP_URL||'http://127.0.0.1:5256',key='workoutcalc.avatarDomain.v1';
-const button=(p,name)=>p.getByRole('button',{name,exact:true}).click();
-const tab=(p,name)=>p.getByRole('tab',{name,exact:true}).click();
+const button=require('./ui-disclosures.cjs').action;
+const tab=require('./ui-disclosures.cjs').tab;
 const ready=p=>p.waitForSelector('[data-model-ready="true"]',{timeout:60000});
 const settled=p=>p.waitForSelector('[data-avatar-busy="false"]');
 const read=p=>p.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
@@ -45,7 +45,7 @@ async function seedPhoto(p,bad=false){return p.evaluate(async bad=>{
   }
   await slider(p,'Бока',.5);await slider(p,'Выступ живота',.4);
   const editing=(await read(p)).avatars[0].draft;
-  await p.getByText('Резервная копия настройки',{exact:true}).click();const draftDownload=p.waitForEvent('download');await button(p,'Скачать полный backup');const draftZip=path.join(dir,'draft.zip');await(await draftDownload).saveAs(draftZip);
+  await p.getByText('Резервная копия настройки',{exact:true}).click();const draftDownload=p.waitForEvent('download');await button(p,'Скачать резервную копию');const draftZip=path.join(dir,'draft.zip');await(await draftDownload).saveAs(draftZip);
   const draftContext=await browser.newContext(),draftPage=await draftContext.newPage();watch(draftPage);await draftPage.goto(url);await ready(draftPage);await draftPage.getByText('У меня есть резервная копия',{exact:true}).click();await draftPage.getByLabel('Архив резервной копии').setInputFiles(draftZip);await draftPage.getByLabel('Подтверждаю замену всех данных').check();await Promise.all([draftPage.waitForNavigation(),button(draftPage,'Восстановить данные')]);await ready(draftPage);assert.deepEqual((await read(draftPage)).avatars[0].draft,editing);await draftPage.waitForSelector('[data-onboarding-step="6"]');await draftContext.close();
   await p.close();p=await context.newPage();watch(p);await p.goto(url);await ready(p);assert.deepEqual((await read(p)).avatars[0].draft,editing,'close/reopen resumes same draft');
   for(const width of [320,390,1400]){
@@ -58,7 +58,7 @@ async function seedPhoto(p,bad=false){return p.evaluate(async bad=>{
   assert.equal(await p.locator('.model-adjustments input[type=range]').count(),0);await button(p,'Исправить аватар');await slider(p,'Ширина плеч',-.5);await lock(p);
   const second=(await read(p)).avatars[0];assert.equal(second.revisions.length,2);assert.deepEqual(second.revisions[0],first.revisions[0]);assert.notEqual(first.trackingCycleId,second.trackingCycleId);assert.equal(second.hypothesisResetRequired,true);
   await button(p,'Начать новый цикл прогнозов');await tab(p,'Профиль');await p.getByLabel('Визуальное сходство аватара').fill('4');await button(p,'Сохранить контрольные значения');
-  const original=await p.evaluate(k=>localStorage.getItem(k),key);let downloaded=p.waitForEvent('download');await button(p,'Скачать полный backup');const zip=path.join(dir,'complete.zip');await(await downloaded).saveAs(zip);
+  const original=await p.evaluate(k=>localStorage.getItem(k),key);let downloaded=p.waitForEvent('download');await button(p,'Скачать резервную копию');const zip=path.join(dir,'complete.zip');await(await downloaded).saveAs(zip);
   const clean=await browser.newContext({viewport:{width:390,height:844}});await configure(clean);const restored=await clean.newPage();watch(restored);await restored.goto(url);await ready(restored);await restored.getByText('У меня есть резервная копия',{exact:true}).click();await restored.getByLabel('Архив резервной копии').setInputFiles(zip);await restored.getByLabel('Подтверждаю замену всех данных').check();await Promise.all([restored.waitForNavigation(),button(restored,'Восстановить данные')]);await ready(restored);
   assert.equal(await restored.evaluate(k=>localStorage.getItem(k),key),original);assert.equal(await facts(restored),rawFacts);assert.equal((await read(restored)).avatars[0].status,'Active');
   const photoCount=await restored.evaluate(async()=>JSON.parse(await(await import(new URL('js/photos.js',document.baseURI))).listMeta()).length);assert.equal(photoCount,1);

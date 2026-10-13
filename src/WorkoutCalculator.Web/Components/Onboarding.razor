@@ -1,6 +1,7 @@
 @using WorkoutCalculator.BodyModel.History
 <section class="onboarding" aria-label="Первый запуск">
     <p class="eyebrow">@(Draft.Step == 0 ? "Профиль" : "Создать аватар") · шаг @(Draft.Step + 1) из 8</p>
+    <div class="step-progress" role="progressbar" aria-label="Настройка аватара" aria-valuemin="1" aria-valuemax="8" aria-valuenow="@(Draft.Step+1)">@for(var i=0;i<8;i++){<span class="@(i<=Draft.Step?"done":null)"></span>}</div>
     <h1>@Titles[Math.Clamp(Draft.Step, 0, 7)]</h1>
     <p>Данные остаются на устройстве. Заполните известное; необязательные поля можно пропустить.</p>
     @if (_error is not null) { <p role="alert">@_error</p> }
@@ -79,5 +80,5 @@
     private async Task Next() { try { Draft.Build(); Draft.Step = Math.Min(7, Draft.Step + 1); await Persist(); } catch (ArgumentException e) { _error = e.Message; } }
     private async Task Back() { Draft.Step = Math.Max(0, Draft.Step - 1); await Persist(); }
     private async Task UnknownFat() { Draft.Facts.BodyFat = ""; await Persist(); }
-    private async Task Finish() { try { Draft.Build(); await OnFinish.InvokeAsync(); } catch (Exception e) { _error = "Настройка не завершена. " + e.Message; } }
+    private async Task Finish() { try { Draft.Build(); await OnFinish.InvokeAsync(); } catch (Exception e) { _error = "Настройка не завершена. " + UiError.From(e); } }
 }
