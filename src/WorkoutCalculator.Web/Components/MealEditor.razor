@@ -2,7 +2,7 @@
 @using System.Globalization
 @using WorkoutCalculator.Nutrition
 @using WorkoutCalculator.Activity
-<section class="meal-editor" aria-label="Редактор приёма пищи">
+<section @ref="_editor" tabindex="-1" class="meal-editor" aria-label="Редактор приёма пищи">
     <h4>@(Existing is null ? "Добавить приём пищи" : "Изменить приём пищи")</h4>
     <label>Пункт плана<select aria-label="Пункт плана питания" @bind="_slot"><option value="">Вне плана</option>@foreach (var slot in Day.Plan.MealSlots) { <option value="@slot.Id">@slot.Label</option> }</select></label>
     <label>Тип приёма пищи<select aria-label="Тип приёма пищи" @bind="_type">@foreach (var t in Enum.GetValues<MealType>()) { <option value="@t">@MealPanel.Label(t)</option> }</select></label>
@@ -35,6 +35,8 @@
     [Parameter] public MealEvent? Existing { get; set; }
     [Parameter] public EventCallback<MealEvent> OnSave { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
+    private ElementReference _editor;
+    protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await _editor.FocusAsync(); }
     private List<Draft> _entries = [];
     private MealType _type;
     private string _label = "", _slot = "", _time = "";

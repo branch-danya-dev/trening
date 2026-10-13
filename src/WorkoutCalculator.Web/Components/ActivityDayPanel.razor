@@ -53,7 +53,7 @@
             @if (Editable) {
                 <button class="btn primary" @onclick="NewEvent">Добавить активность</button>
                 @if (_adding) {
-                    <div class="activity-quick-add">
+                    <div @ref="_activityEditor" tabindex="-1" role="region" aria-label="Редактор активности" class="activity-quick-add">
                         <label>Вид активности<select aria-label="Вид активности" @bind="_type"><option value="Walking">Ходьба</option><option value="Mobility">Разминка / растяжка</option><option value="Spontaneous">Короткое упражнение</option><option value="Other">Другая активность</option></select></label>
                         @if (_type == ActivityEventType.Walking) {
                             <label>Дистанция, км<input aria-label="Дистанция ходьбы, км" type="number" step="0.1" min="0.01" max="300" @bind="_km" /></label>
@@ -128,11 +128,11 @@
     private ActivityDayState _outcome;
     private string? _error, _lastPayload, _editing;
     private DateOnly _lastDate;
-    private bool _adding, _confirmed, _readFailed, _focusReview;
+    private bool _adding, _confirmed, _readFailed, _focusReview, _focusActivity;
     private MealPanel? _mealPanel;
-    private ElementReference _reviewElement;
+    private ElementReference _reviewElement, _activityEditor;
     [Parameter] public EventCallback<bool> OnTraining { get; set; }
-    protected override async Task OnAfterRenderAsync(bool firstRender){if(_focusReview){_focusReview=false;await _reviewElement.FocusAsync();}}
+    protected override async Task OnAfterRenderAsync(bool firstRender){if(_focusReview){_focusReview=false;await _reviewElement.FocusAsync();}else if(_focusActivity){_focusActivity=false;if(_adding)await _activityEditor.FocusAsync();}}
     private void NewSpontaneous(){NewEvent();_type=ActivityEventType.Spontaneous;}
     private ActivityEventType _type = ActivityEventType.Walking;
     private double? _km, _minutes;
@@ -154,8 +154,8 @@
     private async Task Changed(string? error) { if (error is not null) { _readFailed = false; _error = error; return; } _review = null; _adding = false; Refresh(); await OnChanged.InvokeAsync(); }
     private Task MealsChanged() => Changed(null);
     private Task SavePlan(DayPlan plan) => Changed(Store.SavePlan(plan, _day, DateTimeOffset.Now));
-    private void NewEvent() { _adding = true; _editing = null; _type = ActivityEventType.Walking; _km = _minutes = null; _steps = null; _exerciseId = _note = ""; }
-    private void Edit(ActivityEvent e) { _adding = true; _editing = e.Id; _type = e.Type; _km = e.DistanceKm; _minutes = e.DurationMinutes; _steps = e.Steps; _exerciseId = e.ExerciseId ?? ""; _sets = e.Sets ?? 3; _reps = e.Reps ?? 20; _note = e.Note ?? ""; }
+    private void NewEvent() { _focusActivity = true; _adding = true; _editing = null; _type = ActivityEventType.Walking; _km = _minutes = null; _steps = null; _exerciseId = _note = ""; }
+    private void Edit(ActivityEvent e) { _focusActivity = true; _adding = true; _editing = e.Id; _type = e.Type; _km = e.DistanceKm; _minutes = e.DurationMinutes; _steps = e.Steps; _exerciseId = e.ExerciseId ?? ""; _sets = e.Sets ?? 3; _reps = e.Reps ?? 20; _note = e.Note ?? ""; }
     private Task Remove(string id) => Changed(Store.RemoveEvent(_day!, id, DateTimeOffset.Now));
     private async Task SaveEvent() {
         if (!_adding || !Editable) return;

@@ -888,6 +888,7 @@
     "consumer-metadata",
     "readable-storage-health",
     "quick-actions",
+    "quick-editor-focus",
     "close-day-focus",
     "durable-checkin-result",
     "read-only-avatar-compare",
