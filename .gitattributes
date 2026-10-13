@@ -2,3 +2,7 @@
 docs/assets/bodyparts3d/* -text
 # Frozen benchmark reports carry byte hashes in provenance.json.
 docs/evidence/model-hardening/*.json -text
+# Vendored modules/models have pinned source hashes; preserve publisher bytes on Windows too.
+src/WorkoutCalculator.Web/wwwroot/lib/** -text
+docs/evidence/pre-ui/*.json -text
+docs/evidence/pre-ui/*.zip -text

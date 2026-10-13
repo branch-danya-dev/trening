@@ -13,6 +13,34 @@ namespace WorkoutCalculator.Tests.BodyModel;
 
 public class CheckInTests(MakeHumanFixture fx):IClassFixture<MakeHumanFixture>
 {
+    [Fact]public async Task ApplicationNoPhotoCommandNeverCallsPhotoGatewayAndIsResumable()
+    {
+        var(m,_,p,a)=Store();var app=new CheckInApplication(m);
+        var job=app.Begin(p,a,Guid.NewGuid().ToString(),Today,Now,Manual(),null);
+        Task<CheckInPhoto?> NoPhotos(CheckInPhoto _) => throw new Exception("No-photo command accessed photos");
+        var result=await app.Resume(job,Builder,NoPhotos);Assert.NotNull(result.Revision);
+        var raw=m.Values.ToDictionary();var resumed=await app.Resume(result,Builder,NoPhotos);
+        Assert.Equal(Json(result),Json(resumed));Assert.Equal(raw,m.Values);
+    }
+    [Fact]public async Task CompactStoragePreservesCanonicalRecordsAndColdReadValidation()
+    {
+        var(m,s,p,a)=Store();var job=Begin(s,p,a);await s.Process(job.Id,Builder);
+        var data=s.Load().Data;var original=JsonSerializer.Serialize(data,CheckInStoreJson.Default.CheckInData);
+        var oldRaw=JsonSerializer.Serialize(new CheckInEnvelope(1,original,ForecastStore.Hash(original)),CheckInStoreJson.Default.CheckInEnvelope);
+        var compact=CheckInStore.Encode(data);Assert.True(compact.Length<oldRaw.Length);
+        ReadCacheGeneration.Observe(Guid.NewGuid().ToString());
+        Assert.Equal(original,JsonSerializer.Serialize(CheckInStore.Decode(compact),CheckInStoreJson.Default.CheckInData));
+        Assert.Equal(original,JsonSerializer.Serialize(CheckInStore.Decode(oldRaw),CheckInStoreJson.Default.CheckInData));
+        var before=m.Values.ToDictionary();var summary=new ProductReadModels(m).Read(Today);Assert.True(summary.Succeeded);Assert.Equal(1,summary.Value!.Progress.AcceptedCheckIns);Assert.Equal(before,m.Values);
+        m.Values[AvatarDomainStore.Key]="{}";Assert.Equal(ApplicationErrorCode.CorruptOrFutureSchema,new ProductReadModels(m).Read(Today).Error!.Code);
+    }
+    [Fact]public async Task CachedSnapshotReadDoesNotAliasCallerOwnedArray()
+    {
+        var(m,s,p,a)=Store();var job=Begin(s,p,a);await s.Process(job.Id,Builder);
+        var read=new BodySnapshotStore(m).Load();var array=read.Snapshots.ToArray();var original=array[0];
+        var raw=BodySnapshotStore.Encode(new(1,array,[]));array[0]=original with{WeightKg=99};m.Values[BodySnapshotStore.Key]=raw;
+        Assert.Equal(original,new BodySnapshotStore(m).Load().Snapshots[0]);Assert.Null(new CheckInStore(m).Load().Error);
+    }
     private static readonly DateTimeOffset Now=new(2026,10,9,12,0,0,TimeSpan.FromHours(3));
     private static readonly DateOnly Today=new(2026,10,9);
     private AvatarBuilder Builder=>new(fx.Model);

@@ -4,6 +4,16 @@ import { makeArchive, validateArchive, readZip } from '../../src/WorkoutCalculat
 import { zip } from '../../src/WorkoutCalculator.Web/wwwroot/js/photos.js';
 import { analysisData } from '../../src/WorkoutCalculator.Web/wwwroot/js/validation.js';
 const bytes = async b => new Uint8Array(await b.arrayBuffer());
+test('marked synthetic backup is rejected outside explicit local dev/test mode',async()=>{
+ const archive=await bytes(await makeArchive(state(),'synthetic','trening-backup',true));
+ await assert.rejects(validateArchive(archive),/\[ResearchDisabled\]/);
+ const previousLocation=globalThis.location,previousSession=globalThis.sessionStorage;
+ try{
+  globalThis.location={hostname:'127.0.0.1'};globalThis.sessionStorage={getItem:()=> 'enabled'};
+  assert.equal((await validateArchive(archive)).manifest.syntheticFixture,true);
+  globalThis.location={hostname:'example.com'};await assert.rejects(validateArchive(archive),/\[ResearchDisabled\]/);
+ }finally{globalThis.location=previousLocation;globalThis.sessionStorage=previousSession;}
+});
 const state = () => ({local:{'workoutcalc.body.v1':'{"WeightKg":80}','workoutcalc.preferences.v1':'{"Goal":"Поддержание"}'},photos:{
  sessions:[{id:'private-id',createdAt:'2026-01-01T10:00:00Z',views:['front']}],
  images:[{key:'private-id/front',blob:new Blob([new Uint8Array([0,255,3])],{type:'image/jpeg'})},{key:'private-id/front/thumb',iv:new Uint8Array(12),data:new Uint8Array(32).buffer,type:'image/jpeg'}],

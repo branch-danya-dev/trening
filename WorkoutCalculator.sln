@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkoutCalculator.Anatomica
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkoutCalculator.ShapeResearch", "tools\WorkoutCalculator.ShapeResearch\WorkoutCalculator.ShapeResearch.csproj", "{9322A128-CC22-4A86-AF3D-0B08DEAA5C22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkoutCalculator.PreUiAudit", "tools\WorkoutCalculator.PreUiAudit\WorkoutCalculator.PreUiAudit.csproj", "{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -171,6 +173,18 @@ Global
 		{9322A128-CC22-4A86-AF3D-0B08DEAA5C22}.Release|x64.Build.0 = Release|Any CPU
 		{9322A128-CC22-4A86-AF3D-0B08DEAA5C22}.Release|x86.ActiveCfg = Release|Any CPU
 		{9322A128-CC22-4A86-AF3D-0B08DEAA5C22}.Release|x86.Build.0 = Release|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Debug|x64.Build.0 = Debug|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Debug|x86.Build.0 = Debug|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Release|x64.ActiveCfg = Release|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Release|x64.Build.0 = Release|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Release|x86.ActiveCfg = Release|Any CPU
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -182,5 +196,6 @@ Global
 		{1B5D36C1-6A3D-4253-97BD-3A4947905003} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 		{A7AE009F-9506-4F02-B9AA-85582A89A5DB} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 		{9322A128-CC22-4A86-AF3D-0B08DEAA5C22} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
+		{2CA4C7EA-63C4-4771-8BF8-C877352FE1C0} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 	EndGlobalSection
 EndGlobal

@@ -23,7 +23,7 @@
         @foreach (var exercise in State.Draft.Exercises)
         {
             int exerciseNumber = State.Draft.Exercises.IndexOf(exercise) + 1;
-            <article class="strength-exercise" @key="exercise">
+            <article class="strength-exercise" data-testid="strength-exercise" @key="exercise">
                 <div class="strength-exercise-head">
                     <label>Упражнение @exerciseNumber
                         <select class="select" aria-label="Упражнение @exerciseNumber" @bind="exercise.ExerciseId">
@@ -38,7 +38,7 @@
                 @foreach (var set in exercise.Sets)
                 {
                     int setNumber = exercise.Sets.IndexOf(set) + 1;
-                    <fieldset class="strength-set" @key="set">
+                    <fieldset class="strength-set" data-testid="strength-set" @key="set">
                         <legend>Подход @setNumber</legend>
                         <div class="strength-set-fields">
                             <label>Повторения<input class="text-input" inputmode="numeric" @bind="set.Reps" /></label>

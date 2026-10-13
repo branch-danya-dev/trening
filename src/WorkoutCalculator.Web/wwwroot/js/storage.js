@@ -2,12 +2,15 @@
 // localStorage может быть недоступен (приватный режим, запрет сайта) — тогда просто не сохраняем.
 
 import { assertWritable, assertReadable } from './data-guard.js';
+import { appError, storageError } from './app-errors.js';
+import { rememberRead } from './read-snapshots.js';
+export { readToken } from './read-snapshots.js';
 import { assertActivitySourceWrite, activityKey, sourceKeys } from './activity-guard.js';
 const observedSources = new Map();
 function guardSource(key, value) {
     if (!sourceKeys.includes(key)) return;
     const previous = localStorage.getItem(key);
-    if (observedSources.has(key) && observedSources.get(key) !== previous) throw Error('Журнал изменён в другой вкладке. Перезагрузите страницу.');
+    if (observedSources.has(key) && observedSources.get(key) !== previous) throw appError('StaleConflict','Журнал изменён в другой вкладке. Перезагрузите страницу.');
     const now = new Date(), today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     assertActivitySourceWrite(key, previous, value, localStorage.getItem(activityKey), today);
 }
@@ -50,15 +53,18 @@ export function setItem(key, value) {
 // Journals must distinguish unavailable storage from an empty journal and must report write failures.
 export function getItemStrict(key) {
     assertReadable();
-    return localStorage.getItem(key);
+    let value;
+    try { value=localStorage.getItem(key); } catch(error) { throw appError('UnsupportedBrowser','Хранилище браузера недоступно.',error); }
+    rememberRead(key,value);
+    return value;
 }
 
 export function compareExchange(key, expected, value) {
     assertWritable();
-    if (blocked.has(key)) throw Error("Повреждённая запись защищена от изменений.");
+    if (blocked.has(key)) throw appError('CorruptOrFutureSchema',"Повреждённая запись защищена от изменений.");
     if (localStorage.getItem(key) !== expected) return false;
     guardSource(key, value);
-    localStorage.setItem(key, value);
+    try { localStorage.setItem(key, value); } catch(error) { throw storageError(error); }
     if (sourceKeys.includes(key)) observedSources.set(key, value);
     return true;
 }
@@ -116,3 +122,6 @@ export function focusById(id) {
     el?.focus();
     el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
 }
+
+// Session-scoped explicit research opt-in. Never restored from user backup.
+export function researchMode() { try { return sessionStorage.getItem("trening:research-mode") === "enabled"; } catch { return false; } }

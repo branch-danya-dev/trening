@@ -3,6 +3,7 @@ import { LOCK, EPOCH, acceptGeneration } from './data-guard.js';
 import { reportStorageError } from './storage.js';
 import { recoverCheckIn } from './checkin-transaction.js';
 import { validateArtifact } from './render-contract.js';
+import { appError, storageError } from './app-errors.js';
 
 export async function initialize() {
     try { const message = await recover(); if (message) reportStorageError(message); }
@@ -40,7 +41,8 @@ async function readPhotos() {
 async function replacePhotos(value) {
     const db = await photosDb();
     try { const tx = db.transaction(tables, 'readwrite'), finished = done(tx);
-        for (const t of tables) { const store = tx.objectStore(t); store.clear(); for (const row of value[t]||[]) store.put(row); }
+        try { for (const t of tables) { const store = tx.objectStore(t); store.clear(); for (const row of value[t]||[]) store.put(row); } }
+        catch(error) { tx.abort(); await finished.catch(()=>{}); throw storageError(error); }
         await finished;
     } finally { db.close(); }
 }
@@ -56,7 +58,7 @@ async function recoveryRecord(value) {
     } finally { db.close(); }
 }
 async function exclusive(action) {
-    if (!navigator.locks) throw Error('Этот браузер не поддерживает безопасное восстановление. Используйте актуальный Chrome, Edge, Firefox или Safari.');
+    if (!navigator.locks) throw appError('UnsupportedBrowser','Этот браузер не поддерживает безопасное восстановление. Используйте актуальный Chrome, Edge, Firefox или Safari.');
     return navigator.locks.request('trening-archive', { mode: 'exclusive' }, action);
 }
 // Called before Blazor loads any store. An interrupted commit always rolls back to the durable before-image.
@@ -91,14 +93,16 @@ function decodeRecords(value, files, used) {
     if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k,v]) => [k, decodeRecords(v, files, used)]));
     return value;
 }
-export async function makeArchive(state, build = 'dev', kind = 'trening-backup') {
+function fixtureMode(){try{return ['localhost','127.0.0.1','[::1]'].includes(globalThis.location?.hostname)&&sessionStorage.getItem('trening:dev-fixtures')==='enabled';}catch{return false;}}
+function assertFixtureImport(manifest){if(manifest?.syntheticFixture&&!fixtureMode())throw appError('ResearchDisabled','Синтетический архив разрешён только в явно включённом локальном dev/test-режиме.');}
+export async function makeArchive(state, build = 'dev', kind = 'trening-backup', syntheticFixture = fixtureMode()) {
     const files = [], records = await encodeRecords(state.photos, files);
     files.push({ name: 'local.json', data: json(state.local) }, { name: 'photos.json', data: json(records) });
-    return packageFiles(files, build, kind);
+    return packageFiles(files, build, kind,syntheticFixture);
 }
-export async function packageFiles(files, build, kind) {
+export async function packageFiles(files, build, kind,syntheticFixture=false) {
     if (files.length + 1 > MAX_FILES || files.reduce((n,f) => n + f.data.byteLength, 0) > LIMIT) throw Error('Архив превышает лимит 512 МиБ или 20 000 файлов.');
-    const manifest = { format: kind, schemaVersion: 1, appVersion: '1', buildVersion: build, createdAt: new Date().toISOString(),
+    const manifest = { format: kind, schemaVersion: 1, appVersion: '1', buildVersion: build, createdAt: new Date().toISOString(),...(syntheticFixture?{syntheticFixture:true}:{}),
         files: await Promise.all(files.map(async f => ({ name: f.name, bytes: f.data.byteLength, sha256: await sha256(f.data) }))) };
     const archive = zip([{ name: 'manifest.json', data: json(manifest) }, ...files]);
     if (archive.size > LIMIT) throw Error('Архив превышает лимит 512 МиБ.');
@@ -128,6 +132,8 @@ export async function validateArchive(bytes) {
     const files=readZip(bytes), parse=name=>{ if(!files.has(name)) throw Error('Отсутствует '+name); return JSON.parse(decoder.decode(files.get(name))); };
     const manifest=parse('manifest.json');
     if(manifest.format!=='trening-backup' || manifest.schemaVersion!==1 || !Array.isArray(manifest.files)) throw Error('Неподдерживаемая версия архива.');
+    if(manifest.syntheticFixture!==undefined&&typeof manifest.syntheticFixture!=='boolean')throw appError('CorruptOrFutureSchema','Некорректная метка тестового архива.');
+    assertFixtureImport(manifest);
     const names=new Set();
     for(const f of manifest.files) {
         const data=files.get(f.name);
@@ -194,6 +200,7 @@ export async function restorePrepared(build) {
     return restoreState(prepared,build);
 }
 export async function restoreState(next, build, checkpoint=()=>{}) {
+    assertFixtureImport(next.manifest);
     return exclusive(async()=>{
         await recoverCheckIn();
         if(await recoveryRecord()) throw Error('Сначала завершите восстановление после сбоя: перезагрузите страницу.');
@@ -213,7 +220,7 @@ export async function restoreState(next, build, checkpoint=()=>{}) {
             return 'Восстановлено. Перезагрузите приложение.';
         } catch(e) {
             if(staged) { try { await replacePhotos(before.photos); replaceLocal(before.local); await recoveryRecord(null); staged=false; } catch { throw Error('Восстановление прервано. Прежние данные сохранены для автоматического отката при следующем запуске.'); } }
-            throw Error('Восстановление отменено; прежние данные сохранены. '+e.message);
+            throw appError(storageError(e).code||'RecoveryRequired','Восстановление отменено; прежние данные сохранены. '+e.message);
         } finally { if(!staged) localStorage.removeItem(LOCK); }
     });
 }

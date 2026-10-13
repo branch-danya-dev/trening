@@ -1,0 +1,66 @@
+{
+  "version": "pre-ui-history-browser-1",
+  "browser": "154.0.4258.62",
+  "rows": [
+    {
+      "days": 0,
+      "phases": {
+        "startup": 3436,
+        "activityOpen": 135,
+        "checkinOpen": 190,
+        "checkinSave": 1152
+      },
+      "logs": [
+        "Product timing: forecast 235,00 ms, muscle=False",
+        "Product timing: forecast 168,00 ms, muscle=False",
+        "CheckIn open: 70,00 ms",
+        "CheckIn reconstruction prepare: 345,00 ms",
+        "CheckIn avatar transaction commit: 105,00 ms",
+        "CheckIn reconstruction and commit: 451,00 ms",
+        "Product timing: forecast 178,00 ms, muscle=False",
+        "Product timing: forecast 180,00 ms, muscle=False",
+        "CheckIn save total: 1099,00 ms"
+      ]
+    },
+    {
+      "days": 30,
+      "phases": {
+        "startup": 4702,
+        "activityOpen": 502,
+        "checkinOpen": 1506,
+        "checkinSave": 6419
+      },
+      "logs": [
+        "Product timing: forecast 179,00 ms, muscle=False",
+        "Product timing: forecast 188,00 ms, muscle=False",
+        "CheckIn open: 1089,00 ms",
+        "CheckIn reconstruction prepare: 1245,00 ms",
+        "CheckIn avatar transaction commit: 865,00 ms",
+        "CheckIn reconstruction and commit: 2110,00 ms",
+        "Product timing: forecast 173,00 ms, muscle=False",
+        "Product timing: forecast 183,00 ms, muscle=False",
+        "CheckIn save total: 6046,00 ms"
+      ]
+    },
+    {
+      "days": 180,
+      "phases": {
+        "startup": 12914,
+        "activityOpen": 2579,
+        "checkinOpen": 7335,
+        "checkinSave": 87959
+      },
+      "logs": [
+        "Product timing: forecast 201,00 ms, muscle=False",
+        "Product timing: forecast 172,00 ms, muscle=False",
+        "CheckIn open: 6154,00 ms",
+        "CheckIn reconstruction prepare: 6238,00 ms",
+        "CheckIn avatar transaction commit: 4815,00 ms",
+        "CheckIn reconstruction and commit: 11054,00 ms",
+        "Product timing: forecast 176,00 ms, muscle=False",
+        "Product timing: forecast 181,00 ms, muscle=False",
+        "CheckIn save total: 61818,00 ms"
+      ]
+    }
+  ]
+}

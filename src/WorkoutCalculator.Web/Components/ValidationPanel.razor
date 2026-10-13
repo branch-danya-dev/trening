@@ -43,10 +43,16 @@
     @if (Calibration.Archive.Forecasts.Length == 0) { <p>Сначала сохраните прогноз в разделе «План», затем добавляйте реальные замеры.</p> }
     else { <ForecastAccuracy State="Calibration" OnNew="NoOp" OnSave="NoOp" OnSelect="SelectForecast" /> }
     <p class="note">Проверка изменения формы: сравнивайте обхваты, выполненные подходы и программу с сохранённой проекцией. Это косвенные наблюдения; килограммы отдельной мышцы не являются измеряемым результатом этой проверки.</p>
+    <details><summary>Техническая диагностика</summary>
+        @foreach(var capability in RuntimeCapabilities.Current)
+        { <p data-testid="capability-status" data-capability="@capability.Kind" data-enabled="@capability.Enabled.ToString().ToLowerInvariant()">@capability.Kind · @capability.Stage · @capability.Reason</p> }
+        <label class="check"><input type="checkbox" checked="@UsabilityDiagnostics.Enabled" @onchange="e=>UsabilityDiagnostics.SetEnabled(e.Value is true)" /> Локальная диагностика времени операций (только на время этой сессии)</label>
+    </details>
     <h3>Пакет для анализа</h3>
     <p>Выберите данные для файла validation-package.zip. Имена, заметки, локальные ID, PIN и ключи не экспортируются. Даты и параметры тела остаются чувствительными данными.</p>
     @foreach (var item in Choices) { <label class="check"><input type="checkbox" @bind="_selected[item.Key]" /> @item.Value</label> }
     <label class="check"><input type="checkbox" @bind="_photos" /> Явно включить фотографии (нужна разблокировка PIN)</label>
+    <label class="check"><input type="checkbox" @bind="_includeDiagnostics" /> Явно включить локальную диагностику времени операций (без ввода и фото)</label>
     <button class="btn" @onclick="Export" disabled="@_busy">Экспортировать validation package</button>
     @if (_message is not null) { <p role="status">@_message</p> }
 </section>
@@ -62,7 +68,7 @@
     private static readonly Dictionary<string,string> Choices = new() { ["profile"]="Параметры профиля без идентификаторов", ["facts"]="История фактических замеров", ["avatars"]="Ревизии аватара и производные метрики", ["forecasts"]="Версии прогнозов", ["workouts"]="Сводки тренировок", ["activity"]="Дни активности и подтверждённые итоги", ["hypotheses"]="Гипотезы по наблюдениям и результаты", ["checkIns"]="Check-ins / наблюдения прогресса", ["renders"]="Диагностика геометрических визуализаций (без изображений)", ["validation"]="Метрики и контрольные значения" };
     private Dictionary<string,bool> _selected = Choices.Keys.ToDictionary(k => k, _ => false);
     private ManualValidation _manual = new();
-    private bool _photos, _busy;
+    private bool _photos, _busy, _includeDiagnostics;
     private string? _message;
     protected override void OnInitialized() { try { var raw=BrowserStorage.GetItem("workoutcalc.validation.v1"); if(raw is not null) _manual=System.Text.Json.JsonSerializer.Deserialize(raw,ValidationJson.Default.ManualValidation) ?? new(); } catch { _message="Контрольные значения не прочитаны; исходная запись сохранена."; } }
     private static string Num(double? n) => n is { } v ? Fmt.N(v,1) : "—";
@@ -77,10 +83,11 @@
     private async Task Export() {
         _busy=true;
         try {
-            var options=new JsonObject(); foreach(var (key,value) in _selected) options[key]=value; options["photos"]=_photos;
+            var options=new JsonObject(); foreach(var (key,value) in _selected) options[key]=value; options["photos"]=_photos; options["diagnostics"]=_includeDiagnostics;
             var report=new JsonObject { ["body"] = new JsonArray(Enum.GetValues<Girth>().Select(g => (JsonNode)new JsonObject { ["girth"]=g.ToString(),["entered"]=Fact?.Measurements.GetValueOrDefault(g)?.Cm,["calculated"]=Body?.MeasureGirthCm(g),["source"]=Fact?.Measurements.GetValueOrDefault(g)?.Method.ToString() ?? "visual-estimate" }).ToArray()),
                 ["evaluation"] = System.Text.Json.JsonSerializer.SerializeToNode(Calibration.Evaluation, ValidationJson.Default.ImmutableArrayForecastObservation),
                 ["manual"] = System.Text.Json.JsonSerializer.SerializeToNode(_manual, ValidationJson.Default.ManualValidation) };
+            report["diagnostics"]=new JsonArray(UsabilityDiagnostics.Export(_includeDiagnostics).Select(x=>(JsonNode)new JsonObject{["flow"]=x.Flow,["milliseconds"]=x.Milliseconds,["error"]=x.Error?.ToString(),["sequence"]=x.Sequence}).ToArray());
             var m=await JS.InvokeAsync<IJSObjectReference>("import","./js/validation.js"); await m.InvokeVoidAsync("exportValidation", options.ToJsonString(), report.ToJsonString(), AppInfo.Build); _message="Пакет подготовлен для скачивания.";
         } catch(Exception e) { _message="Экспорт не выполнен. "+e.Message.Split('\n')[0]; } finally { _busy=false; }
     }

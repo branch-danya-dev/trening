@@ -1,0 +1,138 @@
+{
+  "version": "pre-ui-history-browser-1",
+  "browser": "154.0.4258.62",
+  "rows": [
+    {
+      "days": 0,
+      "phases": {
+        "startup": 2675,
+        "activityOpen": 119,
+        "checkinOpen": 157,
+        "checkinSave": 852
+      },
+      "logs": [
+        "PreUI timing checkin.read: 208,00 ms",
+        "Product timing: forecast 218,00 ms, muscle=False",
+        "Product timing: forecast 164,00 ms, muscle=False",
+        "PreUI timing checkin.read: 1,00 ms",
+        "CheckIn open: 80,00 ms",
+        "PreUI timing checkin.begin: 9,00 ms",
+        "PreUI timing checkin.ready: 36,00 ms",
+        "PreUI timing checkin.avatar: 1,00 ms",
+        "PreUI timing checkin.facts: 0,00 ms",
+        "PreUI timing checkin.build: 192,00 ms",
+        "PreUI timing checkin.encode: 22,00 ms",
+        "PreUI timing checkin.hypotheses: 0,00 ms",
+        "CheckIn reconstruction prepare: 243,00 ms",
+        "PreUI timing checkin.cas: 11,00 ms",
+        "PreUI timing checkin.read: 0,00 ms",
+        "CheckIn avatar transaction commit: 26,00 ms",
+        "PreUI timing checkin.save: 270,00 ms",
+        "CheckIn reconstruction and commit: 307,00 ms",
+        "PreUI timing checkin.read: 0,00 ms",
+        "Product timing: forecast 164,00 ms, muscle=False",
+        "Product timing: forecast 168,00 ms, muscle=False",
+        "CheckIn save total: 807,00 ms"
+      ]
+    },
+    {
+      "days": 30,
+      "phases": {
+        "startup": 3145,
+        "activityOpen": 222,
+        "checkinOpen": 673,
+        "checkinSave": 1555
+      },
+      "logs": [
+        "PreUI timing checkin.read: 711,00 ms",
+        "Product timing: forecast 176,00 ms, muscle=False",
+        "Product timing: forecast 166,00 ms, muscle=False",
+        "PreUI timing checkin.read: 4,00 ms",
+        "CheckIn open: 272,00 ms",
+        "PreUI timing checkin.begin: 56,00 ms",
+        "PreUI timing checkin.ready: 39,00 ms",
+        "PreUI timing checkin.avatar: 1,00 ms",
+        "PreUI timing checkin.facts: 0,00 ms",
+        "PreUI timing checkin.build: 195,00 ms",
+        "PreUI timing checkin.encode: 33,00 ms",
+        "PreUI timing checkin.hypotheses: 174,00 ms",
+        "CheckIn reconstruction prepare: 457,00 ms",
+        "PreUI timing checkin.cas: 78,00 ms",
+        "PreUI timing checkin.read: 4,00 ms",
+        "CheckIn avatar transaction commit: 111,00 ms",
+        "PreUI timing checkin.save: 576,00 ms",
+        "CheckIn reconstruction and commit: 617,00 ms",
+        "PreUI timing checkin.read: 4,00 ms",
+        "Product timing: forecast 168,00 ms, muscle=False",
+        "Product timing: forecast 170,00 ms, muscle=False",
+        "CheckIn save total: 1502,00 ms"
+      ]
+    },
+    {
+      "days": 180,
+      "phases": {
+        "startup": 6238,
+        "activityOpen": 1065,
+        "checkinOpen": 2954,
+        "checkinSave": 4196
+      },
+      "logs": [
+        "PreUI timing checkin.read: 2307,00 ms",
+        "Product timing: forecast 185,00 ms, muscle=False",
+        "Product timing: forecast 193,00 ms, muscle=False",
+        "PreUI timing checkin.read: 24,00 ms",
+        "CheckIn open: 1430,00 ms",
+        "PreUI timing checkin.begin: 274,00 ms",
+        "PreUI timing checkin.ready: 236,00 ms",
+        "PreUI timing checkin.avatar: 1,00 ms",
+        "PreUI timing checkin.facts: 2,00 ms",
+        "PreUI timing checkin.build: 240,00 ms",
+        "PreUI timing checkin.encode: 133,00 ms",
+        "PreUI timing checkin.hypotheses: 1150,00 ms",
+        "CheckIn reconstruction prepare: 1749,00 ms",
+        "PreUI timing checkin.cas: 453,00 ms",
+        "PreUI timing checkin.read: 22,00 ms",
+        "CheckIn avatar transaction commit: 596,00 ms",
+        "PreUI timing checkin.save: 2381,00 ms",
+        "CheckIn reconstruction and commit: 2618,00 ms",
+        "PreUI timing checkin.read: 24,00 ms",
+        "Product timing: forecast 190,00 ms, muscle=False",
+        "Product timing: forecast 201,00 ms, muscle=False",
+        "CheckIn save total: 4100,00 ms"
+      ]
+    },
+    {
+      "days": 365,
+      "phases": {
+        "startup": 9635,
+        "activityOpen": 1481,
+        "checkinOpen": 4540,
+        "checkinSave": 6582
+      },
+      "logs": [
+        "PreUI timing checkin.read: 4540,00 ms",
+        "Product timing: forecast 184,00 ms, muscle=False",
+        "Product timing: forecast 171,00 ms, muscle=False",
+        "PreUI timing checkin.read: 37,00 ms",
+        "CheckIn open: 2479,00 ms",
+        "PreUI timing checkin.begin: 460,00 ms",
+        "PreUI timing checkin.ready: 419,00 ms",
+        "PreUI timing checkin.avatar: 2,00 ms",
+        "PreUI timing checkin.facts: 3,00 ms",
+        "PreUI timing checkin.build: 200,00 ms",
+        "PreUI timing checkin.encode: 231,00 ms",
+        "PreUI timing checkin.hypotheses: 2258,00 ms",
+        "CheckIn reconstruction prepare: 3046,00 ms",
+        "PreUI timing checkin.cas: 859,00 ms",
+        "PreUI timing checkin.read: 36,00 ms",
+        "CheckIn avatar transaction commit: 1119,00 ms",
+        "PreUI timing checkin.save: 4233,00 ms",
+        "CheckIn reconstruction and commit: 4654,00 ms",
+        "PreUI timing checkin.read: 36,00 ms",
+        "Product timing: forecast 172,00 ms, muscle=False",
+        "Product timing: forecast 193,00 ms, muscle=False",
+        "CheckIn save total: 6453,00 ms"
+      ]
+    }
+  ]
+}

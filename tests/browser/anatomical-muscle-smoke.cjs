@@ -8,6 +8,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  const tab=(p,name)=>p.getByRole('tab',{name,exact:true}).click();
  async function context(fault){
   const c=await browser.newContext({viewport:{width:390,height:1000},timezoneId:'Europe/Moscow'});
+  await c.addInitScript(()=>sessionStorage.setItem('trening:research-mode','enabled'));
   await c.route('**/js/viewer.js',async route=>{const r=await route.fetch();await route.fulfill({response:r,body:await r.text()+'\nexport function smokeState(){return {meshes,rigs,muscleAtlas,forecastHeatmapEnabled};}'});});
   if(fault)await c.route('**/makehuman-anatomical-muscle-fields-v1.bin',route=>fault==='missing'?route.fulfill({status:404,body:''}):route.fulfill({body:Buffer.from('corrupt sidecar'),contentType:'application/octet-stream'}));
   return c;

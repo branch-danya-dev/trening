@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "browser": "154.0.4258.62",
+  "checks": [
+    "published-bundle",
+    "two-old-tabs",
+    "draft-retained",
+    "old-activation-message-ignored",
+    "old-offline",
+    "close-all-before-activation",
+    "new-offline",
+    "old-cache-removed"
+  ]
+}

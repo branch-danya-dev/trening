@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
 using WorkoutCalculator.BodyModel.MakeHuman;
 using WorkoutCalculator.BodyModel.Muscles;
+using WorkoutCalculator.BodyModel.Forecast;
 
 namespace WorkoutCalculator.Web.Services;
 
@@ -12,11 +13,13 @@ public sealed record MakeHumanAssets(MakeHumanModel Model, MuscleAtlas? Atlas, s
         var total = Stopwatch.StartNew();
         var modelTask = http.GetByteArrayAsync($"data/{MakeHumanData.FileName}?v={MakeHumanData.Version}");
         var atlasTask = DownloadAtlas(http);
-        var anatomyTask = DownloadAnatomy(http);
+        var research=BrowserStorage.ResearchMode();
+        var anatomyAllowed=RuntimeModelCapabilities.Resolve(anatomyAsset:true,researchOptIn:research).Single(c=>c.Kind==CapabilityKind.BodyParts3D).Enabled;
+        var anatomyTask = anatomyAllowed ? DownloadAnatomy(http) : Task.FromResult<byte[]?>(null);
         var bytes = await modelTask;
         var model = new MakeHumanModel(MakeHumanData.Read(bytes));
         var (atlasBytes, error) = await atlasTask;
-        if (atlasBytes is null) return new(model, null, error);
+        if (atlasBytes is null) return RuntimeCapabilities.Observe(new(model,null,error),research);
         try
         {
             var read = Stopwatch.StartNew();
@@ -29,11 +32,11 @@ public sealed record MakeHumanAssets(MakeHumanModel Model, MuscleAtlas? Atlas, s
             var anatomy=await anatomyTask;
             var anatomyRead=Stopwatch.StartNew();model.SetAnatomicalFields(anatomy);
             Console.WriteLine($"Anatomical fields: {anatomy?.Length??0} bytes, validation {anatomyRead.Elapsed.TotalMilliseconds:F1} ms, available={model.AnatomyError is null}; default=procedural.");
-            return new(model, atlas, null);
+            return RuntimeCapabilities.Observe(new(model,atlas,null),research);
         }
         catch (Exception e) when (e is InvalidDataException or JSException)
         {
-            return new(model, null, "Карта мышц несовместима с моделью. Обновите приложение; анимация доступна.");
+            return RuntimeCapabilities.Observe(new(model,null,"Карта мышц несовместима с моделью. Обновите приложение; анимация доступна."),research);
         }
     }
 

@@ -29,9 +29,9 @@ public static class ModelRegistry
     public const string AnatomyHash = "A27839A20F2FE1A67AADB9F85A2C608F64DB5512351F6331E9FD492F8FA30F0D";
 
     // Compile-time production gates. Research CLI descriptors cannot alter these defaults.
-    public static bool AnatomicalDefaultEnabled => false;
-    public static bool DeltaShapeEnabled => false;
-    public static bool PseudoDxaEnabled => false;
+    public static bool AnatomicalDefaultEnabled => RuntimeModelCapabilities.Production(CapabilityKind.BodyParts3D).Default;
+    public static bool DeltaShapeEnabled => RuntimeModelCapabilities.Production(CapabilityKind.DeltaShape).Enabled;
+    public static bool PseudoDxaEnabled => RuntimeModelCapabilities.Production(CapabilityKind.PseudoDxa).Enabled;
     public static MuscleGeometrySelection DefaultMuscle => MuscleGeometrySelection.Procedural;
 
     public static ModelVersionManifest FreezeV1(string compositionVersion, MuscleGeometrySelection? muscle = null)

@@ -1,3 +1,4 @@
+import { appError } from './app-errors.js';
 // Разбор снимка из фотосессии: модель позы MediaPipe (режим «image») даёт 33 точки тела и маску фигуры,
 // а по снимку считается яркость каждого пикселя — по ней C# уточняет края маски. Маска и яркость
 // передаются в C# бинарно: C# выделяет массив нужного размера, JS копирует в него (copyMask, copyLuma).
@@ -34,7 +35,7 @@ export async function prepare(sessionId, view) {
     const pose = result.landmarks?.[0];
     const maskImage = result.segmentationMasks?.[0];
     try {
-        if (!pose || !maskImage) throw new Error('На снимке не найден человек. Нужен весь рост на однотонном фоне.');
+        if (!pose || !maskImage) throw appError('PhotoQualityConflict','На снимке не найден человек. Нужен весь рост на однотонном фоне.');
         if (maskImage.width !== width || maskImage.height !== height) throw new Error('Маска другого размера, чем снимок');
         const probability = maskImage.getAsFloat32Array();
         const mask = new Uint8Array(width * height);

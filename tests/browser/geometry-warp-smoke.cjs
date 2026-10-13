@@ -3,10 +3,10 @@ const {sourceFixture}=require('./geometry-fixture.cjs');
 const url=process.env.APP_URL||'http://127.0.0.1:5256',key='workoutcalc.observedHypotheses.v1';
 const button=(p,name)=>p.getByRole('button',{name,exact:true}).click(),tab=(p,name)=>p.getByRole('tab',{name,exact:true}).click();
 const ready=p=>p.waitForSelector('[data-model-ready="true"]',{timeout:60000});
-async function seed(p,fixture,out){
+async function seed(p,fixture,out,targetUrl=url){
  await p.clock.setFixedTime(new Date('2026-09-19T08:59:00Z'));
  await p.addInitScript(seed=>{if(!localStorage.getItem('workoutcalc.avatarDomain.v1')){localStorage.setItem('workoutcalc.avatarDomain.v1',JSON.stringify(seed));localStorage.setItem('workoutcalc.body.v1',JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57}));}},fixture.seed);
- await p.goto(url);await ready(p);await p.evaluate('window.sourceFixture='+sourceFixture.toString());
+ await p.goto(targetUrl);await ready(p);await p.evaluate('window.sourceFixture='+sourceFixture.toString());
  await p.evaluate(async f=>{
   const photos=await import(new URL('js/photos.js',document.baseURI)),{hashObject}=await import(new URL('js/render-contract.js',document.baseURI));
   const front=await window.sourceFixture(f,'Front'),side=await window.sourceFixture(f,'Side');
@@ -29,10 +29,10 @@ async function seed(p,fixture,out){
 }
 async function create(p){await button(p,'Создать визуализацию');await p.locator('[data-testid="geometry-warp"][aria-busy="false"]').waitFor();assert.ok(await p.getByTestId('render-output').count(),await p.getByTestId('geometry-warp').innerText());}
 async function artifacts(p){return p.evaluate(async()=>{const m=await import(new URL('js/render-store.js',document.baseURI));return m.listArtifacts();});}
-(async()=>{
+if(require.main===module)(async()=>{
  const fixture=JSON.parse(await fs.readFile(process.env.GEOMETRY_FIXTURES||'work/geometry-fixtures.json','utf8')),out=process.env.GEOMETRY_OUTPUT||'work/geometry-evidence';await fs.mkdir(out,{recursive:true});
  const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,args:['--enable-unsafe-swiftshader','--use-angle=swiftshader']});let p;const errors=[],network=[],layout=[];
- try{const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'});p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));await seed(p,fixture,out);
+ try{const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'});p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));if(process.env.GEOMETRY_ANATOMICAL)await context.addInitScript(()=>sessionStorage.setItem('trening:research-mode','enabled'));await seed(p,fixture,out);
   await button(p,'Показать будущую форму в 3D');p.on('request',r=>network.push({method:r.method(),url:r.url(),body:r.postData()}));
   await create(p);let saved=await artifacts(p);assert.equal(saved.length,1);assert.equal(saved[0].result.quality,'Accepted');assert.equal(saved[0].synthetic,true);const first=saved[0];
   assert.equal(network.filter(r=>/^https?:/.test(r.url)).length,0,JSON.stringify(network)); // blob: image display has no transport.
@@ -64,7 +64,7 @@ async function artifacts(p){return p.evaluate(async()=>{const m=await import(new
   await p.evaluate(async()=>{await(await import(new URL('js/photos.js',document.baseURI))).unlock('1234');});
   // Full backup through UI, clean context restore, exact encrypted bytes and metadata.
   await tab(p,'Профиль');const backup=p.waitForEvent('download');await button(p,'Скачать полный backup');const archivePath=path.join(out,'full-backup.zip');await(await backup).saveAs(archivePath);
-  const restoredContext=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'}),restored=await restoredContext.newPage();await restored.clock.setFixedTime(new Date('2026-10-09T09:00:00Z'));await restored.goto(url);await ready(restored);
+  const restoredContext=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'}),restored=await restoredContext.newPage();await restored.clock.setFixedTime(new Date('2026-10-09T09:00:00Z'));if(process.env.GEOMETRY_ANATOMICAL)await restoredContext.addInitScript(()=>sessionStorage.setItem('trening:research-mode','enabled'));await restored.goto(url);await ready(restored);
   await restored.getByText('У меня есть резервная копия',{exact:true}).click();await restored.getByLabel('Архив резервной копии').setInputFiles(archivePath);await restored.getByLabel('Подтверждаю замену всех данных').check();await Promise.all([restored.waitForNavigation(),button(restored,'Восстановить данные')]);await ready(restored);
   await restored.evaluate(async()=>{await(await import(new URL('js/photos.js',document.baseURI))).unlock('1234');});assert.deepEqual(await artifacts(restored),await artifacts(p));
   assert.deepEqual(await restored.evaluate(async id=>[...new Uint8Array(await(await(await import(new URL('js/render-store.js',document.baseURI))).readArtifact(id)).blob.arrayBuffer())],first.request.id),bytes);
@@ -80,7 +80,7 @@ async function artifacts(p){return p.evaluate(async()=>{const m=await import(new
     const fc=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Moscow'}),fp=await fc.newPage();fp.on('pageerror',e=>errors.push(e.message));
     await fp.clock.setFixedTime(new Date('2026-10-09T09:00:00Z'));
     await fc.route('**/makehuman-anatomical-muscle-fields-v1.bin',r=>r.fulfill({status:fault==='missing'?404:200,body:fault==='missing'?'':'corrupt',contentType:'application/octet-stream'}));
-    await fp.addInitScript(s=>{for(const [k,v]of Object.entries(s))localStorage.setItem(k,v);},snapshot);await fp.goto(url);await ready(fp);await tab(fp,'Прогресс');
+    if(process.env.GEOMETRY_ANATOMICAL)await fc.addInitScript(()=>sessionStorage.setItem('trening:research-mode','enabled'));await fp.addInitScript(s=>{for(const [k,v]of Object.entries(s))localStorage.setItem(k,v);},snapshot);await fp.goto(url);await ready(fp);await tab(fp,'Прогресс');
     await button(fp,'Показать будущую форму в 3D');await fp.getByRole('alert').filter({hasText:'точный повтор конечной формы временно недоступен'}).waitFor();
     assert.equal(await fp.evaluate(k=>localStorage.getItem(k),key),snapshot[key],'unavailable asset cannot rewrite issued hypothesis');
     await tab(fp,'Модель');await ready(fp);await fc.close();
@@ -93,3 +93,4 @@ async function artifacts(p){return p.evaluate(async()=>{const m=await import(new
   assert.deepEqual(errors,[]);await fs.writeFile(path.join(out,'smoke.json'),JSON.stringify({suite:'geometry-warp-smoke',syntheticFixtures:true,publishedPwa:!!process.env.GEOMETRY_PWA,browser:browser.version(),backupBytes:(await fs.stat(archivePath)).size,cachedReadMs:cachedTiming,layout,networkDuringRender:0,checks:['frozen-front','side','3d-preserved','later-checkin','synthetic-file-rejected','metadata-and-byte-corruption','stale-generation','source-changed-during-render','pin','full-backup-exact','offline-generation','source-delete-cascade','diagnostics'],results:saved.map(a=>a.result)},null,2));console.log('Geometry warp smoke PASS');
  }catch(e){if(p){console.error(await p.locator('body').innerText());await p.screenshot({path:path.join(out,'failure.png'),fullPage:true});}throw e;}finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1);});
+module.exports={seed,create};

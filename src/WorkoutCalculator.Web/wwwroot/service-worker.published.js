@@ -1,13 +1,11 @@
 // Офлайн-режим опубликованной версии: при установке кладёт в кэш все файлы приложения из списка сборки
 // (service-worker-assets.js, с проверкой целостности) и дальше отдаёт их из кэша. Новая версия ставится
-// в фоне и включается, когда пользователь нажмёт «Обновить» (js/pwa.js) или закроет все вкладки.
+// в фоне и включается после закрытия всех вкладок. Принудительная активация может смешать версии и потерять черновик.
 self.importScripts('./service-worker-assets.js');
 self.addEventListener('install', event => event.waitUntil(onInstall()));
 self.addEventListener('activate', event => event.waitUntil(onActivate()));
 self.addEventListener('fetch', event => event.respondWith(onFetch(event)));
-self.addEventListener('message', event => {
-    if (event.data === 'skip-waiting') self.skipWaiting();
-});
+// Deliberately no skipWaiting / clients.claim: an old tab keeps its complete old bundle until closed.
 
 const cacheNamePrefix = 'offline-cache-';
 const cacheName = `${cacheNamePrefix}${self.assetsManifest.version}`;

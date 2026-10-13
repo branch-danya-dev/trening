@@ -1,5 +1,6 @@
 import {openDb,photoWrite,writeKey,seal,unseal,photoUrl,getSession} from './photos.js';
 import {assertReadable,assertWritable} from './data-guard.js';
+import {appError,storageError} from './app-errors.js';
 import {FORMAT,KIND,hashBytes,validateArtifact} from './render-contract.js';
 const req=r=>new Promise((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
 const local=()=>({'workoutcalc.observedHypotheses.v1':localStorage.getItem('workoutcalc.observedHypotheses.v1')});
@@ -15,11 +16,11 @@ export async function saveArtifact(request,result,blob,expectedSession){
     return photoWrite(async()=>{
         const prepareAt=performance.now();
         const db=await openDb(),session=await getSession(request.sourcePhotoSessionId);
-        if(JSON.stringify(session)!==expectedSession)throw Error('Исходное фото изменено или удалено во время рендера.');
+        if(JSON.stringify(session)!==expectedSession)throw appError('StaleConflict','Исходное фото изменено или удалено во время рендера.');
         const old=await readArtifact(request.id);if(old)return old.metadata.result;
         const row={key:request.id,metadata:{format:FORMAT,synthetic:true,kind:KIND,request,result},...await seal(blob,await writeKey())};
         await validateArtifact(row,local(),[session]);assertWritable();result.timings.artifactPreparation=performance.now()-prepareAt;
-        await new Promise((resolve,reject)=>{const tx=db.transaction(['sessions','renderArtifacts'],'readwrite');tx.oncomplete=resolve;tx.onerror=tx.onabort=()=>reject(tx.error||Error('Рендер не сохранён.'));const check=tx.objectStore('sessions').get(session.id);check.onsuccess=()=>{if(JSON.stringify(check.result)!==expectedSession){tx.abort();return;}tx.objectStore('renderArtifacts').add(row);};});
+        await new Promise((resolve,reject)=>{const tx=db.transaction(['sessions','renderArtifacts'],'readwrite');tx.oncomplete=resolve;tx.onerror=tx.onabort=()=>reject(storageError(tx.error||appError('StaleConflict','Рендер не сохранён.')));const check=tx.objectStore('sessions').get(session.id);check.onsuccess=()=>{if(JSON.stringify(check.result)!==expectedSession){tx.abort();return;}try{tx.objectStore('renderArtifacts').add(row);}catch(error){tx.abort();reject(storageError(error));}};});
         return result;
     });
 }
