@@ -10,16 +10,17 @@
         (sha256 от текста между тегами, в base64), иначе three.js не загрузится.
     -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-ZFhVslFfI4mbOngP9B2v/eWrTZugqEbhhx0qxIxIs0o='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Тренировки и тело</title>
     <!-- Относительный адрес: приложение работает и в корне сайта, и в подпапке (GitHub Pages: /trening/) -->
     <base href="./" />
     <meta name="description" content="3D-модель тела по замерам и прогноз изменений. Все данные остаются на устройстве." />
-    <meta name="theme-color" content="#0f151c" />
+    <meta name="theme-color" content="#f3f5f1" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/ui-v1.css" />
     <!--
         three.js лежит локально (wwwroot/lib/three, версия в README.md рядом), без CDN и сборщика.
         Своя import map вместо сгенерированной Blazor: в документе может быть только одна. В одну строку —
@@ -30,7 +31,7 @@
 
 <body>
     <div id="app">
-        <div class="loading">
+        <div class="loading" role="status" aria-label="Загружаем приложение на устройство">
             <svg class="loading-progress">
                 <circle r="40%" cx="50%" cy="50%" />
                 <circle r="40%" cx="50%" cy="50%" />

@@ -1,0 +1,12 @@
+{
+  "baseline": "bf2586681f6e3369cd6f45c3e25a969d6c85b077",
+  "sourcePr": 31,
+  "verifiedPrHead": "3f7d9cbf7d528aa32a9679af9e5016990ad35ce6",
+  "prCiRun": 38049072180,
+  "mainCiRun": 38366073662,
+  "mainCiConclusion": "success",
+  "mergeMethod": "merge",
+  "branchCreatedAfterMainCi": true,
+  "branch": "codex/ui-redesign-v1",
+  "syntheticDataOnly": true
+}

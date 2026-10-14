@@ -22,6 +22,8 @@ const assert = require('node:assert/strict');
         await page.addInitScript(() => { if (!localStorage.getItem('workoutcalc.body.v1')) localStorage.setItem('workoutcalc.body.v1', JSON.stringify({Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57})); });
         await page.goto(url);
         const ready = async () => {
+            await page.waitForSelector('[data-model-ready="true"]',{timeout:60000});
+            await require('./ui-disclosures.cjs').openDetails(page,'viewer-tools');
             await page.getByLabel('Нагрузка мышц', { exact: true }).waitFor({ timeout: 60000 });
             await page.waitForFunction(() => !document.querySelector('input[type=checkbox][disabled]') &&
                 document.querySelector('[data-model-ready]')?.dataset.modelReady === 'true', null, { timeout: 60000 });
@@ -34,7 +36,7 @@ const assert = require('node:assert/strict');
         await page.evaluate(payload => localStorage.setItem('workoutcalc.workouts.v1', payload), cardio);
         await page.reload(); await ready();
         const openJournal = async () => {
-            await page.getByRole('tab', { name: 'Активность', exact: true }).click();
+            await require('./ui-disclosures.cjs').tab(page,'Сегодня');
             await page.getByRole('button', { name: 'Силовая', exact: true }).click();
         };
         await openJournal();
@@ -115,7 +117,7 @@ const assert = require('node:assert/strict');
         assert.ok(Math.abs(weekLoad.loads[30] - 0.4) < 1e-6); // raw 2/3 => .4, not .25 + .25
         assert.ok(Math.abs(weekLoad.loads[1] - 0.25) < 1e-6);
         await page.getByLabel('Источник нагрузки', { exact: true }).selectOption('Exercise');
-        await page.getByRole('button', { name: '▶ Упражнение', exact: true }).click();
+        await require('./ui-disclosures.cjs').action(page,'▶ Упражнение');
         await page.waitForFunction(() => viewer.smokeState().rigs.current.playing);
         await page.getByLabel('Источник нагрузки', { exact: true }).selectOption('Week');
         assert.equal((await readLoad()).action, false);
@@ -161,7 +163,7 @@ const assert = require('node:assert/strict');
         await page.waitForFunction(() => document.querySelector('[data-model-ready]')?.dataset.modelReady === 'true', null, { timeout: 60000 });
         assert.ok(await page.getByLabel('Нагрузка мышц', { exact: true }).isDisabled());
         assert.ok(await page.getByText('Карта мышц несовместима с моделью. Обновите приложение; анимация доступна.', { exact: true }).isVisible());
-        await page.getByRole('button', { name: '▶ Упражнение', exact: true }).click();
+        await require('./ui-disclosures.cjs').action(page,'▶ Упражнение');
         await page.getByRole('button', { name: '■ Стоп', exact: true }).waitFor();
         assert.deepEqual(errors, []);
         console.log(JSON.stringify({ sessions: 2, completedSets: 3, mobile, timings, browserErrors: errors.length }, null, 2));

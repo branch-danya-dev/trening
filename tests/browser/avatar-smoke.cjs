@@ -5,8 +5,8 @@ const fs = require('node:fs/promises'), os = require('node:os'), path = require(
 const url=process.env.APP_URL || 'http://127.0.0.1:5256',key='workoutcalc.avatarDomain.v1';
 const legacy={Sex:0,Age:35,HeightCm:180,WeightKg:85,BodyFatPercent:20,ChestCm:100,WaistCm:85,HipsCm:100,BicepsCm:33,ThighCm:57};
 const ready=p=>p.waitForSelector('[data-model-ready="true"]',{timeout:60000});
-const tab=(p,name)=>p.getByRole('tab',{name,exact:true}).click();
-const button=(p,name)=>p.getByRole('button',{name,exact:true}).click();
+const tab=require('./ui-disclosures.cjs').tab;
+const button=require('./ui-disclosures.cjs').action;
 const read=p=>p.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
 (async()=>{
  const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||undefined,executablePath:process.env.BROWSER_PATH||undefined,args:['--enable-unsafe-swiftshader']});
@@ -51,7 +51,7 @@ const read=p=>p.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
   for(const width of [320,390]){await p.setViewportSize({width,height:844});await tab(p,'Профиль');await button(p,'Исправить аватар');
    const layout=await p.evaluate(()=>({page:document.documentElement.scrollWidth,panel:document.querySelector('.panel-body').clientWidth,scroll:document.querySelector('.panel-body').scrollWidth}));
    assert.ok(layout.page<=width&&layout.scroll<=layout.panel+1,JSON.stringify(layout));mobile.push({width,...layout});await button(p,'Отменить коррекцию');}
-  await tab(p,'Профиль');const rawBefore=await p.evaluate(k=>localStorage.getItem(k),key),download=p.waitForEvent('download');await button(p,'Скачать полный backup');
+  await tab(p,'Профиль');const rawBefore=await p.evaluate(k=>localStorage.getItem(k),key),download=p.waitForEvent('download');await button(p,'Скачать резервную копию');
   const archive=await download,archivePath=path.join(dir,'avatar.zip');await archive.saveAs(archivePath);
   await button(p,'Исправить аватар');await p.waitForSelector('[data-avatar-busy="false"]');await p.getByLabel('Я проверил форму, источники данных и предупреждения').check();await button(p,'Зафиксировать аватар');
   await tab(p,'Профиль');await p.getByLabel('Архив резервной копии').setInputFiles(archivePath);await p.getByLabel('Подтверждаю замену всех данных').check();

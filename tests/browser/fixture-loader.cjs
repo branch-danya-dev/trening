@@ -17,7 +17,7 @@ async function loadScenario(context,url,file,options){
   if(fixture.recipe==='geometry-unsupported'){
    await page.evaluate(async()=>{const p=await import(new URL('js/photos.js',document.baseURI));for(const s of JSON.parse(await p.listMeta()))await p.deleteSession(s.id);});
    await page.reload();await page.waitForSelector('[data-model-ready="true"]',{timeout:120000});
-   await page.getByRole('tab',{name:'Прогресс',exact:true}).click();
+   await require('./ui-disclosures.cjs').tab(page,'Прогресс');
   }
   return page;
  }

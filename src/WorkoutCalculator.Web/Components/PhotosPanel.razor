@@ -30,8 +30,7 @@ else
 <div class="card">
     <div class="card-title">Новая фотосессия</div>
     <div class="note">
-        Фото хранятся только на этом устройстве и никуда не отправляются — политика безопасности страницы
-        этого и не позволит. При сохранении снимки уменьшаются до 2048&nbsp;px, а метаданные, в том числе
+        Фото хранятся в этом браузере. Приложение не отправляет их скрыто. При сохранении снимки уменьшаются до 2048&nbsp;px, а метаданные, в том числе
         геопозиция, удаляются.
     </div>
     <ul class="tips">
@@ -85,7 +84,7 @@ else
     @foreach (var s in _sessions)
     {
         <div class="session @Css.On(s.Id == _openId)">
-            <button class="session-thumbs @(_privacy.Blur ? "private" : "")" disabled="@_pin.Locked"
+            <button aria-label="Открыть фото и результаты анализа" class="session-thumbs @(_privacy.Blur ? "private" : "")" disabled="@_pin.Locked"
                     title="@(_pin.Locked ? "Снимки под PIN-кодом" : "Открыть и разобрать")" @onclick="() => Open(s)">
                 @if (_pin.Locked)
                 {
@@ -124,7 +123,7 @@ else
                     <span class="confirm">
                         @if (s.Id != _openId && !_pin.Locked)
                         {
-                            <button class="btn-link" @onclick="() => OpenAndAnalyze(s.Id)">@(s.Analysis is null ? "Открыть и разобрать" : "Открыть")</button>
+                            <button class="btn-link" @onclick="() => OpenAndAnalyze(s.Id)">@(s.SourceKind=="DeveloperFixture" ? "Открыть фото" : s.Analysis is null ? "Открыть и разобрать" : "Открыть")</button>
                         }
                         <button class="btn-link muted" @onclick="() => _confirmDelete = s.Id">Удалить</button>
                     </span>
@@ -138,11 +137,22 @@ else
 {
     var keys = KeyLevels(o.Sex);
     <div class="card" id="photo-analysis">
+        <div class="photo-originals">
+            @foreach(var image in _urls) {
+                <figure><img src="@image.Value" alt="@(image.Key=="front"?"Фото спереди":image.Key=="back"?"Фото сзади":"Фото сбоку")" class="photo-original @(_privacy.Blur && !_revealed ? "private" : "")" />
+                <figcaption>@(image.Key=="front"?"Спереди":image.Key=="back"?"Сзади":"Сбоку")</figcaption></figure>
+            }
+        </div>
+        @if(_privacy.Blur && !_revealed){<button class="btn" @onclick="()=>_revealed=true">Показать фотографии</button>}
         <div class="card-title">
             Разбор фото
             <span class="title-note">@Fmt.DateTime(o.CreatedAt)</span>
         </div>
-        @if (o.Analysis is not PhotoAnalysis a)
+        @if (o.SourceKind=="DeveloperFixture")
+        {
+            <p class="note">Демоизображение для проверки интерфейса. Не используется как фактический замер.</p>
+        }
+        else if (o.Analysis is not PhotoAnalysis a)
         {
             <div class="note" style="margin-bottom: 10px">
                 Найдёт контур тела и измерит ширину туловища спереди и глубину сбоку на каждом уровне — всё на этом
@@ -534,6 +544,7 @@ else
     [Parameter] public EventCallback<Action<BodyProfile>> OnChange { get; set; }
     [Parameter] public bool RevisionManaged { get; set; }
     [Parameter] public EventCallback<PhotoSession> OnAvatarPhoto { get; set; }
+    [Parameter] public EventCallback OnSessionsChanged { get; set; }
 
     private const string FrontInput = "photo-front", SideInput = "photo-side", ImportInput = "photo-import";
 
@@ -569,6 +580,7 @@ else
     /// <summary>Открытая сессия и адреса её снимков целиком (blob:) — освобождаются при закрытии.</summary>
     private string? _openId;
     private readonly Dictionary<string, string> _urls = [];
+    private bool _revealed;
     /// <summary>Последняя подгонка: к какой сессии, что было до неё (для «Вернуть как было»), ход.</summary>
     private PhotoFitResult? _fit;
     private string? _fitSessionId;
@@ -612,6 +624,7 @@ else
             Show(JsError(e), error: true);
         }
         _loaded = true;
+        await OnSessionsChanged.InvokeAsync();
     }
 
     private void Picked(string view, ChangeEventArgs e)
@@ -656,7 +669,7 @@ else
         await Open(s);
         if (_openId != s.Id) return;
         _scrollToAnalysis = true;
-        if (s.Analysis is null) await Analyze(s);
+        if (s.Analysis is null && s.SourceKind!="DeveloperFixture") await Analyze(s);
     }
 
     private bool _scrollToAnalysis;
@@ -689,6 +702,7 @@ else
 
     private void Close()
     {
+        _revealed=false;
         _openId = null;
         _analysisError = null;
         _report = _reportFor = _reportNote = null;

@@ -24,7 +24,7 @@
         </div>
         <div class="history-navigation">
             <button class="btn" aria-label="Предыдущее состояние" disabled="@(State.Timeline.Index <= 0)" @onclick="() => Move(-1)">←</button>
-            <input type="range" aria-label="Позиция на timeline" min="0" max="@(State.Timeline.Items.Count - 1)" step="1" value="@State.Timeline.Index" @oninput="Scrub" />
+            <input type="range" aria-label="Позиция в истории" min="0" max="@(State.Timeline.Items.Count - 1)" step="1" value="@State.Timeline.Index" @oninput="Scrub" />
             <button class="btn" aria-label="Следующее состояние" disabled="@(State.Timeline.Index >= State.Timeline.Items.Count - 1)" @onclick="() => Move(1)">→</button>
         </div>
     }
@@ -41,14 +41,14 @@
                 {
                     var observation = selected.Measurements.GetValueOrDefault(g);
                     <dt>@BodyProfile.GirthName(g)</dt><dd>@Value(observation?.Cm, "см")
-                        @if (observation?.Method == MeasurementMethod.PhotoDerived) { <small> · по фото (RMSE @Fmt.N(observation.ModelRmseCm ?? 0, 1) см)</small> }
+                        @if (observation?.Method == MeasurementMethod.PhotoDerived) { <small> · оценка по фото</small> }
                     </dd>
                 }
                 <dt>Рост / возраст</dt><dd>@Value(selected.HeightCm, "см") / @Value(selected.Age, "лет")</dd>
                 <dt>Осанка / форма</dt><dd>@(selected.Posture is null ? "нет данных" : "сохранена") / @(selected.BodyForm is null ? "нет данных" : "сохранена")</dd>
             </dl>
             <p class="hint">@selected.Quality.Description</p>
-            @if (selected.PhotoSessionId is { } photoId) { <p class="hint history-reference">Локальная фотосессия: @photoId. Если фото удалено, замеры этой точки сохраняются.</p> }
+            @if (selected.PhotoSessionId is { } photoId) { <p class="hint history-reference">Связанные фото хранятся локально. Если фото удалено, замеры этой точки сохраняются.</p> }
             @if (!string.IsNullOrEmpty(selected.Notes)) { <p>@selected.Notes</p> }
             <p class="hint history-estimates">3D — приближённая реконструкция. Вспомогательно заполнены: @string.Join(", ", SnapshotVisuals.Build(selected).EstimatedFields).</p>
             <div class="history-actions">

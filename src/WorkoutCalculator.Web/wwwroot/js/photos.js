@@ -74,7 +74,7 @@ let lockListener = null;
 const openUrls = new Set();
 const urlSources = new Map();
 const deletionChannel = typeof document !== 'undefined' && typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('trening-photo-deletions') : null;
-function revokeSource(id) { for(const [url,source]of urlSources)if(id===null||source===id)revokeUrl(url); }
+function revokeSource(id) { for(const [url,source]of urlSources)if(id===null||source===id)revokeUrl(url); window.dispatchEvent(new CustomEvent('trening:photos-invalidated',{detail:id})); }
 if(deletionChannel)deletionChannel.onmessage=e=>{if(e.data?.kind==='delete-source')revokeSource(e.data.id);};
 
 if (typeof document !== 'undefined') {
@@ -209,6 +209,7 @@ export async function unlock(pin) {
 export function lock(notify = true) {
     if (!cryptoKey) return;
     cryptoKey = null;
+    window.dispatchEvent(new CustomEvent('trening:photos-invalidated'));
     for (const url of openUrls) URL.revokeObjectURL(url);
     openUrls.clear();
     urlSources.clear();

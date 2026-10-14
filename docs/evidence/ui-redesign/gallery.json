@@ -1,0 +1,444 @@
+{
+  "synthetic": true,
+  "browser": "155.0.4283.45",
+  "rows": [
+    {
+      "state": "brand-new",
+      "width": 320,
+      "file": "brand-new-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "brand-new",
+      "width": 390,
+      "file": "brand-new-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "brand-new",
+      "width": 1400,
+      "file": "brand-new-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "avatar-draft",
+      "width": 320,
+      "file": "avatar-draft-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "avatar-draft",
+      "width": 390,
+      "file": "avatar-draft-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "avatar-draft",
+      "width": 1400,
+      "file": "avatar-draft-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "model-current",
+      "width": 390,
+      "file": "model-current-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "model-current",
+      "width": 1400,
+      "file": "model-current-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "today-empty",
+      "width": 320,
+      "file": "today-empty-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "today-empty",
+      "width": 390,
+      "file": "today-empty-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "today-empty",
+      "width": 1400,
+      "file": "today-empty-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "nutrition-editor",
+      "width": 320,
+      "file": "nutrition-editor-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "nutrition-editor",
+      "width": 390,
+      "file": "nutrition-editor-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "nutrition-editor",
+      "width": 1400,
+      "file": "nutrition-editor-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "close-day",
+      "width": 320,
+      "file": "close-day-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "close-day",
+      "width": 390,
+      "file": "close-day-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "close-day",
+      "width": 1400,
+      "file": "close-day-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "hypothesis-insufficient",
+      "width": 390,
+      "file": "hypothesis-insufficient-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "hypothesis-insufficient",
+      "width": 1400,
+      "file": "hypothesis-insufficient-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "profile-privacy-data",
+      "width": 390,
+      "file": "profile-privacy-data-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "profile-privacy-data",
+      "width": 1400,
+      "file": "profile-privacy-data-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "today-populated",
+      "width": 390,
+      "file": "today-populated-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "today-populated",
+      "width": 1400,
+      "file": "today-populated-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "hypothesis-preview",
+      "width": 390,
+      "file": "hypothesis-preview-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "hypothesis-preview",
+      "width": 1400,
+      "file": "hypothesis-preview-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "nutrition-partial",
+      "width": 390,
+      "file": "nutrition-partial-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "nutrition-partial",
+      "width": 1400,
+      "file": "nutrition-partial-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "nutrition-complete",
+      "width": 390,
+      "file": "nutrition-complete-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "nutrition-complete",
+      "width": 1400,
+      "file": "nutrition-complete-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "hypothesis-preliminary",
+      "width": 390,
+      "file": "hypothesis-preliminary-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "hypothesis-preliminary",
+      "width": 1400,
+      "file": "hypothesis-preliminary-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "hypothesis-preliminary-issued",
+      "width": 390,
+      "file": "hypothesis-preliminary-issued-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "hypothesis-preliminary-issued",
+      "width": 1400,
+      "file": "hypothesis-preliminary-issued-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "hypothesis-active-14d",
+      "width": 390,
+      "file": "hypothesis-active-14d-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "hypothesis-active-14d",
+      "width": 1400,
+      "file": "hypothesis-active-14d-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "hypothesis-awaiting-outcome",
+      "width": 320,
+      "file": "hypothesis-awaiting-outcome-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "hypothesis-awaiting-outcome",
+      "width": 390,
+      "file": "hypothesis-awaiting-outcome-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "hypothesis-awaiting-outcome",
+      "width": 1400,
+      "file": "hypothesis-awaiting-outcome-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "hypothesis-evaluated",
+      "width": 320,
+      "file": "hypothesis-evaluated-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "hypothesis-evaluated",
+      "width": 390,
+      "file": "hypothesis-evaluated-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "hypothesis-evaluated",
+      "width": 1400,
+      "file": "hypothesis-evaluated-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "progress",
+      "width": 390,
+      "file": "progress-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "progress",
+      "width": 1400,
+      "file": "progress-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "hypothesis-expired",
+      "width": 390,
+      "file": "hypothesis-expired-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "hypothesis-expired",
+      "width": 1400,
+      "file": "hypothesis-expired-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "checkin-form",
+      "width": 320,
+      "file": "checkin-form-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "checkin-form",
+      "width": 390,
+      "file": "checkin-form-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "checkin-form",
+      "width": 1400,
+      "file": "checkin-form-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "checkin-good-photo-result",
+      "width": 390,
+      "file": "checkin-good-photo-result-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "checkin-good-photo-result",
+      "width": 1400,
+      "file": "checkin-good-photo-result-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "checkin-optional",
+      "width": 320,
+      "file": "checkin-optional-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "checkin-optional",
+      "width": 390,
+      "file": "checkin-optional-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "checkin-optional",
+      "width": 1400,
+      "file": "checkin-optional-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "checkin-bad-photo-result",
+      "width": 390,
+      "file": "checkin-bad-photo-result-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "checkin-bad-photo-result",
+      "width": 1400,
+      "file": "checkin-bad-photo-result-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "storage-warning",
+      "width": 390,
+      "file": "storage-warning-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "storage-warning",
+      "width": 1400,
+      "file": "storage-warning-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "geometry-eligible",
+      "width": 390,
+      "file": "geometry-eligible-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "geometry-eligible",
+      "width": 1400,
+      "file": "geometry-eligible-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "geometry-unsupported",
+      "width": 390,
+      "file": "geometry-unsupported-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "geometry-unsupported",
+      "width": 1400,
+      "file": "geometry-unsupported-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "progress-large-history",
+      "width": 390,
+      "file": "progress-large-history-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "progress-large-history",
+      "width": 1400,
+      "file": "progress-large-history-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "model-compare",
+      "width": 390,
+      "file": "model-compare-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "model-compare",
+      "width": 1400,
+      "file": "model-compare-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "recovery-corrupt",
+      "width": 320,
+      "file": "recovery-corrupt-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "recovery-corrupt",
+      "width": 390,
+      "file": "recovery-corrupt-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "recovery-corrupt",
+      "width": 1400,
+      "file": "recovery-corrupt-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "offline",
+      "width": 390,
+      "file": "offline-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "offline",
+      "width": 1400,
+      "file": "offline-1400.png",
+      "scroll": 1400
+    },
+    {
+      "state": "webgl-unavailable",
+      "width": 320,
+      "file": "webgl-unavailable-320.png",
+      "scroll": 320
+    },
+    {
+      "state": "webgl-unavailable",
+      "width": 390,
+      "file": "webgl-unavailable-390.png",
+      "scroll": 390
+    },
+    {
+      "state": "webgl-unavailable",
+      "width": 1400,
+      "file": "webgl-unavailable-1400.png",
+      "scroll": 1400
+    }
+  ]
+}

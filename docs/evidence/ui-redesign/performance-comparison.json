@@ -1,0 +1,389 @@
+{
+  "baseline": "bf2586681f6e3369cd6f45c3e25a969d6c85b077",
+  "browser": "155.0.4283.45",
+  "viewport": 390,
+  "synthetic": true,
+  "method": "Same host, browser and generated archives; each matrix ran alone. Single observations, not statistical estimates. Today measures direct navigation to the rendered date; native calendar disclosure is measured separately after redesign. Remaining phases retain original behavioral endpoints.",
+  "rows": [
+    {
+      "days": 0,
+      "phases": {
+        "startup": {
+          "beforeMs": 2844,
+          "afterMs": 2587,
+          "deltaMs": -257
+        },
+        "activityOpen": {
+          "beforeMs": 133,
+          "afterMs": 119,
+          "deltaMs": -14
+        },
+        "calendarSwitch": {
+          "beforeMs": 56,
+          "afterMs": 31,
+          "deltaMs": -25
+        },
+        "addMeal": {
+          "beforeMs": 165,
+          "afterMs": 72,
+          "deltaMs": -93
+        },
+        "addEvent": {
+          "beforeMs": 55,
+          "afterMs": 52,
+          "deltaMs": -3
+        },
+        "closeDay": {
+          "beforeMs": 111,
+          "afterMs": 89,
+          "deltaMs": -22
+        },
+        "hypothesisOpen": {
+          "beforeMs": 398,
+          "afterMs": 324,
+          "deltaMs": -74
+        },
+        "checkinOpen": {
+          "beforeMs": 94,
+          "afterMs": 140,
+          "deltaMs": 46
+        },
+        "checkinSave": {
+          "beforeMs": 845,
+          "afterMs": 830,
+          "deltaMs": -15
+        },
+        "historyExpand": {
+          "beforeMs": 21,
+          "afterMs": 9,
+          "deltaMs": -12
+        },
+        "backup": {
+          "beforeMs": 155,
+          "afterMs": 128,
+          "deltaMs": -27
+        },
+        "restoreValidation": {
+          "beforeMs": 1,
+          "afterMs": 0,
+          "deltaMs": -1
+        },
+        "restoreValidationWithAutomationTransfer": {
+          "beforeMs": 118,
+          "afterMs": 96,
+          "deltaMs": -22
+        },
+        "restoreFullInspection": {
+          "beforeMs": 77,
+          "afterMs": 76,
+          "deltaMs": -1
+        }
+      },
+      "activityCalendarRevealMs": 60
+    },
+    {
+      "days": 30,
+      "phases": {
+        "startup": {
+          "beforeMs": 3075,
+          "afterMs": 3003,
+          "deltaMs": -72
+        },
+        "activityOpen": {
+          "beforeMs": 219,
+          "afterMs": 211,
+          "deltaMs": -8
+        },
+        "calendarSwitch": {
+          "beforeMs": 20,
+          "afterMs": 28,
+          "deltaMs": 8
+        },
+        "addMeal": {
+          "beforeMs": 152,
+          "afterMs": 153,
+          "deltaMs": 1
+        },
+        "addEvent": {
+          "beforeMs": 139,
+          "afterMs": 134,
+          "deltaMs": -5
+        },
+        "closeDay": {
+          "beforeMs": 216,
+          "afterMs": 200,
+          "deltaMs": -16
+        },
+        "hypothesisOpen": {
+          "beforeMs": 579,
+          "afterMs": 562,
+          "deltaMs": -17
+        },
+        "checkinOpen": {
+          "beforeMs": 294,
+          "afterMs": 313,
+          "deltaMs": 19
+        },
+        "checkinSave": {
+          "beforeMs": 1215,
+          "afterMs": 1224,
+          "deltaMs": 9
+        },
+        "historyExpand": {
+          "beforeMs": 10,
+          "afterMs": 8,
+          "deltaMs": -2
+        },
+        "backup": {
+          "beforeMs": 86,
+          "afterMs": 73,
+          "deltaMs": -13
+        },
+        "restoreValidation": {
+          "beforeMs": 1,
+          "afterMs": 1,
+          "deltaMs": 0
+        },
+        "restoreValidationWithAutomationTransfer": {
+          "beforeMs": 708,
+          "afterMs": 647,
+          "deltaMs": -61
+        },
+        "restoreFullInspection": {
+          "beforeMs": 309,
+          "afterMs": 304,
+          "deltaMs": -5
+        }
+      },
+      "activityCalendarRevealMs": 24
+    },
+    {
+      "days": 180,
+      "phases": {
+        "startup": {
+          "beforeMs": 4035,
+          "afterMs": 4093,
+          "deltaMs": 58
+        },
+        "activityOpen": {
+          "beforeMs": 636,
+          "afterMs": 638,
+          "deltaMs": 2
+        },
+        "calendarSwitch": {
+          "beforeMs": 33,
+          "afterMs": 45,
+          "deltaMs": 12
+        },
+        "addMeal": {
+          "beforeMs": 539,
+          "afterMs": 536,
+          "deltaMs": -3
+        },
+        "addEvent": {
+          "beforeMs": 540,
+          "afterMs": 528,
+          "deltaMs": -12
+        },
+        "closeDay": {
+          "beforeMs": 738,
+          "afterMs": 712,
+          "deltaMs": -26
+        },
+        "hypothesisOpen": {
+          "beforeMs": 626,
+          "afterMs": 604,
+          "deltaMs": -22
+        },
+        "checkinOpen": {
+          "beforeMs": 399,
+          "afterMs": 414,
+          "deltaMs": 15
+        },
+        "checkinSave": {
+          "beforeMs": 1652,
+          "afterMs": 1580,
+          "deltaMs": -72
+        },
+        "historyExpand": {
+          "beforeMs": 18,
+          "afterMs": 14,
+          "deltaMs": -4
+        },
+        "backup": {
+          "beforeMs": 103,
+          "afterMs": 89,
+          "deltaMs": -14
+        },
+        "restoreValidation": {
+          "beforeMs": 4,
+          "afterMs": 4,
+          "deltaMs": 0
+        },
+        "restoreValidationWithAutomationTransfer": {
+          "beforeMs": 2422,
+          "afterMs": 2273,
+          "deltaMs": -149
+        },
+        "restoreFullInspection": {
+          "beforeMs": 1059,
+          "afterMs": 1068,
+          "deltaMs": 9
+        }
+      },
+      "activityCalendarRevealMs": 26
+    },
+    {
+      "days": 365,
+      "phases": {
+        "startup": {
+          "beforeMs": 5728,
+          "afterMs": 5466,
+          "deltaMs": -262
+        },
+        "activityOpen": {
+          "beforeMs": 1172,
+          "afterMs": 1150,
+          "deltaMs": -22
+        },
+        "calendarSwitch": {
+          "beforeMs": 46,
+          "afterMs": 48,
+          "deltaMs": 2
+        },
+        "addMeal": {
+          "beforeMs": 1054,
+          "afterMs": 1027,
+          "deltaMs": -27
+        },
+        "addEvent": {
+          "beforeMs": 1114,
+          "afterMs": 1037,
+          "deltaMs": -77
+        },
+        "closeDay": {
+          "beforeMs": 1503,
+          "afterMs": 1448,
+          "deltaMs": -55
+        },
+        "hypothesisOpen": {
+          "beforeMs": 974,
+          "afterMs": 839,
+          "deltaMs": -135
+        },
+        "checkinOpen": {
+          "beforeMs": 591,
+          "afterMs": 566,
+          "deltaMs": -25
+        },
+        "checkinSave": {
+          "beforeMs": 2196,
+          "afterMs": 2048,
+          "deltaMs": -148
+        },
+        "historyExpand": {
+          "beforeMs": 24,
+          "afterMs": 27,
+          "deltaMs": 3
+        },
+        "backup": {
+          "beforeMs": 108,
+          "afterMs": 102,
+          "deltaMs": -6
+        },
+        "restoreValidation": {
+          "beforeMs": 8,
+          "afterMs": 7,
+          "deltaMs": -1
+        },
+        "restoreValidationWithAutomationTransfer": {
+          "beforeMs": 5145,
+          "afterMs": 4507,
+          "deltaMs": -638
+        },
+        "restoreFullInspection": {
+          "beforeMs": 2149,
+          "afterMs": 2067,
+          "deltaMs": -82
+        }
+      },
+      "activityCalendarRevealMs": 48
+    },
+    {
+      "days": 1000,
+      "phases": {
+        "startup": {
+          "beforeMs": 12065,
+          "afterMs": 10908,
+          "deltaMs": -1157
+        },
+        "activityOpen": {
+          "beforeMs": 3203,
+          "afterMs": 2874,
+          "deltaMs": -329
+        },
+        "calendarSwitch": {
+          "beforeMs": 100,
+          "afterMs": 103,
+          "deltaMs": 3
+        },
+        "addMeal": {
+          "beforeMs": 2974,
+          "afterMs": 2709,
+          "deltaMs": -265
+        },
+        "addEvent": {
+          "beforeMs": 2908,
+          "afterMs": 2675,
+          "deltaMs": -233
+        },
+        "closeDay": {
+          "beforeMs": 3888,
+          "afterMs": 3571,
+          "deltaMs": -317
+        },
+        "hypothesisOpen": {
+          "beforeMs": 1923,
+          "afterMs": 1700,
+          "deltaMs": -223
+        },
+        "checkinOpen": {
+          "beforeMs": 1102,
+          "afterMs": 1070,
+          "deltaMs": -32
+        },
+        "checkinSave": {
+          "beforeMs": 4145,
+          "afterMs": 3603,
+          "deltaMs": -542
+        },
+        "historyExpand": {
+          "beforeMs": 187,
+          "afterMs": 37,
+          "deltaMs": -150
+        },
+        "backup": {
+          "beforeMs": 144,
+          "afterMs": 132,
+          "deltaMs": -12
+        },
+        "restoreValidation": {
+          "beforeMs": 19,
+          "afterMs": 18,
+          "deltaMs": -1
+        },
+        "restoreValidationWithAutomationTransfer": {
+          "beforeMs": 15206,
+          "afterMs": 13054,
+          "deltaMs": -2152
+        },
+        "restoreFullInspection": {
+          "beforeMs": 6396,
+          "afterMs": 5469,
+          "deltaMs": -927
+        }
+      },
+      "activityCalendarRevealMs": 30
+    }
+  ]
+}

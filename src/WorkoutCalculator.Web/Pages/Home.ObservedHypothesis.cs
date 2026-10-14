@@ -5,6 +5,7 @@ namespace WorkoutCalculator.Web.Pages;
 public partial class Home
 {
     private HypothesisEndpoint? _observedEndpoint;
+    private string? _selectedHypothesisId;
     private string? _observedGeometryHash;
     private string? _observedGeometryError;
     private WorkoutCalculator.BodyModel.IBodyShape? _observedBody;
@@ -26,8 +27,9 @@ public partial class Home
         ApplyForecastHeatmap();
         _forecastBody=_observedBody;
         Show("forecast",_observedBody);
+        _sideBySide=true;
         SetMode(ViewMode.Compare);
         Console.WriteLine($"Hypothesis endpoint geometry (cached by descriptor): {watch.Elapsed.TotalMilliseconds:F2} ms");
     }
-    private void ShowScenario(){_observedEndpoint=null;_observedGeometryHash=null;_observedGeometryError=null;Refresh();}
+    private void ShowScenario(){_observedEndpoint=null;_observedGeometryHash=null;_observedGeometryError=null;Refresh();SetMode(ViewMode.Compare);}
 }

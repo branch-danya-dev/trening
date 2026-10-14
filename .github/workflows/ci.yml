@@ -86,6 +86,16 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-fixtures.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-mixed.cjs
           NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" PRE_UI_OUTPUT="$RUNNER_TEMP/pre-ui-evidence" node tests/browser/pre-ui-history.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" UI_OUTPUT="$RUNNER_TEMP/ui-redesign-evidence" node tests/browser/ui-redesign-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" node tests/browser/model-workspace-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/muscle-smoke/node_modules" PRE_UI_FIXTURES="$RUNNER_TEMP/pre-ui-fixtures" GEOMETRY_FIXTURES="$RUNNER_TEMP/geometry-fixtures.json" UI_OUTPUT="$RUNNER_TEMP/ui-redesign-evidence" node tests/browser/ui-gallery.cjs
+      - name: UI redesign screenshots and responsive evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-redesign-evidence
+          path: ${{ runner.temp }}/ui-redesign-evidence
+          if-no-files-found: error
       - name: Model hardening evidence
         if: always()
         uses: actions/upload-artifact@v4

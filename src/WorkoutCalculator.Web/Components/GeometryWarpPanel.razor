@@ -48,14 +48,14 @@
         _view=_sources.Keys.FirstOrDefault();_error=_sources.Count==0?RenderSourcePolicy.Missing:null;
         if(_sources.Count==0){var related=photos.FirstOrDefault(p=>Hypothesis.Core.CurrentAvatarRevisionAtIssue.Inputs.Photos.Any(r=>r.SessionId==p.Id));if(related is not null)_error=RenderSourcePolicy.Reason(Hypothesis.Core,GeometryWarpRenderer.Source(related),RenderView.Front);}
         _saved=await GeometryWarpRenderer.Saved(Hypothesis);await Select(_view);
-    }catch(Exception e){_error=e.Message.Split('\n')[0];}}
+    }catch(Exception e){_error=UiError.From(e);}}
     private void Clear(){if(_url is not null)PhotoStore.RevokeUrl(_url);_url=null;_result=null;}
-    private async Task Select(RenderView v){Clear();_view=v;try{if(_saved.FirstOrDefault(a=>a.Request.View==v) is { } a){_result=a.Result;_url=await GeometryWarpRenderer.Url(a.Request.Id);}}catch(Exception e){_error=e.Message.Split('\n')[0];}}
+    private async Task Select(RenderView v){Clear();_view=v;try{if(_saved.FirstOrDefault(a=>a.Request.View==v) is { } a){_result=a.Result;_url=await GeometryWarpRenderer.Url(a.Request.Id);}}catch(Exception e){_error=UiError.From(e);}}
     private async Task Create(){if(Builder is null||!_sources.TryGetValue(_view,out var source))return;_busy=true;_error=null;Clear();await Task.Yield();try{
         var request=RenderRequest.Freeze(Hypothesis,source,_view,DateTimeOffset.Now);
         var result=await new GeometryWarpRenderer(Builder).Render(request,Hypothesis,source);
         if(_disposed)return;_result=result;if(result.ArtifactId is not null){_url=await GeometryWarpRenderer.Url(result.ArtifactId);_saved=await GeometryWarpRenderer.Saved(Hypothesis);}
-    }catch(Exception e){_error=e.Message.Split('\n')[0];}finally{_busy=false;}}
+    }catch(Exception e){_error=UiError.From(e);}finally{_busy=false;}}
     private async Task Remove(){if(_result?.ArtifactId is { } id)await GeometryWarpRenderer.Delete(id);_saved=await GeometryWarpRenderer.Saved(Hypothesis);Clear();}
     public void Dispose(){_disposed=true;Clear();}
 }

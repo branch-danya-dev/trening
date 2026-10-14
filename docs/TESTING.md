@@ -1,5 +1,9 @@
 # Как проверять приложение
 
+## Model workspace / photo surface
+
+`PRE_UI_FIXTURES=<generated fixtures> node tests/browser/model-workspace-smoke.cjs` verifies the saved observed endpoint, independent photo materials for two dates, retained unsaved files/session, unchanged settled domain payloads, cancelled async loading, PIN GPU disposal, source deletion and reload. It uses a deterministic pose detector fixture to isolate display/resource behavior. The realistic-photo gallery was separately checked with the actual bundled MediaPipe detector; these AI-generated demo images are not evidence of factual reconstruction accuracy. `skeletal-smoke.cjs` additionally checks forward knees, grounded feet, upward bench orientation and raised pulldown arms on the real personal skeleton. The direct rest-local pose API remains covered by the JS suite.
+
 ## Pre-UI stabilization: semantic selector policy
 
 The [pre-UI contract](PRE_UI_CONTRACT.md) and [readiness report](PRE_UI_READINESS.md) govern the next UI refactor. Preserve all existing behavioral suites; update screenshot/layout expectations separately.
@@ -194,3 +198,15 @@ Release: `dotnet build WorkoutCalculator.sln -c Release`, `dotnet test WorkoutCa
 ## Anatomical muscle fields — Stage B
 
 Stage B anatomical tests (2026-10-09): run the full Release/.NET/JS suites, then `WorkoutCalculator.AnatomicalMorphBenchmark`, `tests/browser/anatomical-muscle-smoke.cjs` and `anatomical-muscle-audit.cjs` with `ANATOMY_OUTPUT`. CI uploads anatomical evidence and runs all previous suites. GeometryWarp smoke covers absent legacy provider metadata and a pinned anatomical endpoint (`GEOMETRY_ANATOMICAL=1`), including backup and replay. Published offline smoke checks exact bundled sidecar SHA. Parser fixtures reject SHA/path/duplicate/index/finite errors; geometry checks cover identity, protected regions, caps, joints, spatial differentiation, symmetry, girth fallback and immutable mass outputs. Rebuild the real source twice intentionally, outside CI; hashes must match. [Commands and limits](ANATOMICAL_MUSCLE_FIELDS.md).
+
+## UI/UX Redesign V1
+
+Use the same complete CI matrix and semantic hooks; do not replace behavioral assertions with screenshots. `ui-disclosures.cjs` navigates the actual disclosure summaries when older behavioral suites need the relocated calendar, manual scenarios, history or Advanced settings. The new presentation defaults are tested independently. No storage or lifecycle assertion is removed.
+
+Generate fixtures with `dotnet run -c Release --no-build --project tools/WorkoutCalculator.PreUiAudit -- . work/ui-fixtures` and geometry with the existing GeometryWarpBenchmark. With the Release app running, set `PRE_UI_FIXTURES`, `GEOMETRY_FIXTURES`, `APP_URL`, optional `BROWSER_CHANNEL` and `UI_OUTPUT`, then run:
+
+- `node tests/browser/ui-redesign-smoke.cjs`: five-section navigation, 320/390/768/1024/1400, document overflow, accessible names, keyboard focus, normal-route metadata, default-closed disclosures, quick add, close review, durable result and read-only avatar comparison.
+- `node tests/browser/ui-gallery.cjs`: isolated synthetic state screenshots at 390/1400; critical onboarding/day/CheckIn/recovery also at 320. Screenshot review is separate from behavior.
+- Existing `pre-ui-history.cjs`: matched archives and same timing boundaries before/after. No weakened performance ceilings.
+
+The complete previous browser/offline matrix remains required. New copy uses «Сегодня», «Новый замер», «Скачать резервную копию». Core semantic `data-testid` and record identifiers remain stable. Physical devices and human usability have not been validated by emulated viewport checks.

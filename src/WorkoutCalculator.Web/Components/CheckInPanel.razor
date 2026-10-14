@@ -6,15 +6,15 @@
 @using WorkoutCalculator.BodyModel.Hypotheses
 
 <section class="card checkin-panel" data-testid="checkin-panel" aria-label="Проверить прогресс" aria-busy="@(_busy ? "true" : "false")">
-    <h2>Проверить прогресс</h2>
+    <p class="eyebrow">Контрольная точка</p><h2>Новый замер</h2>
     <p>Новый замер обновит текущий аватар, если качество данных позволит. Начало отсчёта и сохранённые прогнозы останутся прежними.</p>
     @if (_error is not null) { <p id="checkin-error" role="alert">@_error</p> }
-    @if (_busy) { <p role="status">Сохраняем наблюдение и проверяем форму на этом устройстве…</p> }
+    @if (_busy) { <p class="save-state" role="status" aria-live="polite">@_progress</p> }
     @if (!_editing) { <button @ref="_newButton" class="btn primary" disabled="@(_busy || _store.Current.Error is not null || Builder is null || Avatar?.Status!=AvatarStatus.Active)" data-testid="checkin-new" @onclick="New">Новый замер</button> }
     @if (_editing)
     {
         <fieldset disabled="@_busy" aria-describedby="@(_error is null?null:"checkin-error")">
-            <legend>Новый замер</legend>
+            <legend>Замеры → фото по желанию → результат</legend>
             <label>Дата замера<input type="date" aria-label="Дата замера" @bind="_date" /></label>
             <label>Вес, кг (рекомендуется)<input @ref="_weightInput" inputmode="decimal" aria-label="Вес нового замера" aria-description="Килограммы; необязательное числовое поле" @bind="_weight" /></label>
             <label>Жир, % (необязательно)<input inputmode="decimal" aria-label="Жир нового замера" aria-description="Проценты; необязательное числовое поле" @bind="_fat" /></label>
@@ -33,6 +33,7 @@
                 @if(_sessionId.Length>0) { <label class="check"><input type="checkbox" @bind="_original" /> Это мои реальные фото в указанную дату, без генерации и изменения формы</label> }
                 <p class="note">Фото остаются на устройстве. Для реконструкции нужны спереди + сбоку. Фото сзади не создаёт замеров. Защита PIN настраивается в разделе «Фото».</p>
             </details>
+            <p class="note">Проверьте дату и введённые значения. Сохранение может занять несколько секунд; результат появится после записи данных.</p>
             <button class="btn primary" data-testid="checkin-save" @onclick="Submit">Сохранить замер и обновить аватар</button>
             <button class="btn-link" @onclick="Cancel">Отмена</button>
         </fieldset>
@@ -41,7 +42,8 @@
     {
         <div @ref="_resultElement" tabindex="-1" data-testid="checkin-result" data-checkin-status="@result.Status" role="status">
             <h3>@(result.Quality?.ObservationAccepted==false ? "Наблюдение отклонено" : result.Revision is not null ? "Аватар обновлён по новым данным" : result.Snapshot is not null ? "Замеры сохранены, аватар не обновлён" : "Фото сохранено для истории")</h3>
-            @if(result.Snapshot is { } fact) { <p>@FactsCaption(fact)</p> }
+            @if(result.Snapshot is { } fact) { <p><strong>Замеры сохранены</strong> · @FactsCaption(fact)</p> }
+            @if(result.Revision is null && result.Snapshot is not null){<p>Аватар не обновлён. Причины приведены ниже; прежняя форма сохранена.</p>}
             @foreach(var reason in result.Quality?.Reasons ?? []) { <p>@CheckInQualityPolicy.Message(reason)</p> }
             @if(result.LinkedHypothesisId is not null && result.Snapshot?.WeightKg is not null && !OutcomeAttached(result))
             {
@@ -88,6 +90,7 @@
     private DateTime _date=DateTime.Today;
     private bool _editing,_busy,_original,_photosOpen;
     private string? _error;
+    private string _progress="Сохраняем замер…";
     private BodyCheckIn? _result;
     private ElementReference _weightInput,_newButton,_resultElement;
     private int _focus;
@@ -100,7 +103,7 @@
     protected override async Task OnInitializedAsync()
     {
         var watch=Stopwatch.StartNew();_application.Load();_error=_store.Current.Error is null?null:"История замеров недоступна. Исходные данные сохранены; новый замер временно недоступен.";
-        try{_photos=await PhotoStore.ListMeta();}catch(Exception e){_error=e.Message.Split('\n')[0];}
+        try{_photos=await PhotoStore.ListMeta();}catch(Exception e){_error=UiError.From(e);}
         if(StartOpen)New();
         Console.WriteLine($"CheckIn open: {watch.Elapsed.TotalMilliseconds:F2} ms");
     }
@@ -111,7 +114,7 @@
         if(Profile is null)return;
         _busy=true;_error=null;
         try{var s=await PhotoStore.SaveCheckInInputs(Profile,DateOnly.FromDateTime(_date),"checkin-front","checkin-side","checkin-back");_photos=await PhotoStore.ListMeta();_sessionId=s.Id;_photosOpen=true;}
-        catch(Exception e){_error=e.Message.Split('\n')[0];}finally{_busy=false;}
+        catch(Exception e){_error=UiError.From(e);}finally{_busy=false;}
     }
     private CheckInPhoto Evidence(PhotoSession session,bool original) => CheckInQualityPolicy.Analyze(session.Id,
         session.ObservedDate??DateOnly.FromDateTime(session.CreatedAt.LocalDateTime),session.SourceKind switch{"Generated"=>CheckInPhotoSource.Generated,"Synthetic"=>CheckInPhotoSource.Synthetic,null or "OriginalObservation"=>CheckInPhotoSource.OriginalObservation,_=>CheckInPhotoSource.Unknown},original,
@@ -119,7 +122,7 @@
     private async Task Submit()
     {
         if(Avatar is null||Profile is null||Builder is null)return;
-        _busy=true;_error=null;var watch=Stopwatch.StartNew();
+        _busy=true;_error=null;_progress="Сохраняем замер…";StateHasChanged();await Task.Delay(1);var watch=Stopwatch.StartNew();
         try
         {
             var manual=new CheckInFacts(Parse(_weight),Parse(_fat),_girths.Where(p=>!string.IsNullOrWhiteSpace(p.Value)).ToImmutableDictionary(p=>p.Key,p=>Parse(p.Value)!.Value));
@@ -130,9 +133,9 @@
             await Run(c);_editing=false;_focus=2;
             Console.WriteLine($"CheckIn save total: {watch.Elapsed.TotalMilliseconds:F2} ms");
         }
-        catch(Exception e){_error=e.Message.Split('\n')[0];}finally{_busy=false;}
+        catch(Exception e){_error=UiError.From(e);}finally{_busy=false;}
     }
-    private async Task Resume(BodyCheckIn c){_busy=true;_error=null;try{await Run(c);}catch(Exception e){_error=e.Message.Split('\n')[0];}finally{_busy=false;}}
+    private async Task Resume(BodyCheckIn c){_busy=true;_error=null;try{await Run(c);}catch(Exception e){_error=UiError.From(e);}finally{_busy=false;}}
     private async Task<CheckInPhoto?> Analyze(CheckInPhoto photo)
     {
         var session=(await PhotoStore.ListMeta()).SingleOrDefault(s=>s.Id==photo.SessionId);
@@ -150,7 +153,7 @@
     private async Task Run(BodyCheckIn c)
     {
         if(Builder is null)return;
-        await Task.Delay(1);
+        _progress="Обновляем модель и сохраняем данные…";StateHasChanged();await Task.Delay(1);
         var watch=Stopwatch.StartNew();_result=await _application.Resume(c,Builder,Analyze);
         Console.WriteLine($"CheckIn reconstruction and commit: {watch.Elapsed.TotalMilliseconds:F2} ms");
         await OnChanged.InvokeAsync();

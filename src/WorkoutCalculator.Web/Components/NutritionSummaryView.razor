@@ -16,5 +16,5 @@
     [Parameter, EditorRequired] public ClosedNutritionSummary Summary { get; set; } = default!;
     public static string N(decimal? value) => value?.ToString("0.##", Fmt.Ru) ?? "неизвестно";
     public static string Values(NutritionTotals v) => $"{N(v.CaloriesKcal)} ккал · Б {N(v.ProteinGrams)} / Ж {N(v.FatGrams)} / У {N(v.CarbsGrams)} г";
-    public static string CoverageLabel(NutritionCoverage v) => v switch { NutritionCoverage.Complete => "Всё внесено", NutritionCoverage.Partial => "Частично", _ => "Не записано" };
+    public static string CoverageLabel(NutritionCoverage v) => v switch { NutritionCoverage.Complete => "Рацион заполнен полностью", NutritionCoverage.Partial => "Рацион заполнен частично", _ => "Нет записей о питании" };
 }

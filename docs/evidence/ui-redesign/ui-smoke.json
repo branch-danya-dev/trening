@@ -1,0 +1,899 @@
+{
+  "passed": true,
+  "coverage": [
+    {
+      "width": 320,
+      "name": "Сегодня",
+      "metrics": {
+        "width": 320,
+        "scroll": 320,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 62.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 320,
+      "name": "Модель",
+      "metrics": {
+        "width": 320,
+        "scroll": 320,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 62.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 320,
+      "name": "Прогресс",
+      "metrics": {
+        "width": 320,
+        "scroll": 320,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 62.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 320,
+      "name": "План",
+      "metrics": {
+        "width": 320,
+        "scroll": 320,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 62.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 320,
+      "name": "Профиль",
+      "metrics": {
+        "width": 320,
+        "scroll": 320,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 62.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 62.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 62.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "name": "Сегодня",
+      "metrics": {
+        "width": 390,
+        "scroll": 390,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 76.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "name": "Модель",
+      "metrics": {
+        "width": 390,
+        "scroll": 390,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 76.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "name": "Прогресс",
+      "metrics": {
+        "width": 390,
+        "scroll": 390,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 76.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "name": "План",
+      "metrics": {
+        "width": 390,
+        "scroll": 390,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 76.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "name": "Профиль",
+      "metrics": {
+        "width": 390,
+        "scroll": 390,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 76.390625,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 76.40625,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 76.40625,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "name": "Сегодня",
+      "metrics": {
+        "width": 768,
+        "scroll": 768,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 152,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "name": "Модель",
+      "metrics": {
+        "width": 768,
+        "scroll": 768,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 152,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "name": "Прогресс",
+      "metrics": {
+        "width": 768,
+        "scroll": 768,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 152,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "name": "План",
+      "metrics": {
+        "width": 768,
+        "scroll": 768,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 152,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "name": "Профиль",
+      "metrics": {
+        "width": 768,
+        "scroll": 768,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Модель",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Прогресс",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "План",
+            "width": 152,
+            "height": 56
+          },
+          {
+            "label": "Профиль",
+            "width": 152,
+            "height": 56
+          }
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "name": "Сегодня",
+      "metrics": {
+        "width": 1024,
+        "scroll": 1024,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 134,
+            "height": 52
+          }
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "name": "Модель",
+      "metrics": {
+        "width": 1024,
+        "scroll": 1024,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 134,
+            "height": 52
+          }
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "name": "Прогресс",
+      "metrics": {
+        "width": 1024,
+        "scroll": 1024,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 134,
+            "height": 52
+          }
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "name": "План",
+      "metrics": {
+        "width": 1024,
+        "scroll": 1024,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 134,
+            "height": 52
+          }
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "name": "Профиль",
+      "metrics": {
+        "width": 1024,
+        "scroll": 1024,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 134,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 134,
+            "height": 52
+          }
+        ]
+      }
+    },
+    {
+      "width": 1400,
+      "name": "Сегодня",
+      "metrics": {
+        "width": 1400,
+        "scroll": 1400,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 168,
+            "height": 52
+          }
+        ]
+      }
+    },
+    {
+      "width": 1400,
+      "name": "Модель",
+      "metrics": {
+        "width": 1400,
+        "scroll": 1400,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 168,
+            "height": 52
+          }
+        ]
+      }
+    },
+    {
+      "width": 1400,
+      "name": "Прогресс",
+      "metrics": {
+        "width": 1400,
+        "scroll": 1400,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 168,
+            "height": 52
+          }
+        ]
+      }
+    },
+    {
+      "width": 1400,
+      "name": "План",
+      "metrics": {
+        "width": 1400,
+        "scroll": 1400,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 168,
+            "height": 52
+          }
+        ]
+      }
+    },
+    {
+      "width": 1400,
+      "name": "Профиль",
+      "metrics": {
+        "width": 1400,
+        "scroll": 1400,
+        "nav": [
+          {
+            "label": "Сегодня",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Модель",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Прогресс",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "План",
+            "width": 168,
+            "height": 52
+          },
+          {
+            "label": "Профиль",
+            "width": 168,
+            "height": 52
+          }
+        ]
+      }
+    }
+  ],
+  "browser": "155.0.4283.45",
+  "checks": [
+    "five-sections",
+    "320-390-768-1024-1400",
+    "no-page-overflow",
+    "navigation-touch-targets",
+    "keyboard-tabs",
+    "disclosures-default-closed",
+    "consumer-metadata",
+    "readable-storage-health",
+    "quick-actions",
+    "quick-editor-focus",
+    "close-day-focus",
+    "durable-checkin-result",
+    "read-only-avatar-compare",
+    "offline-message",
+    "webgl-unavailable-keeps-facts-and-navigation"
+  ],
+  "browserErrors": []
+}

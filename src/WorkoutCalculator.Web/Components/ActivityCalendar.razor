@@ -8,6 +8,8 @@
     @if (Avatar?.ActiveRevision is not null && _days.Find(Avatar.ProfileId, Today.AddDays(-1))?.State is null or ActivityDayState.Open) {
         <p class="previous-day">Вчерашний день не завершён. <button class="btn" @onclick="() => Select(Today.AddDays(-1))">Проверить вчера</button></p>
     }
+    <ActivityDayPanel Store="_days" Avatar="Avatar" Profile="Profile" Date="_selected" SourceVersion="_sourceVersion" OnChanged="DayChanged" OnShowDailyLoad="OnShowDailyLoad" OnTraining="OnTraining" />
+    <details class="calendar-disclosure" data-testid="activity-calendar"><summary>Календарь · выбрать другой день</summary>
     <div class="calendar-header">
         <button class="btn" aria-label="Предыдущий месяц" @onclick="() => _month = _month.AddMonths(-1)">←</button>
         <strong>@_month.ToString("MM.yyyy")</strong>
@@ -15,7 +17,7 @@
     </div>
     <button class="btn" @onclick="() => Select(Today)">Сегодня</button>
     <p class="note">✓ завершён · ○ отдых · ? нет данных · · не завершён · — будущий. ● кардио · ◆ силовая</p>
-    <div class="calendar-grid">
+    <div class="calendar-scroll" role="region" aria-label="Дни месяца" tabindex="0"><div class="calendar-grid">
         @foreach (var label in new[] { "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс" }) { <span>@label</span> }
         @for (int i = 0; i < 42; i++)
         {
@@ -28,7 +30,7 @@
             </button>
         }
     </div>
-    <ActivityDayPanel Store="_days" Avatar="Avatar" Profile="Profile" Date="_selected" SourceVersion="_sourceVersion" OnChanged="DayChanged" OnShowDailyLoad="OnShowDailyLoad" />
+    </div></details>
     @{
         var cardio = Cardio.Where(w => w.Date == _selected).ToArray();
         var strength = Strength.Where(w => w.Session.Date == _selected).ToArray();
@@ -52,7 +54,7 @@
             <button class="btn" @onclick="() => OnShowLoad.InvokeAsync(s.Session.Id)">Нагрузка в 3D</button>
         </article>
     }
-    <MuscleLoadList Load="MuscleLoadEngine.Aggregate(strength.Select(s => s.Load))" />
+    <details><summary>Мышечная нагрузка тренировок</summary><MuscleLoadList Load="MuscleLoadEngine.Aggregate(strength.Select(s => s.Load))" /></details>
     @if (_edit is not null) {
         <div class="card">
             <h3>Уточнение записи кардио</h3><p class="note">Исправление журнала; расчёт модели не запускается повторно.</p>
@@ -63,11 +65,12 @@
             @if (_error is not null) { <p role="alert">@_error</p> }
         </div>
     }
-    <h3>Неделя с @monday.ToString("dd.MM")</h3>
+    <details class="secondary-history"><summary>Итоги недели и нагрузка</summary><h3>Неделя с @monday.ToString("dd.MM")</h3>
     <p data-testid="week-totals">Кардио: @weekCardio.Length тренировок · @Fmt.N(weekCardio.Sum(w => w.DurationMin)) мин · @Fmt.N(weekCardio.Sum(w => w.ActiveKcal)) ккал. Силовые: @week.SessionCount тренировок · @week.Volume.CompletedSets подходов.</p>
-    <MuscleLoadList Load="week.Load" />
+    <MuscleLoadList Load="week.Load" /></details>
 </section>
 @code {
+    [Parameter] public EventCallback<bool> OnTraining { get; set; }
     [Parameter] public AvatarState? Avatar { get; set; }
     [Parameter, EditorRequired] public BodyProfile Profile { get; set; } = default!;
     [Parameter] public EventCallback<MuscleLoadResult> OnShowDailyLoad { get; set; }
