@@ -25,6 +25,7 @@ const assert = require('node:assert/strict');
             window.three = await import(new URL('lib/three/three.module.js', document.baseURI));
         });
         await require('./ui-disclosures.cjs').openDetails(page,'viewer-tools');
+        await require('./ui-disclosures.cjs').openDetails(page,'model-adjustments');
         const restCheck = await page.evaluate(() => {
             const mesh = viewer.smokeState().meshes.current;
             mesh.updateMatrixWorld(true);
@@ -90,7 +91,7 @@ const assert = require('node:assert/strict');
         await page.getByRole('textbox', { name: 'Сутулость', exact: true }).fill('20');
         await page.getByRole('textbox', { name: 'Сутулость', exact: true }).press('Tab');
         await page.waitForSelector('[data-avatar-busy="false"]');await page.getByLabel('Я проверил форму, источники данных и предупреждения').check();await page.getByRole('button', { name: 'Зафиксировать аватар', exact: true }).click();
-        await page.getByRole('button', { name: 'Начать новый цикл прогнозов', exact: true }).click();
+        await require('./ui-disclosures.cjs').action(page,'Начать новый цикл прогнозов');
         await page.waitForFunction(() => viewer.smokeState().meshes.current !== originalCurrent);
         assert.equal(await page.evaluate(() => {
             const { meshes, rigs } = viewer.smokeState();
@@ -162,6 +163,23 @@ const assert = require('node:assert/strict');
         });
         assert.ok(exercises.squatDrop > 0.05, JSON.stringify(exercises));
         assert.ok(exercises.benchAngle > 1.2, JSON.stringify(exercises));
+        const anatomical = await page.evaluate(() => {
+            const rig=viewer.smokeState().rigs.current;
+            const point=name=>rig.mesh.skeleton.bones[rig.byName.get(name)].getWorldPosition(new three.Vector3());
+            viewer.setAnimationTime('current','squat',1.6);
+            const kneeForward=point('lowerleg01.L').z>point('upperleg01.L').z;
+            const footHeight=point('foot.L').y;
+            const grounded=Math.abs(footHeight-rig.restWorldPositions[rig.byName.get('foot.L')].y)<.005;
+            viewer.setAnimationTime('current','bench-press',1.5);
+            const root=rig.byName.get('root');
+            const delta=rig.mesh.skeleton.bones[root].getWorldQuaternion(new three.Quaternion()).multiply(rig.restWorldRotations[root].clone().invert());
+            const faceUp=new three.Vector3(0,0,1).applyQuaternion(delta).y>.95;
+            viewer.setAnimationTime('current','lat-pulldown',0);
+            const overhead=point('wrist.L').y>point('upperarm01.L').y+.2;
+            viewer.stopAnimation('current');
+            return {kneeForward,grounded,faceUp,overhead};
+        });
+        assert.ok(Object.values(anatomical).every(Boolean),JSON.stringify(anatomical));
         await page.getByLabel('рядом', { exact: true }).check();
         assert.equal(await page.evaluate(() => {
             const { current, forecast } = viewer.smokeState().meshes;

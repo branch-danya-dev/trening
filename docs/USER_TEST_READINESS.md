@@ -1,5 +1,7 @@
 # Readiness for the next user-testing/UI phase
 
+UI reference (2026-10-14): the [model workspace correction](UI_REDESIGN.md) keeps the avatar alongside all five sections, adds local photo-surface/before-after viewing, and retains photo choices. The generated demo photographs test presentation only. This reference does not initiate recruitment or establish reconstruction/prediction accuracy.
+
 Readiness `non-ai-forecast-readiness-1`, 2026-10-09. The package prepares controlled tests; it does not launch them. Current layer decisions are in [MODEL_VALIDATION_STATUS](MODEL_VALIDATION_STATUS.md).
 
 ## Is the core ready?

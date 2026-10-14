@@ -1,5 +1,7 @@
 # Структура продукта: целевой lifecycle и текущая реализация
 
+**Рабочее окно модели (UI, 2026-10-14):** все пять разделов используют постоянный 3D-вид и соседнюю прокручиваемую панель. `PhotoSurface` / `photo-texture.js` отображают локальные фото на существующих моделях, включая две даты «До / после». Историческая форма берётся через `AvatarBuilder.Rebuild`; пиксели фото не меняют факты, ревизии и frozen endpoint. Выбор сессии сохраняется между разделами и в пределах вкладки после перезагрузки. Загруженные, но не сохранённые файлы сохраняются при переходах, а не после перезагрузки браузера. Демоизображения не превращаются в фактические наблюдения.
+
 **Текущий слой Phase 7:** `BodyModel.Rendering` владеет contract/policies; `GeometryWarpRenderer` реконструирует frozen source/target; `geometry-warp*.js` выполняет isolated WebGL2 rendering. `GeometryWarpPanel` находится только внутри saved Hypothesis в «Плане»/«Прогрессе», не в ActivityDay. Synthetic `renderArtifacts` в IndexedDB отделены от factual `sessions/images`. Live viewer не является источником камеры/геометрии рендера. [Ownership, privacy, retention](GEOMETRY_WARP.md).
 
 **Текущий слой Phase 6:** `CheckInStore` / `workoutcalc.checkIns.v1` хранит наблюдения и решения о качестве. «Прогресс → Новый замер» — единая форма текущего факта, обновления Avatar и опциональной проверки гипотезы. Строгий recoverable commit объединяет CheckIn, BodySnapshot и AvatarRevision; Hypothesis получает ссылку после сохранения факта. [Контракт](CHECKIN_LIFECYCLE.md).

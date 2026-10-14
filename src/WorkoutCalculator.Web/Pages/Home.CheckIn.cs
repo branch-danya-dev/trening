@@ -5,7 +5,7 @@ public partial class Home
     private bool _checkInOpen;
     private string CheckInComponentKey => "checkin-" + _checkInVisit;
     private int _checkInVisit, _checkInChanges;
-    private void NewCheckIn() { _tab=Tab.History;_checkInOpen=true;_checkInVisit++; }
+    private void NewCheckIn() { _photosVisited=true;_tab=Tab.History;_checkInOpen=true;_checkInVisit++; }
     private void CheckInChanged()
     {
         var previousRevision=Avatar?.ActiveRevisionId;var previousStatus=Avatar?.Status;

@@ -15,6 +15,21 @@ namespace WorkoutCalculator.Web.Services;
 public static partial class ViewerInterop
 {
     public const string Module = "viewer";
+    [JSImport("setPhotoTexture", Module)]
+    public static partial Task<string> SetPhotoTexture(string sessionId);
+    [JSImport("setPhotoComparison", Module)]
+    public static partial Task<string> SetPhotoComparison(string beforeId,string afterId);
+
+    [JSImport("clearPhotoTexture", Module)]
+    public static partial void ClearPhotoTexture();
+    [JSImport("onPhotoTextureCleared", Module)]
+    public static partial void OnPhotoTextureCleared([JSMarshalAs<JSType.Function>] Action? callback);
+    [JSImport("resetPanelScroll", Module)]
+    public static partial void ResetPanelScroll();
+    [JSImport("selectedPhotoSession", Module)]
+    public static partial string SelectedPhotoSession();
+    [JSImport("rememberPhotoSession", Module)]
+    public static partial void RememberPhotoSession(string id);
     private static readonly Dictionary<string, RigDefinition> Definitions = new();
     private static MuscleAtlas? _atlas;
 

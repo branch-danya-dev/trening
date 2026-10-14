@@ -98,7 +98,7 @@ public partial class Home
         draft.Completed = true; draft.Step = 7; ProductStorage.Save(draft);
         _onboarding = null; OpenModel();
     }
-    private void OpenModel() { _showViewerTools = false; _tab = Tab.Params; if (IsHistory || _mode != ViewMode.Current) SetMode(ViewMode.Current); }
+    private void OpenModel() { _showViewerTools = false; _tab = Tab.Params; if (_photoRevisionBody is null && _photoComparisonCaption is null && _mode != ViewMode.Current) SetMode(ViewMode.Current); }
     private bool _activityEditable = true;
     private int _activityVisit;
     private void OpenActivity() { _tab = Tab.Workout; _activityVisit++; ActivityDate(DateOnly.FromDateTime(DateTime.Now)); }

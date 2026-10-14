@@ -88,20 +88,22 @@
     [Parameter] public AvatarBuilder? Builder {get;set;}
     [Parameter] public EventCallback<HypothesisEndpoint> OnEndpoint {get;set;}
     [Parameter] public EventCallback OnMeasure {get;set;}
+    [Parameter] public string? SelectedId {get;set;}
+    [Parameter] public EventCallback<string?> SelectedIdChanged {get;set;}
     private readonly ObservedHypothesisStore _store=new(new BrowserJournalStorage());
     private ObservedHypothesisReview? _review; private string? _error,_selected; private string _factId="";private bool _confirmedFact,_cancel;
     private int _horizon=14;private TrainingExperience _experience=TrainingExperience.Beginner;
     private IReadOnlyList<BodySnapshot> _facts=[];
     private DateOnly Today=>DateOnly.FromDateTime(DateTime.Now);
     private Hypothesis? Selected=>_store.Current.Data.Items.SingleOrDefault(h=>h.Core.Id==_selected);
-    protected override void OnInitialized()=>Refresh();
+    protected override void OnInitialized(){Refresh();if(_store.Current.Data.Items.Any(h=>h.Core.Id==SelectedId))_selected=SelectedId;}
     private void Refresh(){var watch=Stopwatch.StartNew();_store.Load();_error=_store.Current.Error ?? _store.Synchronize(DateTimeOffset.Now);_selected=_store.Current.Data.Items.LastOrDefault(h=>h.IsOpen)?.Core.Id ?? _store.Current.Data.Items.LastOrDefault()?.Core.Id;ReloadFacts();if(_selected is null&&!HistoryOnly)Preview();Console.WriteLine($"Hypothesis reload/aggregate: {watch.Elapsed.TotalMilliseconds:F2} ms");}
     private void ReloadFacts(){if(_store.Current.Data.Items.IsEmpty){_facts=[];return;}var read=new BodySnapshotStore(new BrowserJournalStorage()).Load();_facts=read.Snapshots;if(read.Error is not null)_error=read.Error;}
     private IEnumerable<BodySnapshot> EligibleFacts(HypothesisCore c)=>_facts.Where(f=>f.WeightKg.HasValue && f.Date>=c.TargetDate.AddDays(-1)&&f.Date<=c.TargetDate.AddDays(3)&&f.Date<=Today).OrderBy(f=>Math.Abs(f.Date.DayNumber-c.TargetDate.DayNumber));
     private void Preview(){try{var watch=Stopwatch.StartNew();_review=_store.Preview(DateTimeOffset.Now,_horizon,_experience);_error=null;Console.WriteLine($"Hypothesis aggregation: {_review.Preview.AggregationMs:F2} ms; forecast: {_review.Preview.ForecastMs:F2} ms; endpoint: {_review.Preview.EndpointMs:F2} ms");Console.WriteLine($"Hypothesis preview forecast+endpoint: {watch.Elapsed.TotalMilliseconds:F2} ms");}catch(Exception e)when(e is not OutOfMemoryException){_error=UiError.From(e);_review=null;}}
-    private void Issue(){if(_review is null)return;var watch=Stopwatch.StartNew();_error=_store.Issue(_review,DateTimeOffset.Now);if(_error is null)_selected=_review.Preview.Candidate!.Id;Console.WriteLine($"Hypothesis issue: {watch.Elapsed.TotalMilliseconds:F2} ms");}
-    private void Select(ChangeEventArgs e){_selected=e.Value?.ToString();_cancel=false;_confirmedFact=false;_factId="";}
-    private void New(){_selected=null;Preview();}
+    private async Task Issue(){if(_review is null)return;var watch=Stopwatch.StartNew();_error=_store.Issue(_review,DateTimeOffset.Now);if(_error is null){_selected=_review.Preview.Candidate!.Id;await SelectedIdChanged.InvokeAsync(_selected);await OnEndpoint.InvokeAsync(_review.Preview.Candidate.ExactEndpoint);}Console.WriteLine($"Hypothesis issue: {watch.Elapsed.TotalMilliseconds:F2} ms");}
+    private async Task Select(ChangeEventArgs e){_selected=e.Value?.ToString();_cancel=false;_confirmedFact=false;_factId="";await SelectedIdChanged.InvokeAsync(_selected);if(Selected is {} selected)await OnEndpoint.InvokeAsync(selected.Core.ExactEndpoint);}
+    private async Task New(){_selected=null;await SelectedIdChanged.InvokeAsync(null);Preview();if(_review?.Preview.Candidate is {} candidate)await OnEndpoint.InvokeAsync(candidate.ExactEndpoint);}
     private void Cancel(){if(Selected is { } h)_error=_store.Cancel(h.Core.Id,DateTimeOffset.Now);_cancel=false;}
     private void Evaluate(){if(Selected is not { } h||!_confirmedFact)return;var watch=Stopwatch.StartNew();_error=_store.Evaluate(h.Core.Id,_factId,DateTimeOffset.Now);Console.WriteLine($"Hypothesis outcome evaluation: {watch.Elapsed.TotalMilliseconds:F2} ms");}
     private static string SourceName(SnapshotSource source)=>source switch{SnapshotSource.Manual=>"Замер вручную",SnapshotSource.Photo=>"Запись по фото",_=>"Журнал веса"};

@@ -4,6 +4,50 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { copyMemory, readRigDefinition, SkeletalBody, surfaceSkinner } from './skeletal.js';
 import { animationCatalog, getExerciseAnimation } from './exercise-animations.js';
 import { readMuscleAtlas, applyMuscleColors, mapMuscleLoads } from './muscle-heatmap.js';
+import { createPhotoSurface } from './photo-texture.js';
+
+let photoSurface = null, photoForecastSurface = null, photoRequest = 0, photoSource = null, photoSourceAfter = null, photoCleared = null;
+export function resetPanelScroll(){const panel=document.querySelector('.panel-body');if(panel)panel.scrollTop=0;}
+export function selectedPhotoSession(){try{return sessionStorage.getItem('trening:photo-display-session')??'';}catch{return '';}}
+export function rememberPhotoSession(id){try{sessionStorage.setItem('trening:photo-display-session',id);}catch{/* A display preference must never block viewing. */}}
+export function onPhotoTextureCleared(callback) { photoCleared = callback; }
+export function clearPhotoTexture() {
+    photoRequest++; photoSource = null;
+    photoSourceAfter=null;photoForecastSurface?.dispose();photoForecastSurface=null;
+    photoSurface?.dispose(); photoSurface = null;
+    if (scene) applyMode();
+    photoCleared?.();
+}
+export async function setPhotoTexture(id) {
+    clearPhotoTexture();
+    const request = ++photoRequest, generation = localStorage.getItem('trening:data-generation');
+    photoSource = id;
+    const surface = await createPhotoSurface(id);
+    if (request !== photoRequest || generation !== localStorage.getItem('trening:data-generation')) {surface?.dispose();return 'cancelled';}
+    if (!surface || !meshes.current || !rigs.current) {surface?.dispose();return 'unsupported';}
+    photoSurface = surface;
+    for (const slot of ['current','forecast']) if(meshes[slot])surface.attach(meshes[slot].geometry,rigs[slot],slot);
+    applyMode();
+    return 'ready';
+}
+export async function setPhotoComparison(beforeId,afterId) {
+    clearPhotoTexture();
+    const request=++photoRequest,generation=localStorage.getItem('trening:data-generation');
+    const beforeMesh=meshes.current,afterMesh=meshes.forecast;
+    photoSource=beforeId;photoSourceAfter=afterId;
+    let before,after;
+    try {
+        before=await createPhotoSurface(beforeId);
+        after=await createPhotoSurface(afterId);
+        if(request!==photoRequest||generation!==localStorage.getItem('trening:data-generation')||mode!=='historyCompare'||meshes.current!==beforeMesh||meshes.forecast!==afterMesh){before?.dispose();after?.dispose();return 'cancelled';}
+        if(!before||!after||!rigs.current||!rigs.forecast){before?.dispose();after?.dispose();return 'unsupported';}
+        photoSurface=before;photoForecastSurface=after;
+        before.attach(meshes.current.geometry,rigs.current,'current');after.attach(meshes.forecast.geometry,rigs.forecast,'current');
+        applyMode();return 'ready';
+    } catch(error){before?.dispose();after?.dispose();throw error;}
+}
+window.addEventListener('trening:photos-invalidated', e => {if (!e.detail || e.detail===photoSource || e.detail===photoSourceAfter)clearPhotoTexture();});
+window.addEventListener('storage', e => {if(e.key==='trening:data-generation'||e.key==='trening:restore-in-progress'||e.key===null)clearPhotoTexture();});
 
 const FOV = 30;
 const TWEEN_MS = 380;
@@ -17,7 +61,7 @@ let modelHeight = 1.8;
 let framed = false;
 let mode = 'current';
 let sideBySide = false;
-let platform;
+let platform, exerciseBench;
 
 const meshes = { current: null, forecast: null };
 const rigs = { current: null, forecast: null };
@@ -130,6 +174,10 @@ export function init(canvasId) {
     platform = new THREE.Group();
     platform.add(disc, ring);
     scene.add(platform);
+    exerciseBench = new THREE.Group();
+    const pad = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({color:0x53624f,roughness:.9}));
+    const support = new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:0x737d74,roughness:.7}));
+    exerciseBench.add(pad,support);exerciseBench.visible=false;scene.add(exerciseBench);
 
     controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
@@ -197,6 +245,11 @@ function replaceMesh(slot, mesh, rig) {
     }
     meshes[slot] = mesh;
     rigs[slot] = rig;
+    if(photoSurface) {
+        const surface=slot==='forecast'&&photoForecastSurface?photoForecastSurface:photoSurface;
+        surface.attach(mesh.geometry,rig,photoForecastSurface?'current':slot);
+        if(slot==='current'&&meshes.forecast&&!photoForecastSurface)photoSurface.attach(meshes.forecast.geometry,rigs.forecast,'forecast');
+    }
     if (slot === 'current') updateMuscleColors();
     scene.add(mesh);
     if (slot === 'current') rebuildGhost();
@@ -395,6 +448,11 @@ function applyTapes() {
 
 /** Historical modes reuse the renderer slots, but never enable exercise heatmaps. */
 export function setMode(newMode, newSideBySide) {
+    if(photoForecastSurface&&newMode!=='historyCompare') {
+        photoSurface?.dispose();photoSurface=photoForecastSurface;photoForecastSurface=null;
+        photoSource=photoSourceAfter;photoSourceAfter=null;
+        for(const slot of ['current','forecast'])if(meshes[slot])photoSurface.attach(meshes[slot].geometry,rigs[slot],slot);
+    }
     mode = newMode;
     sideBySide = newSideBySide;
     applyMode(true);
@@ -497,12 +555,12 @@ function applyMode(refit = false) {
         current.visible = show.current && !ghostActive;
         // Relative exercise load belongs to the current body only. Comparison/forecast keep their materials.
         current.material = mode === 'current' && heatmapEnabled && rigs.current && muscleLoads && muscleAtlas
-            ? heatmapMaterial : materials.current;
+            ? heatmapMaterial : photoSurface && rigs.current ? photoSurface.material : materials.current;
     }
     if (forecast) {
         forecast.visible = show.forecast;
         forecast.material = (mode === 'forecast' || mode === 'compare') && forecastHeatmapEnabled && rigs.forecast && forecastMuscleLoads && muscleAtlas
-            ? heatmapMaterial : materials.forecast;
+            ? heatmapMaterial : photoSurface && rigs.forecast ? (photoForecastSurface??photoSurface).material : materials.forecast;
     }
 
     const apart = comparing && haveForecast && sideBySide ? 0.42 * modelHeight : 0;
@@ -568,7 +626,7 @@ function placeCamera(view, animate, resetDistance = true, keepAngle = false) {
 }
 
 /** Keep the body between the upper camera controls and lower mode controls. */
-const OVERLAY_SELECTORS = '.view-toolbar, .mode-bar, .view-tapes';
+const OVERLAY_SELECTORS = '.view-toolbar, .mode-bar, .view-tapes, .photo-surface';
 
 /** Insets for visible controls; each edge is bounded to preserve a usable frame. */
 function contentInsets(host, h) {
@@ -594,6 +652,11 @@ function resize() {
     camera.aspect = w / frameH;
     camera.setViewOffset(w, frameH, 0, -inset.top, w, h);
     camera.updateProjectionMatrix();
+    if (framed) {
+        const direction = camera.position.clone().sub(controls.target).normalize();
+        camera.position.copy(controls.target).addScaledVector(direction, fitDistance());
+        controls.update();
+    }
     requestRender();
 }
 
@@ -608,6 +671,20 @@ function frame(now) {
     let moving = false;
     const seconds = animationTime === null ? 0 : Math.max(0, (now - animationTime) / 1000);
     for (const rig of Object.values(rigs)) if (rig?.update(seconds)) moving = true;
+    exerciseBench.visible = mode === 'current' && rigs.current?.activeAnimation?.id === 'bench-press';
+    if(exerciseBench.visible) {
+        const rig=rigs.current, root=rig.mesh.skeleton.bones[rig.byName.get('root')];
+        if(rig.benchContact===undefined){
+            const p=rig.mesh.geometry.attributes.position;let best=Infinity;rig.benchContact=0;
+            for(let i=0;i<p.count;i++)if(Math.abs(p.getX(i))<.025&&Math.abs(p.getY(i)-modelHeight*.68)<.03&&p.getZ(i)<best){best=p.getZ(i);rig.benchContact=i;}
+        }
+        const height=Math.max(.15,rig.mesh.getVertexPosition(rig.benchContact,new THREE.Vector3()).y-.008);
+        const [pad,support]=exerciseBench.children;
+        pad.scale.set(modelHeight*.2,.06,modelHeight*.75);
+        pad.position.set(0,height-.03,-modelHeight*.24);
+        support.scale.set(modelHeight*.12,height-.06,modelHeight*.45);
+        support.position.set(0,(height-.06)/2,-modelHeight*.29);
+    }
     animationTime = moving ? now : null;
 
     if (turn) {

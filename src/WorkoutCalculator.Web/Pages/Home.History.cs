@@ -11,20 +11,24 @@ public partial class Home
     private IBodyShape? _historyFromBody;
     private IBodyShape? _historyToBody;
     private bool IsHistory => _mode == ViewMode.History;
-    private string HistoryCaption => _history.Comparing && _history.CanCompare
+    private string HistoryCaption => _photoRevisionLabel ?? (_history.Comparing && _history.CanCompare
         ? $"История: {_history.From!.Date:dd.MM.yyyy} → {_history.To!.Date:dd.MM.yyyy}"
-        : $"История: {_history.Timeline.Selected?.Date:dd.MM.yyyy}";
+        : $"История: {_history.Timeline.Selected?.Date:dd.MM.yyyy}");
 
     private void OpenHistory()
     {
+        _photosVisited=true;
+        if(_photoComparisonCaption is not null){_tab=Tab.History;_checkInOpen=false;return;}
         _revisionCompare=false; _checkInOpen=false;
         _tab = Tab.History;
-        ShowHistory();
+        if(_photoRevisionBody is null)ShowHistory();
     }
 
     private void ShowHistory()
     {
         _revisionCompare=false;
+        _photoComparisonCaption=null;
+        _photoRevisionBody=null;_photoRevisionLabel=null;
         SyncCurrentFact();
         RefreshCalibration();
         if (_history.Timeline.Selected is null)
@@ -40,6 +44,7 @@ public partial class Home
     private void RenderHistory()
     {
         if (_revisionCompare) { RenderRevisionComparison(); return; }
+        if(_photoRevisionBody is {} photoBody && _viewerReady && IsHistory){ViewerInterop.ClearMesh("forecast");ViewerInterop.SetGeometry("current",photoBody.Geometry);ViewerInterop.SetMode("history",false);return;}
         if (!_viewerReady || !IsHistory || _history.Timeline.Selected is null) return;
         IBodyShape Build(BodySnapshot snapshot)
         {

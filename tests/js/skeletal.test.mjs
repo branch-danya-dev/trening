@@ -84,6 +84,17 @@ test('quaternion pose is relative to rest; reset, sparse pose and invalid reques
     close(vertex(rig.mesh), before);
 });
 
+test('model-space animation keeps the intended bending axis with a rotated personal bind frame', () => {
+    const rig=fixture(), before=vertex(rig.mesh);
+    const animation=fixtureAnimation();animation.space='model';
+    animation.tracks=animation.tracks.filter(t=>t.property==='quaternion');
+    rig.setAnimationTime(animation,1);
+    const rotation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2);
+    const pivot=new THREE.Vector3(0,1,0);
+    close(vertex(rig.mesh),before.clone().sub(pivot).applyQuaternion(rotation).add(pivot));
+    rig.stopAnimation();close(vertex(rig.mesh),before);
+});
+
 test('AnimationClip supports quaternion and scaled translation tracks, stop and scrub', () => {
     const rig = fixture(), before = vertex(rig.mesh);
     const animation = fixtureAnimation(false);

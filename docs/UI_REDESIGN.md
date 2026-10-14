@@ -6,6 +6,20 @@ PR #31 was checked open, mergeable, and at the expected head `3f7d9cbf7d528aa32a
 
 ## Product composition
 
+### Model workspace correction, 2026-10-14
+
+User review identified excessive page length, an ambiguous forecast shortcut, lost photo selection and incorrect exercise axes. The five destinations now share a fixed viewport and a separately scrolling task pane. On mobile the model occupies the upper portion of the window and the task pane remains above bottom navigation. Secondary avatar sources/corrections are disclosed. Navigation resets the task pane's scroll position without recreating the photo editor or losing selected files.
+
+The forecast shortcut resolves the selected/saved observed hypothesis; the endpoint's date, numeric changes and ranges are visible. It reuses the frozen endpoint through the existing builder. Small predicted changes remain small in 3D; no exaggeration or altered physiology is used.
+
+The requested **Фото на 3D** is a display-only projection of local photographs onto existing skinned geometry. Front/back/side pixels are aligned using the bundled local pose detector and personal rest skeleton. **До / после** gives each saved avatar its own dated photo material; dates without a saved avatar cannot claim a historical shape. Session selection survives navigation and page reload, while unsaved file inputs survive navigation. Originals can be viewed without running factual photo analysis. PIN locking, source deletion (including another tab), restore-generation changes and cancelled asynchronous work dispose or invalidate photographic GPU resources.
+
+Projection is approximate: clothing and hair remain photographic appearance on the existing body surface; no new hair/clothing meshes or hidden-surface reconstruction are created. Occluded side pixels use adjacent front/back observations; seams and stretched detail may remain. The forecast uses the same recorded photo on its predicted shape and is explicitly not a real future photograph. Synthetic developer photos remain nonfactual and never become CheckIn evidence. This is not a generative AI renderer or a new reconstruction/domain model.
+
+Exercise clips now convert body-space rotations into each personal bone's bind frame. Squat/hinge feet remain grounded; bench press faces upward with bent knees and a visual support. Direct rest-local pose APIs and independent slot skeletons are preserved. New checks exercise actual knee direction, foot height, face orientation, overhead arms and reset behavior rather than only nonzero joint rotation.
+
+Focused regression: `model-workspace-smoke.cjs` checks observed endpoint selection, independent dated photo materials, retained files/session, exact domain bytes, cancellation, PIN cleanup, deletion and reload. Its detector fixture is deterministic; actual local MediaPipe was separately run against six labelled AI-generated demo photographs. The corrective screenshots are under `docs/evidence/ui-redesign/model-workspace/`.
+
 | Zone | Before | After |
 |---|---|---|
 | Today | Calendar and plan first, repeated heatmaps | Date/state, quick add, factual summary, activity, nutrition, plan comparison, focused close-day review; disclosed calendar/load |
@@ -28,13 +42,15 @@ Desktop uses permanent left navigation and a large viewer beside state/actions. 
 
 ## Validation and acceptance
 
-The implementation is isolated on `codex/ui-redesign-v1`. The exact-head GitHub CI and final GO decision are linked in the PR; this branch must not auto-merge. Local validation covers Release (0 warnings/errors), 683 .NET, 93 JS, 34 Python, the existing behavioral browser suites and published offline/update scenarios. CI repeats the full matrix and generates its own gallery artifact.
+The implementation is isolated on `codex/ui-redesign-v1`. The exact-head GitHub CI and final GO decision are linked in the PR; this branch must not auto-merge. Local validation covers Release (0 warnings/errors), 683 .NET, 94 JS, 34 Python, the existing behavioral browser suites and published offline/update scenarios. CI repeats the full matrix and generates its own gallery artifact.
 
 The focused UI smoke covers 320/390/768/1024/1400, five named destinations, one selected ARIA tab, keyboard arrows/focus, touch targets, unique IDs/labels, no page overflow, closed secondary sections, absence of engineering metadata in ordinary screens, quick actions with editor focus, close-day review focus, durable CheckIn, byte-preserving stored-avatar comparison, offline messaging and saving facts when WebGL is unavailable. Existing test assertions about geometry, journal bytes, eligibility, immutable forecasts, CAS, independent outcomes and exact backup/restore remain intact. Helpers open the real disclosure controls before exercising secondary features; screenshots remain separate from behavioral assertions.
 
 The synthetic gallery includes 73 captures: major states at 390/1400, and critical forms, outcomes and recovery at 320. It includes accepted/rejected photo CheckIn, supported/unsupported local GeometryWarp, large history, quota, corrupt storage, offline and unavailable WebGL. The before directory retains the baseline screenshots and timing reports. No private data or participant images are used.
 
 ## Performance
+
+Corrective workspace recheck on the same desktop/Edge at 390px, with the same archives and no concurrent benchmark: startup at 0/30/180/365/1000 days was **2498/2992/3942/5474/10649 ms**, Today **110/229/658/1206/3188 ms**, and CheckIn **880/834/1164/1633/3188 ms**. At 1000 days the previous V1 observations were 10908/2874/3603 ms respectively; the original pre-UI values were 12065/3203/4145 ms. These are single observations, including normal run-to-run variation. The 1000/fresh CheckIn ratio is **3.62×**, still above the desired 2×. [Raw phases](evidence/ui-redesign/model-workspace/performance.json) and [bounds](evidence/ui-redesign/model-workspace/performance-budgets.json). Photo decoding/projection is an explicit, independently indicated operation; the full photo editor loads only after first opening photos/progress and then stays mounted.
 
 Measured on the same Windows desktop, Edge 155.0.4283.45, 390px viewport and identical generated archives, without concurrent heavy browser work. Values are single observations, not statistical estimates or promises for physical phones. Full phases and raw logs are in [performance comparison](evidence/ui-redesign/performance-comparison.json).
 

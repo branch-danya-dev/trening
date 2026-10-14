@@ -2,6 +2,8 @@
 
 | Internal term | Consumer wording / rule |
 |---|---|
+| Local photo surface projection | Фото на 3D; existing photo on measured body geometry, no claim of a future photograph |
+| Two dated photo materials | До / после; show both photo dates and dates of available saved avatar forms |
 | Avatar | Аватар / 3D-модель тела |
 | AvatarRevision | Версия модели; история версий модели |
 | ClosedActivityDay | Подтверждённый день |

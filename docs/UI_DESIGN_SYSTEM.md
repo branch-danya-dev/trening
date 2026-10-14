@@ -2,6 +2,8 @@
 
 ## Direction
 
+The model workspace uses `100dvh` with a fixed 3D area and an independently scrolling task pane. Desktop retains left navigation; mobile uses a model/task split above safe-area bottom navigation. Photo controls belong to the model: date, **Фото на 3D**, **До / после**. Busy/error status stays visible at every width. Long explanations and secondary editor controls remain in the task pane.
+
 A quiet fitness product: warm neutral background, white surfaces, restrained forest green, clear type and generous separation. 3D is content with a dedicated canvas, not a decorative dashboard tile. No neon glow or speculative imagery. Russian is the consumer language.
 
 ## Tokens

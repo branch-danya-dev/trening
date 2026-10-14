@@ -1,5 +1,9 @@
 # Как проверять приложение
 
+## Model workspace / photo surface
+
+`PRE_UI_FIXTURES=<generated fixtures> node tests/browser/model-workspace-smoke.cjs` verifies the saved observed endpoint, independent photo materials for two dates, retained unsaved files/session, unchanged settled domain payloads, cancelled async loading, PIN GPU disposal, source deletion and reload. It uses a deterministic pose detector fixture to isolate display/resource behavior. The realistic-photo gallery was separately checked with the actual bundled MediaPipe detector; these AI-generated demo images are not evidence of factual reconstruction accuracy. `skeletal-smoke.cjs` additionally checks forward knees, grounded feet, upward bench orientation and raised pulldown arms on the real personal skeleton. The direct rest-local pose API remains covered by the JS suite.
+
 ## Pre-UI stabilization: semantic selector policy
 
 The [pre-UI contract](PRE_UI_CONTRACT.md) and [readiness report](PRE_UI_READINESS.md) govern the next UI refactor. Preserve all existing behavioral suites; update screenshot/layout expectations separately.

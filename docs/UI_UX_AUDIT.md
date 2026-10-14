@@ -4,6 +4,8 @@ Baseline: `bf2586681f6e3369cd6f45c3e25a969d6c85b077`. PR #31 head was verified a
 
 ## Observed problems and presentation decisions
 
+Owner review, 2026-10-14: the long Progress block pushed the avatar away; forecast shortcuts could show a legacy scenario; photo editors were recreated on navigation; animation rotations used incompatible rest axes. The corrective workspace keeps 3D in the window, scrolls only the task pane, binds forecast shortcuts to saved observed endpoints, retains one lazy photo editor, and corrects exercise rotations in presentation space. The requested local photo-surface mode and independent dated before/after materials are documented in [UI_REDESIGN](UI_REDESIGN.md). They do not write measurements or alter frozen predictions.
+
 | State / task | Baseline problem | Keep / change / consumer wording |
 |---|---|---|
 | New user | Required fields and optional measurements look similar; progress is text only | Keep eight durable stages, add progress strip and explicit optional guidance; unknown remains valid |

@@ -1,5 +1,7 @@
 # UI/UX redesign screenshot gallery
 
+Current corrective review: [model workspace, photographic surface, before/after and repaired animations](model-workspace/README.md). The original 73 V1 captures below remain as the earlier review record; CI regenerates the full state gallery against each head.
+
 All data and photos are synthetic. Captures use the isolated loopback developer fixture loader. These are layout evidence, not evidence of human predictive accuracy. Browser: 155.0.4283.45.
 
 Baseline and comparison: [before screenshots](before/) · [baseline verification](baseline.json) · [performance](performance-comparison.json) · [UI checks](ui-smoke.json) · [visual review](REVIEW.md).

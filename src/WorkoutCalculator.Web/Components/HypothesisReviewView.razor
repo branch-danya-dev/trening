@@ -2,6 +2,9 @@
 <div data-testid="hypothesis-review">
     <p><strong>@ObservedHypothesisPanel.MaturityName(Core.EvidenceSummary.Maturity)</strong> · @Core.EvidenceSummary.WindowStart.ToString("dd.MM") — @Core.EvidenceSummary.WindowEndExclusive.AddDays(-1).ToString("dd.MM.yyyy")</p>
     <h3>Состояние на @Core.TargetDate.ToString("dd.MM.yyyy")</h3>
+    <p class="forecast-delta" data-testid="forecast-delta"><strong>@Fmt.Signed(Core.ExactEndpoint.Point.Body.WeightKg-Core.Forecast.Expected[0].Body.WeightKg,2) кг</strong>
+    @if(Core.ExactEndpoint.Point.Girths.TryGetValue(Girth.Waist,out var targetWaist)&&Core.Forecast.Expected[0].Girths.TryGetValue(Girth.Waist,out var startWaist)){<span> · талия @Fmt.Signed(targetWaist-startWaist,1) см</span>}
+    <small>от начала гипотезы · изменения в 3D показаны в реальном масштабе</small></p>
     <dl class="history-values" data-testid="hypothesis-endpoint">
         <dt>Вес</dt><dd>@Fmt.N(Core.ExactEndpoint.Point.Body.WeightKg,2) кг · @Fmt.N(Core.ExactEndpoint.Point.WeightRange.Lower,2)–@Fmt.N(Core.ExactEndpoint.Point.WeightRange.Upper,2)</dd>
         @if(Core.ExactEndpoint.Point.Girths.TryGetValue(Girth.Waist,out var waist)){var range=Core.ExactEndpoint.Point.GirthRanges[Girth.Waist];<dt>Талия</dt><dd>@Fmt.N(waist,1) см · @Fmt.N(range.Lower,1)–@Fmt.N(range.Upper,1)</dd>}

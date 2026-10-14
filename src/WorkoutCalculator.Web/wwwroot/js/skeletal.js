@@ -56,6 +56,8 @@ export class SkeletalBody {
         this.mesh.frustumCulled = false;
         this.restRotations = bones.map(b => b.quaternion.clone());
         this.restPositions = bones.map(b => b.position.clone());
+        this.restWorldRotations = bones.map(b => b.getWorldQuaternion(new THREE.Quaternion()));
+        this.restWorldPositions = bones.map(b => b.getWorldPosition(new THREE.Vector3()));
         geometry.computeBoundingBox();
         this.bodyHeight = Math.max(0.1, geometry.boundingBox.max.y - geometry.boundingBox.min.y);
         this.byName = new Map(names.map((name, i) => [name, i]));
@@ -104,8 +106,16 @@ export class SkeletalBody {
             const bone = this.mesh.skeleton.bones[i];
             if (track.property === 'quaternion') {
                 const rest = this.restRotations[i];
-                const values = track.values.flatMap(value =>
-                    rest.clone().multiply(constrainQuaternion(track.bone, new THREE.Quaternion(...value))).normalize().toArray());
+                const values = track.values.flatMap(value => {
+                    let delta = new THREE.Quaternion(...value).normalize();
+                    if (animation.space === 'model') {
+                        // Authored exercise axes belong to the upright body, not MakeHuman's
+                        // differently oriented personal bone frames. Convert at bind time.
+                        const world = this.restWorldRotations[i];
+                        delta = world.clone().invert().multiply(delta).multiply(world);
+                    } else delta = constrainQuaternion(track.bone, delta);
+                    return rest.clone().multiply(delta).normalize().toArray();
+                });
                 return new THREE.QuaternionKeyframeTrack(`${bone.uuid}.quaternion`, track.times, values);
             }
             const rest = this.restPositions[i];
@@ -167,6 +177,21 @@ export class SkeletalBody {
 
     updateMatrices() {
         this.mesh.updateMatrixWorld(true);
+        if (this.activeAnimation?.groundFeet) {
+            const feet = ['foot.L', 'foot.R'].map(n => this.byName.get(n)).filter(i => i !== undefined);
+            const root = this.mesh.skeleton.bones[this.byName.get('root')];
+            if (root && feet.length) {
+                const offset = new THREE.Vector3();
+                for (const i of feet) {
+                    const now = this.mesh.worldToLocal(this.mesh.skeleton.bones[i].getWorldPosition(new THREE.Vector3()));
+                    offset.add(this.restWorldPositions[i].clone().sub(now));
+                }
+                offset.divideScalar(feet.length);
+                if(this.activeAnimation.groundFeet==='height'){offset.x=0;offset.z=0;}
+                root.position.add(offset);
+                this.mesh.updateMatrixWorld(true);
+            }
+        }
         this.mesh.skeleton.update();
     }
 

@@ -10,55 +10,55 @@ const trackP = (bone, times, values) => ({ bone, property: 'position', scale: 'b
 
 export const EXERCISE_ANIMATIONS = Object.freeze([
     {
-        id: 'squat', name: 'Присед', movementPattern: 'squat', duration: 3.2, loop: true,
+        id: 'squat', name: 'Присед', movementPattern: 'squat', duration: 3.2, loop: true, space: 'model', groundFeet: true,
         involvedBones: ['root', 'spine05', 'upperleg01.L', 'upperleg01.R', 'lowerleg01.L', 'lowerleg01.R', 'foot.L', 'foot.R'],
         tracks: [
             trackP('root', [0, 1.6, 3.2], [[0, 0, 0], [0, -0.11, 0.025], [0, 0, 0]]),
-            trackQ('spine05', [0, 1.6, 3.2], [q(), q(-12), q()]),
-            trackQ('upperleg01.L', [0, 1.6, 3.2], [q(), q(72), q()]),
-            trackQ('upperleg01.R', [0, 1.6, 3.2], [q(), q(72), q()]),
-            trackQ('lowerleg01.L', [0, 1.6, 3.2], [q(), q(-108), q()]),
-            trackQ('lowerleg01.R', [0, 1.6, 3.2], [q(), q(-108), q()]),
-            trackQ('foot.L', [0, 1.6, 3.2], [q(), q(34), q()]),
-            trackQ('foot.R', [0, 1.6, 3.2], [q(), q(34), q()]),
+            trackQ('spine05', [0, 1.6, 3.2], [q(), q(22), q()]),
+            trackQ('upperleg01.L', [0, 1.6, 3.2], [q(), q(-60), q()]),
+            trackQ('upperleg01.R', [0, 1.6, 3.2], [q(), q(-60), q()]),
+            trackQ('lowerleg01.L', [0, 1.6, 3.2], [q(), q(95), q()]),
+            trackQ('lowerleg01.R', [0, 1.6, 3.2], [q(), q(95), q()]),
+            trackQ('foot.L', [0, 1.6, 3.2], [q(), q(-35), q()]),
+            trackQ('foot.R', [0, 1.6, 3.2], [q(), q(-35), q()]),
         ],
     },
     {
-        id: 'bench-press', name: 'Жим лёжа', movementPattern: 'horizontal-push', duration: 3.0, loop: true,
+        id: 'bench-press', name: 'Жим лёжа', movementPattern: 'horizontal-push', duration: 3.0, loop: true, space: 'model', groundFeet: 'height',
         involvedBones: ['root', 'upperarm01.L', 'upperarm01.R', 'lowerarm01.L', 'lowerarm01.R'],
         tracks: [
-            trackQ('root', [0, 3.0], [q(90), q(90)]),
+            trackQ('root', [0, 3.0], [q(-90), q(-90)]),
             trackP('root', [0, 3.0], [[0, 0.03, 0], [0, 0.03, 0]]),
-            trackQ('upperarm01.L', [0, 1.5, 3.0], [q(5, 0, -72), q(-4, 0, -58), q(5, 0, -72)]),
-            trackQ('upperarm01.R', [0, 1.5, 3.0], [q(5, 0, 72), q(-4, 0, 58), q(5, 0, 72)]),
-            trackQ('lowerarm01.L', [0, 1.5, 3.0], [q(-95), q(-12), q(-95)]),
-            trackQ('lowerarm01.R', [0, 1.5, 3.0], [q(-95), q(-12), q(-95)]),
+            trackQ('lowerleg01.L', [0, 3.0], [q(90), q(90)]),
+            trackQ('lowerleg01.R', [0, 3.0], [q(90), q(90)]),
+            trackQ('upperarm01.L', [0, 1.5, 3.0], [q(-25, 0, 25), q(-90, 0, -30), q(-25, 0, 25)]),
+            trackQ('upperarm01.R', [0, 1.5, 3.0], [q(-25, 0, -25), q(-90, 0, 30), q(-25, 0, -25)]),
+            trackQ('lowerarm01.L', [0, 1.5, 3.0], [q(-85), q(), q(-85)]),
+            trackQ('lowerarm01.R', [0, 1.5, 3.0], [q(-85), q(), q(-85)]),
         ],
     },
     {
-        id: 'biceps-curl', name: 'Сгибание рук', movementPattern: 'elbow-flexion', duration: 2.6, loop: true,
+        id: 'biceps-curl', name: 'Сгибание рук', movementPattern: 'elbow-flexion', duration: 2.6, loop: true, space: 'model',
         involvedBones: ['upperarm01.L', 'upperarm01.R', 'lowerarm01.L', 'lowerarm01.R'],
         tracks: [
-            trackQ('upperarm01.L', [0, 1.3, 2.6], [q(), q(-8), q()]),
-            trackQ('upperarm01.R', [0, 1.3, 2.6], [q(), q(-8), q()]),
-            trackQ('lowerarm01.L', [0, 1.3, 2.6], [q(), q(-125), q()]),
-            trackQ('lowerarm01.R', [0, 1.3, 2.6], [q(), q(-125), q()]),
+            trackQ('upperarm01.L', [0, 2.6], [q(0, 0, -25), q(0, 0, -25)]),
+            trackQ('upperarm01.R', [0, 2.6], [q(0, 0, 25), q(0, 0, 25)]),
+            trackQ('lowerarm01.L', [0, 1.3, 2.6], [q(), q(-115), q()]),
+            trackQ('lowerarm01.R', [0, 1.3, 2.6], [q(), q(-115), q()]),
         ],
     },
     {
-        id: 'lat-pulldown', name: 'Тяга верхнего блока', movementPattern: 'vertical-pull', duration: 3.0, loop: true,
+        id: 'lat-pulldown', name: 'Тяга верхнего блока', movementPattern: 'vertical-pull', duration: 3.0, loop: true, space: 'model',
         involvedBones: ['clavicle.L', 'clavicle.R', 'upperarm01.L', 'upperarm01.R', 'lowerarm01.L', 'lowerarm01.R'],
         tracks: [
-            trackQ('clavicle.L', [0, 1.5, 3.0], [q(0, -12), q(), q(0, -12)]),
-            trackQ('clavicle.R', [0, 1.5, 3.0], [q(0, 12), q(), q(0, 12)]),
-            trackQ('upperarm01.L', [0, 1.5, 3.0], [q(0, 0, -150), q(8, 0, -62), q(0, 0, -150)]),
-            trackQ('upperarm01.R', [0, 1.5, 3.0], [q(0, 0, 150), q(8, 0, 62), q(0, 0, 150)]),
-            trackQ('lowerarm01.L', [0, 1.5, 3.0], [q(-18), q(-112), q(-18)]),
-            trackQ('lowerarm01.R', [0, 1.5, 3.0], [q(-18), q(-112), q(-18)]),
+            trackQ('upperarm01.L', [0, 1.5, 3.0], [q(0, 0, 125), q(0, 0, 20), q(0, 0, 125)]),
+            trackQ('upperarm01.R', [0, 1.5, 3.0], [q(0, 0, -125), q(0, 0, -20), q(0, 0, -125)]),
+            trackQ('lowerarm01.L', [0, 1.5, 3.0], [q(), q(0, 0, 110), q()]),
+            trackQ('lowerarm01.R', [0, 1.5, 3.0], [q(), q(0, 0, -110), q()]),
         ],
     },
     {
-        id: 'romanian-deadlift', name: 'Румынская тяга', movementPattern: 'hip-hinge', duration: 3.2, loop: true,
+        id: 'romanian-deadlift', name: 'Румынская тяга', movementPattern: 'hip-hinge', duration: 3.2, loop: true, space: 'model', groundFeet: true,
         involvedBones: ['root', 'spine05', 'spine04', 'upperleg01.L', 'upperleg01.R', 'lowerleg01.L', 'lowerleg01.R'],
         tracks: [
             trackP('root', [0, 1.6, 3.2], [[0, 0, 0], [0, -0.025, 0.035], [0, 0, 0]]),
@@ -67,8 +67,10 @@ export const EXERCISE_ANIMATIONS = Object.freeze([
             trackQ('spine04', [0, 1.6, 3.2], [q(), q(-6), q()]),
             trackQ('upperleg01.L', [0, 1.6, 3.2], [q(), q(-42), q()]),
             trackQ('upperleg01.R', [0, 1.6, 3.2], [q(), q(-42), q()]),
-            trackQ('lowerleg01.L', [0, 1.6, 3.2], [q(), q(-8), q()]),
-            trackQ('lowerleg01.R', [0, 1.6, 3.2], [q(), q(-8), q()]),
+            trackQ('lowerleg01.L', [0, 1.6, 3.2], [q(), q(8), q()]),
+            trackQ('lowerleg01.R', [0, 1.6, 3.2], [q(), q(8), q()]),
+            trackQ('foot.L', [0, 1.6, 3.2], [q(), q(-18), q()]),
+            trackQ('foot.R', [0, 1.6, 3.2], [q(), q(-18), q()]),
         ],
     },
 ]);
@@ -100,6 +102,7 @@ export function validateAnimationDefinition(animation) {
         !Number.isFinite(animation.duration) || animation.duration <= 0 || typeof animation.loop !== 'boolean' ||
         !Array.isArray(animation.involvedBones) || !Array.isArray(animation.tracks) || !animation.tracks.length)
         throw new Error('Invalid animation definition');
+    if (animation.space !== undefined && animation.space !== 'model') throw new Error('Unknown animation space');
     const seen = new Set();
     animation.tracks.forEach(track => {
         validateTrack(track, animation.duration);

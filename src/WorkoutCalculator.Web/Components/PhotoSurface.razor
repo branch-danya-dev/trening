@@ -1,0 +1,80 @@
+@using System.Runtime.InteropServices.JavaScript
+<div class="photo-surface" data-testid="photo-surface" aria-busy="@(_busy ? "true" : "false")">
+    <div class="photo-surface-controls">
+        <select aria-label="Дата фото на модели" value="@_selected" @onchange="Select" disabled="@_busy">
+            <option value="">Без фото</option>
+            @foreach(var photo in _photos) { <option value="@photo.Id">@Date(photo).ToString("dd.MM.yyyy")@((photo.Synthetic || photo.SourceKind == "DeveloperFixture") ? " · демо" : "")</option> }
+        </select>
+        <button class="btn @(_enabled ? "primary" : "")" aria-pressed="@(_enabled ? "true" : "false")" disabled="@(_busy || string.IsNullOrEmpty(_selected))" @onclick="Toggle">@(_busy ? "Накладываем фото…" : "Фото на 3D")</button>
+        <button class="btn" disabled="@(_busy || Previous is null)" @onclick="Compare">До / после</button>
+        <button class="btn" aria-label="Управление фотографиями" @onclick="OnManage">Фото</button>
+    </div>
+    @if (_message is not null) { <p role="status" class="@(_enabled && !_busy ? "photo-caption" : "photo-status")">@_message</p> }
+</div>
+@code {
+    [Parameter] public EventCallback OnManage {get;set;}
+    [Parameter] public EventCallback<PhotoSession?> OnSelected {get;set;}
+    [Parameter] public Func<PhotoSession[],bool>? CompareBodies {get;set;}
+    private List<PhotoSession> _photos=[];
+    private string _selected="";
+    private bool _enabled, _busy;
+    private string? _message;
+    private static DateOnly Date(PhotoSession p)=>p.ObservedDate??DateOnly.FromDateTime(p.CreatedAt.LocalDateTime);
+    private PhotoSession? Previous=>_photos.SkipWhile(p=>p.Id!=_selected).Skip(1).FirstOrDefault();
+    protected override async Task OnInitializedAsync()
+    {
+        _selected=ViewerInterop.SelectedPhotoSession();
+        ViewerInterop.OnPhotoTextureCleared(()=> { _enabled=false; _ = InvokeAsync(StateHasChanged); });
+        await Refresh();
+    }
+    public async Task Refresh()
+    {
+        try {
+            _photos=(await PhotoStore.ListMeta()).OrderByDescending(Date).ToList();
+            if (!_photos.Any(p=>p.Id==_selected)) {
+                if(_enabled) ViewerInterop.ClearPhotoTexture();
+                _enabled=false;
+                _selected=_photos.FirstOrDefault()?.Id??"";
+            }
+            if((await PhotoStore.Pin()).Locked) {_enabled=false;_message="Фото закрыты PIN-кодом. Откройте их в разделе «Фото».";}
+            StateHasChanged();
+        } catch(JSException) {_message="Фотографии недоступны. Откройте раздел «Фото» для восстановления доступа.";}
+    }
+    private async Task Select(ChangeEventArgs e)
+    {
+        _selected=e.Value?.ToString()??"";
+        ViewerInterop.RememberPhotoSession(_selected);
+        if(_selected.Length==0){_enabled=false;_message=null;ViewerInterop.ClearPhotoTexture();return;}
+        await OnSelected.InvokeAsync(_photos.FirstOrDefault(p=>p.Id==_selected));
+        if(_enabled) await Apply();
+    }
+    private async Task Toggle()
+    {
+        if(_enabled){ViewerInterop.ClearPhotoTexture();_enabled=false;_message=null;return;}
+        await OnSelected.InvokeAsync(_photos.FirstOrDefault(p=>p.Id==_selected));
+        await Apply();
+    }
+    private async Task Apply()
+    {
+        _busy=true;
+        _message="Подгоняем локальное фото к поверхности тела…";
+        try {
+            var result=await ViewerInterop.SetPhotoTexture(_selected);
+            _enabled=result=="ready";
+            _message=_enabled ? "Фото на поверхности · форма по замерам. Прогноз использует это же фото." : result=="cancelled" ? "Фото скрыто. Нажмите «Фото на 3D», чтобы открыть снова." : "Не удалось совместить фото. Нужен снимок в полный рост спереди с видимыми руками и ногами.";
+        } catch(JSException) {_enabled=false;_message="Фото недоступно. Проверьте PIN-код и наличие снимка в разделе «Фото».";}
+        finally{_busy=false;}
+    }
+    private async Task Compare()
+    {
+        if(Previous is not {} previous||_photos.FirstOrDefault(p=>p.Id==_selected) is not {} current)return;
+        _busy=true;_message="Сопоставляем фотографии и сохранённые версии тела…";
+        try {
+            if(CompareBodies?.Invoke([previous,current])!=true){_message="Для обеих дат нужны сохранённые версии аватара. Откройте фото отдельно.";return;}
+            var result=await ViewerInterop.SetPhotoComparison(previous.Id,current.Id);
+            _enabled=result=="ready";
+            _message=_enabled?$"Фото {Date(previous):dd.MM.yyyy} → {Date(current):dd.MM.yyyy}. Форма каждой модели — по сохранённым замерам.":"Не удалось совместить обе фотосессии. Можно открыть их по одной.";
+        } catch(JSException){_enabled=false;_message="Фото недоступны. Проверьте PIN-код и наличие обеих сессий.";}
+        finally{_busy=false;}
+    }
+}

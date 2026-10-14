@@ -11,7 +11,7 @@ const read=p=>p.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
 const facts=p=>p.evaluate(()=>localStorage.getItem('workoutcalc.bodySnapshots.v1'));
 const mesh=p=>p.evaluate(async()=>Array.from((await import(new URL('js/viewer.js',document.baseURI))).avatarCreationMesh()));
 async function slider(p,label,value){await p.getByRole('textbox',{name:label,exact:true}).fill(String(value));await p.getByRole('textbox',{name:label,exact:true}).press('Tab');await settled(p);}
-async function lock(p){await settled(p);await p.getByLabel('Я проверил форму, источники данных и предупреждения').check();await button(p,'Зафиксировать аватар');await p.waitForSelector('[data-avatar-status="Active"]');}
+async function lock(p){await settled(p);await p.getByLabel('Я проверил форму, источники данных и предупреждения').check();await button(p,'Зафиксировать аватар');await require('./ui-disclosures.cjs').openDetails(p,'model-adjustments');await p.waitForSelector('[data-avatar-status="Active"]');}
 async function seedPhoto(p,bad=false){return p.evaluate(async bad=>{
  const photos=await import(new URL('js/photos.js',document.baseURI));const c=document.createElement('canvas');c.width=80;c.height=160;
  const ctx=c.getContext('2d');ctx.fillStyle='#eee';ctx.fillRect(0,0,80,160);ctx.fillStyle='#345';ctx.fillRect(25,10,30,140);const blob=await new Promise(r=>c.toBlob(r));

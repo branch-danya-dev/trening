@@ -6,6 +6,7 @@ async function prepare(page,name){
  if(name==='Профиль')await openDetails(page,'advanced-settings');
  if(name==='План')await openDetails(page,'manual-scenarios');
  if(name==='Прогресс'){await openDetails(page,'fact-history');await openDetails(page,'outcome-history');}
+ await openDetails(page,'model-adjustments');
  await openDetails(page,'existing-outcome');await openDetails(page,'geometry-disclosure');
  await openDetails(page,'viewer-tools');
 }
